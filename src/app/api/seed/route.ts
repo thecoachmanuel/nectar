@@ -5,7 +5,6 @@ import Branch from "@/models/Branch";
 import ItemCategory from "@/models/ItemCategory";
 import Item from "@/models/Item";
 import PaymentGateway from "@/models/PaymentGateway";
-import Setting from "@/models/Setting";
 import bcrypt from "bcryptjs";
 
 export async function GET() {
@@ -118,7 +117,19 @@ export async function GET() {
     }
 
     // 5. Seed Food Items
-    const itemsData = [
+    const itemsData: Array<{
+      name: string;
+      slug: string;
+      categoryId: any;
+      description: string;
+      price: number;
+      itemType: "veg" | "non_veg";
+      status: boolean;
+      isFeatured: boolean;
+      image: string;
+      variations: Array<{ name: string; options: Array<{ name: string; price: number }> }>;
+      extras: Array<{ name: string; price: number }>;
+    }> = [
       {
         name: "Whopper Burger",
         slug: "whopper-burger",
