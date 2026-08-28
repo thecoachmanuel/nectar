@@ -104,19 +104,6 @@ export default function LoginPage() {
           </div>
         </form>
       </div>
-
-      <div className="container max-w-[360px] py-6 p-4 sm:px-6 shadow-sm rounded-2xl bg-white border border-[#eff0f6]">
-        <h2 className="mb-6 text-center text-lg font-medium text-[#14142b]">For Quick Demo</h2>
-        <div className="grid grid-cols-2 gap-3">
-          <button onClick={() => handleQuickDemo('admin')} className="w-full h-10 rounded-xl text-center text-sm capitalize text-white font-medium bg-orange-500 hover:bg-orange-600 transition-colors">
-            Admin
-          </button>
-          <button onClick={() => handleQuickDemo('customer')} className="w-full h-10 rounded-xl text-center text-sm capitalize text-white font-medium bg-emerald-500 hover:bg-emerald-600 transition-colors">
-            Customer
-          </button>
-        </div>
-      </div>
-
     </section>
   );
 }

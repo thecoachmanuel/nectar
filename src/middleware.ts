@@ -12,6 +12,11 @@ export async function middleware(req: NextRequest) {
   // Protect Admin API Routes and Admin Frontend Routes
   if (pathname.startsWith('/api/admin') || pathname.startsWith('/admin')) {
     
+    // Allow access to admin login page
+    if (pathname === '/admin/login') {
+      return NextResponse.next();
+    }
+    
     // 1. Try to get token from Authorization header (API calls usually)
     const authHeader = req.headers.get('authorization');
     let token = authHeader?.split(' ')[1];
@@ -37,8 +42,9 @@ export async function middleware(req: NextRequest) {
       const { payload } = await jwtVerify(token, JWT_SECRET);
       
       // Role-Based Access Control (RBAC)
-      // Only 'admin' role can access these routes
-      if (payload.role !== 'admin' && payload.role !== 'administrator') {
+      // Only admin and staff roles can access admin routes
+      const allowedRoles = ['admin', 'administrator', 'store_manager', 'chef', 'waiter'];
+      if (!allowedRoles.includes(payload.role as string)) {
         if (pathname.startsWith('/api/')) {
           return NextResponse.json({ status: false, message: 'Forbidden. Admin access required.' }, { status: 403 });
         } else {
