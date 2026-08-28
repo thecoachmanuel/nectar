@@ -7,9 +7,10 @@ import { useRouter } from "next/navigation";
 
 interface NavbarProps {
   toggleSidebar: () => void;
+  user?: any;
 }
 
-export default function Navbar({ toggleSidebar }: NavbarProps) {
+export default function Navbar({ toggleSidebar, user }: NavbarProps) {
   const router = useRouter();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -97,10 +98,10 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
             onClick={() => { setProfileOpen(!profileOpen); setStoreOpen(false); setLangOpen(false); }}
             className="flex items-center gap-2"
           >
-            <img src="/images/default/admin.png" alt="Admin" className="w-10 h-10 rounded-xl object-cover bg-gray-100" />
+            <img src={user?.image || "/images/default/admin.png"} alt="User" className="w-10 h-10 rounded-xl object-cover bg-gray-100" />
             <div className="text-left hidden md:block">
               <span className="block text-[10px] text-[#6E7191] font-medium">Hello,</span>
-              <span className="block text-xs font-bold text-[#14142B] -mt-0.5">Admin</span>
+              <span className="block text-xs font-bold text-[#14142B] -mt-0.5">{user?.name?.split(" ")[0] || "User"}</span>
             </div>
             <ChevronDown className="w-4 h-4 text-[#A0A3BD] hidden sm:block" />
           </button>
@@ -109,10 +110,11 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
             <div className="absolute top-14 right-0 w-72 bg-white border border-[#EFF0F6] rounded-2xl shadow-xl py-4 z-50">
               <div className="px-6 pb-4 border-b border-[#EFF0F6] text-center">
                 <div className="w-20 h-20 mx-auto rounded-full p-1 bg-gradient-to-tr from-[#ff006b] to-orange-400 mb-3">
-                  <img src="/images/default/admin.png" alt="Admin" className="w-full h-full rounded-full border-2 border-white object-cover bg-white" />
+                  <img src={user?.image || "/images/default/admin.png"} alt="Admin" className="w-full h-full rounded-full border-2 border-white object-cover bg-white" />
                 </div>
-                <h3 className="font-bold text-[#14142B] text-base">Admin User</h3>
-                <p className="text-[#6E7191] text-xs">admin@example.com</p>
+                <h3 className="font-bold text-[#14142B] text-base">{user?.name || "Admin"}</h3>
+                <p className="text-[#6E7191] text-xs">{user?.email || "admin@example.com"}</p>
+                <p className="text-[#ff006b] font-semibold text-[10px] uppercase mt-1 tracking-wider">{user?.role || "Administrator"}</p>
               </div>
               <div className="pt-2">
                 <Link href="/admin/profile" className="flex items-center gap-3 px-6 py-3 text-sm text-[#14142B] hover:bg-[#F7F7FC] transition-colors">

@@ -23,13 +23,18 @@ export interface IOrder extends Document {
   customerName: string;
   customerEmail?: string;
   customerPhone: string;
-  orderType: "delivery" | "takeaway" | "pos" | "dine_in";
+  orderType: "delivery" | "pickup" | "dine_in";
   storeId: mongoose.Types.ObjectId | string;
+  deliveryBoyId?: mongoose.Types.ObjectId | string;
   items: IOrderItem[];
   subtotal: number;
   taxAmount: number;
   discountAmount: number;
   deliveryCharge: number;
+  deliveryPin?: string;
+  deliveryBoyEarned?: number;
+  commissionAmount?: number;
+  discount: number;
   totalAmount: number;
   couponCode?: string;
   couponDiscount?: number;
@@ -45,7 +50,6 @@ export interface IOrder extends Document {
   paymentReference?: string;
   orderStatus: "pending" | "accepted" | "preparing" | "ready" | "out_for_delivery" | "delivered" | "canceled";
   statusTimeline: IStatusTimeline[];
-  deliveryBoyId?: mongoose.Types.ObjectId | string;
   tableNumber?: string;
   notes?: string;
   createdAt: Date;
@@ -76,17 +80,18 @@ const OrderSchema = new Schema<IOrder>(
     customerName: { type: String, required: true },
     customerEmail: { type: String },
     customerPhone: { type: String, required: true },
-    orderType: {
-      type: String,
-      enum: ["delivery", "takeaway", "pos", "dine_in"],
-      default: "delivery",
-    },
+    orderType: { type: String, enum: ["delivery", "pickup", "dine_in"], required: true },
     storeId: { type: Schema.Types.Mixed, required: true },
+    deliveryBoyId: { type: Schema.Types.Mixed },
     items: [OrderItemSchema],
     subtotal: { type: Number, required: true },
     taxAmount: { type: Number, default: 0 },
     discountAmount: { type: Number, default: 0 },
     deliveryCharge: { type: Number, default: 0 },
+    deliveryPin: { type: String },
+    deliveryBoyEarned: { type: Number, default: 0 },
+    commissionAmount: { type: Number, default: 0 },
+    discount: { type: Number, default: 0 },
     totalAmount: { type: Number, required: true },
     couponCode: { type: String },
     couponDiscount: { type: Number, default: 0 },
@@ -110,7 +115,6 @@ const OrderSchema = new Schema<IOrder>(
       default: "pending",
     },
     statusTimeline: [StatusTimelineSchema],
-    deliveryBoyId: { type: Schema.Types.Mixed },
     tableNumber: { type: String },
     notes: { type: String },
   },

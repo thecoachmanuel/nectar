@@ -1,8 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { X, ImagePlus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useJsApiLoader, StandaloneSearchBox } from "@react-google-maps/api";
+
+const libraries: any = ["places"];
 
 interface StoreModalProps {
   isOpen: boolean;
@@ -13,6 +16,7 @@ interface StoreModalProps {
 
 export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: StoreModalProps) {
   const [loading, setLoading] = useState(false);
+  const searchBoxRef = useRef<any>(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -24,9 +28,18 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
     latitude: "",
     longitude: "",
     deliveryRadius: 5,
+    commissionRate: 0,
+    password: "",
     taxAmount: 0,
     taxType: "percentage",
     status: "active",
+    profileImage: "",
+    bannerImage: "",
+  });
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+    libraries,
   });
 
   useEffect(() => {
@@ -42,9 +55,13 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
         latitude: storeToEdit.latitude || "",
         longitude: storeToEdit.longitude || "",
         deliveryRadius: storeToEdit.deliveryRadius || 5,
+        commissionRate: storeToEdit.commissionRate || 0,
+        password: "", // Don't pre-fill password on edit
         taxAmount: storeToEdit.taxAmount || 0,
         taxType: storeToEdit.taxType || "percentage",
         status: storeToEdit.status || "active",
+        profileImage: storeToEdit.profileImage || "",
+        bannerImage: storeToEdit.bannerImage || "",
       });
     } else {
       setFormData({
@@ -58,12 +75,42 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
         latitude: "",
         longitude: "",
         deliveryRadius: 5,
+        commissionRate: 0,
+        password: "",
         taxAmount: 0,
         taxType: "percentage",
         status: "active",
+        profileImage: "",
+        bannerImage: "",
       });
     }
   }, [storeToEdit, isOpen]);
+
+  const handlePlacesChanged = () => {
+    const places = searchBoxRef.current?.getPlaces();
+    if (places && places.length > 0) {
+      const place = places[0];
+      setFormData((prev) => ({
+        ...prev,
+        address: place.formatted_address || place.name || prev.address,
+        latitude: place.geometry?.location?.lat()?.toString() || prev.latitude,
+        longitude: place.geometry?.location?.lng()?.toString() || prev.longitude,
+      }));
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: "profileImage" | "bannerImage") => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // In a real app, you'd upload this to an S3 bucket or cloudinary.
+    // Since we don't have an active upload route mapped in this snippet, we'll convert to base64 for simplicity.
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      setFormData((prev) => ({ ...prev, [field]: reader.result as string }));
+    };
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,10 +120,13 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
       const url = storeToEdit ? `/api/admin/stores/${storeToEdit._id}` : `/api/admin/stores`;
       const method = storeToEdit ? "PUT" : "POST";
 
+      const payload: any = { ...formData };
+      if (!payload.password) delete payload.password; // Don't send empty password on update
+
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -103,74 +153,109 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
         </div>
         
         <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
-          <form id="store-form" onSubmit={handleSubmit} className="space-y-5">
+          <form id="store-form" onSubmit={handleSubmit} className="space-y-6">
+            
+            {/* Images */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Store Name *</label>
-                <input required type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-3 py-2 border rounded-xl" />
+                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Profile Image</label>
+                <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-[#EFF0F6] rounded-xl cursor-pointer hover:bg-[#F7F7FC] overflow-hidden relative">
+                  {formData.profileImage ? (
+                    <img src={formData.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6 text-[#6E7191]">
+                      <ImagePlus className="w-6 h-6 mb-1" />
+                      <p className="text-xs">Upload Profile</p>
+                    </div>
+                  )}
+                  <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, "profileImage")} />
+                </label>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Email *</label>
-                <input required type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-3 py-2 border rounded-xl" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Phone *</label>
-                <input required type="text" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full px-3 py-2 border rounded-xl" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Status *</label>
-                <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full px-3 py-2 border rounded-xl">
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
+                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Banner Image</label>
+                <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-[#EFF0F6] rounded-xl cursor-pointer hover:bg-[#F7F7FC] overflow-hidden relative">
+                  {formData.bannerImage ? (
+                    <img src={formData.bannerImage} alt="Banner" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6 text-[#6E7191]">
+                      <ImagePlus className="w-6 h-6 mb-1" />
+                      <p className="text-xs">Upload Banner</p>
+                    </div>
+                  )}
+                  <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, "bannerImage")} />
+                </label>
               </div>
             </div>
 
+            {/* Core Info */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Store Name *</label>
+                <input required type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Phone *</label>
+                <input required type="text" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
+              </div>
+            </div>
+            
+            {/* Login Credentials */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Manager Email (Login ID) *</label>
+                <input required type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Manager Password {storeToEdit && '(Leave blank to keep)'}</label>
+                <input type="password" required={!storeToEdit} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
+              </div>
+            </div>
+
+            {/* Location */}
             <div>
               <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Address *</label>
-              <input required type="text" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="w-full px-3 py-2 border rounded-xl" />
+              {isLoaded ? (
+                <StandaloneSearchBox
+                  onLoad={(ref) => (searchBoxRef.current = ref)}
+                  onPlacesChanged={handlePlacesChanged}
+                >
+                  <input required type="text" placeholder="Search address to auto-fill lat/lng..." value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
+                </StandaloneSearchBox>
+              ) : (
+                <input required type="text" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
+              )}
             </div>
 
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">City *</label>
-                <input required type="text" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} className="w-full px-3 py-2 border rounded-xl" />
+                <input required type="text" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">State *</label>
-                <input required type="text" value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })} className="w-full px-3 py-2 border rounded-xl" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Zip Code *</label>
-                <input required type="text" value={formData.zipCode} onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })} className="w-full px-3 py-2 border rounded-xl" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Latitude *</label>
-                <input required type="number" step="any" value={formData.latitude} onChange={(e) => setFormData({ ...formData, latitude: e.target.value })} className="w-full px-3 py-2 border rounded-xl" />
+                <input required type="number" step="any" value={formData.latitude} onChange={(e) => setFormData({ ...formData, latitude: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Longitude *</label>
-                <input required type="number" step="any" value={formData.longitude} onChange={(e) => setFormData({ ...formData, longitude: e.target.value })} className="w-full px-3 py-2 border rounded-xl" />
+                <input required type="number" step="any" value={formData.longitude} onChange={(e) => setFormData({ ...formData, longitude: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
               </div>
             </div>
 
+            {/* Configs */}
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Delivery Radius (km)</label>
-                <input type="number" value={formData.deliveryRadius} onChange={(e) => setFormData({ ...formData, deliveryRadius: Number(e.target.value) })} className="w-full px-3 py-2 border rounded-xl" />
+                <input type="number" value={formData.deliveryRadius} onChange={(e) => setFormData({ ...formData, deliveryRadius: Number(e.target.value) })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Tax Amount</label>
-                <input type="number" value={formData.taxAmount} onChange={(e) => setFormData({ ...formData, taxAmount: Number(e.target.value) })} className="w-full px-3 py-2 border rounded-xl" />
+                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Admin Commission (%)</label>
+                <input type="number" value={formData.commissionRate} onChange={(e) => setFormData({ ...formData, commissionRate: Number(e.target.value) })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Tax Type</label>
-                <select value={formData.taxType} onChange={(e) => setFormData({ ...formData, taxType: e.target.value })} className="w-full px-3 py-2 border rounded-xl">
-                  <option value="percentage">Percentage</option>
-                  <option value="fixed">Fixed</option>
+                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Status *</label>
+                <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
                 </select>
               </div>
             </div>
@@ -179,7 +264,8 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
 
         <div className="p-4 border-t border-[#EFF0F6] flex justify-end gap-3">
           <button onClick={onClose} className="px-4 py-2 text-sm font-semibold text-[#6E7191] bg-[#F7F7FC] rounded-xl hover:bg-[#EFF0F6]">Cancel</button>
-          <button type="submit" form="store-form" disabled={loading} className="px-4 py-2 text-sm font-semibold text-white bg-[#ff006b] rounded-xl hover:bg-[#e60060] disabled:opacity-70">
+          <button type="submit" form="store-form" disabled={loading} className="px-4 py-2 text-sm font-semibold text-white bg-[var(--primary-color,#ff006b)] rounded-xl disabled:opacity-70 flex items-center gap-2">
+            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             {loading ? "Saving..." : "Save Store"}
           </button>
         </div>

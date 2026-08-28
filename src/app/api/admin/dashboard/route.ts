@@ -3,10 +3,29 @@ import connectToDatabase from "@/lib/db";
 import Order from "@/models/Order";
 import User from "@/models/User";
 import Item from "@/models/Item";
+import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || "foodappi_secret_key_default_2026"
+);
 
 export async function GET() {
   try {
     await connectToDatabase();
+    
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+    let storeIdFilter: any = {};
+    let isStoreManager = false;
+
+    if (token) {
+      const { payload } = await jwtVerify(token, JWT_SECRET);
+      if (payload.role === "store_manager" && payload.storeId) {
+        storeIdFilter = { storeId: payload.storeId };
+        isStoreManager = true;
+      }
+    }
 
     const [
       totalOrders,
@@ -15,11 +34,12 @@ export async function GET() {
       orders,
       topCustomersData
     ] = await Promise.all([
-      Order.countDocuments(),
+      Order.countDocuments(storeIdFilter),
       User.countDocuments({ role: "customer" }),
-      Item.countDocuments(),
-      Order.find({}),
+      Item.countDocuments(storeIdFilter),
+      Order.find(storeIdFilter),
       Order.aggregate([
+        { $match: storeIdFilter },
         { $group: { _id: "$customerEmail", count: { $sum: 1 } } },
         { $sort: { count: -1 } },
         { $limit: 5 }

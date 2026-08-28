@@ -6,7 +6,7 @@ export interface UserProfile {
   name: string;
   email: string;
   phone?: string;
-  role: "admin" | "customer" | "chef" | "waiter" | "delivery_boy";
+  role: "admin" | "customer" | "chef" | "waiter" | "delivery_boy" | "store_manager";
   storeId: string | number;
   addresses?: {
     _id?: string;

@@ -22,34 +22,42 @@ import {
 interface SidebarProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
+  user?: any;
 }
 
-export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
+export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
   const pathname = usePathname();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
-  const menuItems = [
-    { name: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" />, path: "/admin/dashboard" },
-    { name: "POS", icon: <CreditCard className="w-4 h-4" />, path: "/admin/pos" },
+  const role = user?.role || "admin";
+
+  // Define full menu items, then filter based on role
+  const allMenuItems = [
+    { name: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" />, path: "/admin/dashboard", roles: ["admin", "store_manager"] },
+    { name: "Delivery Dashboard", icon: <LayoutDashboard className="w-4 h-4" />, path: "/admin/delivery-dashboard", roles: ["delivery_boy"] },
+    { name: "POS", icon: <CreditCard className="w-4 h-4" />, path: "/admin/pos", roles: ["admin", "store_manager"] },
     { 
       name: "Orders", 
       icon: <ShoppingCart className="w-4 h-4" />, 
+      roles: ["admin", "store_manager"],
       children: [
         { name: "Online Orders", path: "/admin/online-orders" },
         { name: "POS Orders", path: "/admin/pos-orders" },
         { name: "Status Screen", path: "/admin/order-status-screen" },
       ]
     },
-    { name: "Item Categories", icon: <Box className="w-4 h-4" />, path: "/admin/item-categories" },
-    { name: "Items", icon: <Utensils className="w-4 h-4" />, path: "/admin/items" },
-    { name: "Kitchen Display", icon: <BarChart3 className="w-4 h-4" />, path: "/admin/kds" },
-    { name: "Transactions", icon: <CreditCard className="w-4 h-4" />, path: "/admin/transactions" },
-    { name: "Messages", icon: <MessageSquare className="w-4 h-4" />, path: "/admin/messages" },
-    { name: "Coupons", icon: <Ticket className="w-4 h-4" />, path: "/admin/coupons" },
-    { name: "Subscribers", icon: <BellRing className="w-4 h-4" />, path: "/admin/subscribers" },
+    { name: "Item Categories", icon: <Box className="w-4 h-4" />, path: "/admin/item-categories", roles: ["admin", "store_manager"] },
+    { name: "Items", icon: <Utensils className="w-4 h-4" />, path: "/admin/items", roles: ["admin", "store_manager"] },
+    { name: "Kitchen Display", icon: <BarChart3 className="w-4 h-4" />, path: "/admin/kds", roles: ["admin", "store_manager"] },
+    { name: "Transactions", icon: <CreditCard className="w-4 h-4" />, path: "/admin/transactions", roles: ["admin"] },
+    { name: "Payouts", icon: <CreditCard className="w-4 h-4" />, path: "/admin/payouts", roles: ["admin", "store_manager", "delivery_boy"] },
+    { name: "Messages", icon: <MessageSquare className="w-4 h-4" />, path: "/admin/messages", roles: ["admin"] },
+    { name: "Coupons", icon: <Ticket className="w-4 h-4" />, path: "/admin/coupons", roles: ["admin"] },
+    { name: "Subscribers", icon: <BellRing className="w-4 h-4" />, path: "/admin/subscribers", roles: ["admin"] },
     { 
       name: "Reports", 
       icon: <BarChart3 className="w-4 h-4" />, 
+      roles: ["admin", "store_manager"],
       children: [
         { name: "Sales Report", path: "/admin/sales-report" },
         { name: "Items Report", path: "/admin/items-report" },
@@ -59,6 +67,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     { 
       name: "Users", 
       icon: <Users className="w-4 h-4" />, 
+      roles: ["admin"],
       children: [
         { name: "Administrators", path: "/admin/administrators" },
         { name: "Customers", path: "/admin/customers" },
@@ -71,12 +80,15 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     { 
       name: "Settings", 
       icon: <Settings className="w-4 h-4" />, 
+      roles: ["admin"],
       children: [
         { name: "Stores", path: "/admin/stores" },
         { name: "General Settings", path: "/admin/settings" },
       ]
     },
   ];
+
+  const menuItems = allMenuItems.filter(item => item.roles.includes(role));
 
   const handleMenuClick = (name: string, hasChildren: boolean) => {
     if (hasChildren) {

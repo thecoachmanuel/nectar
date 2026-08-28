@@ -3,7 +3,12 @@ import mongoose, { Document, Model } from 'mongoose';
 export interface ISetting extends Document {
   group: string;
   key: string;
-  payload: any;
+  iosAppUrl?: string;
+  playStoreUrl?: string;
+  baseDeliveryFee: number;
+  feePerKm: number;
+  freeDeliveryThreshold?: number;
+  themeColor: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -20,11 +25,12 @@ const SettingSchema = new mongoose.Schema<ISetting>(
       required: true,
       unique: true, // e.g., 'site_name', 'primary_color'
     },
-    payload: {
-      type: mongoose.Schema.Types.Mixed,
-      required: true,
-      default: {},
-    },
+    iosAppUrl: { type: String },
+    playStoreUrl: { type: String },
+    baseDeliveryFee: { type: Number, default: 500 },
+    feePerKm: { type: Number, default: 100 },
+    freeDeliveryThreshold: { type: Number },
+    themeColor: { type: String, default: "#ff006b" },
   },
   {
     timestamps: true,
@@ -32,5 +38,7 @@ const SettingSchema = new mongoose.Schema<ISetting>(
 );
 
 // Prevent mongoose from compiling the model multiple times in development
-export const Setting: Model<ISetting> =
+const Setting: Model<ISetting> =
   mongoose.models.Setting || mongoose.model<ISetting>('Setting', SettingSchema);
+
+export default Setting;

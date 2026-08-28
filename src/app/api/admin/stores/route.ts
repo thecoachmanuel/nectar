@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 import Store from "@/models/Store";
+import User from "@/models/User";
+import bcrypt from "bcryptjs";
 
 export async function GET() {
   try {
@@ -16,7 +18,28 @@ export async function POST(req: Request) {
   try {
     await connectToDatabase();
     const body = await req.json();
+    
+    // Hash password if provided
+    let hashedPassword = "";
+    if (body.password) {
+      hashedPassword = await bcrypt.hash(body.password, 10);
+    }
+
     const newStore = await Store.create(body);
+
+    // Auto-create Store Manager User
+    if (hashedPassword) {
+      await User.create({
+        name: `${newStore.name} Manager`,
+        email: newStore.email,
+        password: hashedPassword,
+        phone: newStore.phone,
+        role: "store_manager",
+        storeId: newStore._id,
+        status: true,
+      });
+    }
+
     return NextResponse.json({ status: true, message: "Store created successfully", store: newStore }, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ status: false, message: error.message }, { status: 500 });

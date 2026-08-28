@@ -15,13 +15,16 @@ export interface IUser extends Document {
   email: string;
   password?: string;
   phone?: string;
-  role: "admin" | "customer" | "chef" | "waiter" | "delivery_boy";
+  role: "admin" | "customer" | "chef" | "waiter" | "delivery_boy" | "store_manager";
   storeId: number | string; // 0 for global/all stores
   status: boolean;
   addresses: IAddress[];
   permissions: string[];
   image?: string;
   deviceToken?: string;
+  deliveryCommissionType?: "fixed" | "percentage";
+  deliveryCommissionValue?: number;
+  walletBalance?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -51,6 +54,9 @@ const UserSchema = new Schema<IUser>(
     addresses: [AddressSchema],
     permissions: [{ type: String }],
     image: { type: String },
+    deliveryCommissionType: { type: String, enum: ["fixed", "percentage"], default: "fixed" },
+    deliveryCommissionValue: { type: Number, default: 0 },
+    walletBalance: { type: Number, default: 0 },
     deviceToken: { type: String },
   },
   { timestamps: true }

@@ -61,7 +61,21 @@ export const viewport: Viewport = {
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+import dbConnect from "@/lib/dbConnect";
+import Setting from "@/models/Setting";
+
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  let themeColor = "#ff006b";
+  try {
+    await dbConnect();
+    const setting = await Setting.findOne();
+    if (setting && setting.themeColor) {
+      themeColor = setting.themeColor;
+    }
+  } catch (err) {
+    console.error("Failed to load theme setting", err);
+  }
+
   return (
     <html lang="en">
       <head>
@@ -77,6 +91,16 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
         <meta httpEquiv="Pragma" content="no-cache" />
         <meta httpEquiv="Expires" content="0" />
+        <style dangerouslySetInnerHTML={{ __html: `
+          :root {
+            --primary-color: ${themeColor};
+          }
+          /* Apply dynamic color to specific utility classes if needed, 
+             or rely on Tailwind arbitrary values via inline styles elsewhere */
+          .bg-primary { background-color: var(--primary-color) !important; }
+          .text-primary { color: var(--primary-color) !important; }
+          .border-primary { border-color: var(--primary-color) !important; }
+        `}} />
       </head>
       <body className="antialiased bg-white text-[#14142b]" style={{ fontFamily: "'Rubik', sans-serif" }}>
         <Toaster position="top-right" richColors />

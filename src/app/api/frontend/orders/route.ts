@@ -61,9 +61,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ status: false, message: "Store selection is required" }, { status: 400 });
     }
 
+    // Fetch the Store to get the commission rate
+    const Store = (await import("@/models/Store")).default;
+    const store = await Store.findById(storeId);
+    if (!store) {
+      return NextResponse.json({ status: false, message: "Invalid store selected" }, { status: 400 });
+    }
+
     if (orderType === "delivery" && !deliveryAddress) {
       return NextResponse.json({ status: false, message: "Delivery address is required" }, { status: 400 });
     }
+
+    const deliveryPin = Math.floor(1000 + Math.random() * 9000).toString();
+    const calculatedCommission = ((subtotal || 0) * (store.commissionRate || 0)) / 100;
 
     const newOrder = new Order({
       orderSerialNo: generateOrderSerial(),
@@ -78,6 +88,8 @@ export async function POST(req: Request) {
       taxAmount: taxAmount || 0,
       discountAmount: discountAmount || 0,
       deliveryCharge: deliveryCharge || 0,
+      commissionAmount: calculatedCommission,
+      deliveryPin: orderType === "delivery" ? deliveryPin : undefined,
       totalAmount,
       couponCode,
       couponDiscount: couponDiscount || 0,

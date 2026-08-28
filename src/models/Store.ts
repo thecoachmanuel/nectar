@@ -22,6 +22,10 @@ export interface IStore extends Document {
     type: string; // "Polygon"
     coordinates: number[][][]; // GeoJSON format: [[[lng, lat], [lng, lat]...]]
   };
+  profileImage?: string;
+  bannerImage?: string;
+  commissionRate: number;
+  password?: string;
   timeSlots: ITimeSlot[];
   createdAt: Date;
   updatedAt: Date;
@@ -50,6 +54,10 @@ const StoreSchema = new Schema<IStore>(
       type: { type: String, default: "Polygon" },
       coordinates: { type: [[[Number]]], default: [] },
     },
+    profileImage: { type: String },
+    bannerImage: { type: String },
+    commissionRate: { type: Number, default: 0 },
+    password: { type: String },
     timeSlots: [TimeSlotSchema],
   },
   { timestamps: true }

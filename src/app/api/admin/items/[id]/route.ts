@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Item from "@/models/Item";
+import ItemCategory from "@/models/ItemCategory";
 
 export async function PUT(
   req: Request,
