@@ -21,27 +21,59 @@ export async function POST(req: Request) {
       );
     }
 
-    const user = await User.findOne({ email });
-    if (!user || !user.password) {
-      return NextResponse.json(
-        { status: false, message: "Invalid email or password credentials" },
-        { status: 401 }
-      );
-    }
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
 
-    if (!user.status) {
-      return NextResponse.json(
-        { status: false, message: "Your account has been deactivated" },
-        { status: 403 }
-      );
-    }
+    let user;
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return NextResponse.json(
-        { status: false, message: "Invalid email or password credentials" },
-        { status: 401 }
-      );
+    // 1. Check if ENV Admin Credentials match
+    if (adminEmail && adminPassword && email === adminEmail && password === adminPassword) {
+      user = await User.findOne({ email: adminEmail });
+      
+      // Auto-upsert the admin in the database if they log in via ENV credentials
+      if (!user) {
+        const hashedPassword = await bcrypt.hash(adminPassword, 10);
+        user = await User.create({
+          name: "Super Admin",
+          email: adminEmail,
+          password: hashedPassword,
+          role: "admin",
+          branchId: 0,
+          status: true,
+          permissions: ["all"],
+        });
+      } else {
+        // Update DB password if ENV password changed
+        const isMatch = await bcrypt.compare(adminPassword, user.password);
+        if (!isMatch) {
+          user.password = await bcrypt.hash(adminPassword, 10);
+          await user.save();
+        }
+      }
+    } else {
+      // 2. Normal Database Authentication
+      user = await User.findOne({ email });
+      if (!user || !user.password) {
+        return NextResponse.json(
+          { status: false, message: "Invalid email or password credentials" },
+          { status: 401 }
+        );
+      }
+
+      if (!user.status) {
+        return NextResponse.json(
+          { status: false, message: "Your account has been deactivated" },
+          { status: 403 }
+        );
+      }
+
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return NextResponse.json(
+          { status: false, message: "Invalid email or password credentials" },
+          { status: 401 }
+        );
+      }
     }
 
     const token = await new SignJWT({
