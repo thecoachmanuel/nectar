@@ -236,16 +236,20 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
                   onClick={() => setActiveFoodType("veg")}
                   className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border transition-all ${activeFoodType === "veg" ? "veg-active border-[#ff006b] text-[#ff006b] bg-white shadow-sm" : "border-[#eff0f6] bg-[#eff0f6] text-[#6e7191]"}`}
                 >
-                  <img src="/images/item-type/veg.png" alt="Veg" className="w-4 h-4" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                  <Leaf className="w-3 h-3 text-emerald-500" />
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="2" y="2" width="20" height="20" rx="4" stroke="#1AB759" strokeWidth="2"/>
+                    <circle cx="12" cy="12" r="5" fill="#1AB759"/>
+                  </svg>
                   Veg
                 </button>
                 <button
                   onClick={() => setActiveFoodType("non_veg")}
                   className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border transition-all ${activeFoodType === "non_veg" ? "veg-active border-[#ff006b] text-[#ff006b] bg-white shadow-sm" : "border-[#eff0f6] bg-[#eff0f6] text-[#6e7191]"}`}
                 >
-                  <img src="/images/item-type/non-veg.png" alt="Non-Veg" className="w-4 h-4" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                  <Drumstick className="w-3 h-3 text-rose-500" />
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="2" y="2" width="20" height="20" rx="4" stroke="#EF4444" strokeWidth="2"/>
+                    <path d="M12 7l5 8H7l5-8z" fill="#EF4444"/>
+                  </svg>
                   Non-Veg
                 </button>
               </div>

@@ -31,21 +31,41 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const menuItems = [
     { name: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" />, path: "/admin/dashboard" },
     { name: "POS", icon: <CreditCard className="w-4 h-4" />, path: "/admin/pos" },
-    { name: "Online Orders", icon: <ShoppingCart className="w-4 h-4" />, path: "/admin/orders" },
+    { 
+      name: "Orders", 
+      icon: <ShoppingCart className="w-4 h-4" />, 
+      children: [
+        { name: "Online Orders", path: "/admin/online-orders" },
+        { name: "POS Orders", path: "/admin/pos-orders" },
+        { name: "Status Screen", path: "/admin/order-status-screen" },
+      ]
+    },
     { name: "Item Categories", icon: <Box className="w-4 h-4" />, path: "/admin/item-categories" },
     { name: "Items", icon: <Utensils className="w-4 h-4" />, path: "/admin/items" },
-    { name: "Customers", icon: <Users className="w-4 h-4" />, path: "/admin/customers" },
     { name: "Kitchen Display", icon: <BarChart3 className="w-4 h-4" />, path: "/admin/kds" },
+    { name: "Transactions", icon: <CreditCard className="w-4 h-4" />, path: "/admin/transactions" },
     { name: "Messages", icon: <MessageSquare className="w-4 h-4" />, path: "/admin/messages" },
     { name: "Coupons", icon: <Ticket className="w-4 h-4" />, path: "/admin/coupons" },
-    { name: "Reports", icon: <BarChart3 className="w-4 h-4" />, path: "/admin/reports" },
+    { name: "Subscribers", icon: <BellRing className="w-4 h-4" />, path: "/admin/subscribers" },
+    { 
+      name: "Reports", 
+      icon: <BarChart3 className="w-4 h-4" />, 
+      children: [
+        { name: "Sales Report", path: "/admin/sales-report" },
+        { name: "Items Report", path: "/admin/items-report" },
+        { name: "Credit Balance", path: "/admin/credit-balance-report" },
+      ]
+    },
     { 
       name: "Users", 
       icon: <Users className="w-4 h-4" />, 
       children: [
+        { name: "Administrators", path: "/admin/administrators" },
+        { name: "Customers", path: "/admin/customers" },
         { name: "Employees", path: "/admin/employees" },
         { name: "Waiters", path: "/admin/waiter" },
         { name: "Chefs", path: "/admin/chef" },
+        { name: "Delivery Boys", path: "/admin/delivery-boys" },
       ]
     },
     { name: "Settings", icon: <Settings className="w-4 h-4" />, path: "/admin/settings" },

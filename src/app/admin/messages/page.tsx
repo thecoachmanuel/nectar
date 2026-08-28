@@ -1,174 +1,107 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
-import { useAuthStore } from "@/store/useAuthStore";
-import { useRouter } from "next/navigation";
-import { MessageSquare, Send, Loader2, User } from "lucide-react";
-import { toast } from "sonner";
 
-export default function AdminMessagesPage() {
-  const router = useRouter();
-  const { user, token } = useAuthStore();
-  const [conversations, setConversations] = useState<any[]>([]);
-  const [activeConv, setActiveConv] = useState<any>(null);
-  const [messages, setMessages] = useState<any[]>([]);
-  const [newMessage, setNewMessage] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+import React, { useState } from "react";
+import { 
+  Search, 
+  Trash2,
+  Send,
+  Eye
+} from "lucide-react";
 
-  useEffect(() => {
-    if (!user || !["admin", "waiter", "chef"].includes(user.role)) { router.push("/admin/login"); return; }
-    fetchConversations();
-  }, []);
+export default function MessagesPage() {
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  const fetchConversations = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/admin/messages", { headers: { Authorization: `Bearer ${token}` } });
-      const data = await res.json();
-      if (data.status) setConversations(data.data || []);
-    } catch { toast.error("Failed to load conversations"); }
-    finally { setLoading(false); }
-  };
-
-  const openConversation = async (conv: any) => {
-    setActiveConv(conv);
-    try {
-      const res = await fetch(`/api/admin/messages/${conv._id}`, { headers: { Authorization: `Bearer ${token}` } });
-      const data = await res.json();
-      if (data.status) setMessages(data.data || []);
-    } catch {}
-  };
-
-  const sendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !activeConv) return;
-    setSending(true);
-    const text = newMessage.trim();
-    setNewMessage("");
-    try {
-      const res = await fetch(`/api/admin/messages/${activeConv._id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ message: text }),
-      });
-      const data = await res.json();
-      if (data.status) {
-        setMessages(prev => [...prev, { ...data.data, isAdmin: true }]);
-      }
-    } catch { toast.error("Failed to send message"); setNewMessage(text); }
-    finally { setSending(false); }
-  };
+  // Mock data
+  const messages = [
+    { id: 1, name: "Customer Service", subject: "Refund Request", email: "john@example.com", date: "Oct 12, 2026", status: "Unread" },
+    { id: 2, name: "Partnership", subject: "Vendor Inquiry", email: "vendor@example.com", date: "Oct 10, 2026", status: "Read" },
+  ];
 
   return (
-    <div className="db-main min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        <div className="db-breadcrumb mb-6">
-          <h1 className="db-breadcrumb-title">Messages</h1>
-          <nav className="db-breadcrumb-list text-sm text-[#6e7191]">
-            <span>Admin</span><span className="mx-1.5">/</span>
-            <span style={{ color: "#ff006b" }}>Messages</span>
-          </nav>
-        </div>
-
-        <div className="db-card overflow-hidden" style={{ height: "600px" }}>
-          <div className="flex h-full">
-            {/* Conversation List */}
-            <div className="w-72 border-r border-[#eff0f6] flex flex-col flex-shrink-0">
-              <div className="p-4 border-b border-[#eff0f6]">
-                <h3 className="text-sm font-semibold text-[#14142b]">Conversations</h3>
-              </div>
-              <div className="flex-1 overflow-y-auto">
-                {loading ? (
-                  <div className="flex justify-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin" style={{ color: "#ff006b" }} />
-                  </div>
-                ) : conversations.length === 0 ? (
-                  <div className="p-6 text-center text-xs text-[#a0a3bd]">No conversations yet</div>
-                ) : conversations.map(conv => (
-                  <button key={conv._id} onClick={() => openConversation(conv)}
-                    className={`w-full p-3.5 flex items-center gap-3 hover:bg-[#f7f7fc] transition-all border-b border-[#eff0f6] text-left ${activeConv?._id === conv._id ? "bg-[#fff0f6]" : ""}`}>
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-                      style={{ backgroundColor: "#ff006b" }}>
-                      {conv.customerName?.[0]?.toUpperCase() || "C"}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-[#14142b] truncate capitalize">{conv.customerName || "Customer"}</p>
-                      <p className="text-xs text-[#a0a3bd] truncate">{conv.lastMessage || "No messages"}</p>
-                    </div>
-                    {conv.unreadCount > 0 && (
-                      <span className="w-5 h-5 rounded-full text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0"
-                        style={{ backgroundColor: "#ff006b" }}>{conv.unreadCount}</span>
-                    )}
-                  </button>
-                ))}
-              </div>
+    <div className="pb-16">
+      
+      {/* Header */}
+      <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] mb-6">
+        <div className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EFF0F6]">
+          <h3 className="font-semibold text-lg text-[#14142B]">Messages</h3>
+          
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <div className="relative">
+              <input 
+                type="text" 
+                placeholder="Search Subject..." 
+                className="h-10 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-sm focus:outline-none focus:border-[#ff006b] w-full sm:w-48 transition-colors"
+              />
+              <Search className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
             </div>
 
-            {/* Chat Area */}
-            <div className="flex-1 flex flex-col">
-              {activeConv ? (
-                <>
-                  {/* Chat Header */}
-                  <div className="p-4 border-b border-[#eff0f6] flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold"
-                      style={{ backgroundColor: "#ff006b" }}>
-                      {activeConv.customerName?.[0]?.toUpperCase() || "C"}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-[#14142b] capitalize">{activeConv.customerName || "Customer"}</p>
-                      <p className="text-xs text-[#a0a3bd]">Customer</p>
-                    </div>
-                  </div>
-
-                  {/* Messages */}
-                  <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                    {messages.map((msg, i) => (
-                      <div key={i} className={`flex ${msg.isAdmin ? "justify-end" : "justify-start"}`}>
-                        <div className={`max-w-[70%] px-4 py-2.5 rounded-2xl text-sm ${msg.isAdmin
-                          ? "text-white rounded-br-sm"
-                          : "bg-white border border-[#eff0f6] text-[#14142b] rounded-bl-sm"
-                        }`}
-                          style={msg.isAdmin ? { backgroundColor: "#ff006b" } : {}}>
-                          {msg.message}
-                          <p className={`text-[10px] mt-1 ${msg.isAdmin ? "opacity-70 text-right" : "text-[#a0a3bd]"}`}>
-                            {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                    <div ref={messagesEndRef} />
-                  </div>
-
-                  {/* Message Input */}
-                  <form onSubmit={sendMessage} className="p-4 border-t border-[#eff0f6] flex items-center gap-3">
-                    <input type="text" value={newMessage} onChange={e => setNewMessage(e.target.value)}
-                      placeholder="Type your message..."
-                      className="db-field-control flex-1 h-10 text-sm" />
-                    <button type="submit" disabled={sending || !newMessage.trim()}
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white transition-all disabled:opacity-50"
-                      style={{ backgroundColor: "#ff006b" }}>
-                      {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                    </button>
-                  </form>
-                </>
-              ) : (
-                <div className="flex-1 flex flex-col items-center justify-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-[#fff0f6] flex items-center justify-center mb-4">
-                    <MessageSquare className="w-8 h-8" style={{ color: "#ff006b" }} />
-                  </div>
-                  <p className="text-sm font-semibold text-[#14142b]">Select a conversation</p>
-                  <p className="text-xs text-[#a0a3bd] mt-1">Choose from the list to start chatting</p>
-                </div>
-              )}
-            </div>
+            <button className="h-10 px-4 rounded-xl bg-[#ff006b] text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-[#ff006b]/20">
+              <Send className="w-4 h-4" />
+              <span className="text-sm font-medium">Compose</span>
+            </button>
           </div>
         </div>
+
+        {/* Table */}
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left whitespace-nowrap">
+            <thead className="bg-[#F7F7FC] border-b border-[#EFF0F6]">
+              <tr>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Name</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Email</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Subject</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Date</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Status</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#EFF0F6]">
+              {messages.map((message) => (
+                <tr key={message.id} className={`hover:bg-[#FAFAFC] transition-colors ${message.status === 'Unread' ? 'bg-[#fff5f9]/30' : ''}`}>
+                  <td className="px-6 py-4">
+                    <span className={`text-sm ${message.status === 'Unread' ? 'font-bold text-[#14142B]' : 'font-medium text-[#4E4B66]'}`}>{message.name}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-sm text-[#4E4B66]">{message.email}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`text-sm ${message.status === 'Unread' ? 'font-bold text-[#14142B]' : 'font-medium text-[#4E4B66]'}`}>{message.subject}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-sm text-[#4E4B66]">{message.date}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${message.status === 'Unread' ? 'bg-[#FFF4E5] text-[#FF9F43]' : 'bg-[#E0FFED] text-[#1AB759]'}`}>
+                      {message.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#567DFF] inline-flex items-center justify-center hover:bg-[#e5ebff] transition-colors">
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#FB4E4E] inline-flex items-center justify-center hover:bg-[#FFEAEA] transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Pagination */}
+        <div className="p-4 sm:p-6 border-t border-[#EFF0F6] flex items-center justify-between">
+          <span className="text-sm text-[#6E7191]">Showing 1 to 2 of 2 entries</span>
+          <div className="flex items-center gap-1">
+            <button className="w-8 h-8 rounded-lg border border-[#EFF0F6] flex items-center justify-center text-[#6E7191] hover:bg-[#F7F7FC] disabled:opacity-50">«</button>
+            <button className="w-8 h-8 rounded-lg bg-[#ff006b] text-white flex items-center justify-center text-sm font-medium shadow-md shadow-[#ff006b]/20">1</button>
+            <button className="w-8 h-8 rounded-lg border border-[#EFF0F6] flex items-center justify-center text-[#6E7191] hover:bg-[#F7F7FC] disabled:opacity-50">»</button>
+          </div>
+        </div>
+
       </div>
+
     </div>
   );
 }

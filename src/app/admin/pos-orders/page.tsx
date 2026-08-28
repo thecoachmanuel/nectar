@@ -2,21 +2,20 @@
 
 import React, { useState } from "react";
 import { 
-  Plus, 
   Search, 
   Filter, 
-  Edit,
-  Trash2,
-  Eye
+  Download,
+  Eye,
+  Printer
 } from "lucide-react";
 
-export default function CouponsPage() {
+export default function PosOrdersPage() {
   const [showFilter, setShowFilter] = useState(false);
 
   // Mock data
-  const coupons = [
-    { id: 1, name: "First Order Discount", code: "FIRST50", discount: "50%", limit: 100, used: 25, validity: "2026-12-31", status: "Active" },
-    { id: 2, name: "Holiday Special", code: "HOLIDAY2000", discount: "₦2000", limit: 50, used: 50, validity: "2026-10-31", status: "Expired" },
+  const orders = [
+    { id: "#POS001", waiter: "Steve Jobs", items: 2, date: "Oct 12, 2026, 18:30", amount: "₦12,500", status: "Delivered" },
+    { id: "#POS002", waiter: "Elon Musk", items: 5, date: "Oct 12, 2026, 19:00", amount: "₦45,000", status: "Delivered" },
   ];
 
   return (
@@ -25,13 +24,13 @@ export default function CouponsPage() {
       {/* Header */}
       <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] mb-6">
         <div className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EFF0F6]">
-          <h3 className="font-semibold text-lg text-[#14142B]">Coupons</h3>
+          <h3 className="font-semibold text-lg text-[#14142B]">POS Orders</h3>
           
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <div className="relative">
               <input 
                 type="text" 
-                placeholder="Search..." 
+                placeholder="Search Order ID..." 
                 className="h-10 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-sm focus:outline-none focus:border-[#ff006b] w-full sm:w-48 transition-colors"
               />
               <Search className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -43,10 +42,10 @@ export default function CouponsPage() {
             >
               <Filter className="w-4 h-4" />
             </button>
-
-            <button className="h-10 px-4 rounded-xl bg-[#ff006b] text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-[#ff006b]/20">
-              <Plus className="w-4 h-4" />
-              <span className="text-sm font-medium">Add Coupon</span>
+            
+            <button className="h-10 px-4 rounded-xl bg-[#008BBA] text-white flex items-center gap-2 hover:bg-[#00749b] transition-colors shadow-md shadow-[#008BBA]/20">
+              <Download className="w-4 h-4" />
+              <span className="text-sm font-medium">Export</span>
             </button>
           </div>
         </div>
@@ -55,24 +54,20 @@ export default function CouponsPage() {
         {showFilter && (
           <div className="p-4 sm:p-6 border-b border-[#EFF0F6] bg-[#FAFAFC] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Name</label>
+              <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Waiter Name</label>
               <input type="text" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Code</label>
-              <input type="text" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
+              <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">From Date</label>
+              <input type="date" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Status</label>
-              <select className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]">
-                <option>-- Select --</option>
-                <option>Active</option>
-                <option>Expired</option>
-              </select>
+              <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">To Date</label>
+              <input type="date" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
             </div>
-            <div className="lg:col-span-1 flex items-center gap-3 pt-2">
-              <button className="h-10 px-6 rounded-xl bg-[#ff006b] text-white text-sm font-medium hover:bg-[#e60060] transition-colors">Search</button>
-              <button className="h-10 px-6 rounded-xl bg-gray-600 text-white text-sm font-medium hover:bg-gray-700 transition-colors">Clear</button>
+            <div className="flex items-center gap-3 pt-6">
+              <button className="h-10 px-6 rounded-xl bg-[#ff006b] text-white text-sm font-medium hover:bg-[#e60060] transition-colors flex-1">Search</button>
+              <button className="h-10 px-6 rounded-xl bg-gray-600 text-white text-sm font-medium hover:bg-gray-700 transition-colors flex-1">Clear</button>
             </div>
           </div>
         )}
@@ -82,36 +77,36 @@ export default function CouponsPage() {
           <table className="w-full text-left whitespace-nowrap">
             <thead className="bg-[#F7F7FC] border-b border-[#EFF0F6]">
               <tr>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Name</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Code</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Discount</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Usage</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Validity</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Order ID</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Waiter</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Items</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Amount</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Date</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EFF0F6]">
-              {coupons.map((coupon) => (
-                <tr key={coupon.id} className="hover:bg-[#FAFAFC] transition-colors">
+              {orders.map((order) => (
+                <tr key={order.id} className="hover:bg-[#FAFAFC] transition-colors">
                   <td className="px-6 py-4">
-                    <span className="text-sm font-medium text-[#14142B]">{coupon.name}</span>
+                    <span className="text-sm font-bold text-[#ff006b]">{order.id}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm font-bold text-[#ff006b]">{coupon.code}</span>
+                    <span className="text-sm font-medium text-[#14142B]">{order.waiter}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm font-semibold text-[#14142B]">{coupon.discount}</span>
+                    <span className="text-sm font-semibold text-[#14142B]">{order.items}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm text-[#4E4B66]">{coupon.used} / {coupon.limit}</span>
+                    <span className="text-sm font-semibold text-[#14142B]">{order.amount}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm text-[#4E4B66]">{coupon.validity}</span>
+                    <span className="text-sm text-[#4E4B66]">{order.date}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${coupon.status === 'Active' ? 'bg-[#E0FFED] text-[#1AB759]' : 'bg-[#FFEAEA] text-[#FB4E4E]'}`}>
-                      {coupon.status}
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === 'Delivered' ? 'bg-[#E0FFED] text-[#1AB759]' : 'bg-[#FFF4E5] text-[#FF9F43]'}`}>
+                      {order.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -119,11 +114,8 @@ export default function CouponsPage() {
                       <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#567DFF] flex items-center justify-center hover:bg-[#e5ebff] transition-colors">
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#1AB759] flex items-center justify-center hover:bg-[#E0FFED] transition-colors">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#FB4E4E] flex items-center justify-center hover:bg-[#FFEAEA] transition-colors">
-                        <Trash2 className="w-4 h-4" />
+                      <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#14142B] flex items-center justify-center hover:bg-gray-200 transition-colors">
+                        <Printer className="w-4 h-4" />
                       </button>
                     </div>
                   </td>

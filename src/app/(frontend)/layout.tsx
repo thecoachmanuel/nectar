@@ -6,6 +6,7 @@ import Footer from "@/components/frontend/Footer";
 import CartDrawer from "@/components/frontend/CartDrawer";
 import MobileBottomNav from "@/components/frontend/MobileBottomNav";
 import CookiesConsent from "@/components/frontend/CookiesConsent";
+import PwaInstallPrompt from "@/components/frontend/PwaInstallPrompt";
 
 export default function FrontendLayout({ children }: { children: React.ReactNode }) {
   const [cartOpen, setCartOpen] = useState(false);
@@ -19,6 +20,7 @@ export default function FrontendLayout({ children }: { children: React.ReactNode
       <Footer />
       <MobileBottomNav onCartOpen={() => setCartOpen(true)} />
       <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} />
+      <PwaInstallPrompt />
       <CookiesConsent />
     </div>
   );

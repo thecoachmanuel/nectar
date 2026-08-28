@@ -1,128 +1,109 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
-import { useAuthStore } from "@/store/useAuthStore";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Mail, Lock, ArrowRight, Building } from "lucide-react";
+import { Lock, Mail, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const { setAuth } = useAuthStore();
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [email, setEmail] = useState("admin@example.com");
-  const [password, setPassword] = useState("123456");
-  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
 
-  const handleAdminLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      toast.error("Please fill in email and password.");
-      return;
-    }
+    setIsLoading(true);
 
-    setLoading(true);
-    toast.loading("Authenticating Backoffice Staff...");
-
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-      toast.dismiss();
-
-      if (data.status) {
-        if (data.user.role !== "admin" && data.user.role !== "chef" && data.user.role !== "waiter" && data.user.role !== "delivery_boy") {
-          toast.error("Access Denied: Account does not have Admin or Staff permissions.");
-          return;
-        }
-
-        setAuth(data.token, data.user);
-        toast.success(`Welcome back, ${data.user.name}! Accessing Backoffice...`);
+    // Mock authentication for the standalone fullstack setup
+    setTimeout(() => {
+      setIsLoading(false);
+      if (formData.email && formData.password) {
+        toast.success("Login successful!");
         router.push("/admin/dashboard");
       } else {
-        toast.error(data.message || "Invalid Admin credentials.");
+        toast.error("Invalid credentials.");
       }
-    } catch (e: any) {
-      toast.dismiss();
-      toast.error("Login error: " + e.message);
-    } finally {
-      setLoading(false);
-    }
+    }, 1500);
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-slate-900 rounded-3xl shadow-2xl p-8 space-y-6 border border-slate-800 text-slate-100">
+    <div className="min-h-screen bg-[#F7F7FC] flex items-center justify-center p-4">
+      <div className="w-full max-w-[420px] bg-white rounded-[24px] shadow-sm border border-[#EFF0F6] overflow-hidden">
+        
         {/* Header */}
-        <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-red-500 to-rose-600 flex items-center justify-center text-white font-black text-2xl shadow-lg mx-auto">
-            F
+        <div className="px-8 pt-8 pb-6 text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#fff5f9] text-[#ff006b] rounded-2xl mb-4 shadow-sm shadow-[#ff006b]/10">
+            <Lock className="w-8 h-8" />
           </div>
-          <h2 className="text-2xl font-black text-white pt-2">FoodAppi Backoffice</h2>
-          <p className="text-xs text-slate-400">Admin, POS & Kitchen Staff Portal</p>
+          <h2 className="text-2xl font-bold text-[#14142B] mb-2">Admin Login</h2>
+          <p className="text-sm text-[#6E7191]">Enter your credentials to access the portal</p>
         </div>
 
-        {/* Credentials Box */}
-        <div className="bg-slate-800/80 border border-slate-700/70 p-3.5 rounded-2xl text-xs space-y-1 text-slate-300">
-          <p className="font-bold text-amber-400">Default Admin Credentials:</p>
-          <p>Email: <code className="text-white font-bold">admin@example.com</code></p>
-          <p>Password: <code className="text-white font-bold">123456</code></p>
-        </div>
-
-        {/* Login Form */}
-        <form onSubmit={handleAdminLogin} className="space-y-4">
+        {/* Form */}
+        <form onSubmit={handleLogin} className="px-8 pb-8 space-y-5">
+          
           <div>
-            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">
-              Admin Email Address
-            </label>
+            <label className="block text-sm font-semibold text-[#14142B] mb-2">Email Address</label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="email"
+              <input 
+                type="email" 
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium text-white focus:outline-none focus:border-red-500"
+                value={formData.email}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                placeholder="admin@foodappi.com"
+                className="w-full h-12 pl-12 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b] transition-colors"
               />
+              <Mail className="w-5 h-5 text-[#A0A3BD] absolute left-4 top-1/2 -translate-y-1/2" />
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">
-              Password
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-semibold text-[#14142B]">Password</label>
+              <a href="#" className="text-xs font-semibold text-[#ff006b] hover:underline">Forgot Password?</a>
+            </div>
             <div className="relative">
-              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="password"
+              <input 
+                type={showPassword ? "text" : "password"} 
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium text-white focus:outline-none focus:border-red-500"
+                value={formData.password}
+                onChange={(e) => setFormData({...formData, password: e.target.value})}
+                placeholder="••••••••"
+                className="w-full h-12 pl-12 pr-12 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b] transition-colors"
               />
+              <Lock className="w-5 h-5 text-[#A0A3BD] absolute left-4 top-1/2 -translate-y-1/2" />
+              <button 
+                type="button" 
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#A0A3BD] hover:text-[#14142B] transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white font-bold text-sm py-3 rounded-xl shadow-lg transition flex items-center justify-center space-x-2"
+          <button 
+            type="submit" 
+            disabled={isLoading}
+            className="w-full h-12 mt-2 rounded-xl bg-[#ff006b] text-white font-semibold text-sm hover:bg-[#e60060] transition-colors shadow-md shadow-[#ff006b]/20 flex items-center justify-center disabled:opacity-70"
           >
-            <ShieldCheck className="w-4 h-4" />
-            <span>Login to Backoffice</span>
+            {isLoading ? (
+              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            ) : (
+              "Login to Dashboard"
+            )}
           </button>
+
         </form>
 
-        <div className="text-center text-xs text-slate-500">
-          <Link href="/" className="hover:text-slate-300 transition">
-            ← Return to Customer Storefront
-          </Link>
-        </div>
       </div>
     </div>
   );

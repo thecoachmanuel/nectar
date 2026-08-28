@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Building2, 
   Globe, 
@@ -10,11 +10,65 @@ import {
   Smartphone,
   ShieldCheck,
   PaintBucket,
-  Save
+  Save,
+  Loader2
 } from "lucide-react";
+import { useSettingsStore, SettingItem } from "@/store/useSettingsStore";
+import { toast } from "sonner";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("Company");
+  
+  const { settings, isLoading, fetchSettings, updateSettings } = useSettingsStore();
+  
+  // Local state to hold form changes before saving
+  const [formData, setFormData] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
+
+  useEffect(() => {
+    if (Object.keys(settings).length > 0) {
+      setFormData(settings);
+    }
+  }, [settings]);
+
+  const handleChange = (key: string, value: any) => {
+    setFormData(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleSave = async () => {
+    try {
+      // Map formData to SettingItem array format based on the active tab
+      const settingsToUpdate: SettingItem[] = Object.keys(formData).map(key => {
+        // Simple heuristic to assign group based on key prefix or name
+        let group = "Company";
+        if (key.startsWith("site_")) group = "Site";
+        if (key.startsWith("mail_")) group = "Mail";
+        if (key.startsWith("pay_")) group = "Payment Gateway";
+        if (key.startsWith("sms_")) group = "SMS Gateway";
+        if (key.startsWith("push_")) group = "Push Notification";
+        if (key.startsWith("theme_")) group = "Theme";
+        
+        return {
+          key,
+          group,
+          payload: formData[key]
+        };
+      });
+
+      // Filter to only send settings that belong to the currently active tab (optional, but cleaner)
+      const tabSettings = settingsToUpdate.filter(s => s.group === activeTab || (activeTab === 'Company' && !s.key.includes('_')));
+      
+      // If we are modifying everything at once, we just send settingsToUpdate.
+      // Let's send the specific ones that changed. For now, sending all mapped.
+      await updateSettings(settingsToUpdate);
+      toast.success(`${activeTab} Settings saved successfully!`);
+    } catch (error: any) {
+      toast.error(`Failed to save: ${error.message}`);
+    }
+  };
 
   const settingsMenu = [
     { name: "Company", icon: Building2 },
@@ -62,73 +116,245 @@ export default function SettingsPage() {
 
       {/* Settings Content Area */}
       <div className="flex-1">
-        <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] p-4 sm:p-6 lg:p-8">
+        <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] p-4 sm:p-6 lg:p-8 relative">
           
+          {isLoading && (
+            <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-2xl">
+              <Loader2 className="w-8 h-8 text-[#ff006b] animate-spin" />
+            </div>
+          )}
+
           {/* Header */}
           <div className="mb-8 pb-4 border-b border-[#EFF0F6] flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold text-[#14142B] mb-1">{activeTab} Settings</h2>
               <p className="text-sm text-[#6E7191]">Manage your {activeTab.toLowerCase()} configuration and preferences.</p>
             </div>
-            <button className="h-11 px-6 rounded-xl bg-[#ff006b] text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-[#ff006b]/20">
+            <button 
+              onClick={handleSave}
+              disabled={isLoading}
+              className="h-11 px-6 rounded-xl bg-[#ff006b] text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-[#ff006b]/20 disabled:opacity-50"
+            >
               <Save className="w-4 h-4" />
               <span className="text-sm font-medium">Save Changes</span>
             </button>
           </div>
 
-          {/* Dynamic Content based on activeTab */}
+          {/* Company */}
           {activeTab === "Company" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Company Name <span className="text-red-500">*</span></label>
-                <input type="text" defaultValue="FoodAppi" className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
+                <input 
+                  type="text" 
+                  value={formData.company_name || ""} 
+                  onChange={(e) => handleChange("company_name", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Company Email <span className="text-red-500">*</span></label>
-                <input type="email" defaultValue="admin@foodappi.com" className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
+                <input 
+                  type="email" 
+                  value={formData.company_email || ""} 
+                  onChange={(e) => handleChange("company_email", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Company Phone <span className="text-red-500">*</span></label>
-                <input type="text" defaultValue="+234 800 000 0000" className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
+                <input 
+                  type="text" 
+                  value={formData.company_phone || ""} 
+                  onChange={(e) => handleChange("company_phone", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Company Address <span className="text-red-500">*</span></label>
-                <textarea rows={3} defaultValue="123 Food Street, Lagos, Nigeria" className="w-full p-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b] resize-none"></textarea>
+                <textarea 
+                  rows={3} 
+                  value={formData.company_address || ""} 
+                  onChange={(e) => handleChange("company_address", e.target.value)}
+                  className="w-full p-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b] resize-none"
+                ></textarea>
               </div>
             </div>
           )}
 
+          {/* Site */}
           {activeTab === "Site" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Site Title</label>
-                <input type="text" defaultValue="FoodAppi - Delivery & POS" className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
+                <input 
+                  type="text" 
+                  value={formData.site_title || ""} 
+                  onChange={(e) => handleChange("site_title", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Copyright Text</label>
-                <input type="text" defaultValue="© 2026 FoodAppi. All rights reserved." className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
+                <input 
+                  type="text" 
+                  value={formData.site_copyright || ""} 
+                  onChange={(e) => handleChange("site_copyright", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Currency Symbol</label>
-                <input type="text" defaultValue="₦" className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
+                <input 
+                  type="text" 
+                  value={formData.site_currency || ""} 
+                  onChange={(e) => handleChange("site_currency", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Timezone</label>
-                <select className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]">
-                  <option>Africa/Lagos</option>
-                  <option>UTC</option>
+                <select 
+                  value={formData.site_timezone || "Africa/Lagos"}
+                  onChange={(e) => handleChange("site_timezone", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]"
+                >
+                  <option value="Africa/Lagos">Africa/Lagos</option>
+                  <option value="UTC">UTC</option>
                 </select>
               </div>
             </div>
           )}
 
-          {activeTab !== "Company" && activeTab !== "Site" && (
+          {/* Mail */}
+          {activeTab === "Mail" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Mail Host</label>
+                <input 
+                  type="text" 
+                  value={formData.mail_host || ""} 
+                  onChange={(e) => handleChange("mail_host", e.target.value)}
+                  placeholder="smtp.mailtrap.io"
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Mail Port</label>
+                <input 
+                  type="text" 
+                  value={formData.mail_port || ""} 
+                  onChange={(e) => handleChange("mail_port", e.target.value)}
+                  placeholder="2525"
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Mail Username</label>
+                <input 
+                  type="text" 
+                  value={formData.mail_username || ""} 
+                  onChange={(e) => handleChange("mail_username", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Mail Password</label>
+                <input 
+                  type="password" 
+                  value={formData.mail_password || ""} 
+                  onChange={(e) => handleChange("mail_password", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Mail From Address</label>
+                <input 
+                  type="email" 
+                  value={formData.mail_from_address || ""} 
+                  onChange={(e) => handleChange("mail_from_address", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Payment Gateway */}
+          {activeTab === "Payment Gateway" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Paystack Public Key</label>
+                <input 
+                  type="text" 
+                  value={formData.pay_paystack_public || ""} 
+                  onChange={(e) => handleChange("pay_paystack_public", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Paystack Secret Key</label>
+                <input 
+                  type="password" 
+                  value={formData.pay_paystack_secret || ""} 
+                  onChange={(e) => handleChange("pay_paystack_secret", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Enable Paystack</label>
+                <select 
+                  value={formData.pay_paystack_enabled || "No"}
+                  onChange={(e) => handleChange("pay_paystack_enabled", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]"
+                >
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* Theme */}
+          {activeTab === "Theme" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Primary Color</label>
+                <div className="flex gap-2 items-center">
+                  <input 
+                    type="color" 
+                    value={formData.theme_primary_color || "#ff006b"} 
+                    onChange={(e) => handleChange("theme_primary_color", e.target.value)}
+                    className="h-12 w-12 rounded-xl border border-[#EFF0F6] cursor-pointer" 
+                  />
+                  <input 
+                    type="text" 
+                    value={formData.theme_primary_color || "#ff006b"} 
+                    onChange={(e) => handleChange("theme_primary_color", e.target.value)}
+                    className="flex-1 h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Logo URL</label>
+                <input 
+                  type="text" 
+                  value={formData.theme_logo || ""} 
+                  onChange={(e) => handleChange("theme_logo", e.target.value)}
+                  placeholder="/images/logo.png"
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Others */}
+          {["SMS Gateway", "Push Notification", "Roles & Permissions"].includes(activeTab) && (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <div className="w-20 h-20 bg-[#F7F7FC] rounded-full flex items-center justify-center mb-4">
                 <PaintBucket className="w-10 h-10 text-[#A0A3BD]" />
               </div>
               <h3 className="text-lg font-bold text-[#14142B] mb-2">{activeTab} Settings</h3>
-              <p className="text-[#6E7191] max-w-sm">Configuration options for {activeTab.toLowerCase()} will appear here.</p>
+              <p className="text-[#6E7191] max-w-sm">Configuration fields for {activeTab.toLowerCase()} will map directly to the API here.</p>
             </div>
           )}
 

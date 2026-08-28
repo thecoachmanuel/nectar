@@ -5,18 +5,20 @@ import {
   Plus, 
   Search, 
   Filter, 
+  Download, 
+  Upload, 
   Edit,
   Trash2,
   Eye
 } from "lucide-react";
 
-export default function CouponsPage() {
+export default function AdministratorsPage() {
   const [showFilter, setShowFilter] = useState(false);
 
   // Mock data
-  const coupons = [
-    { id: 1, name: "First Order Discount", code: "FIRST50", discount: "50%", limit: 100, used: 25, validity: "2026-12-31", status: "Active" },
-    { id: 2, name: "Holiday Special", code: "HOLIDAY2000", discount: "₦2000", limit: 50, used: 50, validity: "2026-10-31", status: "Expired" },
+  const administrators = [
+    { id: 1, name: "Super Admin", email: "admin@foodappi.com", phone: "+234 800 000 0000", role: "Super Admin", status: "Active" },
+    { id: 2, name: "Manager User", email: "manager@foodappi.com", phone: "+234 811 111 1111", role: "Manager", status: "Active" },
   ];
 
   return (
@@ -25,7 +27,7 @@ export default function CouponsPage() {
       {/* Header */}
       <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] mb-6">
         <div className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EFF0F6]">
-          <h3 className="font-semibold text-lg text-[#14142B]">Coupons</h3>
+          <h3 className="font-semibold text-lg text-[#14142B]">Administrators</h3>
           
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <div className="relative">
@@ -43,10 +45,14 @@ export default function CouponsPage() {
             >
               <Filter className="w-4 h-4" />
             </button>
-
+            
+            <button className="h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-[#6E7191] flex items-center justify-center hover:bg-[#F7F7FC] transition-colors">
+              <Download className="w-4 h-4" />
+            </button>
+            
             <button className="h-10 px-4 rounded-xl bg-[#ff006b] text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-[#ff006b]/20">
               <Plus className="w-4 h-4" />
-              <span className="text-sm font-medium">Add Coupon</span>
+              <span className="text-sm font-medium">Add Administrator</span>
             </button>
           </div>
         </div>
@@ -59,20 +65,20 @@ export default function CouponsPage() {
               <input type="text" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Code</label>
+              <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Email</label>
               <input type="text" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Status</label>
+              <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Role</label>
               <select className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]">
                 <option>-- Select --</option>
-                <option>Active</option>
-                <option>Expired</option>
+                <option>Super Admin</option>
+                <option>Manager</option>
               </select>
             </div>
-            <div className="lg:col-span-1 flex items-center gap-3 pt-2">
-              <button className="h-10 px-6 rounded-xl bg-[#ff006b] text-white text-sm font-medium hover:bg-[#e60060] transition-colors">Search</button>
-              <button className="h-10 px-6 rounded-xl bg-gray-600 text-white text-sm font-medium hover:bg-gray-700 transition-colors">Clear</button>
+            <div className="flex items-center gap-3 pt-6">
+              <button className="h-10 px-6 rounded-xl bg-[#ff006b] text-white text-sm font-medium hover:bg-[#e60060] transition-colors flex-1">Search</button>
+              <button className="h-10 px-6 rounded-xl bg-gray-600 text-white text-sm font-medium hover:bg-gray-700 transition-colors flex-1">Clear</button>
             </div>
           </div>
         )}
@@ -83,35 +89,31 @@ export default function CouponsPage() {
             <thead className="bg-[#F7F7FC] border-b border-[#EFF0F6]">
               <tr>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Name</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Code</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Discount</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Usage</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Validity</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Email</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Phone</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Role</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EFF0F6]">
-              {coupons.map((coupon) => (
-                <tr key={coupon.id} className="hover:bg-[#FAFAFC] transition-colors">
+              {administrators.map((admin) => (
+                <tr key={admin.id} className="hover:bg-[#FAFAFC] transition-colors">
                   <td className="px-6 py-4">
-                    <span className="text-sm font-medium text-[#14142B]">{coupon.name}</span>
+                    <span className="text-sm font-medium text-[#14142B]">{admin.name}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm font-bold text-[#ff006b]">{coupon.code}</span>
+                    <span className="text-sm text-[#4E4B66]">{admin.email}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm font-semibold text-[#14142B]">{coupon.discount}</span>
+                    <span className="text-sm text-[#4E4B66]">{admin.phone}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm text-[#4E4B66]">{coupon.used} / {coupon.limit}</span>
+                    <span className="text-sm font-semibold text-[#14142B]">{admin.role}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm text-[#4E4B66]">{coupon.validity}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${coupon.status === 'Active' ? 'bg-[#E0FFED] text-[#1AB759]' : 'bg-[#FFEAEA] text-[#FB4E4E]'}`}>
-                      {coupon.status}
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${admin.status === 'Active' ? 'bg-[#E0FFED] text-[#1AB759]' : 'bg-[#FFEAEA] text-[#FB4E4E]'}`}>
+                      {admin.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">

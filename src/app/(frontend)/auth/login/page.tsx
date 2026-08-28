@@ -64,9 +64,9 @@ export default function LoginPage() {
   };
 
   return (
-    <section className="pt-6 pb-24 sm:pt-8 sm:pb-16 bg-[#f7f7fc] min-h-[calc(100vh-100px)]">
+    <section className="pt-6 pb-24 sm:pt-8 sm:pb-16 bg-[#f7f7fc] min-h-[calc(100vh-100px)] flex items-center justify-center">
       {/* Login Box */}
-      <div className="container mx-auto max-w-[360px] py-6 p-4 mb-6 sm:px-6 shadow-sm rounded-2xl bg-white border border-[#eff0f6]">
+      <div className="container mx-auto max-w-[360px] py-6 p-4 sm:px-6 shadow-sm rounded-2xl bg-white border border-[#eff0f6]">
         <h2 className="capitalize mb-6 text-center text-[22px] font-semibold leading-[34px] text-[#14142b]">
           Welcome Back
         </h2>
@@ -132,15 +132,21 @@ export default function LoginPage() {
             <span className="w-full h-[1px] bg-gradient-to-l from-white to-[#D9DBE9]"></span>
           </div>
 
-          {/* Social Login Buttons - Using dummy images for exact UI match */}
+          {/* Social Login Buttons - Using SVGs embedded directly to prevent missing icon issues */}
           <div className="flex justify-center flex-wrap gap-[10px] mb-6">
-             {/* Example structure mirroring the PHP app's social buttons */}
              <div className="flex items-center justify-center gap-1.5 bg-[#F7F7FC] px-3 h-10 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
-                <img className="h-6 w-6 rounded-full p-1" src="/images/default/google.png" alt="Google" onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzQyODVGNCIgZD0iTTIyLjU2IDEyLjI1Yy0uMS0xLjEtMS0xLjk5LTEuOTUtMS45OUgxMnY0LjAyaDYuMTdjLS4yNSAxLjM1LTEgMi41Ny0yLjE0IDMuMzRsMy40NiAyLjY4YyIuMDIuMDEtLjAxLjAzLjAxLjAzek0iLz48L3N2Zz4='}} />
+                <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c-.1-1.1-.9-1.99-1.95-1.99H12v4.02h6.17c-.25 1.35-1 2.57-2.14 3.34l3.46 2.68c.02.01-.01.03.01.03z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.46-2.68c-.99.66-2.25 1.05-3.82 1.05-2.94 0-5.43-1.98-6.32-4.66H2.07v2.79C3.9 20.48 7.64 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.68 14.05c-.23-.68-.36-1.41-.36-2.16s.13-1.48.36-2.16V6.94H2.07C1.38 8.35 1 9.92 1 11.5s.38 3.15 1.07 4.56l3.61-2.01z"/>
+                  <path fill="#EA4335" d="M12 4.61c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.19 14.97 0 12 0 7.64 0 3.9 2.52 2.07 6.16l3.61 2.79c.89-2.68 3.38-4.34 6.32-4.34z"/>
+                </svg>
                 <span className="font-medium text-[13px] text-[#14142b]">Google</span>
              </div>
              <div className="flex items-center justify-center gap-1.5 bg-[#F7F7FC] px-3 h-10 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
-                <img className="h-6 w-6 rounded-full p-1" src="/images/default/facebook.png" alt="Facebook" onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzE4NzdGMiIgZD0iTTI0IDEyLjA3Yy0uMDQtNi42My01LjQ1LTExLjk5LTEyLjA3LTExLjk5Uy0uMDMgNS40NC0uMDMgMTIuMDdjMCA1Ljk4IDQuMzggMTAuOTUgMTAuMiAxMS44NXYtOC4zOEg3LjA5di0zLjQ3aDMuMDZWOS4zNGMwLTMuMDMgMS44LTQuNyA0LjU2LTQuNyAxLjMyIDAgMi42OC4yNCAyLjY4LjI0djIuOTRoLTEuNWMtMS40OSAwLTEuOTUuOTMtMS45NSAxLjg3diAyLjI1aDMuMzJsLS41MyAzLjQ3aC0yLjc5djguMzhDMjAuMDQgMjIuOTQgMjQgMTguMDEgMjQgMTIuMDdaIi8+PC9zdmc+'}} />
+                <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                  <path fill="#1877F2" d="M24 12.07c-.04-6.63-5.45-11.99-12.07-11.99S-.03 5.44-.03 12.07c0 5.98 4.38 10.95 10.2 11.85v-8.38H7.09v-3.47h3.06V9.34c0-3.03 1.8-4.7 4.56-4.7 1.32 0 2.68.24 2.68.24v2.94h-1.5c-1.49 0-1.95.93-1.95 1.87v 2.25h3.32l-.53 3.47h-2.79v8.38C20.04 22.94 24 18.01 24 12.07Z"/>
+                </svg>
                 <span className="font-medium text-[13px] text-[#14142b]">Facebook</span>
              </div>
           </div>
@@ -154,18 +160,6 @@ export default function LoginPage() {
             Login As Guest
           </button>
         </form>
-      </div>
-
-      {/* Quick Demo Section */}
-      <div className="container mx-auto max-w-[360px] py-6 p-4 sm:px-6 shadow-sm rounded-2xl bg-white border border-[#eff0f6]">
-        <h2 className="mb-6 text-center text-lg font-medium text-[#14142b]">For Quick Demo</h2>
-        <nav className="grid grid-cols-2 gap-3">
-          <button onClick={() => setupCredit('admin')} className="w-full h-10 leading-10 rounded-lg text-center text-sm capitalize text-white bg-orange-500 hover:bg-orange-600 transition-colors">Admin</button>
-          <button onClick={() => setupCredit('customer')} className="w-full h-10 leading-10 rounded-lg text-center text-sm capitalize text-white bg-emerald-500 hover:bg-emerald-600 transition-colors">Customer</button>
-          <button onClick={() => setupCredit('branchManager')} className="w-full h-10 leading-10 rounded-lg text-center text-sm capitalize text-white bg-sky-600 hover:bg-sky-700 transition-colors">Branch Manager</button>
-          <button onClick={() => setupCredit('posOperator')} className="w-full h-10 leading-10 rounded-lg text-center text-sm capitalize text-white bg-purple-500 hover:bg-purple-600 transition-colors">Pos Operator</button>
-          <button onClick={() => setupCredit('chef')} className="w-full h-10 leading-10 rounded-lg text-center text-sm capitalize text-white bg-blue-500 hover:bg-blue-600 transition-colors col-span-2 sm:col-span-1">Chef (Kitchen)</button>
-        </nav>
       </div>
     </section>
   );
