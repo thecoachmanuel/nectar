@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>No Internet — FoodAppi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Rubik', sans-serif;
+            background: #f7f7fc;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .container {
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        .logo {
+            width: 120px;
+            height: auto;
+            margin: 0 auto 32px;
+            display: block;
+        }
+        .logo-fallback {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #ff006b;
+            margin-bottom: 32px;
+        }
+        .icon-wrap {
+            width: 120px;
+            height: 120px;
+            background: #fff0f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 28px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.85; }
+        }
+        .icon-wrap svg {
+            width: 56px;
+            height: 56px;
+            color: #ff006b;
+        }
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #14142b;
+            margin-bottom: 12px;
+        }
+        p {
+            font-size: 0.95rem;
+            color: #6e7191;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #ff006b;
+            color: #fff;
+            font-family: 'Rubik', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 12px 28px;
+            border-radius: 9999px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+            margin-bottom: 12px;
+        }
+        .btn:hover { background: #ff3b8e; }
+        .btn-outline {
+            background: transparent;
+            color: #ff006b;
+            border: 1.5px solid #ff006b;
+        }
+        .btn-outline:hover { background: #fff0f6; }
+        .buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .status-dot {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: #a0a3bd;
+            margin-top: 24px;
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff006b;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="/images/theme/theme-logo.png" alt="FoodAppi" class="logo"
+             onerror="this.style.display='none'; document.querySelector('.logo-fallback').style.display='block'">
+        <div class="logo-fallback" style="display:none">FoodAppi</div>
+
+        <div class="icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 1l22 22"/>
+                <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/>
+                <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/>
+                <path d="M10.71 5.05A16 16 0 0 1 22.56 9"/>
+                <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/>
+                <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+                <line x1="12" y1="20" x2="12.01" y2="20"/>
+            </svg>
+        </div>
+
+        <h1>No Internet Connection</h1>
+        <p>Looks like you're offline. Please check your network connection and try again. Your cart is safely saved.</p>
+
+        <div class="buttons">
+            <button class="btn" onclick="window.location.reload()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="23 4 23 10 17 10"/>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                </svg>
+                Try Again
+            </button>
+            <a href="/" class="btn btn-outline">Go Home</a>
+        </div>
+
+        <div class="status-dot">
+            <span class="dot"></span>
+            Waiting for connection...
+        </div>
+    </div>
+
+    <script>
+        // Auto-reload when connection is restored
+        window.addEventListener('online', () => {
+            window.location.reload();
+        });
+    </script>
+</body>
+</html>

@@ -405,3 +405,47 @@ body {
   padding: 0.5rem 0;
   z-index: 50;
 }
+
+/* =====================
+   BADGE COLORS
+   ===================== */
+.db-badge         { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; }
+.db-badge-green   { color: #16a34a; background: #dcfce7; }
+.db-badge-red     { color: #dc2626; background: #fee2e2; }
+.db-badge-blue    { color: #2563eb; background: #dbeafe; }
+.db-badge-yellow  { color: #d97706; background: #fef3c7; }
+.db-badge-purple  { color: #7c3aed; background: #ede9fe; }
+
+/* =====================
+   CARD HEADER FILTER ROW
+   ===================== */
+.db-card-filter { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+
+/* =====================
+   ADMIN TABLE ACTIONS
+   ===================== */
+.db-table-action { display: inline-flex; align-items: center; justify-content: center; border-radius: 0.375rem; width: 1.75rem; height: 1.75rem; transition: all 0.15s; }
+
+/* =====================
+   COOKIE BANNER
+   ===================== */
+.cookie-paper { transition: transform 0.5s ease, opacity 0.5s ease; }
+
+/* =====================
+   BANNER SWIPER
+   ===================== */
+.banner-swiper { border-radius: 1rem; overflow: hidden; }
+
+/* =====================
+   SCROLLBAR NONE
+   ===================== */
+.scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
+/* =====================
+   BODY PADDING FOR MOBILE NAV
+   ===================== */
+@media (max-width: 1023px) {
+  body { padding-bottom: 4.5rem; }
+}
+

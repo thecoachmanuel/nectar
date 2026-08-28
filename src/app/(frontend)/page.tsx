@@ -1,324 +1,371 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Navbar from "@/components/frontend/Navbar";
-import Footer from "@/components/frontend/Footer";
+import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import ItemModal from "@/components/frontend/ItemModal";
 import { useSettingStore } from "@/store/useSettingStore";
-import { useCartStore } from "@/store/useCartStore";
-import { Search, Plus, Leaf, Drumstick, Tag, ShoppingBag, Star } from "lucide-react";
-import { toast } from "sonner";
+import { Search, Plus, Star, Leaf, Drumstick, Tag, MapPin, ChevronLeft, ChevronRight, Loader2, ArrowRight } from "lucide-react";
 
 export default function HomePage() {
   const { activeFoodType, menuViewMode } = useSettingStore();
-  const { branchId } = useCartStore();
 
   const [categories, setCategories] = useState<any[]>([]);
+  const [featuredItems, setFeaturedItems] = useState<any[]>([]);
+  const [popularItems, setPopularItems] = useState<any[]>([]);
+  const [offers, setOffers] = useState<any[]>([]);
+  const [allItems, setAllItems] = useState<any[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
-  const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // Slider images from seeder
-  const sliders = [
-    { image: "/images/seeder/slider/slider_one.png", title: "Flame Grilled Burgers", subtitle: "Fresh & Delicious" },
-    { image: "/images/seeder/slider/slider_two.png", title: "Special Offers Await", subtitle: "Save Big Today" },
-    { image: "/images/seeder/slider/slider_three.png", title: "Order From Anywhere", subtitle: "Fast Delivery" },
-  ];
+  const [trackOrderId, setTrackOrderId] = useState("");
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  const catScrollRef = useRef<HTMLDivElement>(null);
+
+  const sliders = [
+    { image: "/images/seeder/slider/slider_one.png", title: "Flame Grilled Burgers", subtitle: "Cooked fresh, every single time" },
+    { image: "/images/seeder/slider/slider_two.png", title: "Exclusive Deals Today", subtitle: "Save big on your favourite meals" },
+    { image: "/images/seeder/slider/slider_three.png", title: "Order in Minutes", subtitle: "Fast delivery right to your door" },
+  ];
+
+  const seederOffers = [
+    { _id: "1", title: "New Kings Collection", slug: "new-kings-collection", image: "/images/seeder/offer/new_kings_collection.png" },
+    { _id: "2", title: "Free Fiery Chicken", slug: "free-fiery-chicken", image: "/images/seeder/offer/free_fiery_chicken.png" },
+    { _id: "3", title: "Free Apple Shake", slug: "free-apple-thik-shake", image: "/images/seeder/offer/free_apple_thik_shake.png" },
+    { _id: "4", title: "Kings $49 Off", slug: "new-kings-collection-off", image: "/images/seeder/offer/new_kings_collection_off_$49.png" },
+  ];
+
+  // Auto-advance slider
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % sliders.length);
-    }, 4000);
-    return () => clearInterval(timer);
+    const t = setInterval(() => setCurrentSlide(p => (p + 1) % sliders.length), 4000);
+    return () => clearInterval(t);
   }, []);
 
-  useEffect(() => { fetchCategories(); }, []);
-  useEffect(() => { fetchItems(); }, [selectedCategoryId, activeFoodType, searchQuery]);
+  // Load data
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/frontend/categories").then(r => r.json()),
+      fetch("/api/frontend/items?featured=true").then(r => r.json()),
+      fetch("/api/frontend/items?popular=true").then(r => r.json()),
+      fetch("/api/frontend/offers").then(r => r.json()).catch(() => ({ status: false })),
+    ]).then(([cats, feat, pop, offs]) => {
+      if (cats.status) setCategories(cats.data || []);
+      if (feat.status) setFeaturedItems((feat.data || []).slice(0, 10));
+      if (pop.status) setPopularItems((pop.data || []).slice(0, 10));
+      if (offs.status && offs.data?.length > 0) setOffers(offs.data.slice(0, 4));
+      else setOffers(seederOffers);
+    }).finally(() => setLoading(false));
+  }, []);
 
-  const fetchCategories = async () => {
-    try {
-      const res = await fetch("/api/frontend/categories");
-      const data = await res.json();
-      if (data.status) setCategories(data.data || []);
-    } catch (e) { console.error(e); }
-  };
+  // Reload items when category/food type changes
+  useEffect(() => {
+    fetchItems();
+  }, [selectedCategoryId, activeFoodType]);
 
   const fetchItems = async () => {
-    setLoading(true);
     try {
       let url = `/api/frontend/items?`;
       if (selectedCategoryId !== "all") url += `categoryId=${selectedCategoryId}&`;
       if (activeFoodType !== "all") url += `itemType=${activeFoodType}&`;
-      if (searchQuery) url += `search=${encodeURIComponent(searchQuery)}&`;
       const res = await fetch(url);
       const data = await res.json();
-      if (data.status) setItems(data.data || []);
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
+      if (data.status) setAllItems(data.data || []);
+    } catch {}
   };
 
-  const openItemModal = (item: any) => {
-    setSelectedItem(item);
-    setIsModalOpen(true);
+  const openModal = (item: any) => { setSelectedItem(item); setIsModalOpen(true); };
+
+  const scrollCats = (dir: "left" | "right") => {
+    if (catScrollRef.current) catScrollRef.current.scrollBy({ left: dir === "left" ? -200 : 200, behavior: "smooth" });
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f7fc] flex flex-col font-rubik">
-      <Navbar />
-
-      {/* Hero Banner Slider */}
-      <section className="relative overflow-hidden" style={{ marginTop: "0" }}>
-        <div className="relative h-64 md:h-80 lg:h-96 w-full">
-          {sliders.map((slide, i) => (
-            <div key={i} className={`absolute inset-0 transition-all duration-700 ${i === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"}`}>
-              <img
-                src={slide.image}
-                alt={slide.title}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/images/default/slider.png";
-                }}
-              />
-              {/* Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
-              <div className="absolute left-8 md:left-16 top-1/2 -translate-y-1/2 text-white space-y-2">
-                <div className="inline-flex items-center gap-2 bg-[#ff006b] px-3 py-1 rounded-full text-xs font-semibold">
-                  <Tag className="w-3 h-3" />
-                  Fast & Fresh
-                </div>
-                <h1 className="text-2xl md:text-4xl font-black leading-tight">{slide.title}</h1>
-                <p className="text-sm md:text-base opacity-90">{slide.subtitle}</p>
-                <button
-                  onClick={() => document.getElementById("menu-section")?.scrollIntoView({ behavior: "smooth" })}
-                  className="mt-3 inline-flex items-center gap-2 px-5 py-2.5 rounded-3xl text-sm font-semibold text-white transition-all hover:bg-[#ff3b8e]"
-                  style={{ backgroundColor: "#ff006b" }}
-                >
-                  <ShoppingBag className="w-4 h-4" />
-                  Order Now
-                </button>
-              </div>
-            </div>
-          ))}
-
-          {/* Slide dots */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-            {sliders.map((_, i) => (
-              <button key={i} onClick={() => setCurrentSlide(i)}
-                className={`rounded-full transition-all duration-300 ${i === currentSlide ? "w-4 h-1.5 bg-[#ff006b]" : "w-3 h-1.5 bg-white/50"}`}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Offer Banner Section */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { image: "/images/seeder/offer/new_kings_collection.png", label: "New Collection" },
-            { image: "/images/seeder/offer/free_fiery_chicken.png", label: "Fiery Chicken" },
-            { image: "/images/seeder/offer/free_apple_thik_shake.png", label: "Apple Shake" },
-            { image: "/images/seeder/offer/new_kings_collection_off_$49.png", label: "$49 Off Deal" },
-          ].map((offer, i) => (
-            <div key={i} className="rounded-xl overflow-hidden shadow-sm border border-[#eff0f6] bg-white hover:shadow-lg transition-all cursor-pointer group">
-              <img
-                src={offer.image}
-                alt={offer.label}
-                className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-500"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/images/default/offer.png";
-                }}
-              />
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Main Menu Section */}
-      <main id="menu-section" className="max-w-6xl mx-auto px-4 sm:px-6 pb-8 flex-1 w-full">
-        {/* Search Bar */}
-        <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-[#eff0f6]">
-          <form onSubmit={(e) => { e.preventDefault(); fetchItems(); }} className="relative">
-            <Search className="w-4 h-4 text-[#a0a3bd] absolute left-3.5 top-1/2 -translate-y-1/2" />
+    <div>
+      {/* ========= TRACK ORDER BAR ========= */}
+      <div className="bg-white border-b border-[#eff0f6] py-3 px-4">
+        <div className="max-w-6xl mx-auto flex items-center gap-3">
+          <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: "#ff006b" }} />
+          <form
+            onSubmit={(e) => { e.preventDefault(); if (trackOrderId) window.location.href = `/order/${trackOrderId}`; }}
+            className="flex items-center gap-2 w-full max-w-md"
+          >
             <input
               type="text"
-              placeholder="Search for pizza, burgers, sushi..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-[#f7f7fc] border border-[#eff0f6] rounded-xl text-sm text-[#14142b] placeholder:text-[#a0a3bd] focus:outline-none focus:border-[#ff006b] focus:bg-white transition-all"
+              value={trackOrderId}
+              onChange={(e) => setTrackOrderId(e.target.value)}
+              placeholder="Enter order ID to track your order..."
+              className="flex-1 text-xs py-1.5 px-3 rounded-lg border border-[#eff0f6] bg-[#f7f7fc] focus:outline-none focus:border-[#ff006b] text-[#14142b] placeholder:text-[#a0a3bd] transition-all"
             />
-          </form>
-        </div>
-
-        {/* Category Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-3 scrollbar-none mb-4 menu-slides">
-          <button
-            onClick={() => setSelectedCategoryId("all")}
-            className={`flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-xs whitespace-nowrap transition-all border ${selectedCategoryId === "all"
-              ? "menu-category-active text-[#ff006b] border-[#ff006b] bg-[#fff5f9]"
-              : "bg-white text-[#6e7191] border-[#eff0f6] hover:bg-[#f7f7fc]"
-            }`}
-          >
-            <img src="/images/default/all-category.png" alt="All" className="w-5 h-5 rounded-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-            All Categories
-          </button>
-
-          {categories.map((cat) => (
-            <button
-              key={cat._id}
-              onClick={() => setSelectedCategoryId(cat._id)}
-              className={`flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-xs whitespace-nowrap transition-all border ${selectedCategoryId === cat._id
-                ? "menu-category-active text-[#ff006b] border-[#ff006b] bg-[#fff5f9]"
-                : "bg-white text-[#6e7191] border-[#eff0f6] hover:bg-[#f7f7fc]"
-              }`}
-            >
-              {cat.image && (
-                <img src={cat.image} alt={cat.name} className="w-5 h-5 rounded-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-              )}
-              {cat.name}
+            <button type="submit"
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all flex-shrink-0"
+              style={{ backgroundColor: "#ff006b" }}>
+              Track
             </button>
-          ))}
+          </form>
+          <span className="hidden sm:block text-xs text-[#a0a3bd]">|</span>
+          <Link href="/menu" className="hidden sm:flex items-center gap-1 text-xs font-medium whitespace-nowrap" style={{ color: "#ff006b" }}>
+            Browse Menu <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
+      </div>
 
-        {/* Item Listing */}
-        {loading ? (
-          <div className={`${menuViewMode === "grid" ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4" : "space-y-3"}`}>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-              <div key={n} className="bg-white rounded-2xl border border-[#eff0f6] overflow-hidden animate-pulse">
-                <div className="w-full h-36 bg-[#eff0f6]" />
-                <div className="p-3 space-y-2">
-                  <div className="h-4 bg-[#eff0f6] rounded w-3/4" />
-                  <div className="h-4 bg-[#eff0f6] rounded w-1/2" />
+      {/* ========= BANNER SLIDER ========= */}
+      <section className="relative overflow-hidden">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-4 sm:mt-8">
+          <div className="relative rounded-2xl overflow-hidden h-52 md:h-72 lg:h-80 banner-swiper">
+            {sliders.map((slide, i) => (
+              <div key={i} className={`absolute inset-0 transition-all duration-700 ${i === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"}`}>
+                <img src={slide.image} alt={slide.title}
+                  className="w-full h-full object-cover rounded-2xl"
+                  onError={(e) => { (e.target as HTMLImageElement).src = "/images/default/slider.png"; }} />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent rounded-2xl" />
+                <div className="absolute left-6 md:left-10 top-1/2 -translate-y-1/2 text-white">
+                  <p className="text-xs font-semibold opacity-80 mb-1">⚡ Today&apos;s Special</p>
+                  <h2 className="text-xl md:text-3xl font-black leading-tight mb-2">{slide.title}</h2>
+                  <p className="text-xs md:text-sm opacity-90 mb-4">{slide.subtitle}</p>
+                  <Link href="/menu" className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold text-white transition-all"
+                    style={{ backgroundColor: "#ff006b" }}>
+                    Order Now <ArrowRight className="w-4 h-4" />
+                  </Link>
                 </div>
               </div>
             ))}
+            {/* Prev/Next */}
+            <button onClick={() => setCurrentSlide(p => (p - 1 + sliders.length) % sliders.length)}
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center text-[#14142b] hover:bg-[#ff006b] hover:text-white transition-all opacity-0 hover:opacity-100 group-hover:opacity-100">
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button onClick={() => setCurrentSlide(p => (p + 1) % sliders.length)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center text-[#14142b] hover:bg-[#ff006b] hover:text-white transition-all">
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            {/* Dots */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+              {sliders.map((_, i) => (
+                <button key={i} onClick={() => setCurrentSlide(i)}
+                  className={`rounded-full transition-all duration-300 ${i === currentSlide ? "w-4 h-1.5 opacity-100" : "w-3 h-1.5 opacity-30"}`}
+                  style={{ backgroundColor: "#ff006b" }} />
+              ))}
+            </div>
           </div>
-        ) : items.length === 0 ? (
-          <div className="bg-white rounded-2xl p-12 text-center border border-[#eff0f6]">
-            <img src="/images/item/item-not-found.png" alt="Not Found" className="w-32 mx-auto mb-4 opacity-60"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-            <h3 className="text-base font-bold text-[#14142b]">No Items Found</h3>
-            <p className="text-xs text-[#a0a3bd] mt-1">Try adjusting your filters or search keywords.</p>
+        </div>
+      </section>
+
+      {/* ========= CATEGORY SECTION ========= */}
+      {categories.length > 0 && (
+        <section className="mb-6 sm:mb-12 mt-8">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <div className="flex items-center justify-between gap-2 mb-4">
+              <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b]">Our Menu</h2>
+              <Link href="/menu" className="rounded-3xl capitalize text-xs sm:text-sm leading-6 font-medium py-0.5 px-3 transition-all hover:text-white hover:bg-[#ff006b]"
+                style={{ color: "#ff006b", backgroundColor: "#D8FFFC" }}>
+                View All
+              </Link>
+            </div>
+            <div className="relative">
+              <button onClick={() => scrollCats("left")}
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center text-[#14142b] hover:text-[#ff006b] transition-all">
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <div ref={catScrollRef}
+                className="flex gap-3 overflow-x-auto pb-2 scrollbar-none px-10 menu-slides">
+                <button onClick={() => setSelectedCategoryId("all")}
+                  className={`flex-shrink-0 flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all min-w-[80px] ${selectedCategoryId === "all" ? "menu-category-active border-[#ff006b] bg-[#fff5f9]" : "bg-white border-[#eff0f6] hover:bg-[#f7f7fc]"}`}>
+                  <img src="/images/default/all-category.png" alt="All" className="w-10 h-10 rounded-lg object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  <span className="text-[10px] font-semibold text-[#14142b] whitespace-nowrap">All</span>
+                </button>
+                {categories.map(cat => (
+                  <button key={cat._id} onClick={() => setSelectedCategoryId(cat._id)}
+                    className={`flex-shrink-0 flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all min-w-[80px] ${selectedCategoryId === cat._id ? "menu-category-active border-[#ff006b] bg-[#fff5f9]" : "bg-white border-[#eff0f6] hover:bg-[#f7f7fc]"}`}>
+                    <img src={cat.image || "/images/category/thumb.png"} alt={cat.name}
+                      className="w-10 h-10 rounded-lg object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).src = "/images/category/thumb.png"; }} />
+                    <span className="text-[10px] font-semibold text-[#14142b] whitespace-nowrap max-w-[70px] truncate">{cat.name}</span>
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => scrollCats("right")}
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center text-[#14142b] hover:text-[#ff006b] transition-all">
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-        ) : menuViewMode === "grid" ? (
-          /* === GRID VIEW: Exact PHP product-card-grid === */
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {items.map((item) => (
-              <div
-                key={item._id}
-                onClick={() => openItemModal(item)}
-                className="product-card-grid cursor-pointer"
-              >
-                {/* Image */}
-                <div className="relative w-full pt-[70%] bg-[#f7f7fc] rounded-t-2xl overflow-hidden">
-                  <img
-                    src={item.image || "/images/item/thumb.png"}
-                    alt={item.name}
-                    className="absolute inset-0 w-full h-full object-cover product-card-grid-image group-hover:scale-105 transition-transform duration-500"
-                    onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }}
-                  />
-                  {/* Veg/Non-veg badge */}
-                  <div className="absolute top-2 left-2">
-                    {item.itemType === "veg" ? (
-                      <div className="w-5 h-5 flex items-center justify-center rounded-sm border-2 border-emerald-500 bg-white">
-                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+        </section>
+      )}
+
+      {/* ========= FEATURED ITEMS ========= */}
+      {featuredItems.length > 0 && (
+        <section className="mb-8 sm:mb-12">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <div className="flex items-center justify-between gap-2 mb-4">
+              <div className="flex items-center gap-2">
+                <Star className="w-5 h-5 fill-[#ff006b] text-[#ff006b]" />
+                <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b]">Featured Items</h2>
+              </div>
+              <Link href="/menu" className="text-xs font-medium" style={{ color: "#ff006b" }}>View All</Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {featuredItems.map((item) => (
+                <ItemCard key={item._id} item={item} onOpen={openModal} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ========= OFFERS SECTION ========= */}
+      {offers.length > 0 && (
+        <section className="mb-8 sm:mb-12">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <div className="flex items-center justify-between gap-2 mb-4">
+              <div className="flex items-center gap-2">
+                <Tag className="w-5 h-5" style={{ color: "#ff006b" }} />
+                <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b]">Current Offers</h2>
+              </div>
+              <Link href="/offers" className="text-xs font-medium" style={{ color: "#ff006b" }}>View All</Link>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {offers.map((offer) => (
+                <Link key={offer._id} href={`/offers/${offer.slug}`}
+                  className="rounded-xl overflow-hidden shadow-sm border border-[#eff0f6] bg-white hover:shadow-lg transition-all group">
+                  <img src={offer.image || "/images/default/offer.png"} alt={offer.title}
+                    className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-500"
+                    onError={(e) => { (e.target as HTMLImageElement).src = "/images/default/offer.png"; }} />
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ========= POPULAR ITEMS ========= */}
+      {popularItems.length > 0 && (
+        <section className="mb-8 sm:mb-12">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <div className="flex items-center justify-between gap-2 mb-4">
+              <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b]">Popular Items</h2>
+              <Link href="/menu" className="text-xs font-medium" style={{ color: "#ff006b" }}>View All</Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {popularItems.map((item) => (
+                <div key={item._id} onClick={() => openModal(item)}
+                  className="product-card-list cursor-pointer">
+                  <img src={item.image || "/images/item/thumb.png"} alt={item.name}
+                    className="w-24 h-full object-cover rounded-l-lg flex-shrink-0"
+                    onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
+                  <div className="p-3 flex-1">
+                    <div className="flex items-start gap-2 mb-1">
+                      <h4 className="text-sm font-semibold text-[#14142b] flex-1 capitalize">{item.name}</h4>
+                      <div className={`w-4 h-4 flex items-center justify-center rounded-sm border-2 bg-white flex-shrink-0 ${item.itemType === "veg" ? "border-emerald-500" : "border-rose-500"}`}>
+                        <div className={`w-2 h-2 rounded-full ${item.itemType === "veg" ? "bg-emerald-500" : "bg-rose-500"}`} />
                       </div>
-                    ) : (
-                      <div className="w-5 h-5 flex items-center justify-center rounded-sm border-2 border-rose-500 bg-white">
-                        <div className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-                      </div>
-                    )}
-                  </div>
-                  {item.isFeatured && (
-                    <div className="absolute top-2 right-2 bg-[#ff006b] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-                      <Star className="w-2.5 h-2.5 fill-white" />
                     </div>
-                  )}
-                </div>
-
-                {/* Content */}
-                <div className="product-card-grid-content-group p-2.5">
-                  <div className="flex-1">
-                    <h4 className="product-card-grid-title text-xs font-semibold text-[#14142b] mb-1 truncate">{item.name}</h4>
-                    <p className="product-card-grid-describe text-[10px] text-[#6e7191] line-clamp-2">{item.description}</p>
-                  </div>
-                  <div className="product-card-grid-footer-group mt-2 flex items-center justify-between">
-                    <span className="product-card-grid-price-current text-sm font-semibold text-[#14142b]">
-                      ₦{item.price?.toFixed(2)}
-                    </span>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); openItemModal(item); }}
-                      className="product-card-grid-cart-btn text-[#ff006b] hover:bg-[#ff006b] hover:text-white"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span className="text-[10px] font-medium">Add</span>
-                    </button>
+                    <p className="text-xs text-[#6e7191] line-clamp-1 mb-2">{item.description}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold text-[#14142b]">₦{item.price?.toFixed(2)}</span>
+                      <button onClick={(e) => { e.stopPropagation(); openModal(item); }}
+                        className="product-card-list-cart-btn flex items-center gap-1.5 text-xs font-semibold text-white px-3 py-1.5 rounded-3xl"
+                        style={{ backgroundColor: "#ff006b" }}>
+                        <Plus className="w-3.5 h-3.5" />Add
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        ) : (
-          /* === LIST VIEW: Exact PHP product-card-list === */
-          <div className="space-y-3">
-            {items.map((item) => (
-              <div
-                key={item._id}
-                onClick={() => openItemModal(item)}
-                className="product-card-list cursor-pointer"
-              >
-                {/* Image */}
-                <img
-                  src={item.image || "/images/item/thumb.png"}
-                  alt={item.name}
-                  className="product-card-list-image w-24 sm:w-28 h-full object-cover rounded-l-lg flex-shrink-0"
-                  onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }}
-                />
+        </section>
+      )}
 
-                <div className="product-card-list-content-group p-3 flex-1">
-                  <div className="flex items-start gap-2 mb-1.5">
-                    <h4 className="product-card-list-title text-sm font-semibold text-[#14142b] flex-1">{item.name}</h4>
-                    {item.itemType === "veg" ? (
-                      <div className="w-4 h-4 flex items-center justify-center rounded-sm border-2 border-emerald-500 bg-white flex-shrink-0">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500" />
+      {/* ========= ALL ITEMS (Category filtered) ========= */}
+      <section className="pb-20 lg:pb-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b] mb-4">
+            {selectedCategoryId === "all" ? "All Items" : categories.find(c => c._id === selectedCategoryId)?.name || "Items"}
+          </h2>
+
+          {loading ? (
+            <div className="flex justify-center py-16">
+              <Loader2 className="w-8 h-8 animate-spin" style={{ color: "#ff006b" }} />
+            </div>
+          ) : allItems.length === 0 ? (
+            <div className="bg-white rounded-2xl p-12 text-center border border-[#eff0f6]">
+              <img src="/images/item/item-not-found.png" alt="Not Found" className="w-28 mx-auto mb-4 opacity-50"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+              <p className="text-sm font-semibold text-[#14142b]">No items found</p>
+            </div>
+          ) : menuViewMode === "grid" ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {allItems.map((item) => <ItemCard key={item._id} item={item} onOpen={openModal} />)}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {allItems.map((item) => (
+                <div key={item._id} onClick={() => openModal(item)} className="product-card-list cursor-pointer">
+                  <img src={item.image || "/images/item/thumb.png"} alt={item.name}
+                    className="w-24 sm:w-28 h-full object-cover rounded-l-lg flex-shrink-0"
+                    onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
+                  <div className="p-3 flex-1">
+                    <div className="flex items-start gap-2 mb-1">
+                      <h4 className="text-sm font-semibold text-[#14142b] flex-1 capitalize">{item.name}</h4>
+                      <div className={`w-4 h-4 flex items-center justify-center rounded-sm border-2 bg-white flex-shrink-0 ${item.itemType === "veg" ? "border-emerald-500" : "border-rose-500"}`}>
+                        <div className={`w-2 h-2 rounded-full ${item.itemType === "veg" ? "bg-emerald-500" : "bg-rose-500"}`} />
                       </div>
-                    ) : (
-                      <div className="w-4 h-4 flex items-center justify-center rounded-sm border-2 border-rose-500 bg-white flex-shrink-0">
-                        <div className="w-2 h-2 rounded-full bg-rose-500" />
-                      </div>
-                    )}
-                  </div>
-                  <p className="product-card-list-describe text-xs text-[#6e7191] line-clamp-1 mb-2">{item.description}</p>
-                  <div className="product-card-list-footer-group flex items-center justify-between">
-                    <span className="text-sm font-semibold text-[#14142b]">₦{item.price?.toFixed(2)}</span>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); openItemModal(item); }}
-                      className="product-card-list-cart-btn flex items-center gap-1.5 text-xs font-semibold text-white px-4 py-1.5 rounded-3xl shadow-sm transition-all hover:opacity-90"
-                      style={{ backgroundColor: "#ff006b" }}
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      Add to Cart
-                    </button>
+                    </div>
+                    <p className="text-xs text-[#6e7191] line-clamp-1 mb-2">{item.description}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold text-[#14142b]">₦{item.price?.toFixed(2)}</span>
+                      <button className="product-card-list-cart-btn flex items-center gap-1.5 text-xs font-semibold text-white px-3 py-1.5 rounded-3xl"
+                        style={{ backgroundColor: "#ff006b" }}>
+                        <Plus className="w-3.5 h-3.5" />Add
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <ItemModal item={selectedItem} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+    </div>
+  );
+}
+
+/* Reusable grid card */
+function ItemCard({ item, onOpen }: { item: any; onOpen: (item: any) => void }) {
+  return (
+    <div onClick={() => onOpen(item)} className="product-card-grid cursor-pointer group">
+      <div className="relative pt-[70%] bg-[#f7f7fc] rounded-t-2xl overflow-hidden">
+        <img src={item.image || "/images/item/thumb.png"} alt={item.name}
+          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
+        <div className="absolute top-2 left-2">
+          <div className={`w-5 h-5 flex items-center justify-center rounded-sm border-2 bg-white ${item.itemType === "veg" ? "border-emerald-500" : "border-rose-500"}`}>
+            <div className={`w-2.5 h-2.5 rounded-full ${item.itemType === "veg" ? "bg-emerald-500" : "bg-rose-500"}`} />
+          </div>
+        </div>
+        {item.isFeatured && (
+          <div className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: "#ff006b" }}>
+            <Star className="w-3 h-3 fill-white text-white" />
           </div>
         )}
-      </main>
-
-      <Footer />
-
-      {/* Item Modal */}
-      <ItemModal
-        item={selectedItem}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
+      </div>
+      <div className="p-2.5 flex-1 flex flex-col">
+        <h4 className="text-xs font-semibold text-[#14142b] truncate mb-1">{item.name}</h4>
+        <p className="text-[10px] text-[#6e7191] line-clamp-2 mb-2 flex-1">{item.description}</p>
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-bold text-[#14142b]">₦{item.price?.toFixed(2)}</span>
+          <button onClick={(e) => { e.stopPropagation(); onOpen(item); }}
+            className="product-card-grid-cart-btn text-[#ff006b] hover:bg-[#ff006b] hover:text-white">
+            <Plus className="w-3.5 h-3.5" />
+            <span className="text-[10px]">Add</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

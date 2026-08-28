@@ -13,7 +13,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-export default function Navbar() {
+interface NavbarProps { onCartOpen?: () => void; }
+export default function Navbar({ onCartOpen }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { user, token, logout } = useAuthStore();
@@ -117,7 +118,7 @@ export default function Navbar() {
             <div className="flex items-center gap-2">
               {/* Cart Button */}
               <button
-                onClick={() => router.push("/checkout")}
+                onClick={onCartOpen}
                 className="hidden lg:flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white bg-[#14142b] hover:bg-[#ff006b] transition-all"
               >
                 <ShoppingBag className="w-4 h-4" />
