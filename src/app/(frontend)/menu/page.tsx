@@ -107,7 +107,7 @@ export default function MenuPage() {
                 onClick={() => activeFoodType === "non_veg" ? itemTypeReset() : itemTypeSet("non_veg")}
                 className={`flex items-center gap-3 w-fit pl-3 pr-4 py-1 sm:py-1.5 rounded-3xl transition hover:shadow-md hover:bg-white ${activeFoodType === "non_veg" ? 'veg-active' : 'bg-[#EFF0F6]'}`}
               >
-                <img src="/images/item/non-veg.png" alt="category" className="h-6" />
+                <img src="/images/item-type/non-veg.png" alt="category" className="h-6" />
                 <span className="capitalize text-xs sm:text-sm font-medium text-[#14142b]">Non Veg</span>
                 {activeFoodType === "non_veg" && <XCircle className="w-5 h-5 text-red-500 ml-2" />}
               </button>
@@ -116,7 +116,7 @@ export default function MenuPage() {
                 onClick={() => activeFoodType === "veg" ? itemTypeReset() : itemTypeSet("veg")}
                 className={`flex items-center gap-3 w-fit pl-3 pr-4 py-1 sm:py-1.5 rounded-3xl transition hover:shadow-md hover:bg-white ${activeFoodType === "veg" ? 'veg-active' : 'bg-[#EFF0F6]'}`}
               >
-                <img src="/images/item/veg.png" alt="category" className="h-6" />
+                <img src="/images/item-type/veg.png" alt="category" className="h-6" />
                 <span className="capitalize text-xs sm:text-sm font-medium text-[#14142b]">Veg</span>
                 {activeFoodType === "veg" && <XCircle className="w-5 h-5 text-red-500 ml-2" />}
               </button>

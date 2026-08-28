@@ -135,6 +135,34 @@ export default function SignupPage() {
               {errors.password && <small className="text-red-500 text-xs mt-1 block">{errors.password[0]}</small>}
             </div>
 
+            {/* Social login divider */}
+            <div className="sm:col-span-2 mt-2">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="w-full h-[1px] bg-gradient-to-r from-white to-[#D9DBE9]"></span>
+                <span className="text-sm text-[#6E7191]">OR</span>
+                <span className="w-full h-[1px] bg-gradient-to-l from-white to-[#D9DBE9]"></span>
+              </div>
+
+              {/* Social Login Buttons - Using SVGs embedded directly */}
+              <div className="flex justify-center flex-wrap gap-[10px] mb-4">
+                <div className="flex items-center justify-center gap-1.5 bg-[#F7F7FC] px-3 h-10 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                    <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                      <path fill="#4285F4" d="M22.56 12.25c-.1-1.1-.9-1.99-1.95-1.99H12v4.02h6.17c-.25 1.35-1 2.57-2.14 3.34l3.46 2.68c.02.01-.01.03.01.03z"/>
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.46-2.68c-.99.66-2.25 1.05-3.82 1.05-2.94 0-5.43-1.98-6.32-4.66H2.07v2.79C3.9 20.48 7.64 23 12 23z"/>
+                      <path fill="#FBBC05" d="M5.68 14.05c-.23-.68-.36-1.41-.36-2.16s.13-1.48.36-2.16V6.94H2.07C1.38 8.35 1 9.92 1 11.5s.38 3.15 1.07 4.56l3.61-2.01z"/>
+                      <path fill="#EA4335" d="M12 4.61c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.19 14.97 0 12 0 7.64 0 3.9 2.52 2.07 6.16l3.61 2.79c.89-2.68 3.38-4.34 6.32-4.34z"/>
+                    </svg>
+                    <span className="font-medium text-[13px] text-[#14142b]">Google</span>
+                </div>
+                <div className="flex items-center justify-center gap-1.5 bg-[#F7F7FC] px-3 h-10 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                    <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                      <path fill="#1877F2" d="M24 12.07c-.04-6.63-5.45-11.99-12.07-11.99S-.03 5.44-.03 12.07c0 5.98 4.38 10.95 10.2 11.85v-8.38H7.09v-3.47h3.06V9.34c0-3.03 1.8-4.7 4.56-4.7 1.32 0 2.68.24 2.68.24v2.94h-1.5c-1.49 0-1.95.93-1.95 1.87v 2.25h3.32l-.53 3.47h-2.79v8.38C20.04 22.94 24 18.01 24 12.07Z"/>
+                    </svg>
+                    <span className="font-medium text-[13px] text-[#14142b]">Facebook</span>
+                </div>
+              </div>
+            </div>
+
             {/* Sign Up Button */}
             <div className="sm:col-span-2 mt-2">
               <button 

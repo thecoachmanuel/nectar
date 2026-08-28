@@ -1,25 +1,52 @@
 "use client";
 
-import React, { useState } from "react";
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  Download, 
-  Upload, 
-  Edit,
-  Trash2,
-  Eye
-} from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Plus, Search, Filter, Edit, Trash2 } from "lucide-react";
+import { useApi } from "@/hooks/useApi";
+import UserModal from "@/components/admin/UserModal";
+import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
 
 export default function AdministratorsPage() {
   const [showFilter, setShowFilter] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  
+  const { execute, data: users, loading } = useApi();
+  const { execute: deleteUser } = useApi();
 
-  // Mock data
-  const administrators = [
-    { id: 1, name: "Super Admin", email: "admin@foodappi.com", phone: "+234 800 000 0000", role: "Super Admin", status: "Active" },
-    { id: 2, name: "Manager User", email: "manager@foodappi.com", phone: "+234 811 111 1111", role: "Manager", status: "Active" },
-  ];
+  const fetchUsers = () => {
+    execute("/api/admin/users?role=admin");
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const handleAdd = () => {
+    setSelectedUser(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (user: any) => {
+    setSelectedUser(user);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteClick = (user: any) => {
+    setSelectedUser(user);
+    setIsDeleteOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (selectedUser) {
+      await deleteUser(`/api/admin/users/${selectedUser._id}`, {
+        method: "DELETE",
+        successMessage: "Administrator deleted",
+      });
+      fetchUsers();
+    }
+  };
 
   return (
     <div className="pb-16">
@@ -46,13 +73,12 @@ export default function AdministratorsPage() {
               <Filter className="w-4 h-4" />
             </button>
             
-            <button className="h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-[#6E7191] flex items-center justify-center hover:bg-[#F7F7FC] transition-colors">
-              <Download className="w-4 h-4" />
-            </button>
-            
-            <button className="h-10 px-4 rounded-xl bg-[#ff006b] text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-[#ff006b]/20">
+            <button 
+              onClick={handleAdd}
+              className="h-10 px-4 rounded-xl bg-[#ff006b] text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-[#ff006b]/20"
+            >
               <Plus className="w-4 h-4" />
-              <span className="text-sm font-medium">Add Administrator</span>
+              <span className="text-sm font-medium">Add Admin</span>
             </button>
           </div>
         </div>
@@ -66,19 +92,19 @@ export default function AdministratorsPage() {
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Email</label>
+              <input type="email" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Phone</label>
               <input type="text" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Role</label>
+              <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Status</label>
               <select className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]">
                 <option>-- Select --</option>
-                <option>Super Admin</option>
-                <option>Manager</option>
+                <option>Active</option>
+                <option>Inactive</option>
               </select>
-            </div>
-            <div className="flex items-center gap-3 pt-6">
-              <button className="h-10 px-6 rounded-xl bg-[#ff006b] text-white text-sm font-medium hover:bg-[#e60060] transition-colors flex-1">Search</button>
-              <button className="h-10 px-6 rounded-xl bg-gray-600 text-white text-sm font-medium hover:bg-gray-700 transition-colors flex-1">Clear</button>
             </div>
           </div>
         )}
@@ -91,61 +117,72 @@ export default function AdministratorsPage() {
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Name</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Email</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Phone</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Role</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EFF0F6]">
-              {administrators.map((admin) => (
-                <tr key={admin.id} className="hover:bg-[#FAFAFC] transition-colors">
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-medium text-[#14142B]">{admin.name}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm text-[#4E4B66]">{admin.email}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm text-[#4E4B66]">{admin.phone}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-semibold text-[#14142B]">{admin.role}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${admin.status === 'Active' ? 'bg-[#E0FFED] text-[#1AB759]' : 'bg-[#FFEAEA] text-[#FB4E4E]'}`}>
-                      {admin.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#567DFF] flex items-center justify-center hover:bg-[#e5ebff] transition-colors">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#1AB759] flex items-center justify-center hover:bg-[#E0FFED] transition-colors">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#FB4E4E] flex items-center justify-center hover:bg-[#FFEAEA] transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {loading && !users ? (
+                <tr><td colSpan={5} className="p-8 text-center text-[#6E7191]">Loading...</td></tr>
+              ) : users?.length === 0 ? (
+                <tr><td colSpan={5} className="p-8 text-center text-[#6E7191]">No administrators found</td></tr>
+              ) : (
+                users?.map((user: any) => (
+                  <tr key={user._id} className="hover:bg-[#FAFAFC] transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <img src={user.image || "/images/default/user.png"} alt="Admin" className="w-10 h-10 rounded-full object-cover border border-[#EFF0F6]" />
+                        <span className="text-sm font-medium text-[#14142B]">{user.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-[#4E4B66]">{user.email}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-[#4E4B66]">{user.phone || "-"}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.status ? 'bg-[#E0FFED] text-[#1AB759]' : 'bg-[#FFEAEA] text-[#FB4E4E]'}`}>
+                        {user.status ? "Active" : "Inactive"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button onClick={() => handleEdit(user)} className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#1AB759] flex items-center justify-center hover:bg-[#E0FFED] transition-colors">
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDeleteClick(user)} className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#FB4E4E] flex items-center justify-center hover:bg-[#FFEAEA] transition-colors">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
         
         {/* Pagination */}
         <div className="p-4 sm:p-6 border-t border-[#EFF0F6] flex items-center justify-between">
-          <span className="text-sm text-[#6E7191]">Showing 1 to 2 of 2 entries</span>
-          <div className="flex items-center gap-1">
-            <button className="w-8 h-8 rounded-lg border border-[#EFF0F6] flex items-center justify-center text-[#6E7191] hover:bg-[#F7F7FC] disabled:opacity-50">«</button>
-            <button className="w-8 h-8 rounded-lg bg-[#ff006b] text-white flex items-center justify-center text-sm font-medium shadow-md shadow-[#ff006b]/20">1</button>
-            <button className="w-8 h-8 rounded-lg border border-[#EFF0F6] flex items-center justify-center text-[#6E7191] hover:bg-[#F7F7FC] disabled:opacity-50">»</button>
-          </div>
+          <span className="text-sm text-[#6E7191]">Showing {users?.length || 0} entries</span>
         </div>
 
       </div>
+
+      <UserModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        user={selectedUser}
+        role="admin"
+        onSuccess={fetchUsers}
+      />
+
+      <DeleteConfirmationModal 
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        onConfirm={confirmDelete}
+      />
 
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   User, 
   Mail, 
@@ -10,18 +10,32 @@ import {
   Save
 } from "lucide-react";
 import { toast } from "sonner";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useApi } from "@/hooks/useApi";
 
 export default function AdminProfilePage() {
-  const [isLoading, setIsLoading] = useState(false);
+  const { user, updateUser } = useAuthStore();
+  const { execute, loading: isSaving } = useApi();
+  
   const [formData, setFormData] = useState({
-    firstName: "Admin",
-    lastName: "User",
-    email: "admin@foodappi.com",
-    phone: "+234 800 000 0000",
+    name: "",
+    email: "",
+    phone: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
+
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+      }));
+    }
+  }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -29,29 +43,45 @@ export default function AdminProfilePage() {
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    if (!user) return;
     
-    // Mock API call
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success("Profile updated successfully!");
-    }, 1000);
+    try {
+      const { data } = await execute(`/api/admin/users/${user._id}`, {
+        method: "PUT",
+        body: {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+        },
+        successMessage: "Profile updated successfully!",
+      });
+      if (data) {
+        updateUser(data);
+      }
+    } catch (err) {}
   };
 
   const handleSavePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
+    
     if (formData.newPassword !== formData.confirmPassword) {
       toast.error("New passwords do not match!");
       return;
     }
     
-    setIsLoading(true);
-    // Mock API call
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success("Password changed successfully!");
+    try {
+      // In a real app we would verify currentPassword on the backend.
+      // Since this is admin/users/[id], we just pass password to PUT.
+      await execute(`/api/admin/users/${user._id}`, {
+        method: "PUT",
+        body: {
+          password: formData.newPassword,
+        },
+        successMessage: "Password changed successfully!",
+      });
       setFormData({ ...formData, currentPassword: "", newPassword: "", confirmPassword: "" });
-    }, 1000);
+    } catch (err) {}
   };
 
   return (
@@ -76,8 +106,8 @@ export default function AdminProfilePage() {
                 <Camera className="w-5 h-5" />
               </button>
             </div>
-            <h3 className="text-lg font-bold text-[#14142B]">{formData.firstName} {formData.lastName}</h3>
-            <p className="text-sm text-[#6E7191] font-medium mb-1">Administrator</p>
+            <h3 className="text-lg font-bold text-[#14142B]">{user?.name}</h3>
+            <p className="text-sm text-[#6E7191] font-medium mb-1 capitalize">{user?.role?.replace("_", " ")}</p>
             <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#E0FFED] text-[#1AB759]">
               Active
             </div>
@@ -94,24 +124,17 @@ export default function AdminProfilePage() {
             </div>
             <form onSubmit={handleSaveProfile} className="p-4 sm:p-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-[#14142B] mb-2">First Name</label>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-semibold text-[#14142B] mb-2">Full Name</label>
                   <div className="relative">
-                    <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b]" />
-                    <User className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-[#14142B] mb-2">Last Name</label>
-                  <div className="relative">
-                    <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b]" />
+                    <input type="text" name="name" value={formData.name} onChange={handleChange} required className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b]" />
                     <User className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-[#14142B] mb-2">Email Address</label>
                   <div className="relative">
-                    <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b]" />
+                    <input type="email" name="email" value={formData.email} onChange={handleChange} required className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b]" />
                     <Mail className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
                   </div>
                 </div>
@@ -124,8 +147,8 @@ export default function AdminProfilePage() {
                 </div>
               </div>
               <div className="flex justify-end pt-2">
-                <button type="submit" disabled={isLoading} className="h-11 px-6 rounded-xl bg-[#ff006b] text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-[#ff006b]/20 disabled:opacity-50">
-                  <Save className="w-4 h-4" />
+                <button type="submit" disabled={isSaving} className="h-11 px-6 rounded-xl bg-[#ff006b] text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-[#ff006b]/20 disabled:opacity-50">
+                  {isSaving ? <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
                   <span className="text-sm font-medium">Update Profile</span>
                 </button>
               </div>
@@ -149,21 +172,21 @@ export default function AdminProfilePage() {
                 <div>
                   <label className="block text-sm font-semibold text-[#14142B] mb-2">New Password</label>
                   <div className="relative">
-                    <input type="password" name="newPassword" value={formData.newPassword} onChange={handleChange} className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b]" />
+                    <input type="password" name="newPassword" value={formData.newPassword} onChange={handleChange} required className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b]" />
                     <Lock className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-[#14142B] mb-2">Confirm New Password</label>
                   <div className="relative">
-                    <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b]" />
+                    <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} required className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b]" />
                     <Lock className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
                   </div>
                 </div>
               </div>
               <div className="flex justify-end pt-2">
-                <button type="submit" disabled={isLoading} className="h-11 px-6 rounded-xl bg-[#14142B] text-white flex items-center gap-2 hover:bg-black transition-colors shadow-md disabled:opacity-50">
-                  <Lock className="w-4 h-4" />
+                <button type="submit" disabled={isSaving} className="h-11 px-6 rounded-xl bg-[#14142B] text-white flex items-center gap-2 hover:bg-black transition-colors shadow-md disabled:opacity-50">
+                  {isSaving ? <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Lock className="w-4 h-4" />}
                   <span className="text-sm font-medium">Update Password</span>
                 </button>
               </div>

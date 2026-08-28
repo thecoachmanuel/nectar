@@ -1,40 +1,57 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Search, 
   Filter, 
   Download, 
   Eye,
   Printer,
-  ChevronRight
 } from "lucide-react";
-import Link from "next/link";
+import { useApi } from "@/hooks/useApi";
 
 export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState("All");
 
-  const tabs = ["All", "Pending", "Accept", "Preparing", "Prepared", "Out for Delivery", "Delivered", "Canceled", "Rejected", "Returned"];
+  const tabs = ["All", "pending", "accepted", "preparing", "ready", "out_for_delivery", "delivered", "canceled"];
 
-  // Mock data
-  const orders = [
-    { id: "#10045", customer: "John Doe", amount: "₦5,500", type: "Delivery", date: "Oct 12, 2026, 14:30", status: "Pending" },
-    { id: "#10044", customer: "Jane Smith", amount: "₦2,000", type: "Takeaway", date: "Oct 12, 2026, 14:15", status: "Preparing" },
-    { id: "#10043", customer: "Guest User", amount: "₦8,500", type: "Delivery", date: "Oct 12, 2026, 13:50", status: "Out for Delivery" },
-    { id: "#10042", customer: "Alice Johnson", amount: "₦1,500", type: "Takeaway", date: "Oct 12, 2026, 12:10", status: "Delivered" },
-    { id: "#10041", customer: "Bob Brown", amount: "₦4,200", type: "Delivery", date: "Oct 12, 2026, 11:30", status: "Canceled" },
-  ];
+  const { execute, data: orders, loading } = useApi();
+  const { execute: updateOrder } = useApi();
+
+  const fetchOrders = () => {
+    execute("/api/admin/orders");
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const handleStatusChange = async (id: string, status: string) => {
+    try {
+      await updateOrder(`/api/admin/orders/${id}`, {
+        method: "PUT",
+        body: { orderStatus: status },
+        successMessage: `Order marked as ${status.replace("_", " ")}`,
+      });
+      fetchOrders();
+    } catch (e) {}
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Pending": return "bg-[#FFF6E6] text-[#FFB020]";
-      case "Preparing": return "bg-[#e5ebff] text-[#567DFF]";
-      case "Out for Delivery": return "bg-[#E9F9FF] text-[#008BBA]";
-      case "Delivered": return "bg-[#EBE7FF] text-[#8262FE]";
-      case "Canceled": return "bg-[#FFEAEA] text-[#FB4E4E]";
+      case "pending": return "bg-[#FFF6E6] text-[#FFB020]";
+      case "preparing": return "bg-[#e5ebff] text-[#567DFF]";
+      case "out_for_delivery": return "bg-[#E9F9FF] text-[#008BBA]";
+      case "delivered": return "bg-[#EBE7FF] text-[#8262FE]";
+      case "canceled": return "bg-[#FFEAEA] text-[#FB4E4E]";
       default: return "bg-gray-100 text-gray-600";
     }
   };
+
+  const filteredOrders = orders?.filter((order: any) => {
+    if (activeTab === "All") return true;
+    return order.orderStatus === activeTab;
+  });
 
   return (
     <div className="pb-16">
@@ -70,13 +87,13 @@ export default function OrdersPage() {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`whitespace-nowrap px-4 py-4 text-sm font-medium border-b-2 transition-colors ${
+                className={`whitespace-nowrap px-4 py-4 text-sm font-medium border-b-2 transition-colors capitalize ${
                   activeTab === tab 
                     ? "border-[#ff006b] text-[#ff006b]" 
                     : "border-transparent text-[#6E7191] hover:text-[#14142B]"
                 }`}
               >
-                {tab}
+                {tab.replace("_", " ")}
               </button>
             ))}
           </div>
@@ -97,52 +114,59 @@ export default function OrdersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EFF0F6]">
-              {orders.map((order) => (
-                <tr key={order.id} className="hover:bg-[#FAFAFC] transition-colors">
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-bold text-[#ff006b]">{order.id}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-medium text-[#14142B]">{order.customer}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-semibold text-[#14142B]">{order.amount}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm text-[#4E4B66]">{order.type}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm text-[#4E4B66]">{order.date}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>
-                      {order.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#14142B] flex items-center justify-center hover:bg-[#e2e2ec] transition-colors">
-                        <Printer className="w-4 h-4" />
-                      </button>
-                      <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#567DFF] flex items-center justify-center hover:bg-[#e5ebff] transition-colors">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {loading && !orders ? (
+                <tr><td colSpan={7} className="p-8 text-center text-[#6E7191]">Loading...</td></tr>
+              ) : filteredOrders?.length === 0 ? (
+                <tr><td colSpan={7} className="p-8 text-center text-[#6E7191]">No orders found</td></tr>
+              ) : (
+                filteredOrders?.map((order: any) => (
+                  <tr key={order._id} className="hover:bg-[#FAFAFC] transition-colors">
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-bold text-[#ff006b]">{order.orderSerialNo}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-medium text-[#14142B]">{order.customerName}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-semibold text-[#14142B]">₦{(order.totalAmount || 0).toLocaleString()}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-[#4E4B66] capitalize">{order.orderType?.replace("_", " ")}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-[#4E4B66]">{new Date(order.createdAt).toLocaleString()}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <select
+                        value={order.orderStatus}
+                        onChange={(e) => handleStatusChange(order._id, e.target.value)}
+                        className={`text-xs font-semibold rounded-full px-2 py-1 border-none focus:ring-0 cursor-pointer capitalize ${getStatusColor(order.orderStatus)}`}
+                      >
+                        {tabs.filter(t => t !== "All").map(statusOption => (
+                          <option key={statusOption} value={statusOption}>{statusOption.replace("_", " ")}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#14142B] flex items-center justify-center hover:bg-[#e2e2ec] transition-colors">
+                          <Printer className="w-4 h-4" />
+                        </button>
+                        <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#567DFF] flex items-center justify-center hover:bg-[#e5ebff] transition-colors">
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
         
         {/* Pagination */}
         <div className="p-4 sm:p-6 border-t border-[#EFF0F6] flex items-center justify-between">
-          <span className="text-sm text-[#6E7191]">Showing 1 to 5 of 5 entries</span>
-          <div className="flex items-center gap-1">
-            <button className="w-8 h-8 rounded-lg border border-[#EFF0F6] flex items-center justify-center text-[#6E7191] hover:bg-[#F7F7FC] disabled:opacity-50">«</button>
-            <button className="w-8 h-8 rounded-lg bg-[#ff006b] text-white flex items-center justify-center text-sm font-medium shadow-md shadow-[#ff006b]/20">1</button>
-            <button className="w-8 h-8 rounded-lg border border-[#EFF0F6] flex items-center justify-center text-[#6E7191] hover:bg-[#F7F7FC] disabled:opacity-50">»</button>
-          </div>
+          <span className="text-sm text-[#6E7191]">Showing {filteredOrders?.length || 0} entries</span>
         </div>
 
       </div>

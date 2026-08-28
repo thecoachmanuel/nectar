@@ -347,14 +347,110 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {/* Others */}
-          {["SMS Gateway", "Push Notification", "Roles & Permissions"].includes(activeTab) && (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-20 h-20 bg-[#F7F7FC] rounded-full flex items-center justify-center mb-4">
-                <PaintBucket className="w-10 h-10 text-[#A0A3BD]" />
+          {/* SMS Gateway */}
+          {activeTab === "SMS Gateway" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Twilio Account SID</label>
+                <input 
+                  type="text" 
+                  value={formData.sms_twilio_sid || ""} 
+                  onChange={(e) => handleChange("sms_twilio_sid", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
               </div>
-              <h3 className="text-lg font-bold text-[#14142B] mb-2">{activeTab} Settings</h3>
-              <p className="text-[#6E7191] max-w-sm">Configuration fields for {activeTab.toLowerCase()} will map directly to the API here.</p>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Twilio Auth Token</label>
+                <input 
+                  type="password" 
+                  value={formData.sms_twilio_token || ""} 
+                  onChange={(e) => handleChange("sms_twilio_token", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Twilio From Number</label>
+                <input 
+                  type="text" 
+                  value={formData.sms_twilio_from || ""} 
+                  onChange={(e) => handleChange("sms_twilio_from", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Enable SMS</label>
+                <select 
+                  value={formData.sms_enabled || "No"}
+                  onChange={(e) => handleChange("sms_enabled", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]"
+                >
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* Push Notification */}
+          {activeTab === "Push Notification" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Firebase Server Key</label>
+                <input 
+                  type="password" 
+                  value={formData.push_firebase_key || ""} 
+                  onChange={(e) => handleChange("push_firebase_key", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Firebase Sender ID</label>
+                <input 
+                  type="text" 
+                  value={formData.push_firebase_sender || ""} 
+                  onChange={(e) => handleChange("push_firebase_sender", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Enable Push Notifications</label>
+                <select 
+                  value={formData.push_enabled || "No"}
+                  onChange={(e) => handleChange("push_enabled", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]"
+                >
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* Roles & Permissions */}
+          {activeTab === "Roles & Permissions" && (
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Default Customer Role</label>
+                <select 
+                  value={formData.role_default_customer || "Customer"}
+                  onChange={(e) => handleChange("role_default_customer", e.target.value)}
+                  className="w-full md:w-1/2 h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]"
+                >
+                  <option value="Customer">Customer</option>
+                  <option value="Guest">Guest</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Allow Public Registration</label>
+                <select 
+                  value={formData.role_public_registration || "Yes"}
+                  onChange={(e) => handleChange("role_public_registration", e.target.value)}
+                  className="w-full md:w-1/2 h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]"
+                >
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
             </div>
           )}
 

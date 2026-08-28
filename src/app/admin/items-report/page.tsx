@@ -1,22 +1,87 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Search, 
   Filter, 
   Download
 } from "lucide-react";
+import { useApi } from "@/hooks/useApi";
+import ExcelJS from "exceljs";
+import { toast } from "sonner";
 
 export default function ItemsReportPage() {
   const [showFilter, setShowFilter] = useState(false);
 
-  // Mock data
-  const reports = [
-    { id: 1, name: "Chicken Biryani", category: "Main Course", quantitySold: 120, revenue: "₦420,000" },
-    { id: 2, name: "Beef Burger", category: "Fast Food", quantitySold: 85, revenue: "₦170,000" },
-    { id: 3, name: "Coca Cola", category: "Beverages", quantitySold: 200, revenue: "₦100,000" },
-    { id: 4, name: "Vanilla Ice Cream", category: "Dessert", quantitySold: 50, revenue: "₦75,000" },
-  ];
+  const { execute, data: orders, loading } = useApi();
+
+  useEffect(() => {
+    execute("/api/admin/orders");
+  }, []);
+
+  // Aggregate item sales
+  const itemMap: Record<string, any> = {};
+  orders?.forEach((order: any) => {
+    order.items?.forEach((item: any) => {
+      const key = item.itemId;
+      if (!itemMap[key]) {
+        itemMap[key] = {
+          id: key,
+          name: item.name,
+          category: "-", // Note: Category would need to be populated on orders or cross-referenced with Items
+          quantitySold: 0,
+          revenue: 0,
+        };
+      }
+      itemMap[key].quantitySold += (item.quantity || 1);
+      itemMap[key].revenue += (item.itemTotal || item.price * (item.quantity || 1));
+    });
+  });
+
+  const reports = Object.values(itemMap).sort((a: any, b: any) => b.quantitySold - a.quantitySold);
+
+  const exportToExcel = async () => {
+    if (!reports || reports.length === 0) {
+      toast.error("No data to export");
+      return;
+    }
+    
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Items Report");
+
+      worksheet.columns = [
+        { header: "Item Name", key: "name", width: 30 },
+        { header: "Category", key: "category", width: 20 },
+        { header: "Quantity Sold", key: "quantitySold", width: 15 },
+        { header: "Total Revenue", key: "revenue", width: 20 },
+      ];
+
+      reports.forEach((item: any) => {
+        worksheet.addRow({
+          name: item.name,
+          category: item.category,
+          quantitySold: item.quantitySold,
+          revenue: `₦${item.revenue.toLocaleString()}`,
+        });
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `ItemsReport_${Date.now()}.xlsx`;
+      anchor.click();
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Items report exported successfully!");
+    } catch (e: any) {
+      toast.error("Excel export failed: " + e.message);
+    }
+  };
 
   return (
     <div className="pb-16">
@@ -43,7 +108,10 @@ export default function ItemsReportPage() {
               <Filter className="w-4 h-4" />
             </button>
             
-            <button className="h-10 px-4 rounded-xl bg-[#008BBA] text-white flex items-center gap-2 hover:bg-[#00749b] transition-colors shadow-md shadow-[#008BBA]/20">
+            <button 
+              onClick={exportToExcel}
+              className="h-10 px-4 rounded-xl bg-[#008BBA] text-white flex items-center gap-2 hover:bg-[#00749b] transition-colors shadow-md shadow-[#008BBA]/20"
+            >
               <Download className="w-4 h-4" />
               <span className="text-sm font-medium">Export</span>
             </button>
@@ -93,34 +161,35 @@ export default function ItemsReportPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EFF0F6]">
-              {reports.map((report) => (
-                <tr key={report.id} className="hover:bg-[#FAFAFC] transition-colors">
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-medium text-[#14142B]">{report.name}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm text-[#4E4B66]">{report.category}</span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <span className="text-sm font-semibold text-[#1AB759]">{report.quantitySold}</span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <span className="text-sm font-bold text-[#14142B]">{report.revenue}</span>
-                  </td>
-                </tr>
-              ))}
+              {loading && !orders ? (
+                <tr><td colSpan={4} className="p-8 text-center text-[#6E7191]">Loading...</td></tr>
+              ) : reports.length === 0 ? (
+                <tr><td colSpan={4} className="p-8 text-center text-[#6E7191]">No items found</td></tr>
+              ) : (
+                reports.map((report: any) => (
+                  <tr key={report.id} className="hover:bg-[#FAFAFC] transition-colors">
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-medium text-[#14142B]">{report.name}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-[#4E4B66]">{report.category}</span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <span className="text-sm font-semibold text-[#1AB759]">{report.quantitySold}</span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <span className="text-sm font-bold text-[#14142B]">₦{report.revenue.toLocaleString()}</span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
         
         {/* Pagination */}
         <div className="p-4 sm:p-6 border-t border-[#EFF0F6] flex items-center justify-between">
-          <span className="text-sm text-[#6E7191]">Showing 1 to 4 of 4 entries</span>
-          <div className="flex items-center gap-1">
-            <button className="w-8 h-8 rounded-lg border border-[#EFF0F6] flex items-center justify-center text-[#6E7191] hover:bg-[#F7F7FC] disabled:opacity-50">«</button>
-            <button className="w-8 h-8 rounded-lg bg-[#ff006b] text-white flex items-center justify-center text-sm font-medium shadow-md shadow-[#ff006b]/20">1</button>
-            <button className="w-8 h-8 rounded-lg border border-[#EFF0F6] flex items-center justify-center text-[#6E7191] hover:bg-[#F7F7FC] disabled:opacity-50">»</button>
-          </div>
+          <span className="text-sm text-[#6E7191]">Showing {reports.length} entries</span>
         </div>
 
       </div>

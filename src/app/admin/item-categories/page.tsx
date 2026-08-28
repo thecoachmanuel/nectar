@@ -1,28 +1,51 @@
 "use client";
 
-import React, { useState } from "react";
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  Download, 
-  Upload, 
-  Edit,
-  Trash2,
-  Eye
-} from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Plus, Search, Edit, Trash2 } from "lucide-react";
+import { useApi } from "@/hooks/useApi";
+import CategoryModal from "@/components/admin/CategoryModal";
+import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
 
 export default function ItemCategoriesPage() {
-  const [showFilter, setShowFilter] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  
+  const { execute, data: categories, loading } = useApi();
+  const { execute: deleteCategory } = useApi();
 
-  // Mock data
-  const categories = [
-    { id: 1, name: "Main Course", items: 24, status: "Active" },
-    { id: 2, name: "Fast Food", items: 15, status: "Active" },
-    { id: 3, name: "Beverages", items: 8, status: "Active" },
-    { id: 4, name: "Dessert", items: 12, status: "Inactive" },
-    { id: 5, name: "Appetizers", items: 10, status: "Active" },
-  ];
+  const fetchCategories = () => {
+    execute("/api/admin/item-categories");
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const handleAdd = () => {
+    setSelectedCategory(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (category: any) => {
+    setSelectedCategory(category);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteClick = (category: any) => {
+    setSelectedCategory(category);
+    setIsDeleteOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (selectedCategory) {
+      await deleteCategory(`/api/admin/item-categories/${selectedCategory._id}`, {
+        method: "DELETE",
+        successMessage: "Category deleted",
+      });
+      fetchCategories();
+    }
+  };
 
   return (
     <div className="pb-16">
@@ -43,40 +66,14 @@ export default function ItemCategoriesPage() {
             </div>
 
             <button 
-              onClick={() => setShowFilter(!showFilter)}
-              className="h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-[#6E7191] flex items-center justify-center hover:bg-[#F7F7FC] transition-colors"
+              onClick={handleAdd}
+              className="h-10 px-4 rounded-xl bg-[#ff006b] text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-[#ff006b]/20"
             >
-              <Filter className="w-4 h-4" />
-            </button>
-
-            <button className="h-10 px-4 rounded-xl bg-[#ff006b] text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-[#ff006b]/20">
               <Plus className="w-4 h-4" />
               <span className="text-sm font-medium">Add Category</span>
             </button>
           </div>
         </div>
-
-        {/* Filter Section */}
-        {showFilter && (
-          <div className="p-4 sm:p-6 border-b border-[#EFF0F6] bg-[#FAFAFC] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Name</label>
-              <input type="text" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Status</label>
-              <select className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]">
-                <option>-- Select --</option>
-                <option>Active</option>
-                <option>Inactive</option>
-              </select>
-            </div>
-            <div className="lg:col-span-2 flex items-center gap-3 pt-2">
-              <button className="h-10 px-6 rounded-xl bg-[#ff006b] text-white text-sm font-medium hover:bg-[#e60060] transition-colors">Search</button>
-              <button className="h-10 px-6 rounded-xl bg-gray-600 text-white text-sm font-medium hover:bg-gray-700 transition-colors">Clear</button>
-            </div>
-          </div>
-        )}
 
         {/* Table */}
         <div className="overflow-x-auto custom-scrollbar">
@@ -84,53 +81,61 @@ export default function ItemCategoriesPage() {
             <thead className="bg-[#F7F7FC] border-b border-[#EFF0F6]">
               <tr>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Name</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Items Count</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EFF0F6]">
-              {categories.map((category) => (
-                <tr key={category.id} className="hover:bg-[#FAFAFC] transition-colors">
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-medium text-[#14142B]">{category.name}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-semibold text-[#14142B]">{category.items}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${category.status === 'Active' ? 'bg-[#E0FFED] text-[#1AB759]' : 'bg-[#FFEAEA] text-[#FB4E4E]'}`}>
-                      {category.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#1AB759] flex items-center justify-center hover:bg-[#E0FFED] transition-colors">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#FB4E4E] flex items-center justify-center hover:bg-[#FFEAEA] transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {loading && !categories ? (
+                <tr><td colSpan={3} className="p-8 text-center text-[#6E7191]">Loading...</td></tr>
+              ) : categories?.length === 0 ? (
+                <tr><td colSpan={3} className="p-8 text-center text-[#6E7191]">No categories found</td></tr>
+              ) : (
+                categories?.map((category: any) => (
+                  <tr key={category._id} className="hover:bg-[#FAFAFC] transition-colors">
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-medium text-[#14142B]">{category.name}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${category.status ? 'bg-[#E0FFED] text-[#1AB759]' : 'bg-[#FFEAEA] text-[#FB4E4E]'}`}>
+                        {category.status ? "Active" : "Inactive"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button onClick={() => handleEdit(category)} className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#1AB759] flex items-center justify-center hover:bg-[#E0FFED] transition-colors">
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDeleteClick(category)} className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#FB4E4E] flex items-center justify-center hover:bg-[#FFEAEA] transition-colors">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
         
         {/* Pagination */}
         <div className="p-4 sm:p-6 border-t border-[#EFF0F6] flex items-center justify-between">
-          <span className="text-sm text-[#6E7191]">Showing 1 to 5 of 5 entries</span>
-          <div className="flex items-center gap-1">
-            <button className="w-8 h-8 rounded-lg border border-[#EFF0F6] flex items-center justify-center text-[#6E7191] hover:bg-[#F7F7FC] disabled:opacity-50">«</button>
-            <button className="w-8 h-8 rounded-lg bg-[#ff006b] text-white flex items-center justify-center text-sm font-medium shadow-md shadow-[#ff006b]/20">1</button>
-            <button className="w-8 h-8 rounded-lg border border-[#EFF0F6] flex items-center justify-center text-[#6E7191] hover:bg-[#F7F7FC] disabled:opacity-50">»</button>
-          </div>
+          <span className="text-sm text-[#6E7191]">Showing {categories?.length || 0} entries</span>
         </div>
-
       </div>
 
+      <CategoryModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        category={selectedCategory}
+        onSuccess={fetchCategories}
+      />
+
+      <DeleteConfirmationModal 
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

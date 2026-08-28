@@ -81,19 +81,8 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
           >
             <X className="w-5 h-5" />
           </button>
-          <div className="absolute bottom-3 left-3 flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded border border-[#eff0f6] bg-[#f7f7fc]">
-            {item.itemType === "veg" ? (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="2" y="2" width="20" height="20" rx="4" stroke="#1AB759" strokeWidth="2"/>
-                <circle cx="12" cy="12" r="5" fill="#1AB759"/>
-              </svg>
-            ) : (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="2" y="2" width="20" height="20" rx="4" stroke="#EF4444" strokeWidth="2"/>
-                <path d="M12 7l5 8H7l5-8z" fill="#EF4444"/>
-              </svg>
-            )}
-            {item.itemType === "veg" ? "Veg" : "Non-Veg"}
+          <div className="absolute bottom-3 left-3 bg-slate-900/80 text-white text-xs font-semibold px-2.5 py-1 rounded-full capitalize">
+            {item.itemType === "veg" ? "🌱 Veg" : "🍗 Non-Veg"}
           </div>
         </div>
 

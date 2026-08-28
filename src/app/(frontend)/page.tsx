@@ -258,9 +258,11 @@ export default function HomePage() {
                   <div className="p-3 flex-1">
                     <div className="flex items-start gap-2 mb-1">
                       <h4 className="text-sm font-semibold text-[#14142b] flex-1 capitalize">{item.name}</h4>
-                      <div className={`w-4 h-4 flex items-center justify-center rounded-sm border-2 bg-white flex-shrink-0 ${item.itemType === "veg" ? "border-emerald-500" : "border-rose-500"}`}>
-                        <div className={`w-2 h-2 rounded-full ${item.itemType === "veg" ? "bg-emerald-500" : "bg-rose-500"}`} />
-                      </div>
+                      <img 
+                        src={`/images/item-type/${item.itemType === "veg" ? "veg" : "non-veg"}.png`} 
+                        alt={item.itemType} 
+                        className="w-4 h-4 object-contain flex-shrink-0"
+                      />
                     </div>
                     <p className="text-xs text-[#6e7191] line-clamp-1 mb-2">{item.description}</p>
                     <div className="flex items-center justify-between">
@@ -310,9 +312,11 @@ export default function HomePage() {
                   <div className="p-3 flex-1">
                     <div className="flex items-start gap-2 mb-1">
                       <h4 className="text-sm font-semibold text-[#14142b] flex-1 capitalize">{item.name}</h4>
-                      <div className={`w-4 h-4 flex items-center justify-center rounded-sm border-2 bg-white flex-shrink-0 ${item.itemType === "veg" ? "border-emerald-500" : "border-rose-500"}`}>
-                        <div className={`w-2 h-2 rounded-full ${item.itemType === "veg" ? "bg-emerald-500" : "bg-rose-500"}`} />
-                      </div>
+                      <img 
+                        src={`/images/item-type/${item.itemType === "veg" ? "veg" : "non-veg"}.png`} 
+                        alt={item.itemType} 
+                        className="w-4 h-4 object-contain flex-shrink-0"
+                      />
                     </div>
                     <p className="text-xs text-[#6e7191] line-clamp-1 mb-2">{item.description}</p>
                     <div className="flex items-center justify-between">
@@ -344,9 +348,11 @@ function ItemCard({ item, onOpen }: { item: any; onOpen: (item: any) => void }) 
           className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
         <div className="absolute top-2 left-2">
-          <div className={`w-5 h-5 flex items-center justify-center rounded-sm border-2 bg-white ${item.itemType === "veg" ? "border-emerald-500" : "border-rose-500"}`}>
-            <div className={`w-2.5 h-2.5 rounded-full ${item.itemType === "veg" ? "bg-emerald-500" : "bg-rose-500"}`} />
-          </div>
+          <img 
+            src={`/images/item-type/${item.itemType === "veg" ? "veg" : "non-veg"}.png`} 
+            alt={item.itemType} 
+            className="w-5 h-5 object-contain"
+          />
         </div>
         {item.isFeatured && (
           <div className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: "#ff006b" }}>

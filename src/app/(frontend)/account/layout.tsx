@@ -45,7 +45,7 @@ export default function AccountLayout({
 
           <div className="space-y-4">
             <Link 
-              href="/login" 
+              href="/auth/login" 
               className="w-full h-[52px] rounded-2xl bg-[#ff006b] text-white flex items-center justify-center gap-2 font-semibold hover:bg-rose-600 transition-colors shadow-md shadow-[#ff006b]/20"
             >
               <LogIn className="w-5 h-5" />
@@ -53,7 +53,7 @@ export default function AccountLayout({
             </Link>
             
             <Link 
-              href="/signup" 
+              href="/auth/signup" 
               className="w-full h-[52px] rounded-2xl bg-[#f7f7fc] border border-[#eff0f6] text-[#14142b] flex items-center justify-center gap-2 font-semibold hover:bg-[#eff0f6] transition-colors"
             >
               <UserPlus className="w-5 h-5" />
