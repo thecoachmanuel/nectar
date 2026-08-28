@@ -33,6 +33,8 @@ export default function LoginPage() {
 
       if (data.status) {
         setAuth(data.token, data.user);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        document.cookie = `token=${data.token}; path=/; max-age=${30 * 24 * 60 * 60}`;
         toast.success(`Welcome back, ${data.user.name}!`);
         if (data.user.role === "admin" || data.user.role === "chef" || data.user.role === "waiter") {
           router.push("/admin/dashboard");

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { Menu, Maximize2, Minimize2, ChevronDown, Store, Globe, LogOut, User, Key } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface NavbarProps {
   toggleSidebar: () => void;
@@ -30,8 +31,10 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
   };
 
   const handleLogout = () => {
-    // Implement logout logic
-    router.push("/login");
+    useAuthStore.getState().logout();
+    localStorage.removeItem("user");
+    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+    router.push("/admin/login");
   };
 
   return (

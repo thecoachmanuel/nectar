@@ -25,22 +25,37 @@ export default function AdminLayout({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // A quick hack to get user role without API call if token holds it, 
-    // but best is to hit a quick "me" endpoint or assume from localStorage
-    // since the login API returns `user` object in response. 
-    // Let's assume the user is saved in localStorage during login.
-    const storedUser = localStorage.getItem("user");
+    if (pathname === "/admin/login") {
+      setLoading(false);
+      return;
+    }
+
+    let storedUser = localStorage.getItem("user");
+    if (!storedUser) {
+      const authStorage = localStorage.getItem("foodappi_auth_storage");
+      if (authStorage) {
+        try {
+          const parsed = JSON.parse(authStorage);
+          if (parsed?.state?.user) {
+            storedUser = JSON.stringify(parsed.state.user);
+          }
+        } catch (e) {}
+      }
+    }
+
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     } else {
-      router.push("/login");
+      router.push("/admin/login");
     }
     setLoading(false);
-  }, [router]);
+  }, [router, pathname]);
+
+  if (pathname === "/admin/login") {
+    return <main className="min-h-screen bg-[#f7f7fc]">{children}</main>;
+  }
 
   const hideShell = pathname.includes("/admin/pos") || pathname.includes("/admin/kds");
-
-  if (loading) return <div className="min-h-screen bg-[#f7f7fc] flex items-center justify-center">Loading...</div>;
 
   if (hideShell) {
     return <main className="min-h-screen bg-[#f7f7fc]">{children}</main>;

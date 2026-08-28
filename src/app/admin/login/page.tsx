@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, Mail, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -32,6 +33,10 @@ export default function AdminLoginPage() {
       const data = await res.json();
 
       if (data.status) {
+        useAuthStore.getState().setAuth(data.token, data.user);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        document.cookie = `token=${data.token}; path=/; max-age=${30 * 24 * 60 * 60}`;
+        
         toast.success(`Welcome back, ${data.user.name}!`);
         if (["admin", "chef", "waiter", "store_manager"].includes(data.user.role)) {
           router.push("/admin/dashboard");

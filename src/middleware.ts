@@ -33,8 +33,8 @@ export async function middleware(req: NextRequest) {
       if (pathname.startsWith('/api/')) {
         return NextResponse.json({ status: false, message: 'Unauthorized' }, { status: 401 });
       } else {
-        // Redirect to auth page if trying to access frontend admin pages
-        return NextResponse.redirect(new URL('/auth/login', req.url));
+        // Redirect to admin login page if trying to access frontend admin pages
+        return NextResponse.redirect(new URL('/admin/login', req.url));
       }
     }
 
@@ -66,7 +66,7 @@ export async function middleware(req: NextRequest) {
       if (pathname.startsWith('/api/')) {
         return NextResponse.json({ status: false, message: 'Invalid or expired token' }, { status: 401 });
       } else {
-        return NextResponse.redirect(new URL('/auth/login', req.url));
+        return NextResponse.redirect(new URL('/admin/login', req.url));
       }
     }
   }
