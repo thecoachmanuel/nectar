@@ -99,14 +99,15 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <Toaster position="top-right" richColors />
         {children}
 
-        {/* PWA Service Worker Registration */}
+        {/* PWA Service Worker Registration with Auto-Update */}
         <Script id="register-sw" strategy="afterInteractive">
           {`
             if ('serviceWorker' in navigator) {
               window.addEventListener('load', function() {
                 navigator.serviceWorker.register('/serviceworker.js')
                   .then(function(reg) {
-                    console.log('[Nectar PWA] Service Worker registered:', reg.scope);
+                    // Check for updates on every page load
+                    reg.update();
                   })
                   .catch(function(err) {
                     console.warn('[Nectar PWA] Service Worker registration failed:', err);

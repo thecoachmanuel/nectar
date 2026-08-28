@@ -36,20 +36,28 @@ export default function POSPage() {
     const fetchData = async () => {
       try {
         const [catRes, itemRes, branchRes] = await Promise.all([
-          fetch("/api/frontend/categories"),
-          fetch("/api/frontend/items"),
-          fetch("/api/frontend/branches")
+          fetch("/api/frontend/categories").catch(() => null),
+          fetch("/api/frontend/items").catch(() => null),
+          fetch("/api/frontend/stores").catch(() => null)
         ]);
-        const catData = await catRes.json();
-        const itemData = await itemRes.json();
-        const branchData = await branchRes.json();
-        
-        if (catData.status) setCategories(catData.data);
-        if (itemData.status) setProducts(itemData.data);
-        if (branchData.status) {
-          setBranches(branchData.data);
-          if (branchData.data.length > 0) {
-            setSelectedBranch(branchData.data[0]._id);
+
+        if (catRes && catRes.ok) {
+          const catData = await catRes.json();
+          if (catData.status) setCategories(catData.data || []);
+        }
+
+        if (itemRes && itemRes.ok) {
+          const itemData = await itemRes.json();
+          if (itemData.status) setProducts(itemData.data || []);
+        }
+
+        if (branchRes && branchRes.ok) {
+          const branchData = await branchRes.json();
+          if (branchData.status && Array.isArray(branchData.data)) {
+            setBranches(branchData.data);
+            if (branchData.data.length > 0) {
+              setSelectedBranch(branchData.data[0]._id);
+            }
           }
         }
       } catch (err) {

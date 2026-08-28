@@ -1,4 +1,6 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
+import "./ItemCategory";
+import "./Addon";
 
 export interface IVariationOption {
   name: string; // Small, Medium, Large

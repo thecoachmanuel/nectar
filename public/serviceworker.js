@@ -34,12 +34,25 @@ self.addEventListener('activate', event => {
     );
 });
 
-// Serve from cache, fallback to network, then offline page
+// Fetch strategy: Network first, never store HTML navigation in cache
 self.addEventListener("fetch", event => {
     // Skip non-GET and API requests
     if (event.request.method !== 'GET') return;
     if (event.request.url.includes('/api/')) return;
 
+    const isHTML = event.request.mode === 'navigate' || (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html'));
+
+    if (isHTML) {
+        // Navigation / HTML requests ALWAYS bypass SW cache and go directly to network
+        event.respondWith(
+            fetch(event.request, { cache: 'no-store' }).catch(() => {
+                return caches.match('/offline.html');
+            })
+        );
+        return;
+    }
+
+    // Static assets (images, styles, scripts): Network first, cache fallback
     event.respondWith(
         fetch(event.request).then(networkResponse => {
             if (networkResponse && networkResponse.status === 200) {
@@ -50,9 +63,7 @@ self.addEventListener("fetch", event => {
             }
             return networkResponse;
         }).catch(() => {
-            return caches.match(event.request).then(response => {
-                return response || caches.match('/offline.html');
-            });
+            return caches.match(event.request);
         })
     );
 });
