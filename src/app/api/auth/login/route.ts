@@ -44,7 +44,7 @@ export async function POST(req: Request) {
         });
       } else {
         // Update DB password if ENV password changed
-        const isMatch = await bcrypt.compare(adminPassword, user.password);
+        const isMatch = await bcrypt.compare(adminPassword, user.password!);
         if (!isMatch) {
           user.password = await bcrypt.hash(adminPassword, 10);
           await user.save();
