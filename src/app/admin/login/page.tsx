@@ -17,18 +17,35 @@ export default function AdminLoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    if (!formData.email || !formData.password) {
+      toast.error("Please fill in all fields.");
+      return;
+    }
 
-    // Mock authentication for the standalone fullstack setup
-    setTimeout(() => {
-      setIsLoading(false);
-      if (formData.email && formData.password) {
-        toast.success("Login successful!");
-        router.push("/admin/dashboard");
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email, password: formData.password }),
+      });
+      const data = await res.json();
+
+      if (data.status) {
+        toast.success(`Welcome back, ${data.user.name}!`);
+        if (["admin", "chef", "waiter", "store_manager"].includes(data.user.role)) {
+          router.push("/admin/dashboard");
+        } else {
+          router.push("/");
+        }
       } else {
-        toast.error("Invalid credentials.");
+        toast.error(data.message || "Invalid credentials.");
       }
-    }, 1500);
+    } catch (err: any) {
+      toast.error("Login failed: " + err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

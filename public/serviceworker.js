@@ -48,23 +48,19 @@ self.addEventListener("fetch", event => {
     if (event.request.url.includes('/api/')) return;
 
     event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                if (response) return response;
-                return fetch(event.request).then(networkResponse => {
-                    // Cache successful HTML & image responses dynamically
-                    if (networkResponse && networkResponse.status === 200) {
-                        const responseClone = networkResponse.clone();
-                        caches.open(staticCacheName).then(cache => {
-                            cache.put(event.request, responseClone);
-                        });
-                    }
-                    return networkResponse;
+        fetch(event.request).then(networkResponse => {
+            if (networkResponse && networkResponse.status === 200) {
+                const responseClone = networkResponse.clone();
+                caches.open(staticCacheName).then(cache => {
+                    cache.put(event.request, responseClone);
                 });
-            })
-            .catch(() => {
-                return caches.match('/offline.html');
-            })
+            }
+            return networkResponse;
+        }).catch(() => {
+            return caches.match(event.request).then(response => {
+                return response || caches.match('/offline.html');
+            });
+        })
     );
 });
 
