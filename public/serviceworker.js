@@ -3,14 +3,7 @@ var filesToCache = [
     '/',
     '/offline.html',
     '/manifest.webmanifest',
-    '/images/icons/icon-72x72.png',
-    '/images/icons/icon-96x96.png',
-    '/images/icons/icon-128x128.png',
-    '/images/icons/icon-144x144.png',
-    '/images/icons/icon-152x152.png',
-    '/images/icons/icon-192x192.png',
-    '/images/icons/icon-384x384.png',
-    '/images/icons/icon-512x512.png',
+    '/images/theme/theme-favicon-logo.png',
     '/images/theme/theme-logo.png',
 ];
 
@@ -71,8 +64,8 @@ self.addEventListener('push', event => {
     const title = data.notification?.title || 'FoodAppi';
     const options = {
         body: data.notification?.body || '',
-        icon: '/images/icons/icon-192x192.png',
-        badge: '/images/icons/icon-72x72.png',
+        icon: '/images/theme/theme-favicon-logo.png',
+        badge: '/images/theme/theme-favicon-logo.png',
         data: data.data || {},
         vibrate: [200, 100, 200],
     };

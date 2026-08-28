@@ -15,17 +15,10 @@ export const metadata: Metadata = {
   formatDetection: { telephone: false },
   icons: {
     icon: [
-      { url: "/images/icons/icon-72x72.png", sizes: "72x72", type: "image/png" },
-      { url: "/images/icons/icon-96x96.png", sizes: "96x96", type: "image/png" },
-      { url: "/images/icons/icon-128x128.png", sizes: "128x128", type: "image/png" },
-      { url: "/images/icons/icon-144x144.png", sizes: "144x144", type: "image/png" },
-      { url: "/images/icons/icon-152x152.png", sizes: "152x152", type: "image/png" },
-      { url: "/images/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
-      { url: "/images/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+      { url: "/images/theme/theme-favicon-logo.png", sizes: "192x192", type: "image/png" },
     ],
     apple: [
-      { url: "/images/icons/icon-152x152.png", sizes: "152x152", type: "image/png" },
-      { url: "/images/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/images/theme/theme-favicon-logo.png", sizes: "192x192", type: "image/png" },
     ],
   },
   other: {
@@ -33,7 +26,7 @@ export const metadata: Metadata = {
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "default",
     "apple-mobile-web-app-title": "Nectar",
-    "msapplication-TileImage": "/images/icons/icon-144x144.png",
+    "msapplication-TileImage": "/images/theme/theme-favicon-logo.png",
     "msapplication-TileColor": "#ff006b",
     "theme-color": "#ff006b",
     // iOS splash screens

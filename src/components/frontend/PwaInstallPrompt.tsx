@@ -76,9 +76,9 @@ export default function PwaInstallPrompt() {
             <X className="w-5 h-5" />
           </button>
           <div className="flex items-start gap-4">
-            <img src="/images/icons/icon-72x72.png" alt="App Icon" className="w-12 h-12 rounded-xl shadow-sm object-cover" />
+            <img src="/images/theme/theme-favicon-logo.png" alt="App Icon" className="w-12 h-12 rounded-xl shadow-sm object-cover" />
             <div className="flex-1">
-              <h3 className="text-[15px] font-bold text-[#14142B] mb-1">Install Nectar App</h3>
+              <h3 className="text-[15px] font-bold text-[#14142B] mb-1">Install {siteName || "Nectar"} App</h3>
               <p className="text-[13px] text-[#4E4B66] leading-snug">
                 Install this application on your home screen for quick and easy access.
               </p>
@@ -116,7 +116,7 @@ export default function PwaInstallPrompt() {
       {!isIOS() && (
         <div className="lg:hidden bg-white p-4 fixed bottom-0 left-0 w-full z-[100] rounded-tl-3xl rounded-tr-3xl shadow-[0_-4px_10px_rgba(0,0,0,0.1)]">
           <div className="flex items-start gap-3 mb-3">
-            <img src="/images/icons/icon-72x72.png" alt="App Icon" className="w-8 h-8 rounded-lg flex-shrink-0 shadow-sm object-cover" />
+            <img src="/images/theme/theme-favicon-logo.png" alt="App Icon" className="w-8 h-8 rounded-lg flex-shrink-0 shadow-sm object-cover" />
             <h3 className="text-sm flex-auto text-[#008BBA] font-medium leading-tight">
               Add {siteName || "Nectar"} app to your home screen ?
             </h3>
