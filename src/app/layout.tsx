@@ -4,13 +4,13 @@ import { Toaster } from "sonner";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "FoodAppi — Fast Food Delivery & WhatsApp Ordering",
-  description: "Order your favourite delicious food online with instant delivery, WhatsApp ordering, and offline PWA capability.",
-  manifest: "/manifest.webmanifest",
+  title: "Nectar — Food & Grocery Delivery",
+  description: "Order your favourite food and groceries online with instant delivery.",
+  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "FoodAppi",
+    title: "Nectar",
   },
   formatDetection: { telephone: false },
   icons: {
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "default",
-    "apple-mobile-web-app-title": "FoodAppi",
+    "apple-mobile-web-app-title": "Nectar",
     "msapplication-TileImage": "/images/icons/icon-144x144.png",
     "msapplication-TileColor": "#ff006b",
     "theme-color": "#ff006b",
@@ -89,10 +89,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               window.addEventListener('load', function() {
                 navigator.serviceWorker.register('/serviceworker.js')
                   .then(function(reg) {
-                    console.log('[FoodAppi PWA] Service Worker registered:', reg.scope);
+                    console.log('[Nectar PWA] Service Worker registered:', reg.scope);
                   })
                   .catch(function(err) {
-                    console.warn('[FoodAppi PWA] Service Worker registration failed:', err);
+                    console.warn('[Nectar PWA] Service Worker registration failed:', err);
                   });
               });
             }

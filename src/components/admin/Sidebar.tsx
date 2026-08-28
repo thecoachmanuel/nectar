@@ -93,7 +93,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
       >
         <div className="flex items-center justify-between h-[70px] px-5 border-b border-[#EFF0F6]">
           <Link href="/admin/dashboard" className="flex items-center gap-2">
-            <img src="/images/default/logo.png" alt="FoodAppi" className="h-8" />
+            <img src="/images/default/logo.png" alt="Nectar" className="h-8" />
           </Link>
           <button 
             onClick={() => setIsOpen(false)}

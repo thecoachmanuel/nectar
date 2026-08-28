@@ -63,7 +63,7 @@ export default function Footer() {
                   el.style.display = "none";
                   const fallback = document.createElement("span");
                   fallback.className = "text-2xl font-black text-white";
-                  fallback.textContent = "FoodAppi";
+                  fallback.textContent = "Nectar";
                   el.parentNode?.appendChild(fallback);
                 }}
               />
@@ -148,7 +148,7 @@ export default function Footer() {
       {/* Copyright Bar */}
       <div className="py-8 mt-8 border-t border-white/20">
         <p className="text-sm text-center text-white opacity-90">
-          © {new Date().getFullYear()} FoodAppi. All rights reserved.
+          © {new Date().getFullYear()} Nectar. All rights reserved.
         </p>
       </div>
     </footer>

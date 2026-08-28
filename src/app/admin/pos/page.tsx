@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { 
   ArrowLeft,
   Search,
@@ -10,35 +11,134 @@ import {
   Minus,
   Trash2,
   UserPlus,
-  ChevronDown
+  ChevronDown,
+  Loader2
 } from "lucide-react";
 
 export default function POSPage() {
   const [activeCategory, setActiveCategory] = useState("All");
-  const [cartOpen, setCartOpen] = useState(false); // For mobile
+  const [cartOpen, setCartOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   
-  const categories = ["All", "Main Course", "Fast Food", "Beverages", "Dessert", "Appetizers"];
+  const [categories, setCategories] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [branches, setBranches] = useState<any[]>([]);
   
-  const products = [
-    { id: 1, name: "Chicken Biryani", price: 3500, category: "Main Course", image: "/images/default/item.png" },
-    { id: 2, name: "Beef Burger", price: 2000, category: "Fast Food", image: "/images/default/item.png" },
-    { id: 3, name: "Coca Cola", price: 500, category: "Beverages", image: "/images/default/item.png" },
-    { id: 4, name: "Vanilla Ice Cream", price: 1500, category: "Dessert", image: "/images/default/item.png" },
-    { id: 5, name: "Fried Rice", price: 3000, category: "Main Course", image: "/images/default/item.png" },
-    { id: 6, name: "French Fries", price: 1000, category: "Fast Food", image: "/images/default/item.png" },
-    { id: 7, name: "Orange Juice", price: 800, category: "Beverages", image: "/images/default/item.png" },
-    { id: 8, name: "Chocolate Cake", price: 2500, category: "Dessert", image: "/images/default/item.png" },
-  ];
+  const [selectedBranch, setSelectedBranch] = useState("");
+  const [orderType, setOrderType] = useState("takeaway");
+  const [customerName, setCustomerName] = useState("Walk-in Customer");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  
+  const [cart, setCart] = useState<any[]>([]);
 
-  const [cart, setCart] = useState([
-    { id: 1, name: "Chicken Biryani", price: 3500, qty: 2 },
-    { id: 2, name: "Beef Burger", price: 2000, qty: 1 },
-  ]);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [catRes, itemRes, branchRes] = await Promise.all([
+          fetch("/api/frontend/categories"),
+          fetch("/api/frontend/items"),
+          fetch("/api/frontend/branches")
+        ]);
+        const catData = await catRes.json();
+        const itemData = await itemRes.json();
+        const branchData = await branchRes.json();
+        
+        if (catData.status) setCategories(catData.data);
+        if (itemData.status) setProducts(itemData.data);
+        if (branchData.status) {
+          setBranches(branchData.data);
+          if (branchData.data.length > 0) {
+            setSelectedBranch(branchData.data[0]._id);
+          }
+        }
+      } catch (err) {
+        toast.error("Failed to load POS data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
-  const subtotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+  const addToCart = (product: any) => {
+    setCart(prev => {
+      const existing = prev.find(item => item.itemId === product._id);
+      if (existing) {
+        return prev.map(item => item.itemId === product._id ? { ...item, quantity: item.quantity + 1 } : item);
+      }
+      return [...prev, { 
+        itemId: product._id, 
+        name: product.name, 
+        price: product.price, 
+        quantity: 1,
+        image: product.image 
+      }];
+    });
+  };
+
+  const updateQty = (itemId: string, delta: number) => {
+    setCart(prev => prev.map(item => {
+      if (item.itemId === itemId) {
+        const newQty = item.quantity + delta;
+        return newQty > 0 ? { ...item, quantity: newQty } : item;
+      }
+      return item;
+    }));
+  };
+
+  const removeFromCart = (itemId: string) => {
+    setCart(prev => prev.filter(item => item.itemId !== itemId));
+  };
+
+  const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const discount = 0;
-  const deliveryCharge = 500;
+  const deliveryCharge = orderType === "delivery" ? 500 : 0;
   const total = subtotal - discount + deliveryCharge;
+
+  const handleOrder = async () => {
+    if (cart.length === 0) return toast.error("Cart is empty");
+    if (!selectedBranch) return toast.error("Please select a store branch");
+    
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/frontend/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerName,
+          orderType,
+          branchId: selectedBranch,
+          items: cart,
+          subtotal,
+          discountAmount: discount,
+          deliveryCharge,
+          totalAmount: total,
+          paymentMethod: "cash_on_delivery",
+          orderStatus: "accepted", // POS orders can be immediately accepted
+          deliveryAddress: orderType === "delivery" ? "POS Manual Delivery" : undefined
+        })
+      });
+      const data = await res.json();
+      if (data.status) {
+        toast.success(`Order placed: ${data.orderSerialNo}`);
+        setCart([]);
+        setCartOpen(false);
+      } else {
+        toast.error(data.message || "Checkout failed");
+      }
+    } catch (err) {
+      toast.error("Checkout failed");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const filteredProducts = products.filter(p => {
+    const matchesCategory = activeCategory === "All" || p.categoryId?._id === activeCategory || p.categoryId?.name === activeCategory;
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <div className="min-h-screen bg-[#F7F7FC] flex flex-col">
@@ -54,11 +154,13 @@ export default function POSPage() {
         {/* Search */}
         <div className="flex-1 max-w-md mx-4">
           <div className="relative">
-            <input 
-              type="text" 
-              placeholder="Search items..." 
-              className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b] transition-colors"
-            />
+              <input 
+                type="text" 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search items..." 
+                className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b] transition-colors"
+              />
             <Search className="w-4 h-4 text-[#A0A3BD] absolute left-4 top-1/2 -translate-y-1/2" />
           </div>
         </div>
@@ -82,17 +184,27 @@ export default function POSPage() {
           {/* Categories Slider */}
           <div className="bg-white border-b border-[#EFF0F6] p-4 shrink-0 overflow-x-auto hide-scrollbar">
             <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setActiveCategory("All")}
+                className={`px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
+                  activeCategory === "All" 
+                    ? "bg-[#ff006b] text-white shadow-md shadow-[#ff006b]/20" 
+                    : "bg-[#FAFAFC] text-[#6E7191] hover:bg-[#EFF0F6]"
+                }`}
+              >
+                All
+              </button>
               {categories.map(cat => (
                 <button 
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
+                  key={cat._id}
+                  onClick={() => setActiveCategory(cat._id)}
                   className={`px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
-                    activeCategory === cat 
+                    activeCategory === cat._id 
                       ? "bg-[#ff006b] text-white shadow-md shadow-[#ff006b]/20" 
                       : "bg-[#FAFAFC] text-[#6E7191] hover:bg-[#EFF0F6]"
                   }`}
                 >
-                  {cat}
+                  {cat.name}
                 </button>
               ))}
             </div>
@@ -101,10 +213,12 @@ export default function POSPage() {
           {/* Products Grid */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
-              {products.map(product => (
-                <div key={product.id} className="bg-white rounded-2xl border border-[#EFF0F6] overflow-hidden shadow-sm hover:shadow-md hover:border-[#ff006b]/30 transition-all cursor-pointer group">
+              {loading ? (
+                <div className="col-span-full py-12 flex justify-center"><Loader2 className="w-8 h-8 text-[#ff006b] animate-spin" /></div>
+              ) : filteredProducts.map(product => (
+                <div key={product._id} onClick={() => addToCart(product)} className="bg-white rounded-2xl border border-[#EFF0F6] overflow-hidden shadow-sm hover:shadow-md hover:border-[#ff006b]/30 transition-all cursor-pointer group">
                   <div className="aspect-square bg-[#F7F7FC] relative overflow-hidden">
-                    <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <img src={product.image || "/images/default/item.png"} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                   </div>
                   <div className="p-3 text-center">
                     <h3 className="font-semibold text-sm text-[#14142B] mb-1 truncate">{product.name}</h3>
@@ -126,23 +240,40 @@ export default function POSPage() {
           <div className="p-4 border-b border-[#EFF0F6] shrink-0">
             <div className="flex items-center gap-2 mb-3">
               <div className="flex-1 relative">
-                <select className="w-full h-11 pl-3 pr-8 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b] appearance-none font-medium text-[#14142B]">
-                  <option>Select Customer</option>
-                  <option>Walk-in Customer</option>
-                  <option>John Doe</option>
+                <select 
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  className="w-full h-11 pl-3 pr-8 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b] appearance-none font-medium text-[#14142B]"
+                >
+                  <option value="Walk-in Customer">Walk-in Customer</option>
+                  <option value="Phone Order">Phone Order</option>
                 </select>
                 <ChevronDown className="w-4 h-4 text-[#A0A3BD] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
-              <button className="w-11 h-11 shrink-0 rounded-xl bg-[#ff006b] text-white flex items-center justify-center hover:bg-[#e60060] transition-colors">
-                <UserPlus className="w-5 h-5" />
-              </button>
+              <div className="flex-1 relative">
+                <select 
+                  value={selectedBranch}
+                  onChange={(e) => setSelectedBranch(e.target.value)}
+                  className="w-full h-11 pl-3 pr-8 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b] appearance-none font-medium text-[#14142B]"
+                >
+                  <option value="">Select Store</option>
+                  {branches.map(b => <option key={b._id} value={b._id}>{b.name}</option>)}
+                </select>
+                <ChevronDown className="w-4 h-4 text-[#A0A3BD] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </div>
 
             <div className="flex bg-[#F7F7FC] rounded-xl p-1 mb-3">
-              <button className="flex-1 h-9 rounded-lg bg-white text-[#14142B] font-semibold text-sm shadow-sm transition-colors">
+              <button 
+                onClick={() => setOrderType('takeaway')}
+                className={`flex-1 h-9 rounded-lg font-semibold text-sm transition-colors ${orderType === 'takeaway' ? 'bg-white text-[#14142B] shadow-sm' : 'text-[#6E7191] hover:text-[#14142B]'}`}
+              >
                 Takeaway
               </button>
-              <button className="flex-1 h-9 rounded-lg text-[#6E7191] font-semibold text-sm hover:text-[#14142B] transition-colors">
+              <button 
+                onClick={() => setOrderType('delivery')}
+                className={`flex-1 h-9 rounded-lg font-semibold text-sm transition-colors ${orderType === 'delivery' ? 'bg-white text-[#14142B] shadow-sm' : 'text-[#6E7191] hover:text-[#14142B]'}`}
+              >
                 Delivery
               </button>
             </div>
@@ -157,22 +288,23 @@ export default function POSPage() {
           {/* Cart Items */}
           <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
             <ul className="space-y-4">
+              {cart.length === 0 && <div className="text-center text-[#6E7191] py-8">Cart is empty</div>}
               {cart.map(item => (
-                <li key={item.id} className="flex gap-3 border-b border-dashed border-[#EFF0F6] pb-4 last:border-none last:pb-0">
+                <li key={item.itemId} className="flex gap-3 border-b border-dashed border-[#EFF0F6] pb-4 last:border-none last:pb-0">
                   <div className="flex-1">
                     <h4 className="font-semibold text-sm text-[#14142B] mb-1">{item.name}</h4>
-                    <p className="font-bold text-sm text-[#14142B]">₦{(item.price * item.qty).toLocaleString()}</p>
+                    <p className="font-bold text-sm text-[#14142B]">₦{(item.price * item.quantity).toLocaleString()}</p>
                   </div>
                   <div className="flex flex-col items-end justify-between">
-                    <button className="text-[#FB4E4E] hover:text-red-700 p-1">
+                    <button onClick={() => removeFromCart(item.itemId)} className="text-[#FB4E4E] hover:text-red-700 p-1">
                       <Trash2 className="w-4 h-4" />
                     </button>
                     <div className="flex items-center gap-2 bg-[#F7F7FC] rounded-lg p-1 border border-[#EFF0F6]">
-                      <button className="w-6 h-6 rounded bg-white shadow-sm flex items-center justify-center text-[#ff006b] hover:bg-[#fff5f9]">
+                      <button onClick={() => updateQty(item.itemId, -1)} className="w-6 h-6 rounded bg-white shadow-sm flex items-center justify-center text-[#ff006b] hover:bg-[#fff5f9]">
                         <Minus className="w-3 h-3" />
                       </button>
-                      <span className="text-xs font-bold w-4 text-center">{item.qty}</span>
-                      <button className="w-6 h-6 rounded bg-white shadow-sm flex items-center justify-center text-[#ff006b] hover:bg-[#fff5f9]">
+                      <span className="text-xs font-bold w-4 text-center">{item.quantity}</span>
+                      <button onClick={() => updateQty(item.itemId, 1)} className="w-6 h-6 rounded bg-white shadow-sm flex items-center justify-center text-[#ff006b] hover:bg-[#fff5f9]">
                         <Plus className="w-3 h-3" />
                       </button>
                     </div>
@@ -209,11 +341,14 @@ export default function POSPage() {
             </ul>
 
             <div className="grid grid-cols-2 gap-3">
-              <button className="h-11 rounded-xl bg-[#FB4E4E] text-white font-semibold text-sm hover:bg-[#e03c3c] transition-colors">
-                Cancel
+              <button onClick={() => setCart([])} className="h-11 rounded-xl bg-[#FB4E4E] text-white font-semibold text-sm hover:bg-[#e03c3c] transition-colors">
+                Clear
               </button>
-              <button className="h-11 rounded-xl bg-[#1AB759] text-white font-semibold text-sm hover:bg-[#159a4a] transition-colors shadow-md shadow-[#1AB759]/20">
-                Order
+              <button 
+                onClick={handleOrder} 
+                disabled={isSubmitting}
+                className="h-11 rounded-xl bg-[#1AB759] text-white font-semibold text-sm hover:bg-[#159a4a] transition-colors shadow-md shadow-[#1AB759]/20 flex justify-center items-center gap-2 disabled:opacity-50">
+                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Place Order"}
               </button>
             </div>
           </div>

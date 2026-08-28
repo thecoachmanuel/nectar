@@ -1,17 +1,94 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Undo2, Plus, Edit2, Trash2, Home, Briefcase, MapPin } from "lucide-react";
+import { Undo2, Plus, Trash2, Home, Briefcase, MapPin } from "lucide-react";
+import AddressModal from "@/components/frontend/AddressModal";
+import { useAuthStore } from "@/store/useAuthStore";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function AddressesPage() {
-  const [addresses, setAddresses] = useState([
-    { id: 1, label: "Home", address: "123 Main St, Cityville", apartment: "Apt 4B" },
-    { id: 2, label: "Work", address: "456 Office Tower, Business District", apartment: "Floor 12" }
-  ]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { user, token, updateUser } = useAuthStore();
+  const [addresses, setAddresses] = useState<any[]>(user?.addresses || []);
+  const router = useRouter();
 
-  const handleDelete = (id: number) => {
-    setAddresses(addresses.filter(a => a.id !== id));
+  useEffect(() => {
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+    fetchAddresses();
+  }, [token]);
+
+  const fetchAddresses = async () => {
+    try {
+      const res = await fetch("/api/frontend/account/addresses", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      const data = await res.json();
+      if (data.status) {
+        setAddresses(data.data);
+        updateUser({ addresses: data.data });
+      }
+    } catch (error) {
+      console.error("Failed to fetch addresses:", error);
+    }
+  };
+
+  const handleSaveAddress = async (newAddress: any) => {
+    try {
+      toast.loading("Saving address...");
+      const res = await fetch("/api/frontend/account/addresses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(newAddress)
+      });
+      const data = await res.json();
+      toast.dismiss();
+      if (data.status) {
+        setAddresses(data.data);
+        updateUser({ addresses: data.data });
+        setIsModalOpen(false);
+        toast.success("Address added successfully");
+      } else {
+        toast.error(data.message || "Failed to add address");
+      }
+    } catch (error) {
+      toast.dismiss();
+      toast.error("An error occurred");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this address?")) return;
+    try {
+      toast.loading("Deleting address...");
+      const res = await fetch(`/api/frontend/account/addresses?id=${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      const data = await res.json();
+      toast.dismiss();
+      if (data.status) {
+        setAddresses(data.data);
+        updateUser({ addresses: data.data });
+        toast.success("Address deleted");
+      } else {
+        toast.error(data.message || "Failed to delete address");
+      }
+    } catch (error) {
+      toast.dismiss();
+      toast.error("An error occurred");
+    }
   };
 
   const getIcon = (label: string) => {
@@ -30,7 +107,10 @@ export default function AddressesPage() {
 
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-[26px] leading-10 font-semibold capitalize text-[#14142b]">Address</h3>
-          <button className="flex items-center gap-2 bg-[#ff006b] hover:bg-rose-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors shadow-md shadow-[#ff006b]/20">
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 bg-[#ff006b] hover:bg-rose-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors shadow-md shadow-[#ff006b]/20"
+          >
             <Plus className="w-4 h-4" />
             <span>Add New</span>
           </button>
@@ -38,18 +118,15 @@ export default function AddressesPage() {
 
         {addresses.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {addresses.map(address => (
-              <div key={address.id} className="p-4 rounded-2xl w-full bg-white border border-[#eff0f6] shadow-sm hover:border-[#ff006b]/30 transition-colors">
+            {addresses.map((address: any) => (
+              <div key={address._id || address.id} className="p-4 rounded-2xl w-full bg-white border border-[#eff0f6] shadow-sm hover:border-[#ff006b]/30 transition-colors">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2 text-[#008BBA] bg-[#D6F5FF] px-2.5 py-1 rounded-full">
-                    {getIcon(address.label)}
-                    <span className="font-medium text-xs leading-6 capitalize">{address.label}</span>
+                    {getIcon(address.label || "Other")}
+                    <span className="font-medium text-xs leading-6 capitalize">{address.label || "Other"}</span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <button className="w-7 h-7 rounded-full bg-[#ff006b]/10 hover:bg-[#ff006b] text-[#ff006b] hover:text-white flex items-center justify-center transition-colors">
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button onClick={() => handleDelete(address.id)} className="w-7 h-7 rounded-full bg-red-100 hover:bg-red-500 text-red-500 hover:text-white flex items-center justify-center transition-colors">
+                    <button onClick={() => handleDelete(address._id)} className="w-7 h-7 rounded-full bg-red-100 hover:bg-red-500 text-red-500 hover:text-white flex items-center justify-center transition-colors">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -71,6 +148,11 @@ export default function AddressesPage() {
           </div>
         )}
 
+        <AddressModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+          onSave={handleSaveAddress} 
+        />
       </div>
     </section>
   );

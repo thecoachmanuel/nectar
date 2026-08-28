@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { X, Download, Share, Plus } from "lucide-react";
+import { X, Download } from "lucide-react";
 import { useSettingStore } from "@/store/useSettingStore";
 
 function isIOS() {
@@ -20,7 +20,6 @@ function isInStandaloneMode() {
 export default function PwaInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isPwaViewed, setIsPwaViewed] = useState(true);
-  const [showIOSGuide, setShowIOSGuide] = useState(false);
   const { siteName } = useSettingStore();
 
   useEffect(() => {
@@ -30,34 +29,28 @@ export default function PwaInstallPrompt() {
     const viewed = localStorage.getItem("pwa_viewed");
     if (viewed) return;
 
-    if (isIOS()) {
-      // iOS doesn't fire beforeinstallprompt — show manual guide instead
-      setShowIOSGuide(true);
-      setIsPwaViewed(false);
-    } else {
-      const handleBeforeInstallPrompt = (e: Event) => {
-        e.preventDefault();
-        setDeferredPrompt(e);
-        setIsPwaViewed(false);
-      };
-      window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    setIsPwaViewed(false); // Show the prompt matching PHP app exactly
 
-      const handleAppInstalled = () => {
-        setDeferredPrompt(null);
-        closePwaModal();
-      };
-      window.addEventListener("appinstalled", handleAppInstalled);
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
-      return () => {
-        window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-        window.removeEventListener("appinstalled", handleAppInstalled);
-      };
-    }
+    const handleAppInstalled = () => {
+      setDeferredPrompt(null);
+      closePwaModal();
+    };
+    window.addEventListener("appinstalled", handleAppInstalled);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleAppInstalled);
+    };
   }, []);
 
   const closePwaModal = () => {
     setIsPwaViewed(true);
-    setShowIOSGuide(false);
     localStorage.setItem("pwa_viewed", "true");
   };
 
@@ -74,56 +67,35 @@ export default function PwaInstallPrompt() {
 
   if (isPwaViewed) return null;
 
-  // ─── iOS Safari: Manual guide banner ─────────────────────────────────────
-  if (showIOSGuide) {
-    return (
-      <div className="lg:hidden bg-white p-4 fixed bottom-0 left-0 w-full z-[100] rounded-tl-3xl rounded-tr-3xl shadow-[0_-4px_10px_rgba(0,0,0,0.12)]">
-        <div className="flex items-start gap-3 mb-3">
-          <img
-            src="/images/icons/icon-72x72.png"
-            alt="App Icon"
-            className="w-9 h-9 rounded-xl flex-shrink-0 shadow-sm object-cover"
-          />
-          <div className="flex-auto">
-            <h3 className="text-sm font-semibold text-[#14142B] leading-tight">
-              Add {siteName || "FoodAppi"} to your home screen
-            </h3>
-            <p className="text-xs text-[#6E7191] mt-0.5">
-              Install this app on your iPhone for the best experience.
-            </p>
-          </div>
-          <button onClick={closePwaModal} className="text-[#A0A3BD] hover:text-[#14142B] transition-colors flex-shrink-0 mt-0.5">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Step-by-step iOS instructions */}
-        <div className="bg-[#F7F7FC] rounded-xl p-3 space-y-2">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 bg-[#007AFF] rounded-lg flex items-center justify-center flex-shrink-0">
-              <Share className="w-3.5 h-3.5 text-white" />
-            </div>
-            <p className="text-xs text-[#14142B]">
-              Tap the <span className="font-semibold">Share</span> button at the bottom of Safari
-            </p>
-          </div>
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 bg-[#ff006b] rounded-lg flex items-center justify-center flex-shrink-0">
-              <Plus className="w-3.5 h-3.5 text-white" />
-            </div>
-            <p className="text-xs text-[#14142B]">
-              Scroll down and tap <span className="font-semibold">"Add to Home Screen"</span>
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── Android / Chrome: Standard install banner ────────────────────────────
   return (
     <>
-      {/* Desktop Modal */}
+      {/* iOS Specific Instruction Prompt */}
+      {isIOS() && !deferredPrompt && (
+        <div className="fixed bottom-0 left-0 w-full z-[100] bg-white p-4 pb-6 rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.15)] border-t border-[#eff0f6] animate-in slide-in-from-bottom-full duration-300">
+          <button className="absolute top-3 right-3 text-[#A0A3BD] hover:text-[#14142B]" onClick={closePwaModal}>
+            <X className="w-5 h-5" />
+          </button>
+          <div className="flex items-start gap-4">
+            <img src="/images/icons/icon-72x72.png" alt="App Icon" className="w-12 h-12 rounded-xl shadow-sm object-cover" />
+            <div className="flex-1">
+              <h3 className="text-[15px] font-bold text-[#14142B] mb-1">Install Nectar App</h3>
+              <p className="text-[13px] text-[#4E4B66] leading-snug">
+                Install this application on your home screen for quick and easy access.
+              </p>
+              <div className="mt-3 bg-[#F7F7FC] p-3 rounded-lg border border-[#EFF0F6]">
+                <p className="text-[13px] text-[#4E4B66] flex items-center gap-2">
+                  1. Tap <span className="inline-flex items-center justify-center w-6 h-6 bg-white rounded shadow-sm border border-gray-200"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1zaGFyZSI+PHBhdGggZD0iTTRgIDEydjhhMiAyIDAgMCAwIDIgMmgxMmEyIDIgMCAwIDAgMi0yem00LTgtNC00LSA0LTEwaDR6Ii8+PC9zdmc+" alt="Share" className="w-4 h-4 opacity-70"/></span> below
+                </p>
+                <p className="text-[13px] text-[#4E4B66] mt-1.5 flex items-center gap-2">
+                  2. Select <strong className="font-semibold text-[#14142B]">Add to Home Screen</strong>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Desktop Modal (Exactly like PHP FrontendNavBarComponent) */}
       <div className="hidden lg:block fixed inset-0 z-[100] bg-black/50" onClick={closePwaModal} />
       <div className="hidden lg:block fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[101] w-full max-w-[360px] p-6 bg-white rounded-2xl shadow-xl text-center">
         <button className="absolute top-4 right-4 text-[#A0A3BD] hover:text-[#14142B] transition-colors" onClick={closePwaModal}>
@@ -140,19 +112,21 @@ export default function PwaInstallPrompt() {
         </div>
       </div>
 
-      {/* Mobile Sticky Footer Banner */}
-      <div className="lg:hidden bg-white p-4 fixed bottom-0 left-0 w-full z-[100] rounded-tl-3xl rounded-tr-3xl shadow-[0_-4px_10px_rgba(0,0,0,0.1)]">
-        <div className="flex items-start gap-3 mb-3">
-          <img src="/images/icons/icon-72x72.png" alt="App Icon" className="w-8 h-8 rounded-lg flex-shrink-0 shadow-sm object-cover" />
-          <h3 className="text-sm flex-auto text-[#008BBA] font-medium leading-tight">
-            Add {siteName || "FoodAppi"} app to your home screen ?
-          </h3>
+      {/* Mobile Sticky Footer Banner (Exactly like PHP FrontendMobileNavBarComponent) - Only show if NOT iOS */}
+      {!isIOS() && (
+        <div className="lg:hidden bg-white p-4 fixed bottom-0 left-0 w-full z-[100] rounded-tl-3xl rounded-tr-3xl shadow-[0_-4px_10px_rgba(0,0,0,0.1)]">
+          <div className="flex items-start gap-3 mb-3">
+            <img src="/images/icons/icon-72x72.png" alt="App Icon" className="w-8 h-8 rounded-lg flex-shrink-0 shadow-sm object-cover" />
+            <h3 className="text-sm flex-auto text-[#008BBA] font-medium leading-tight">
+              Add {siteName || "Nectar"} app to your home screen ?
+            </h3>
+          </div>
+          <div className="flex items-center justify-end gap-2">
+            <button onClick={closePwaModal} className="py-2 px-3 rounded-md capitalize text-sm border border-gray-200 text-[#ff006b] hover:bg-[#F7F7FC] transition-colors">Cancel</button>
+            <button onClick={installPWA} className="py-2 px-3 rounded-md capitalize text-sm bg-[#ff006b] text-white hover:bg-[#e60060] transition-colors shadow-sm">Install</button>
+          </div>
         </div>
-        <div className="flex items-center justify-end gap-2">
-          <button onClick={closePwaModal} className="py-2 px-3 rounded-md capitalize text-sm border border-gray-200 text-[#ff006b] hover:bg-[#F7F7FC] transition-colors">Cancel</button>
-          <button onClick={installPWA} className="py-2 px-3 rounded-md capitalize text-sm bg-[#ff006b] text-white hover:bg-[#e60060] transition-colors shadow-sm">Install</button>
-        </div>
-      </div>
+      )}
     </>
   );
 }

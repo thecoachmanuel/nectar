@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Search, 
   Filter, 
@@ -8,15 +8,56 @@ import {
   Eye,
   Printer
 } from "lucide-react";
+import { toast } from "sonner";
+import Link from "next/link";
 
 export default function OnlineOrdersPage() {
   const [showFilter, setShowFilter] = useState(false);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // Mock data
-  const orders = [
-    { id: "#10045", customer: "John Doe", items: 3, date: "Oct 12, 2026, 14:30", amount: "₦5,500", status: "Pending" },
-    { id: "#10046", customer: "Jane Smith", items: 1, date: "Oct 12, 2026, 15:00", amount: "₦2,000", status: "Delivered" },
-  ];
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch("/api/admin/orders");
+      const data = await res.json();
+      if (data.status) {
+        setOrders(data.data);
+      }
+    } catch (error) {
+      toast.error("Failed to fetch orders");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const handleStatusChange = async (orderId: string, newStatus: string) => {
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderStatus: newStatus })
+      });
+      const data = await res.json();
+      if (data.status) {
+        toast.success("Order status updated");
+        fetchOrders();
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error("Failed to update status");
+    }
+  };
+
+  const filteredOrders = orders.filter(order => 
+    order.orderSerialNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    order.customerName?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="pb-16">
@@ -31,6 +72,8 @@ export default function OnlineOrdersPage() {
               <input 
                 type="text" 
                 placeholder="Search Order ID..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="h-10 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-sm focus:outline-none focus:border-[#ff006b] w-full sm:w-48 transition-colors"
               />
               <Search className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -92,40 +135,64 @@ export default function OnlineOrdersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EFF0F6]">
-              {orders.map((order) => (
-                <tr key={order.id} className="hover:bg-[#FAFAFC] transition-colors">
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-bold text-[#ff006b]">{order.id}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-medium text-[#14142B]">{order.customer}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-semibold text-[#14142B]">{order.items}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-semibold text-[#14142B]">{order.amount}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm text-[#4E4B66]">{order.date}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === 'Delivered' ? 'bg-[#E0FFED] text-[#1AB759]' : 'bg-[#FFF4E5] text-[#FF9F43]'}`}>
-                      {order.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#567DFF] flex items-center justify-center hover:bg-[#e5ebff] transition-colors">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#14142B] flex items-center justify-center hover:bg-gray-200 transition-colors">
-                        <Printer className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">Loading orders...</td>
                 </tr>
-              ))}
+              ) : filteredOrders.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">No orders found.</td>
+                </tr>
+              ) : (
+                filteredOrders.map((order) => (
+                  <tr key={order._id} className="hover:bg-[#FAFAFC] transition-colors">
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-bold text-[#ff006b]">#{order.orderSerialNo}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-medium text-[#14142B]">{order.customerName}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-semibold text-[#14142B]">{order.items?.length || 0}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-semibold text-[#14142B]">₦{order.totalAmount?.toFixed(2)}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-[#4E4B66]">{new Date(order.createdAt).toLocaleString()}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <select 
+                        value={order.orderStatus}
+                        onChange={(e) => handleStatusChange(order._id, e.target.value)}
+                        className={`text-xs font-semibold px-2 py-1 rounded-full outline-none cursor-pointer ${
+                          order.orderStatus === 'delivered' ? 'bg-[#E0FFED] text-[#1AB759]' : 
+                          order.orderStatus === 'canceled' ? 'bg-red-100 text-red-600' :
+                          'bg-[#FFF4E5] text-[#FF9F43]'
+                        }`}
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="accepted">Accepted</option>
+                        <option value="preparing">Preparing</option>
+                        <option value="ready">Ready</option>
+                        <option value="out_for_delivery">Out for Delivery</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="canceled">Canceled</option>
+                      </select>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Link href={`/admin/orders/${order._id}`} className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#567DFF] flex items-center justify-center hover:bg-[#e5ebff] transition-colors">
+                          <Eye className="w-4 h-4" />
+                        </Link>
+                        <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#14142B] flex items-center justify-center hover:bg-gray-200 transition-colors">
+                          <Printer className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

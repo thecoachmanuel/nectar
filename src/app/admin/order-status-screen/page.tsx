@@ -1,24 +1,38 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { CheckCircle2, Clock, ChefHat, Truck } from "lucide-react";
 
 export default function OrderStatusScreenPage() {
-  
-  // Mock live data for the status screen (often displayed on a TV)
-  const orders = {
-    pending: [
-      { id: "10045", customer: "John Doe", time: "14:30" },
-      { id: "10048", customer: "Sarah M.", time: "14:45" },
-    ],
-    preparing: [
-      { id: "10042", customer: "Mike T.", time: "14:15" },
-    ],
-    ready: [
-      { id: "10040", customer: "Walk-in", time: "14:05" },
-      { id: "10039", customer: "UberEats", time: "14:00" },
-    ]
-  };
+  const [orders, setOrders] = useState({
+    pending: [] as any[],
+    preparing: [] as any[],
+    ready: [] as any[]
+  });
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const res = await fetch("/api/admin/orders");
+        const data = await res.json();
+        if (data.status) {
+          const allOrders = data.data;
+          
+          setOrders({
+            pending: allOrders.filter((o: any) => o.orderStatus === "pending" || o.orderStatus === "accepted"),
+            preparing: allOrders.filter((o: any) => o.orderStatus === "preparing"),
+            ready: allOrders.filter((o: any) => o.orderStatus === "ready")
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch live orders", error);
+      }
+    };
+
+    fetchOrders();
+    const interval = setInterval(fetchOrders, 10000); // Poll every 10 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="min-h-[80vh] bg-[#F7F7FC]">
@@ -40,12 +54,12 @@ export default function OrderStatusScreenPage() {
           </div>
           <div className="p-4 flex-1 overflow-y-auto space-y-3 custom-scrollbar">
             {orders.pending.map(order => (
-              <div key={order.id} className="p-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC]">
+              <div key={order._id} className="p-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC]">
                 <div className="flex justify-between items-start mb-2">
-                  <span className="text-xl font-black text-[#14142B]">#{order.id}</span>
-                  <span className="text-sm font-semibold text-[#6E7191]">{order.time}</span>
+                  <span className="text-xl font-black text-[#14142B]">#{order.orderSerialNo}</span>
+                  <span className="text-sm font-semibold text-[#6E7191]">{new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
-                <div className="text-sm font-medium text-[#4E4B66]">{order.customer}</div>
+                <div className="text-sm font-medium text-[#4E4B66]">{order.customerName}</div>
               </div>
             ))}
           </div>
@@ -60,12 +74,12 @@ export default function OrderStatusScreenPage() {
           </div>
           <div className="p-4 flex-1 overflow-y-auto space-y-3 custom-scrollbar">
             {orders.preparing.map(order => (
-              <div key={order.id} className="p-4 rounded-xl border border-[#008BBA] bg-[#E5F3FF] shadow-sm shadow-[#008BBA]/10">
+              <div key={order._id} className="p-4 rounded-xl border border-[#008BBA] bg-[#E5F3FF] shadow-sm shadow-[#008BBA]/10">
                 <div className="flex justify-between items-start mb-2">
-                  <span className="text-xl font-black text-[#008BBA]">#{order.id}</span>
-                  <span className="text-sm font-semibold text-[#008BBA]">{order.time}</span>
+                  <span className="text-xl font-black text-[#008BBA]">#{order.orderSerialNo}</span>
+                  <span className="text-sm font-semibold text-[#008BBA]">{new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
-                <div className="text-sm font-bold text-[#008BBA]">{order.customer}</div>
+                <div className="text-sm font-bold text-[#008BBA]">{order.customerName}</div>
                 <div className="mt-3 w-full bg-white rounded-full h-2">
                   <div className="bg-[#008BBA] h-2 rounded-full w-[60%] animate-pulse"></div>
                 </div>
@@ -83,11 +97,11 @@ export default function OrderStatusScreenPage() {
           </div>
           <div className="p-4 flex-1 overflow-y-auto space-y-3 custom-scrollbar">
             {orders.ready.map(order => (
-              <div key={order.id} className="p-4 rounded-xl border-2 border-[#1AB759] bg-white shadow-sm shadow-[#1AB759]/20 animate-pulse">
+              <div key={order._id} className="p-4 rounded-xl border-2 border-[#1AB759] bg-white shadow-sm shadow-[#1AB759]/20 animate-pulse">
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-3xl font-black text-[#1AB759]">#{order.id}</span>
+                  <span className="text-3xl font-black text-[#1AB759]">#{order.orderSerialNo}</span>
                 </div>
-                <div className="text-lg font-bold text-[#14142B]">{order.customer}</div>
+                <div className="text-lg font-bold text-[#14142B]">{order.customerName}</div>
               </div>
             ))}
           </div>

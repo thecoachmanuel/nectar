@@ -5,40 +5,100 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Undo2, MapPin, Edit2, Clock, X, Home as HomeIcon } from "lucide-react";
 import { useSettingStore } from "@/store/useSettingStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useCartStore } from "@/store/useCartStore";
+import { toast } from "sonner";
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const { user, isGuest, guestInfo, token } = useAuthStore();
+  const { items, orderType, setOrderType, getSubtotal, getTotalAmount, branchId, setBranchId, clearCart } = useCartStore();
   const [loading, setLoading] = useState(true);
-  const [orderType, setOrderType] = useState<"DELIVERY" | "TAKEAWAY">("DELIVERY");
   const [schedule, setSchedule] = useState<"NOW" | "LATER">("NOW");
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [scheduleTab, setScheduleTab] = useState<"TODAY" | "TOMORROW">("TODAY");
+  
+  const addresses = user?.addresses || [];
+  const [selectedAddress, setSelectedAddress] = useState<string | null>(addresses.length > 0 ? addresses[0]._id || null : null);
+  
+  // Mock stores for selection
+  const availableStores = [
+    { id: "1", name: "Central Store (Downtown)" },
+    { id: "2", name: "Uptown Groceries" },
+  ];
 
-  // Mock Data
-  const cartItems = [
-    { _id: "1", name: "Chicken Burger", price: 15.00, quantity: 2, image: "/images/item/thumb.png", total: 30.00 },
-    { _id: "2", name: "Fries", price: 5.00, quantity: 1, image: "/images/item/thumb.png", total: 5.00 }
-  ];
-  const addresses = [
-    { id: 1, label: "Home", address: "123 Main St, Cityville", apartment: "Apt 4B" }
-  ];
-  const [selectedAddress, setSelectedAddress] = useState<number>(1);
-  const subtotal = 35.00;
-  const deliveryCharge = orderType === "DELIVERY" ? 5.00 : 0;
-  const discount = 0;
-  const total = subtotal + deliveryCharge - discount;
+  const subtotal = getSubtotal();
+  const deliveryCharge = orderType === "delivery" ? 5.00 : 0; // Fixed for now, can be dynamic
+  const total = getTotalAmount(0, deliveryCharge);
 
   useEffect(() => {
     // Simulate initial loading
     setTimeout(() => setLoading(false), 800);
   }, []);
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
+    if (items.length === 0) {
+      toast.error("Your cart is empty");
+      return;
+    }
+    if (!branchId) {
+      toast.error("Please select a fulfilling store");
+      return;
+    }
+    if (orderType === "delivery" && !selectedAddress) {
+      toast.error("Please select a delivery address");
+      return;
+    }
+
+    const customerName = user?.name || guestInfo?.name || "Guest";
+    const customerEmail = user?.email || guestInfo?.email || "";
+    const customerPhone = user?.phone || guestInfo?.phone || "N/A";
+    
+    let deliveryAddressObj = undefined;
+    if (orderType === "delivery" && selectedAddress) {
+      deliveryAddressObj = addresses.find(a => a._id === selectedAddress);
+    }
+
     setLoading(true);
-    setTimeout(() => {
-      router.push("/order-status");
-    }, 1500);
+    try {
+      const res = await fetch("/api/frontend/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
+        body: JSON.stringify({
+          customerName,
+          customerEmail,
+          customerPhone,
+          orderType,
+          branchId,
+          items,
+          subtotal,
+          taxAmount: 0,
+          discountAmount: 0,
+          deliveryCharge,
+          totalAmount: total,
+          deliveryAddress: deliveryAddressObj,
+          deliveryTimeSlot: schedule === "NOW" ? "As soon as possible" : selectedTime,
+          paymentMethod: "cash_on_delivery",
+        })
+      });
+      
+      const data = await res.json();
+      if (data.status) {
+        clearCart();
+        toast.success("Order placed successfully!");
+        router.push(`/order/${data.orderId}`);
+      } else {
+        toast.error(data.message || "Failed to place order");
+        setLoading(false);
+      }
+    } catch (error) {
+      toast.error("An error occurred");
+      setLoading(false);
+    }
   };
 
   return (
@@ -63,46 +123,68 @@ export default function CheckoutPage() {
               <div className="p-4 sm:p-6 mb-6 rounded-2xl shadow-sm bg-white border border-[#eff0f6]">
                 
                 {/* Delivery Address */}
-                {orderType === "DELIVERY" && (
+                {orderType === "delivery" && (
                   <div className="mb-6">
                     <div className="flex flex-wrap items-center justify-between gap-4 mb-3">
                       <h4 className="capitalize font-medium text-[#14142b]">Delivery Address</h4>
-                      <button className="group text-xs capitalize font-medium flex items-center rounded-3xl py-1.5 px-3 gap-1 text-[#00749B] bg-[#D6F5FF] transition hover:text-white hover:bg-[#00749B]">
+                      <Link href="/account/addresses" className="group text-xs capitalize font-medium flex items-center rounded-3xl py-1.5 px-3 gap-1 text-[#00749B] bg-[#D6F5FF] transition hover:text-white hover:bg-[#00749B]">
                         <Edit2 className="w-3.5 h-3.5" />
-                        <span>Edit</span>
-                      </button>
+                        <span>Add/Edit</span>
+                      </Link>
                     </div>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {addresses.map((addr) => (
-                        <label 
-                          key={addr.id} 
-                          onClick={() => setSelectedAddress(addr.id)}
-                          className={`p-3 rounded-xl w-full border cursor-pointer transition-colors ${selectedAddress === addr.id ? 'border-[#ff006b] bg-[#fff5f9]' : 'border-[#F7F7FC] bg-[#F7F7FC] hover:border-[#ff006b]/30'}`}
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2 text-xs text-[#008BBA]">
-                              <HomeIcon className="w-3.5 h-3.5" />
-                              <span className="font-medium">{addr.label}</span>
+                      {addresses.length === 0 ? (
+                        <div className="col-span-full p-4 border border-dashed border-[#eff0f6] rounded-xl text-center text-sm text-[#6e7191]">
+                          No addresses found. <Link href="/account/addresses" className="text-[#ff006b] font-medium hover:underline">Add one now</Link>.
+                        </div>
+                      ) : (
+                        addresses.map((addr) => (
+                          <label 
+                            key={addr._id} 
+                            onClick={() => setSelectedAddress(addr._id || null)}
+                            className={`p-3 rounded-xl w-full border cursor-pointer transition-colors ${selectedAddress === addr._id ? 'border-[#ff006b] bg-[#fff5f9]' : 'border-[#F7F7FC] bg-[#F7F7FC] hover:border-[#ff006b]/30'}`}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2 text-xs text-[#008BBA]">
+                                <HomeIcon className="w-3.5 h-3.5" />
+                                <span className="font-medium">{addr.label || "Address"}</span>
+                              </div>
+                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${selectedAddress === addr._id ? 'border-[#ff006b]' : 'border-[#a0a3bd]'}`}>
+                                {selectedAddress === addr._id && <div className="w-2 h-2 rounded-full bg-[#ff006b]" />}
+                              </div>
                             </div>
-                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${selectedAddress === addr.id ? 'border-[#ff006b]' : 'border-[#a0a3bd]'}`}>
-                              {selectedAddress === addr.id && <div className="w-2 h-2 rounded-full bg-[#ff006b]" />}
+                            <div className="text-xs flex gap-2 text-[#14142b]">
+                              <MapPin className="w-3.5 h-3.5 mt-0.5 text-[#a0a3bd] shrink-0" />
+                              <span>{addr.apartment ? `${addr.apartment}, ` : ''}{addr.address}</span>
                             </div>
-                          </div>
-                          <div className="text-xs flex gap-2 text-[#14142b]">
-                            <MapPin className="w-3.5 h-3.5 mt-0.5 text-[#a0a3bd] shrink-0" />
-                            <span>{addr.apartment ? `${addr.apartment}, ` : ''}{addr.address}</span>
-                          </div>
-                        </label>
-                      ))}
+                          </label>
+                        ))
+                      )}
                     </div>
                   </div>
                 )}
+                
+                {/* Store Selection */}
+                <div className="mb-6 border-t border-[#eff0f6] pt-6">
+                  <h4 className="font-medium mb-3 text-[#14142b]">Fulfilling Store</h4>
+                  <p className="text-xs text-[#6e7191] mb-3">Select which store you are ordering from</p>
+                  <select 
+                    className="w-full p-3 bg-white border border-[#eff0f6] rounded-xl text-sm outline-none focus:border-[#ff006b]"
+                    value={branchId}
+                    onChange={(e) => setBranchId(e.target.value)}
+                  >
+                    <option value="" disabled>Select a store</option>
+                    {availableStores.map(store => (
+                      <option key={store.id} value={store.id}>{store.name}</option>
+                    ))}
+                  </select>
+                </div>
 
                 {/* Preferred Time */}
                 <div>
                   <h4 className="font-medium mb-3 text-[#14142b]">
-                    {orderType === "DELIVERY" ? "Preferred Delivery Time" : "Preferred Takeaway Time"}
+                    {orderType === "delivery" ? "Preferred Delivery Time" : "Preferred Takeaway Time"}
                   </h4>
                   <div className="flex flex-wrap items-start gap-4">
                     
@@ -150,14 +232,14 @@ export default function CheckoutPage() {
                   {/* Delivery / Takeaway Toggle */}
                   <div className="flex items-center rounded-2xl w-fit mx-auto mb-6 bg-[#BDEFFF] p-1">
                     <button 
-                      onClick={() => setOrderType("DELIVERY")}
-                      className={`py-1.5 px-4 rounded-2xl text-xs font-medium capitalize transition-colors ${orderType === "DELIVERY" ? 'bg-[#008BBA] text-white' : 'text-[#008BBA] hover:bg-white/50'}`}
+                      onClick={() => setOrderType("delivery")}
+                      className={`py-1.5 px-4 rounded-2xl text-xs font-medium capitalize transition-colors ${orderType === "delivery" ? 'bg-[#008BBA] text-white' : 'text-[#008BBA] hover:bg-white/50'}`}
                     >
                       Delivery
                     </button>
                     <button 
-                      onClick={() => setOrderType("TAKEAWAY")}
-                      className={`py-1.5 px-4 rounded-2xl text-xs font-medium capitalize transition-colors ${orderType === "TAKEAWAY" ? 'bg-[#008BBA] text-white' : 'text-[#008BBA] hover:bg-white/50'}`}
+                      onClick={() => setOrderType("takeaway")}
+                      className={`py-1.5 px-4 rounded-2xl text-xs font-medium capitalize transition-colors ${orderType === "takeaway" ? 'bg-[#008BBA] text-white' : 'text-[#008BBA] hover:bg-white/50'}`}
                     >
                       Takeaway
                     </button>
@@ -165,23 +247,27 @@ export default function CheckoutPage() {
 
                   {/* Cart Items */}
                   <div className="space-y-4">
-                    {cartItems.map((cart, idx) => (
-                      <div key={idx} className="pb-4 border-b border-dashed border-[#eff0f6] last:border-0 last:pb-0">
-                        <div className="flex items-center gap-3 relative">
-                          <span className="absolute top-0 -left-2 text-[10px] w-5 h-5 flex items-center justify-center rounded-full text-white bg-[#14142b] z-10 shadow-sm border-2 border-white">
-                            {cart.quantity}
-                          </span>
-                          <img src={cart.image} alt={cart.name} className="w-14 h-14 rounded-xl object-cover bg-[#f7f7fc]" />
-                          <div className="flex-1">
-                            <h4 className="text-sm font-medium capitalize text-[#14142b] mb-1">{cart.name}</h4>
-                            <p className="text-xs font-semibold text-[#14142b]">₦{cart.price.toFixed(2)}</p>
-                          </div>
-                          <div className="font-bold text-[#14142b] text-sm">
-                            ₦{cart.total.toFixed(2)}
+                    {items.length === 0 ? (
+                      <p className="text-center text-sm text-[#6e7191]">Your cart is empty.</p>
+                    ) : (
+                      items.map((cart, idx) => (
+                        <div key={idx} className="pb-4 border-b border-dashed border-[#eff0f6] last:border-0 last:pb-0">
+                          <div className="flex items-center gap-3 relative">
+                            <span className="absolute top-0 -left-2 text-[10px] w-5 h-5 flex items-center justify-center rounded-full text-white bg-[#14142b] z-10 shadow-sm border-2 border-white">
+                              {cart.quantity}
+                            </span>
+                            <img src={cart.image || "/images/item/thumb.png"} alt={cart.name} className="w-14 h-14 rounded-xl object-cover bg-[#f7f7fc]" />
+                            <div className="flex-1">
+                              <h4 className="text-sm font-medium capitalize text-[#14142b] mb-1">{cart.name}</h4>
+                              <p className="text-xs font-semibold text-[#14142b]">₦{cart.price.toFixed(2)}</p>
+                            </div>
+                            <div className="font-bold text-[#14142b] text-sm">
+                              ₦{cart.itemTotal.toFixed(2)}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </div>
 
@@ -200,9 +286,9 @@ export default function CheckoutPage() {
                       </li>
                       <li className="flex items-center justify-between text-[#6e7191]">
                         <span className="text-sm capitalize">Discount</span>
-                        <span className="text-sm">₦{discount.toFixed(2)}</span>
+                        <span className="text-sm">₦0.00</span>
                       </li>
-                      {orderType === "DELIVERY" && (
+                      {orderType === "delivery" && (
                         <li className="flex items-center justify-between text-[#6e7191]">
                           <span className="text-sm capitalize">Delivery Charge</span>
                           <span className="text-sm font-medium text-[#1AB759]">₦{deliveryCharge.toFixed(2)}</span>

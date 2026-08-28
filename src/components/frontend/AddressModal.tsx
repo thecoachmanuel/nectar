@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { X, MapPin, Check } from "lucide-react";
 import { toast } from "sonner";
+import MapComponent from "./MapComponent";
 
 interface AddressModalProps {
   isOpen: boolean;
@@ -25,24 +26,11 @@ export default function AddressModal({ isOpen, onClose, onSave }: AddressModalPr
 
   if (!isOpen) return null;
 
-  const handleDetectLocation = () => {
-    if ("geolocation" in navigator) {
-      toast.loading("Detecting coordinates...");
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          toast.dismiss();
-          setLatitude(pos.coords.latitude);
-          setLongitude(pos.coords.longitude);
-          if (!address) {
-            setAddress(`Lat: ${pos.coords.latitude.toFixed(4)}, Lng: ${pos.coords.longitude.toFixed(4)}`);
-          }
-          toast.success("Location coordinates pinned!");
-        },
-        () => {
-          toast.dismiss();
-          toast.error("Could not fetch current coordinates.");
-        }
-      );
+  const handleLocationSelect = (lat: number, lng: number, addr: string) => {
+    setLatitude(lat);
+    setLongitude(lng);
+    if (addr) {
+      setAddress(addr);
     }
   };
 
@@ -128,23 +116,16 @@ export default function AddressModal({ isOpen, onClose, onSave }: AddressModalPr
             />
           </div>
 
-          {/* Map Location Pin button */}
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between">
-            <div className="flex items-center space-x-2 text-xs font-medium text-slate-700">
-              <MapPin className="w-4 h-4 text-red-500 shrink-0" />
-              <span>
-                {latitude && longitude
-                  ? `Pin: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
-                  : "Pick Map Coordinates"}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={handleDetectLocation}
-              className="bg-white border border-slate-300 hover:border-red-500 text-slate-700 text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow-sm transition"
-            >
-              Pin Location
-            </button>
+          {/* Interactive Map Component */}
+          <div className="mt-2">
+            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider block mb-1.5">
+              Pin your location
+            </label>
+            <MapComponent 
+              initialLat={latitude} 
+              initialLng={longitude} 
+              onLocationSelect={handleLocationSelect} 
+            />
           </div>
 
           <div className="pt-2 flex items-center space-x-3">

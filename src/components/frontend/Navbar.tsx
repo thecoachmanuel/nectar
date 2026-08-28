@@ -83,7 +83,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
                 }}
               />
               <span className="hidden text-2xl font-black" style={{ color: "#ff006b" }}>
-                FoodAppi
+                Nectar
               </span>
             </Link>
 

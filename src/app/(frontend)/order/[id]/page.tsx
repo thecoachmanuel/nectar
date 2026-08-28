@@ -8,57 +8,43 @@ import { Undo2, MapPin, Phone, MessageSquare } from "lucide-react";
 export default function OrderDetailsPage() {
   const { id } = useParams();
   const [loading, setLoading] = useState(true);
-
-  // Mock Data
-  const order = {
-    order_serial_no: id || "100452",
-    order_datetime: "28 Aug 2026, 12:45 PM",
-    order_type: "DELIVERY",
-    delivery_date: "28 Aug 2026",
-    delivery_time: "01:30 PM",
-    status: "PREPARING", // PENDING, ACCEPT, PREPARING, PREPARED, OUT_FOR_DELIVERY, DELIVERED
-    payment_method: "Cash on Delivery",
-    payment_status: "UNPAID",
-    subtotal: 35.00,
-    discount: 0.00,
-    delivery_charge: 5.00,
-    total: 40.00,
-  };
-
-  const orderBranch = {
-    name: "Central Branch",
-    address: "456 Food Avenue, City Center",
-    phone: "+1234567890"
-  };
-
-  const orderAddress = {
-    apartment: "Apt 4B",
-    address: "123 Main St, Cityville"
-  };
-
-  const orderItems = [
-    { id: 1, quantity: 2, item_name: "Chicken Burger", item_image: "/images/item/thumb.png", total_currency_price: "₦30.00" },
-    { id: 2, quantity: 1, item_name: "Fries", item_image: "/images/item/thumb.png", total_currency_price: "₦5.00" }
-  ];
+  const [order, setOrder] = useState<any>(null);
 
   useEffect(() => {
-    setTimeout(() => setLoading(false), 800);
+    if (!id) return;
+    
+    const fetchOrder = async () => {
+      try {
+        const res = await fetch(`/api/frontend/orders/${id}`);
+        const data = await res.json();
+        if (data.status) {
+          setOrder(data.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch order", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrder();
   }, [id]);
 
   const getStatusIndex = (status: string) => {
-    const statuses = ["PENDING", "ACCEPT", "PREPARING", "PREPARED", "OUT_FOR_DELIVERY", "DELIVERED"];
-    return statuses.indexOf(status);
+    const statuses = ["pending", "accepted", "preparing", "ready", "out_for_delivery", "delivered"];
+    return statuses.indexOf(status?.toLowerCase() || "pending");
   };
 
-  const currentStatusIndex = getStatusIndex(order.status);
+  const currentStatusIndex = getStatusIndex(order?.orderStatus);
   const statuses = [
-    { key: "PENDING", label: "Placed" },
-    { key: "ACCEPT", label: "Accept" },
-    { key: "PREPARING", label: "Preparing" },
-    { key: "PREPARED", label: "Prepared" },
-    { key: "OUT_FOR_DELIVERY", label: "Out for delivery" },
-    { key: "DELIVERED", label: "Delivered" },
+    { key: "pending", label: "Placed" },
+    { key: "accepted", label: "Accept" },
+    { key: "preparing", label: "Preparing" },
+    { key: "ready", label: "Ready" },
+    { key: "out_for_delivery", label: "Out for delivery" },
+    { key: "delivered", label: "Delivered" },
   ];
+
 
   return (
     <>
@@ -79,19 +65,27 @@ export default function OrderDetailsPage() {
             
             {/* Left Column (Status & Info) */}
             <div className="w-full">
-              <div className="p-4 sm:p-6 mb-6 rounded-2xl shadow-sm bg-white border border-[#eff0f6]">
-                <h3 className="text-sm leading-6 mb-1 font-medium text-[#14142b]">
-                  Order ID: <span className="text-[#008BBA]">#{order.order_serial_no}</span>
-                </h3>
-                <p className="text-xs font-light mb-3 text-[#6e7191]">{order.order_datetime}</p>
-                <div className="flex flex-wrap items-center gap-2 mb-2">
-                  <span className="text-sm capitalize text-[#6e7191]">Order Type:</span>
-                  <span className="text-sm capitalize text-[#14142b] font-medium">{order.order_type}</span>
+              {!order ? (
+                <div className="p-4 sm:p-6 mb-6 rounded-2xl shadow-sm bg-white border border-[#eff0f6] text-center text-[#6e7191]">
+                  Order not found.
                 </div>
-                <div className="flex flex-wrap items-center gap-2 mb-8">
-                  <span className="text-sm capitalize text-[#6e7191]">Delivery Time:</span>
-                  <span className="text-sm capitalize text-[#14142b] font-medium">{order.delivery_date} {order.delivery_time}</span>
-                </div>
+              ) : (
+                <>
+                  <div className="p-4 sm:p-6 mb-6 rounded-2xl shadow-sm bg-white border border-[#eff0f6]">
+                    <h3 className="text-sm leading-6 mb-1 font-medium text-[#14142b]">
+                      Order ID: <span className="text-[#008BBA]">#{order.orderSerialNo}</span>
+                    </h3>
+                    <p className="text-xs font-light mb-3 text-[#6e7191]">{new Date(order.createdAt).toLocaleString()}</p>
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <span className="text-sm capitalize text-[#6e7191]">Order Type:</span>
+                      <span className="text-sm capitalize text-[#14142b] font-medium">{order.orderType}</span>
+                    </div>
+                    {order.orderType === "delivery" && (
+                      <div className="flex flex-wrap items-center gap-2 mb-8">
+                        <span className="text-sm capitalize text-[#6e7191]">Delivery Time:</span>
+                        <span className="text-sm capitalize text-[#14142b] font-medium">{order.deliveryTimeSlot || "As soon as possible"}</span>
+                      </div>
+                    )}
 
                 {/* Status Tracker */}
                 <div className="mb-8">
@@ -127,12 +121,8 @@ export default function OrderDetailsPage() {
 
                 {/* Branch Info */}
                 <div className="pt-6 border-t border-[#eff0f6]">
-                  <h3 className="font-medium mb-2 text-[#14142b]">{orderBranch.name}</h3>
+                  <h3 className="font-medium mb-2 text-[#14142b]">Store / Branch ID: {order.branchId}</h3>
                   <div className="flex items-center justify-between gap-5">
-                    <div className="flex items-start justify-start gap-2.5">
-                      <MapPin className="w-4 h-4 mt-1 text-[#6e7191] shrink-0" />
-                      <span className="text-sm leading-6 text-[#14142b]">{orderBranch.address}</span>
-                    </div>
                     <div className="flex gap-3">
                       <button className="w-8 h-8 rounded-full flex items-center justify-center bg-[#D8FFFC] text-[#008BBA] hover:bg-[#008BBA] hover:text-white transition-colors">
                         <MessageSquare className="w-4 h-4" />
@@ -146,16 +136,18 @@ export default function OrderDetailsPage() {
               </div>
 
               {/* Delivery Address */}
-              <div className="p-4 sm:p-6 mb-6 rounded-2xl shadow-sm bg-white border border-[#eff0f6]">
-                <h3 className="text-sm leading-6 font-medium mb-2 text-[#14142b]">Delivery Address</h3>
-                <div className="flex items-start justify-start gap-2.5">
-                  <MapPin className="w-4 h-4 mt-1 text-[#6e7191] shrink-0" />
-                  <span className="text-sm leading-6 text-[#14142b]">
-                    {orderAddress.apartment ? orderAddress.apartment + ', ' : ''}
-                    {orderAddress.address}
-                  </span>
+              {order.deliveryAddress && (
+                <div className="p-4 sm:p-6 mb-6 rounded-2xl shadow-sm bg-white border border-[#eff0f6]">
+                  <h3 className="text-sm leading-6 font-medium mb-2 text-[#14142b]">Delivery Address</h3>
+                  <div className="flex items-start justify-start gap-2.5">
+                    <MapPin className="w-4 h-4 mt-1 text-[#6e7191] shrink-0" />
+                    <span className="text-sm leading-6 text-[#14142b]">
+                      {order.deliveryAddress.apartment ? order.deliveryAddress.apartment + ', ' : ''}
+                      {order.deliveryAddress.address}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Payment Info */}
               <div className="p-4 sm:p-6 rounded-2xl shadow-sm bg-white border border-[#eff0f6]">
@@ -163,65 +155,68 @@ export default function OrderDetailsPage() {
                 <ul className="flex flex-col gap-2">
                   <li className="flex items-center gap-2">
                     <span className="capitalize text-sm leading-6 text-[#6e7191]">Method:</span>
-                    <span className="capitalize text-sm leading-6 text-[#14142b] font-medium">{order.payment_method}</span>
+                    <span className="capitalize text-sm leading-6 text-[#14142b] font-medium">{order.paymentMethod.replace(/_/g, ' ')}</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="capitalize text-sm leading-6 text-[#6e7191]">Status:</span>
-                    <span className={`capitalize text-sm leading-6 font-semibold ${order.payment_status === 'PAID' ? 'text-green-600' : 'text-red-500'}`}>
-                      {order.payment_status}
+                    <span className={`capitalize text-sm leading-6 font-semibold ${order.paymentStatus === 'paid' ? 'text-green-600' : 'text-red-500'}`}>
+                      {order.paymentStatus}
                     </span>
                   </li>
                 </ul>
               </div>
+                </>
+              )}
             </div>
 
             {/* Right Column (Order Details) */}
-            <div className="w-full md:w-[350px] shrink-0">
-              <div className="rounded-2xl shadow-sm bg-white border border-[#eff0f6]">
-                <div className="p-4 sm:p-5 border-b border-[#eff0f6]">
-                  <h3 className="font-medium text-sm leading-6 capitalize mb-4 text-[#14142b]">Order Details</h3>
-                  <div className="space-y-4">
-                    {orderItems.map((item, idx) => (
-                      <div key={idx} className="pb-4 border-b border-dashed border-[#eff0f6] last:border-0 last:pb-0">
-                        <div className="flex items-center gap-3 relative">
-                          <span className="absolute top-0 -left-2 text-[10px] w-5 h-5 flex items-center justify-center rounded-full text-white bg-[#14142b] z-10 shadow-sm border-2 border-white">
-                            {item.quantity}
-                          </span>
-                          <img src={item.item_image} alt={item.item_name} className="w-14 h-14 rounded-xl object-cover bg-[#f7f7fc]" />
-                          <div className="flex-1">
-                            <h4 className="text-sm font-medium capitalize text-[#14142b] hover:underline cursor-pointer">{item.item_name}</h4>
-                            <h3 className="text-xs font-semibold text-[#14142b] mt-1">{item.total_currency_price}</h3>
+            {order && (
+              <div className="w-full md:w-[350px] shrink-0">
+                <div className="rounded-2xl shadow-sm bg-white border border-[#eff0f6]">
+                  <div className="p-4 sm:p-5 border-b border-[#eff0f6]">
+                    <h3 className="font-medium text-sm leading-6 capitalize mb-4 text-[#14142b]">Order Details</h3>
+                    <div className="space-y-4">
+                      {order.items.map((item: any, idx: number) => (
+                        <div key={idx} className="pb-4 border-b border-dashed border-[#eff0f6] last:border-0 last:pb-0">
+                          <div className="flex items-center gap-3 relative">
+                            <span className="absolute top-0 -left-2 text-[10px] w-5 h-5 flex items-center justify-center rounded-full text-white bg-[#14142b] z-10 shadow-sm border-2 border-white">
+                              {item.quantity}
+                            </span>
+                            <div className="flex-1">
+                              <h4 className="text-sm font-medium capitalize text-[#14142b] hover:underline cursor-pointer">{item.name}</h4>
+                              <h3 className="text-xs font-semibold text-[#14142b] mt-1">₦{item.itemTotal.toFixed(2)}</h3>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-                
-                <div className="p-4 sm:p-5 bg-gray-50/50 rounded-b-2xl">
-                  <div className="rounded-xl border border-[#EFF0F6] bg-white overflow-hidden">
-                    <ul className="flex flex-col gap-2 p-3 sm:p-4 border-b border-dashed border-[#EFF0F6]">
-                      <li className="flex items-center justify-between text-[#6e7191]">
-                        <span className="text-sm leading-6 capitalize">Subtotal</span>
-                        <span className="text-sm leading-6 capitalize">₦{order.subtotal.toFixed(2)}</span>
-                      </li>
-                      <li className="flex items-center justify-between text-[#6e7191]">
-                        <span className="text-sm leading-6 capitalize">Discount</span>
-                        <span className="text-sm leading-6 capitalize">₦{order.discount.toFixed(2)}</span>
-                      </li>
-                      <li className="flex items-center justify-between text-[#6e7191]">
-                        <span className="text-sm leading-6 capitalize">Delivery Charge</span>
-                        <span className="text-sm leading-6 capitalize font-medium text-[#1AB759]">₦{order.delivery_charge.toFixed(2)}</span>
-                      </li>
-                    </ul>
-                    <div className="flex items-center justify-between p-3 sm:p-4 bg-[#fff5f9]/30">
-                      <h4 className="text-sm leading-6 font-semibold capitalize text-[#14142b]">Total</h4>
-                      <h5 className="text-sm leading-6 font-semibold capitalize text-[#ff006b]">₦{order.total.toFixed(2)}</h5>
+                  
+                  <div className="p-4 sm:p-5 bg-gray-50/50 rounded-b-2xl">
+                    <div className="rounded-xl border border-[#EFF0F6] bg-white overflow-hidden">
+                      <ul className="flex flex-col gap-2 p-3 sm:p-4 border-b border-dashed border-[#EFF0F6]">
+                        <li className="flex items-center justify-between text-[#6e7191]">
+                          <span className="text-sm leading-6 capitalize">Subtotal</span>
+                          <span className="text-sm leading-6 capitalize">₦{order.subtotal.toFixed(2)}</span>
+                        </li>
+                        <li className="flex items-center justify-between text-[#6e7191]">
+                          <span className="text-sm leading-6 capitalize">Discount</span>
+                          <span className="text-sm leading-6 capitalize">₦{order.discountAmount.toFixed(2)}</span>
+                        </li>
+                        <li className="flex items-center justify-between text-[#6e7191]">
+                          <span className="text-sm leading-6 capitalize">Delivery Charge</span>
+                          <span className="text-sm leading-6 capitalize font-medium text-[#1AB759]">₦{order.deliveryCharge.toFixed(2)}</span>
+                        </li>
+                      </ul>
+                      <div className="flex items-center justify-between p-3 sm:p-4 bg-[#fff5f9]/30">
+                        <h4 className="text-sm leading-6 font-semibold capitalize text-[#14142b]">Total</h4>
+                        <h5 className="text-sm leading-6 font-semibold capitalize text-[#ff006b]">₦{order.totalAmount.toFixed(2)}</h5>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
 
           </div>
         </div>

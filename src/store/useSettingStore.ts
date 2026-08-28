@@ -40,7 +40,7 @@ export const useSettingStore = create<SettingState>()(
     (set, get) => ({
       currencySymbol: "$",
       currencyCode: "USD",
-      siteName: "FoodAppi",
+      siteName: "Nectar",
       isMultiBranch: true,
       defaultBranchId: "",
       activeBranch: null,

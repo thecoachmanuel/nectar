@@ -53,20 +53,20 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
               <Store className="w-5 h-5" />
             </div>
             <div className="text-left">
-              <span className="block text-[10px] text-[#6E7191] uppercase tracking-wider font-semibold">Branch</span>
-              <span className="block text-xs font-bold text-[#14142B] -mt-0.5">Central Branch</span>
+              <span className="block text-[10px] text-[#6E7191] uppercase tracking-wider font-semibold">Store</span>
+              <span className="block text-xs font-bold text-[#14142B] -mt-0.5">Central Store</span>
             </div>
             <ChevronDown className="w-4 h-4 text-[#A0A3BD]" />
           </button>
           
           {branchOpen && (
             <div className="absolute top-12 left-0 w-48 bg-white border border-[#EFF0F6] rounded-xl shadow-lg py-2 z-50">
-              <button className="w-full text-left px-4 py-2 text-sm text-[#14142B] hover:bg-[#F7F7FC] flex items-center gap-2">
-                <input type="radio" checked readOnly className="accent-[#ff006b]" /> Central Branch
-              </button>
-              <button className="w-full text-left px-4 py-2 text-sm text-[#6E7191] hover:bg-[#F7F7FC] flex items-center gap-2">
-                <input type="radio" readOnly className="accent-[#ff006b]" /> Downtown Branch
-              </button>
+              <label className="flex items-center gap-3 p-3 rounded-lg hover:bg-[#fff5f9] cursor-pointer text-sm text-[#14142B] font-medium transition-colors">
+                <input type="radio" checked readOnly className="accent-[#ff006b]" /> Central Store
+              </label>
+              <label className="flex items-center gap-3 p-3 rounded-lg hover:bg-[#fff5f9] cursor-pointer text-sm text-[#14142B] font-medium transition-colors">
+                <input type="radio" readOnly className="accent-[#ff006b]" /> Downtown Store
+              </label>
             </div>
           )}
         </div>

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { 
   ArrowLeft,
   Search,
@@ -14,37 +15,70 @@ import {
 export default function KDSPage() {
   const [activeTab, setActiveTab] = useState("Items Board");
   const [orderFilter, setOrderFilter] = useState("All Orders");
+  const [orders, setOrders] = useState<any[]>([]);
 
-  const orderFilters = ["All Orders", "Confirmed", "Preparing", "Done"];
+  const orderFilters = ["All Orders", "pending", "accepted", "preparing"];
 
-  // Mock data
-  const itemsBoard = [
-    { name: "Chicken Biryani", quantity: 3, extras: ["Extra spicy"], instruction: "No onions" },
-    { name: "Beef Burger", quantity: 2, variations: ["Large"], instruction: "" },
-    { name: "Coca Cola", quantity: 5, instruction: "Cold" },
-  ];
-
-  const onlineOrders = [
-    {
-      id: "#10045",
-      status: "Confirmed",
-      schedule: "14:30",
-      time: "Oct 12, 14:00",
-      items: [
-        { name: "Chicken Biryani", qty: 2, extras: ["Extra spicy"], variations: undefined },
-        { name: "Coca Cola", qty: 2, extras: undefined, variations: undefined }
-      ]
-    },
-    {
-      id: "#10046",
-      status: "Preparing",
-      schedule: "15:00",
-      time: "Oct 12, 14:15",
-      items: [
-        { name: "Beef Burger", qty: 1, variations: ["Large"], extras: undefined }
-      ]
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch("/api/admin/orders");
+      const data = await res.json();
+      if (data.status) {
+        // Filter out finished/canceled orders for the KDS
+        const activeOrders = data.data.filter((o: any) => 
+          ["pending", "accepted", "preparing"].includes(o.orderStatus)
+        );
+        setOrders(activeOrders);
+      }
+    } catch (error) {
+      console.error("Failed to fetch KDS orders", error);
     }
-  ];
+  };
+
+  useEffect(() => {
+    fetchOrders();
+    const interval = setInterval(fetchOrders, 10000); // Poll every 10 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleStatusChange = async (orderId: string, newStatus: string) => {
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderStatus: newStatus })
+      });
+      const data = await res.json();
+      if (data.status) {
+        toast.success(`Order marked as ${newStatus}`);
+        fetchOrders(); // Immediately refresh without waiting for next poll
+      }
+    } catch (error) {
+      toast.error("Failed to update status");
+    }
+  };
+
+  // Compute Items Board (Aggregate item counts across all active KDS orders)
+  const itemsMap: Record<string, any> = {};
+  orders.forEach(order => {
+    order.items.forEach((item: any) => {
+      const key = `${item.name}-${item.variationName || ''}`;
+      if (!itemsMap[key]) {
+        itemsMap[key] = {
+          name: item.name,
+          quantity: 0,
+          variations: item.variationName ? [item.variationName] : undefined,
+          extras: item.extras?.map((e: any) => e.name),
+        };
+      }
+      itemsMap[key].quantity += item.quantity;
+    });
+  });
+  const itemsBoard = Object.values(itemsMap);
+
+  const filteredOrders = orders.filter(o => 
+    orderFilter === "All Orders" || o.orderStatus === orderFilter
+  );
 
   return (
     <div className="min-h-screen bg-[#F7F7FC] flex flex-col">
@@ -116,9 +150,9 @@ export default function KDSPage() {
                 <button 
                   key={filter}
                   onClick={() => setOrderFilter(filter)}
-                  className={`px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-colors ${orderFilter === filter ? "bg-[#fff5f9] text-[#ff006b]" : "bg-white border border-[#EFF0F6] text-[#14142B] hover:bg-[#F7F7FC]"}`}
+                  className={`px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap capitalize transition-colors ${orderFilter === filter ? "bg-[#fff5f9] text-[#ff006b]" : "bg-white border border-[#EFF0F6] text-[#14142B] hover:bg-[#F7F7FC]"}`}
                 >
-                  {filter}
+                  {filter.replace("_", " ")}
                 </button>
               ))}
             </div>
@@ -141,51 +175,66 @@ export default function KDSPage() {
                 <h3 className="font-semibold text-lg text-[#14142B] mb-3">Online Orders</h3>
               </div>
 
-              {onlineOrders.map(order => (
-                <div key={order.id} className="bg-white rounded-2xl border border-[#EFF0F6] overflow-hidden shadow-sm flex flex-col">
-                  {/* Card Header */}
-                  <div className={`px-4 py-3 flex items-center justify-between ${order.status === 'Confirmed' ? 'bg-[#fff5f9]' : 'bg-[#e5ebff]'}`}>
-                    <div className="flex items-center gap-2">
-                      <Clock className={`w-4 h-4 ${order.status === 'Confirmed' ? 'text-[#ff006b]' : 'text-[#567DFF]'}`} />
-                      <span className="font-bold text-[#14142B]">{order.id}</span>
-                    </div>
-                    <span className={`px-2 py-1 rounded-md text-[10px] font-bold text-white uppercase tracking-wide ${order.status === 'Confirmed' ? 'bg-[#ff006b]' : 'bg-[#567DFF]'}`}>
-                      {order.status}
-                    </span>
-                  </div>
-
-                  {/* Card Body */}
-                  <div className="p-4 flex-1 flex flex-col">
-                    <div className="mb-4">
-                      <p className="text-sm text-[#6E7191] mb-1">Schedule: <span className="font-semibold text-[#14142B]">{order.schedule}</span></p>
-                      <p className="text-xs text-[#A0A3BD] flex items-center justify-between">
-                        {order.time}
-                        <ChevronDown className="w-4 h-4" />
-                      </p>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto max-h-48 custom-scrollbar mb-4">
-                      <ul className="space-y-3">
-                        {order.items.map((item, i) => (
-                          <li key={i} className="flex items-start gap-3 border-b border-dashed border-[#EFF0F6] pb-3 last:border-none last:pb-0">
-                            <span className="text-sm font-bold text-[#14142B]">{item.qty}x</span>
-                            <div>
-                              <h5 className="text-sm font-semibold text-[#14142B]">{item.name}</h5>
-                              {item.variations && <p className="text-xs text-[#6E7191]">{item.variations.join(", ")}</p>}
-                              {item.extras && <p className="text-xs text-[#6E7191]">Extras: {item.extras.join(", ")}</p>}
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* Action Button */}
-                    <button className={`w-full h-10 rounded-xl text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors mt-auto ${order.status === 'Confirmed' ? 'bg-[#ff006b] hover:bg-[#e60060]' : 'bg-[#1AB759] hover:bg-[#159a4a]'}`}>
-                      {order.status === 'Confirmed' ? 'Start Preparing' : 'Mark Done'}
-                    </button>
-                  </div>
+              {filteredOrders.length === 0 ? (
+                <div className="col-span-full p-8 text-center text-[#6E7191] bg-white rounded-2xl border border-[#EFF0F6]">
+                  No orders found.
                 </div>
-              ))}
+              ) : (
+                filteredOrders.map(order => (
+                  <div key={order._id} className="bg-white rounded-2xl border border-[#EFF0F6] overflow-hidden shadow-sm flex flex-col h-full">
+                    {/* Card Header */}
+                    <div className={`px-4 py-3 flex items-center justify-between ${['pending', 'accepted'].includes(order.orderStatus) ? 'bg-[#fff5f9]' : 'bg-[#e5ebff]'}`}>
+                      <div className="flex items-center gap-2">
+                        <Clock className={`w-4 h-4 ${['pending', 'accepted'].includes(order.orderStatus) ? 'text-[#ff006b]' : 'text-[#567DFF]'}`} />
+                        <span className="font-bold text-[#14142B]">#{order.orderSerialNo}</span>
+                      </div>
+                      <span className={`px-2 py-1 rounded-md text-[10px] font-bold text-white uppercase tracking-wide ${['pending', 'accepted'].includes(order.orderStatus) ? 'bg-[#ff006b]' : 'bg-[#567DFF]'}`}>
+                        {order.orderStatus.replace("_", " ")}
+                      </span>
+                    </div>
+
+                    {/* Card Body */}
+                    <div className="p-4 flex-1 flex flex-col">
+                      <div className="mb-4">
+                        <p className="text-sm text-[#6E7191] mb-1">Type: <span className="font-semibold text-[#14142B] capitalize">{order.orderType?.replace("_", " ")}</span></p>
+                        <p className="text-xs text-[#A0A3BD] flex items-center justify-between">
+                          {new Date(order.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+
+                      <div className="flex-1 overflow-y-auto max-h-48 custom-scrollbar mb-4">
+                        <ul className="space-y-3">
+                          {order.items.map((item: any, i: number) => (
+                            <li key={i} className="flex items-start gap-3 border-b border-dashed border-[#EFF0F6] pb-3 last:border-none last:pb-0">
+                              <span className="text-sm font-bold text-[#14142B]">{item.quantity}x</span>
+                              <div>
+                                <h5 className="text-sm font-semibold text-[#14142B]">{item.name}</h5>
+                                {item.variationName && <p className="text-xs text-[#6E7191]">{item.variationName}</p>}
+                                {item.extras && item.extras.length > 0 && <p className="text-xs text-[#6E7191]">Extras: {item.extras.map((e:any)=>e.name).join(", ")}</p>}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Action Button */}
+                      {['pending', 'accepted'].includes(order.orderStatus) ? (
+                        <button 
+                          onClick={() => handleStatusChange(order._id, 'preparing')}
+                          className="w-full h-10 rounded-xl text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors mt-auto bg-[#ff006b] hover:bg-[#e60060]">
+                          Start Preparing
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => handleStatusChange(order._id, 'ready')}
+                          className="w-full h-10 rounded-xl text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors mt-auto bg-[#1AB759] hover:bg-[#159a4a]">
+                          Mark Ready
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
 
             </div>
           </div>

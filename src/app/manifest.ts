@@ -2,9 +2,9 @@ import { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "FoodAppi — Fast Food Delivery & WhatsApp Ordering",
-    short_name: "FoodAppi",
-    description: "PWA Online Food Ordering System and Restaurant Management with POS, WhatsApp ordering, and offline support.",
+    name: "Nectar — Food & Grocery Delivery",
+    short_name: "Nectar",
+    description: "Multi-store Food and Grocery Ordering System with POS, WhatsApp ordering, and offline support.",
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",

@@ -4,21 +4,45 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Undo2, Search, ArrowRight, ShoppingBag } from "lucide-react";
 
+import { useAuthStore } from "@/store/useAuthStore";
+import { useRouter } from "next/navigation";
+
 export default function MyOrdersPage() {
   const [loading, setLoading] = useState(true);
-
-  const activeOrders = [
-    { id: 1, order_serial_no: "100452", status: "PREPARING", order_datetime: "28 Aug 2026, 12:45 PM", order_type: "DELIVERY", total_currency_price: "₦40.00" }
-  ];
-
-  const previousOrders = [
-    { id: 2, order_serial_no: "100300", status: "DELIVERED", order_datetime: "20 Aug 2026, 05:30 PM", order_type: "DELIVERY", total_currency_price: "₦25.00" },
-    { id: 3, order_serial_no: "100250", status: "CANCELED", order_datetime: "15 Aug 2026, 01:10 PM", order_type: "TAKEAWAY", total_currency_price: "₦15.00" }
-  ];
+  const [activeOrders, setActiveOrders] = useState<any[]>([]);
+  const [previousOrders, setPreviousOrders] = useState<any[]>([]);
+  const { token } = useAuthStore();
+  const router = useRouter();
 
   useEffect(() => {
-    setTimeout(() => setLoading(false), 800);
-  }, []);
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    const fetchOrders = async () => {
+      try {
+        const res = await fetch("/api/frontend/orders", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        const data = await res.json();
+        if (data.status) {
+          const active = data.data.filter((o: any) => !["delivered", "canceled"].includes(o.orderStatus));
+          const previous = data.data.filter((o: any) => ["delivered", "canceled"].includes(o.orderStatus));
+          setActiveOrders(active);
+          setPreviousOrders(previous);
+        }
+      } catch (error) {
+        console.error("Failed to fetch orders", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [token]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -55,25 +79,25 @@ export default function MyOrdersPage() {
               {activeOrders.length > 0 ? (
                 <ul className="w-full p-4 rounded-2xl shadow-sm flex flex-col gap-4 bg-white border border-[#eff0f6]">
                   {activeOrders.map((order) => (
-                    <li key={order.id} className="w-full rounded-2xl bg-white">
+                    <li key={order._id} className="w-full rounded-2xl bg-white">
                       <div className="w-full rounded-xl py-3 px-4 flex items-center gap-5 border border-[#EFF0F6] hover:border-[#ff006b]/30 transition-colors">
                         <div className="w-12 h-12 rounded-full bg-[#D6F5FF] flex items-center justify-center shrink-0">
                           <ShoppingBag className="w-6 h-6 text-[#008BBA]" />
                         </div>
                         <div className="w-full">
                           <div className="flex flex-wrap items-center gap-y-1 gap-x-3 mb-1">
-                            <p className="text-sm leading-6 text-[#6e7191]">Order ID: <span className="text-[#14142b] font-medium">#{order.order_serial_no}</span></p>
-                            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full capitalize ${getStatusColor(order.status)}`}>
-                              {order.status.replace("_", " ")}
+                            <p className="text-sm leading-6 text-[#6e7191]">Order ID: <span className="text-[#14142b] font-medium">#{order.orderSerialNo}</span></p>
+                            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full capitalize ${getStatusColor(order.orderStatus?.toUpperCase())}`}>
+                              {order.orderStatus?.replace(/_/g, " ")}
                             </span>
                           </div>
-                          <p className="text-xs font-light mb-1 text-[#6e7191]">{order.order_datetime}</p>
-                          <p className="text-sm font-normal capitalize mb-2 text-[#00749B]">{order.order_type}</p>
+                          <p className="text-xs font-light mb-1 text-[#6e7191]">{new Date(order.createdAt).toLocaleString()}</p>
+                          <p className="text-sm font-normal capitalize mb-2 text-[#00749B]">{order.orderType}</p>
                           <div className="flex flex-wrap gap-3 items-center justify-between">
                             <p className="text-sm leading-6 capitalize text-[#6e7191]">
-                              Total: <span className="font-bold text-[#14142b]">{order.total_currency_price}</span>
+                              Total: <span className="font-bold text-[#14142b]">₦{order.totalAmount.toFixed(2)}</span>
                             </p>
-                            <Link href={`/order/${order.id}`} className="text-[10px] leading-4 font-bold flex items-center gap-1 text-[#ff006b] hover:text-rose-600 uppercase tracking-wide">
+                            <Link href={`/order/${order._id}`} className="text-[10px] leading-4 font-bold flex items-center gap-1 text-[#ff006b] hover:text-rose-600 uppercase tracking-wide">
                               See Details <ArrowRight className="w-3 h-3" />
                             </Link>
                           </div>
@@ -98,24 +122,24 @@ export default function MyOrdersPage() {
                 <div className="w-full p-4 rounded-2xl shadow-sm bg-white border border-[#eff0f6]">
                   <ul className="flex flex-col gap-4">
                     {previousOrders.map((order) => (
-                      <li key={order.id} className="w-full rounded-xl py-3 px-4 flex items-center gap-5 border border-[#EFF0F6] hover:border-[#ff006b]/30 transition-colors">
+                      <li key={order._id} className="w-full rounded-xl py-3 px-4 flex items-center gap-5 border border-[#EFF0F6] hover:border-[#ff006b]/30 transition-colors">
                         <div className="w-12 h-12 rounded-full bg-[#f7f7fc] flex items-center justify-center shrink-0">
                           <ShoppingBag className="w-6 h-6 text-[#a0a3bd]" />
                         </div>
                         <div className="w-full">
                           <div className="flex flex-wrap items-center gap-y-1 gap-x-3 mb-1">
-                            <p className="text-sm leading-6 text-[#6e7191]">Order ID: <span className="text-[#14142b] font-medium">#{order.order_serial_no}</span></p>
-                            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full capitalize ${getStatusColor(order.status)}`}>
-                              {order.status.replace("_", " ")}
+                            <p className="text-sm leading-6 text-[#6e7191]">Order ID: <span className="text-[#14142b] font-medium">#{order.orderSerialNo}</span></p>
+                            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full capitalize ${getStatusColor(order.orderStatus?.toUpperCase())}`}>
+                              {order.orderStatus?.replace(/_/g, " ")}
                             </span>
                           </div>
-                          <p className="text-xs font-light mb-1 text-[#6e7191]">{order.order_datetime}</p>
-                          <p className="text-sm font-normal capitalize mb-2 text-[#00749B]">{order.order_type}</p>
+                          <p className="text-xs font-light mb-1 text-[#6e7191]">{new Date(order.createdAt).toLocaleString()}</p>
+                          <p className="text-sm font-normal capitalize mb-2 text-[#00749B]">{order.orderType}</p>
                           <div className="flex flex-wrap gap-3 items-center justify-between">
                             <p className="text-sm leading-6 capitalize text-[#6e7191]">
-                              Total: <span className="font-bold text-[#14142b]">{order.total_currency_price}</span>
+                              Total: <span className="font-bold text-[#14142b]">₦{order.totalAmount.toFixed(2)}</span>
                             </p>
-                            <Link href={`/order/${order.id}`} className="text-[10px] leading-4 font-bold flex items-center gap-1 text-[#ff006b] hover:text-rose-600 uppercase tracking-wide">
+                            <Link href={`/order/${order._id}`} className="text-[10px] leading-4 font-bold flex items-center gap-1 text-[#ff006b] hover:text-rose-600 uppercase tracking-wide">
                               See Details <ArrowRight className="w-3 h-3" />
                             </Link>
                           </div>
