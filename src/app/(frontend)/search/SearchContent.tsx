@@ -95,9 +95,11 @@ export default function SearchContent() {
                   className="absolute inset-0 w-full h-full object-cover"
                   onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
                 <div className="absolute top-2 left-2">
-                  <div className={`w-4 h-4 flex items-center justify-center rounded-sm border-2 bg-white ${item.itemType === "veg" ? "border-emerald-500" : "border-rose-500"}`}>
-                    <div className={`w-2 h-2 rounded-full ${item.itemType === "veg" ? "bg-emerald-500" : "bg-rose-500"}`} />
-                  </div>
+                  <img 
+                    src={`/images/item-type/${item.itemType === "veg" ? "non-veg" : "veg"}.png`} 
+                    alt={item.itemType} 
+                    className="w-4 h-4 object-contain flex-shrink-0"
+                  />
                 </div>
               </div>
               <div className="p-2.5">

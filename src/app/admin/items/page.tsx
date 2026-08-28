@@ -116,8 +116,13 @@ export default function ItemsPage() {
                       <span className="text-sm font-semibold text-[#14142B]">₦{item.price?.toFixed(2)}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-[#4E4B66] flex items-center gap-1">
-                        {item.itemType === 'veg' ? '🌱 Veg' : '🍗 Non-Veg'}
+                      <span className="text-sm text-[#4E4B66] flex items-center gap-1.5 capitalize">
+                        <img 
+                          src={`/images/item-type/${item.itemType === "veg" ? "non-veg" : "veg"}.png`} 
+                          alt={item.itemType} 
+                          className="w-4 h-4 object-contain"
+                        />
+                        {item.itemType.replace("_", " ")}
                       </span>
                     </td>
                     <td className="px-6 py-4">

@@ -259,7 +259,7 @@ export default function HomePage() {
                     <div className="flex items-start gap-2 mb-1">
                       <h4 className="text-sm font-semibold text-[#14142b] flex-1 capitalize">{item.name}</h4>
                       <img 
-                        src={`/images/item-type/${item.itemType === "veg" ? "veg" : "non-veg"}.png`} 
+                        src={`/images/item-type/${item.itemType === "veg" ? "non-veg" : "veg"}.png`} 
                         alt={item.itemType} 
                         className="w-4 h-4 object-contain flex-shrink-0"
                       />
@@ -313,7 +313,7 @@ export default function HomePage() {
                     <div className="flex items-start gap-2 mb-1">
                       <h4 className="text-sm font-semibold text-[#14142b] flex-1 capitalize">{item.name}</h4>
                       <img 
-                        src={`/images/item-type/${item.itemType === "veg" ? "veg" : "non-veg"}.png`} 
+                        src={`/images/item-type/${item.itemType === "veg" ? "non-veg" : "veg"}.png`} 
                         alt={item.itemType} 
                         className="w-4 h-4 object-contain flex-shrink-0"
                       />
@@ -349,7 +349,7 @@ function ItemCard({ item, onOpen }: { item: any; onOpen: (item: any) => void }) 
           onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
         <div className="absolute top-2 left-2">
           <img 
-            src={`/images/item-type/${item.itemType === "veg" ? "veg" : "non-veg"}.png`} 
+            src={`/images/item-type/${item.itemType === "veg" ? "non-veg" : "veg"}.png`} 
             alt={item.itemType} 
             className="w-5 h-5 object-contain"
           />

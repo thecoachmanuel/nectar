@@ -5,8 +5,9 @@ import bcrypt from "bcryptjs";
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
   try {
     await dbConnect();
     const body = await req.json();
@@ -18,7 +19,7 @@ export async function PUT(
       delete body.password;
     }
 
-    const user = await User.findByIdAndUpdate(params.id, body, {
+    const user = await User.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,
     });
@@ -45,12 +46,13 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
   try {
     await dbConnect();
     
-    const user = await User.findByIdAndDelete(params.id);
+    const user = await User.findByIdAndDelete(id);
 
     if (!user) {
       return NextResponse.json(

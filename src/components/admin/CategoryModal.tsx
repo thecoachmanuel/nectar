@@ -16,7 +16,10 @@ export default function CategoryModal({ isOpen, onClose, category, onSuccess }: 
     name: "",
     slug: "",
     status: true,
+    image: "",
   });
+
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     if (category) {
@@ -24,12 +27,14 @@ export default function CategoryModal({ isOpen, onClose, category, onSuccess }: 
         name: category.name || "",
         slug: category.slug || "",
         status: category.status ?? true,
+        image: category.image || "",
       });
     } else {
       setFormData({
         name: "",
         slug: "",
         status: true,
+        image: "",
       });
     }
   }, [category, isOpen]);
@@ -86,6 +91,37 @@ export default function CategoryModal({ isOpen, onClose, category, onSuccess }: 
           />
         </div>
 
+        <div>
+          <label className="block text-sm font-medium text-[#14142B] mb-1">Image</label>
+          <div className="flex items-center gap-4">
+            {formData.image && (
+              <img src={formData.image} alt="Preview" className="w-16 h-16 object-cover rounded-lg border border-[#EFF0F6]" />
+            )}
+            <input 
+              type="file" 
+              accept="image/*"
+              onChange={async (e) => {
+                if (e.target.files && e.target.files[0]) {
+                  setUploadingImage(true);
+                  const file = e.target.files[0];
+                  const body = new FormData();
+                  body.append("file", file);
+                  try {
+                    const res = await fetch("/api/admin/upload", { method: "POST", body });
+                    const data = await res.json();
+                    if (data.url) setFormData({...formData, image: data.url});
+                  } catch (err) {
+                    console.error("Upload error", err);
+                  }
+                  setUploadingImage(false);
+                }
+              }}
+              className="w-full h-11 px-4 py-2 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-[#ff006b] transition-colors bg-white file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#ff006b]/10 file:text-[#ff006b] hover:file:bg-[#ff006b]/20"
+            />
+            {uploadingImage && <span className="w-5 h-5 border-2 border-[#ff006b]/40 border-t-[#ff006b] rounded-full animate-spin"></span>}
+          </div>
+        </div>
+
         <div className="flex items-center gap-2 pt-2">
           <input 
             type="checkbox" 
@@ -112,7 +148,7 @@ export default function CategoryModal({ isOpen, onClose, category, onSuccess }: 
             disabled={loading}
             className="px-6 h-11 rounded-xl bg-[#ff006b] text-white font-medium hover:bg-[#e60060] transition-colors shadow-md shadow-[#ff006b]/20 flex items-center justify-center min-w-[120px] disabled:opacity-70"
           >
-            {loading ? <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : "Save"}
+            {(loading || uploadingImage) ? <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : "Save"}
           </button>
         </div>
       </form>

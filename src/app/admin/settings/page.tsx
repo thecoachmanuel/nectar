@@ -23,6 +23,7 @@ export default function SettingsPage() {
   
   // Local state to hold form changes before saving
   const [formData, setFormData] = useState<Record<string, any>>({});
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -335,14 +336,34 @@ export default function SettingsPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-[#14142B] mb-2">Logo URL</label>
-                <input 
-                  type="text" 
-                  value={formData.theme_logo || ""} 
-                  onChange={(e) => handleChange("theme_logo", e.target.value)}
-                  placeholder="/images/logo.png"
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
-                />
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Logo</label>
+                <div className="flex items-center gap-4">
+                  {formData.theme_logo && (
+                    <img src={formData.theme_logo} alt="Site Logo" className="h-12 w-auto object-contain rounded-lg border border-[#EFF0F6]" />
+                  )}
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={async (e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setUploadingLogo(true);
+                        const file = e.target.files[0];
+                        const body = new FormData();
+                        body.append("file", file);
+                        try {
+                          const res = await fetch("/api/admin/upload", { method: "POST", body });
+                          const data = await res.json();
+                          if (data.url) setFormData({...formData, theme_logo: data.url});
+                        } catch (err) {
+                          console.error("Upload error", err);
+                        }
+                        setUploadingLogo(false);
+                      }
+                    }}
+                    className="flex-1 h-12 px-4 py-2.5 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b] file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#ff006b]/10 file:text-[#ff006b] hover:file:bg-[#ff006b]/20" 
+                  />
+                  {uploadingLogo && <span className="w-5 h-5 border-2 border-[#ff006b]/40 border-t-[#ff006b] rounded-full animate-spin"></span>}
+                </div>
               </div>
             </div>
           )}

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 import User from "@/models/User";
+import { Setting } from "@/models/Setting";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
 
@@ -36,13 +37,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ status: false, message: "Email is already registered" }, { status: 400 });
     }
 
+    const settings = await Setting.find({ key: { $in: ["role_public_registration", "role_default_customer"] } });
+    let allowPublic = "Yes";
+    let defaultRole = "customer";
+    
+    settings.forEach(s => {
+      if (s.key === "role_public_registration") allowPublic = s.payload;
+      if (s.key === "role_default_customer") defaultRole = s.payload.toLowerCase(); // "Customer" -> "customer"
+    });
+
+    if (allowPublic === "No" && !isGuest) {
+      return NextResponse.json({ status: false, message: "Public registration is currently disabled." }, { status: 403 });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
       name,
       email,
       password: hashedPassword,
       phone: phone || "",
-      role: "customer",
+      role: defaultRole as "admin" | "customer" | "chef" | "waiter" | "delivery_boy",
       branchId: 0,
       status: true,
       addresses: [],
@@ -59,7 +73,7 @@ export async function POST(req: Request) {
       .setExpirationTime("30d")
       .sign(JWT_SECRET);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       status: true,
       message: "Account created successfully",
       token,
@@ -73,6 +87,15 @@ export async function POST(req: Request) {
         addresses: newUser.addresses,
       },
     });
+
+    response.cookies.set("token", token, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+    });
+
+    return response;
   } catch (error: any) {
     console.error("Signup Error:", error);
     return NextResponse.json({ status: false, message: error.message }, { status: 500 });

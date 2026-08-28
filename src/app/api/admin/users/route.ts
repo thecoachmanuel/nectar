@@ -11,7 +11,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const role = searchParams.get("role");
     
-    const query = role ? { role } : {};
+    const query: any = role ? { role } : {};
     
     // In a real app we'd paginate here
     const users = await User.find(query).sort({ createdAt: -1 });

@@ -16,6 +16,7 @@ import { useApi } from "@/hooks/useApi";
 export default function AdminProfilePage() {
   const { user, updateUser } = useAuthStore();
   const { execute, loading: isSaving } = useApi();
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -39,6 +40,32 @@ export default function AdminProfilePage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setUploadingAvatar(true);
+      const file = e.target.files[0];
+      const body = new FormData();
+      body.append("file", file);
+      try {
+        const res = await fetch("/api/admin/upload", { method: "POST", body });
+        const data = await res.json();
+        if (data.url) {
+          // Immediately save to backend since avatar is a separate action usually, 
+          // or we can just update local user state and wait for "Save Profile"
+          const { data: updatedUser } = await execute(`/api/admin/users/${user?._id}`, {
+            method: "PUT",
+            body: { image: data.url },
+            successMessage: "Avatar uploaded successfully!",
+          });
+          if (updatedUser) updateUser(updatedUser);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+      setUploadingAvatar(false);
+    }
   };
 
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -100,11 +127,16 @@ export default function AdminProfilePage() {
           <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] p-6 text-center">
             <div className="relative w-32 h-32 mx-auto mb-4">
               <div className="w-full h-full rounded-full bg-[#F7F7FC] border-4 border-white shadow-md overflow-hidden flex items-center justify-center">
-                <img src="/images/default/user.png" alt="Profile" className="w-full h-full object-cover" />
+                {uploadingAvatar ? (
+                   <span className="w-8 h-8 border-4 border-[#ff006b]/40 border-t-[#ff006b] rounded-full animate-spin"></span>
+                ) : (
+                   <img src={user?.image || "/images/default/user.png"} alt="Profile" className="w-full h-full object-cover" />
+                )}
               </div>
-              <button className="absolute bottom-0 right-0 w-10 h-10 bg-[#ff006b] rounded-full text-white flex items-center justify-center border-2 border-white shadow-md hover:bg-[#e60060] transition-colors">
+              <label className="absolute bottom-0 right-0 w-10 h-10 bg-[#ff006b] rounded-full text-white flex items-center justify-center border-2 border-white shadow-md hover:bg-[#e60060] transition-colors cursor-pointer">
                 <Camera className="w-5 h-5" />
-              </button>
+                <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} />
+              </label>
             </div>
             <h3 className="text-lg font-bold text-[#14142B]">{user?.name}</h3>
             <p className="text-sm text-[#6E7191] font-medium mb-1 capitalize">{user?.role?.replace("_", " ")}</p>

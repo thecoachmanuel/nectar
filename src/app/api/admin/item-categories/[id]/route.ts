@@ -4,8 +4,9 @@ import ItemCategory from "@/models/ItemCategory";
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
   try {
     await dbConnect();
     const body = await req.json();
@@ -14,7 +15,7 @@ export async function PUT(
       body.slug = body.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     }
 
-    const category = await ItemCategory.findByIdAndUpdate(params.id, body, {
+    const category = await ItemCategory.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,
     });
@@ -41,12 +42,13 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
   try {
     await dbConnect();
     
-    const category = await ItemCategory.findByIdAndDelete(params.id);
+    const category = await ItemCategory.findByIdAndDelete(id);
 
     if (!category) {
       return NextResponse.json(

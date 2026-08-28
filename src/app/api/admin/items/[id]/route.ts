@@ -4,8 +4,9 @@ import Item from "@/models/Item";
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
   try {
     await dbConnect();
     const body = await req.json();
@@ -14,7 +15,7 @@ export async function PUT(
       body.slug = body.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     }
 
-    const item = await Item.findByIdAndUpdate(params.id, body, {
+    const item = await Item.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,
     }).populate("categoryId", "name slug");
@@ -41,12 +42,13 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
   try {
     await dbConnect();
     
-    const item = await Item.findByIdAndDelete(params.id);
+    const item = await Item.findByIdAndDelete(id);
 
     if (!item) {
       return NextResponse.json(

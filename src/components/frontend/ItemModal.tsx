@@ -81,8 +81,13 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
           >
             <X className="w-5 h-5" />
           </button>
-          <div className="absolute bottom-3 left-3 bg-slate-900/80 text-white text-xs font-semibold px-2.5 py-1 rounded-full capitalize">
-            {item.itemType === "veg" ? "🌱 Veg" : "🍗 Non-Veg"}
+          <div className="absolute bottom-3 left-3 bg-slate-900/80 text-white text-xs font-semibold px-2.5 py-1 rounded-full capitalize flex items-center gap-1.5">
+            <img 
+              src={`/images/item-type/${item.itemType === "veg" ? "non-veg" : "veg"}.png`} 
+              alt={item.itemType} 
+              className="w-3.5 h-3.5 object-contain"
+            />
+            {item.itemType.replace("_", " ")}
           </div>
         </div>
 

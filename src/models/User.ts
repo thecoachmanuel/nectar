@@ -21,6 +21,7 @@ export interface IUser extends Document {
   addresses: IAddress[];
   permissions: string[];
   image?: string;
+  deviceToken?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,6 +51,7 @@ const UserSchema = new Schema<IUser>(
     addresses: [AddressSchema],
     permissions: [{ type: String }],
     image: { type: String },
+    deviceToken: { type: String },
   },
   { timestamps: true }
 );

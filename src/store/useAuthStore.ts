@@ -18,6 +18,7 @@ export interface UserProfile {
     isDefault?: boolean;
   }[];
   permissions?: string[];
+  image?: string;
 }
 
 interface AuthState {

@@ -54,7 +54,7 @@ export async function POST(req: Request) {
       .setExpirationTime("30d")
       .sign(JWT_SECRET);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       status: true,
       message: "Login successful",
       token,
@@ -69,6 +69,15 @@ export async function POST(req: Request) {
         permissions: user.permissions,
       },
     });
+    
+    response.cookies.set("token", token, {
+      httpOnly: false, // Allow client access if needed, but mainly for middleware
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+    });
+
+    return response;
   } catch (error: any) {
     console.error("Login Error:", error);
     return NextResponse.json({ status: false, message: error.message }, { status: 500 });

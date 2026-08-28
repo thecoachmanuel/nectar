@@ -58,6 +58,9 @@ export const viewport: Viewport = {
   userScalable: true,
 };
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
@@ -71,6 +74,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link rel="apple-touch-startup-image" href="/images/icons/splash-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)" />
         <link rel="apple-touch-startup-image" href="/images/icons/splash-1536x2048.png" media="(min-device-width: 768px) and (max-device-width: 1024px) and (-webkit-min-device-pixel-ratio: 2)" />
         <link rel="apple-touch-startup-image" href="/images/icons/splash-2048x2732.png" media="(min-device-width: 1024px) and (max-device-width: 1366px) and (-webkit-min-device-pixel-ratio: 2)" />
+        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta httpEquiv="Pragma" content="no-cache" />
+        <meta httpEquiv="Expires" content="0" />
       </head>
       <body className="antialiased bg-white text-[#14142b]" style={{ fontFamily: "'Rubik', sans-serif" }}>
         <Toaster position="top-right" richColors />
@@ -90,6 +96,25 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                   });
               });
             }
+          `}
+        </Script>
+
+        {/* OneSignal SDK */}
+        <Script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" strategy="afterInteractive" />
+        <Script id="onesignal-init" strategy="lazyOnload">
+          {`
+            window.OneSignalDeferred = window.OneSignalDeferred || [];
+            window.OneSignalDeferred.push(async function(OneSignal) {
+              // Note: The App ID will be set from MongoDB dynamically in a global setting,
+              // but to initialize early, we try to load it from env or just initialize without it
+              // and the frontend settings API will call OneSignal.init() if it's not initialized yet.
+              // We'll initialize it here if an env var exists for fallback.
+              if ("${process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || ''}") {
+                await OneSignal.init({
+                  appId: "${process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || ''}",
+                });
+              }
+            });
           `}
         </Script>
       </body>
