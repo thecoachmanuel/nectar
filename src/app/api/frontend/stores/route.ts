@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
-import Branch from "@/models/Branch";
+import Store from "@/models/Store";
 
 // Ray-casting algorithm for Point in Polygon checking
 function isPointInPolygon(latitude: number, longitude: number, polygon: number[][]) {
@@ -29,21 +29,21 @@ export async function GET(req: Request) {
     const lat = searchParams.get("latitude");
     const lng = searchParams.get("longitude");
 
-    const branches = await Branch.find({ status: true });
+    const stores = await Store.find({ status: true });
 
     if (lat && lng) {
       const latitude = parseFloat(lat);
       const longitude = parseFloat(lng);
 
-      // Check if location falls inside any branch zone polygon
-      for (const branch of branches) {
-        if (branch.zone && branch.zone.coordinates && branch.zone.coordinates[0]) {
-          const polygon = branch.zone.coordinates[0];
+      // Check if location falls inside any store zone polygon
+      for (const store of stores) {
+        if (store.zone && store.zone.coordinates && store.zone.coordinates[0]) {
+          const polygon = store.zone.coordinates[0];
           if (isPointInPolygon(latitude, longitude, polygon)) {
             return NextResponse.json({
               status: true,
-              matchedBranch: branch,
-              branches,
+              matchedStore: store,
+              stores,
             });
           }
         }
@@ -52,11 +52,11 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       status: true,
-      matchedBranch: branches[0] || null,
-      branches,
+      matchedStore: stores[0] || null,
+      stores,
     });
   } catch (error: any) {
-    console.error("Branches API Error:", error);
+    console.error("Stores API Error:", error);
     return NextResponse.json({ status: false, message: error.message }, { status: 500 });
   }
 }

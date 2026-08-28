@@ -24,7 +24,7 @@ export interface IOrder extends Document {
   customerEmail?: string;
   customerPhone: string;
   orderType: "delivery" | "takeaway" | "pos" | "dine_in";
-  branchId: mongoose.Types.ObjectId | string;
+  storeId: mongoose.Types.ObjectId | string;
   items: IOrderItem[];
   subtotal: number;
   taxAmount: number;
@@ -81,7 +81,7 @@ const OrderSchema = new Schema<IOrder>(
       enum: ["delivery", "takeaway", "pos", "dine_in"],
       default: "delivery",
     },
-    branchId: { type: Schema.Types.Mixed, required: true },
+    storeId: { type: Schema.Types.Mixed, required: true },
     items: [OrderItemSchema],
     subtotal: { type: Number, required: true },
     taxAmount: { type: Number, default: 0 },

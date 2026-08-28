@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       customerEmail,
       customerPhone,
       orderType,
-      branchId,
+      storeId,
       items,
       subtotal,
       taxAmount,
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ status: false, message: "Cart is empty" }, { status: 400 });
     }
     
-    if (!branchId) {
+    if (!storeId) {
       return NextResponse.json({ status: false, message: "Store selection is required" }, { status: 400 });
     }
 
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
       customerEmail: customerEmail || "",
       customerPhone: customerPhone || "N/A",
       orderType,
-      branchId,
+      storeId,
       items,
       subtotal,
       taxAmount: taxAmount || 0,

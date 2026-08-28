@@ -8,21 +8,21 @@ import { toast } from "sonner";
 import ExcelJS from "exceljs";
 
 export default function SalesReportPage() {
-  const { formatPrice, activeBranch } = useSettingStore();
+  const { formatPrice, activeStore } = useSettingStore();
 
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchReportData();
-  }, [activeBranch]);
+  }, [activeStore]);
 
   const fetchReportData = async () => {
     setLoading(true);
     try {
       let url = "/api/frontend/orders?";
-      if (activeBranch && activeBranch._id) {
-        url += `branchId=${activeBranch._id}`;
+      if (activeStore && activeStore._id) {
+        url += `storeId=${activeStore._id}`;
       }
       const res = await fetch(url);
       const data = await res.json();

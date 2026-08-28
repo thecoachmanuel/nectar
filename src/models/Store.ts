@@ -1,13 +1,13 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface ITimeSlot {
-  day: string; // Monday, Tuesday...
-  openingTime: string; // 09:00 AM
-  closingTime: string; // 10:00 PM
+  day: string;
+  openingTime: string;
+  closingTime: string;
   isClosed: boolean;
 }
 
-export interface IBranch extends Document {
+export interface IStore extends Document {
   name: string;
   email: string;
   phone: string;
@@ -34,7 +34,7 @@ const TimeSlotSchema = new Schema<ITimeSlot>({
   isClosed: { type: Boolean, default: false },
 });
 
-const BranchSchema = new Schema<IBranch>(
+const StoreSchema = new Schema<IStore>(
   {
     name: { type: String, required: true },
     email: { type: String, required: true },
@@ -55,9 +55,9 @@ const BranchSchema = new Schema<IBranch>(
   { timestamps: true }
 );
 
-BranchSchema.index({ zone: "2dsphere" });
+StoreSchema.index({ zone: "2dsphere" });
 
-const Branch: Model<IBranch> =
-  mongoose.models.Branch || mongoose.model<IBranch>("Branch", BranchSchema);
+const Store: Model<IStore> =
+  mongoose.models.Store || mongoose.model<IStore>("Store", StoreSchema);
 
-export default Branch;
+export default Store;

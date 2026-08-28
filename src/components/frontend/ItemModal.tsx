@@ -13,7 +13,7 @@ interface ItemModalProps {
 }
 
 export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
-  const { addItem, branchId } = useCartStore();
+  const { addItem, storeId } = useCartStore();
   const { formatPrice } = useSettingStore();
 
   const [quantity, setQuantity] = useState(1);

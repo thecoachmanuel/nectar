@@ -68,7 +68,14 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         { name: "Delivery Boys", path: "/admin/delivery-boys" },
       ]
     },
-    { name: "Settings", icon: <Settings className="w-4 h-4" />, path: "/admin/settings" },
+    { 
+      name: "Settings", 
+      icon: <Settings className="w-4 h-4" />, 
+      children: [
+        { name: "Stores", path: "/admin/stores" },
+        { name: "General Settings", path: "/admin/settings" },
+      ]
+    },
   ];
 
   const handleMenuClick = (name: string, hasChildren: boolean) => {

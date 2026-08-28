@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 import User from "@/models/User";
-import Branch from "@/models/Branch";
+import Store from "@/models/Store";
 import ItemCategory from "@/models/ItemCategory";
 import Item from "@/models/Item";
 import PaymentGateway from "@/models/PaymentGateway";
@@ -21,7 +21,7 @@ export async function GET() {
         phone: "1254875855",
         password: hashedPassword,
         role: "admin",
-        branchId: 0,
+        storeId: 0,
         status: true,
         addresses: [
           {
@@ -47,7 +47,7 @@ export async function GET() {
         phone: "125333344",
         password: hashedPassword,
         role: "customer",
-        branchId: 0,
+        storeId: 0,
         status: true,
         addresses: [
           {
@@ -62,12 +62,12 @@ export async function GET() {
       });
     }
 
-    // 3. Seed Default Branch
-    let branch = await Branch.findOne({ name: "Main Branch" });
-    if (!branch) {
-      branch = await Branch.create({
-        name: "Main Branch",
-        email: "mainbranch@foodappi.com",
+    // 3. Seed Default Store
+    let store = await Store.findOne({ name: "Main Store" });
+    if (!store) {
+      store = await Store.create({
+        name: "Main Store",
+        email: "mainstore@foodappi.com",
         phone: "+1800123456",
         address: "Downtown City Center, 5th Avenue",
         latitude: 23.8069,

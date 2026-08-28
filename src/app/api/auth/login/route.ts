@@ -38,7 +38,7 @@ export async function POST(req: Request) {
           email: adminEmail,
           password: hashedPassword,
           role: "admin",
-          branchId: 0,
+          storeId: 0,
           status: true,
           permissions: ["all"],
         });
@@ -80,7 +80,7 @@ export async function POST(req: Request) {
       userId: user._id.toString(),
       email: user.email,
       role: user.role,
-      branchId: user.branchId,
+      storeId: user.storeId,
     })
       .setProtectedHeader({ alg: "HS256" })
       .setExpirationTime("30d")
@@ -96,7 +96,7 @@ export async function POST(req: Request) {
         email: user.email,
         phone: user.phone,
         role: user.role,
-        branchId: user.branchId,
+        storeId: user.storeId,
         addresses: user.addresses,
         permissions: user.permissions,
       },

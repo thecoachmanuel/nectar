@@ -13,7 +13,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
   const router = useRouter();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [branchOpen, setBranchOpen] = useState(false);
+  const [storeOpen, setStoreOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
 
   const toggleFullscreen = () => {
@@ -43,10 +43,10 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
           <Menu className="w-5 h-5" />
         </button>
 
-        {/* Branch Selector */}
+        {/* Store Selector */}
         <div className="relative hidden sm:block">
           <button 
-            onClick={() => { setBranchOpen(!branchOpen); setProfileOpen(false); setLangOpen(false); }}
+            onClick={() => { setStoreOpen(!storeOpen); setProfileOpen(false); setLangOpen(false); }}
             className="flex items-center gap-3"
           >
             <div className="w-10 h-10 rounded-xl bg-[#fff5f9] text-[#ff006b] flex items-center justify-center">
@@ -59,7 +59,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
             <ChevronDown className="w-4 h-4 text-[#A0A3BD]" />
           </button>
           
-          {branchOpen && (
+          {storeOpen && (
             <div className="absolute top-12 left-0 w-48 bg-white border border-[#EFF0F6] rounded-xl shadow-lg py-2 z-50">
               <label className="flex items-center gap-3 p-3 rounded-lg hover:bg-[#fff5f9] cursor-pointer text-sm text-[#14142B] font-medium transition-colors">
                 <input type="radio" checked readOnly className="accent-[#ff006b]" /> Central Store
@@ -83,7 +83,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
 
         <div className="relative">
           <button 
-            onClick={() => { setLangOpen(!langOpen); setProfileOpen(false); setBranchOpen(false); }}
+            onClick={() => { setLangOpen(!langOpen); setProfileOpen(false); setStoreOpen(false); }}
             className="flex items-center gap-2 h-10 px-3 rounded-xl bg-[#fff5f9] text-[#ff006b] hover:bg-rose-100 transition-colors"
           >
             <Globe className="w-4 h-4" />
@@ -94,7 +94,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
         {/* Profile Dropdown */}
         <div className="relative">
           <button 
-            onClick={() => { setProfileOpen(!profileOpen); setBranchOpen(false); setLangOpen(false); }}
+            onClick={() => { setProfileOpen(!profileOpen); setStoreOpen(false); setLangOpen(false); }}
             className="flex items-center gap-2"
           >
             <img src="/images/default/admin.png" alt="Admin" className="w-10 h-10 rounded-xl object-cover bg-gray-100" />

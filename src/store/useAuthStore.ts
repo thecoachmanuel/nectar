@@ -7,7 +7,7 @@ export interface UserProfile {
   email: string;
   phone?: string;
   role: "admin" | "customer" | "chef" | "waiter" | "delivery_boy";
-  branchId: string | number;
+  storeId: string | number;
   addresses?: {
     _id?: string;
     label?: string;

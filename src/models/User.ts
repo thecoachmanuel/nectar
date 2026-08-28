@@ -16,7 +16,7 @@ export interface IUser extends Document {
   password?: string;
   phone?: string;
   role: "admin" | "customer" | "chef" | "waiter" | "delivery_boy";
-  branchId: number | string; // 0 for global/all branches
+  storeId: number | string; // 0 for global/all stores
   status: boolean;
   addresses: IAddress[];
   permissions: string[];
@@ -46,7 +46,7 @@ const UserSchema = new Schema<IUser>(
       enum: ["admin", "customer", "chef", "waiter", "delivery_boy"],
       default: "customer",
     },
-    branchId: { type: Schema.Types.Mixed, default: 0 },
+    storeId: { type: Schema.Types.Mixed, default: 0 },
     status: { type: Boolean, default: true },
     addresses: [AddressSchema],
     permissions: [{ type: String }],

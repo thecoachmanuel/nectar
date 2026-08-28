@@ -26,7 +26,7 @@ export interface CartItem {
 
 interface CartState {
   items: CartItem[];
-  branchId: string; // active branch for cart
+  storeId: string; // active store for cart
   orderType: "delivery" | "takeaway";
   couponCode: string;
   couponDiscount: number;
@@ -34,7 +34,7 @@ interface CartState {
   selectedAddressId?: string;
 
   // Actions
-  setBranchId: (branchId: string) => void;
+  setStoreId: (storeId: string) => void;
   setOrderType: (orderType: "delivery" | "takeaway") => void;
   addItem: (item: Omit<CartItem, "id" | "itemTotal">) => void;
   updateQuantity: (id: string, delta: number) => void;
@@ -54,17 +54,17 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
-      branchId: "",
+      storeId: "",
       orderType: "delivery",
       couponCode: "",
       couponDiscount: 0,
       deliveryTimeSlot: "As soon as possible",
       selectedAddressId: undefined,
 
-      setBranchId: (branchId) => {
-        if (get().branchId !== branchId) {
-          // If branch changes, clear cart to prevent cross-branch ordering
-          set({ branchId, items: [], couponCode: "", couponDiscount: 0 });
+      setStoreId: (storeId) => {
+        if (get().storeId !== storeId) {
+          // If store changes, clear cart to prevent cross-store ordering
+          set({ storeId, items: [], couponCode: "", couponDiscount: 0 });
         }
       },
 

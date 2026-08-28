@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export interface BranchInfo {
+export interface StoreInfo {
   _id: string;
   name: string;
   phone: string;
@@ -18,17 +18,17 @@ interface SettingState {
   currencySymbol: string;
   currencyCode: string;
   siteName: string;
-  isMultiBranch: boolean; // Single vs Multi-branch mode toggle
-  defaultBranchId: string;
-  activeBranch: BranchInfo | null;
+  isMultiStore: boolean; // Single vs Multi-store mode toggle
+  defaultStoreId: string;
+  activeStore: StoreInfo | null;
   activeFoodType: "all" | "veg" | "non_veg"; // Veg vs Non-Veg filter
   menuViewMode: "grid" | "list"; // Grid vs List view mode
   themeColor: string; // Primary brand color
 
   setCurrency: (symbol: string, code: string) => void;
-  setMultiBranch: (isMulti: boolean) => void;
-  setDefaultBranchId: (branchId: string) => void;
-  setActiveBranch: (branch: BranchInfo | null) => void;
+  setMultiStore: (isMulti: boolean) => void;
+  setDefaultStoreId: (storeId: string) => void;
+  setActiveStore: (store: StoreInfo | null) => void;
   setActiveFoodType: (type: "all" | "veg" | "non_veg") => void;
   setMenuViewMode: (mode: "grid" | "list") => void;
   setThemeColor: (color: string) => void;
@@ -41,17 +41,17 @@ export const useSettingStore = create<SettingState>()(
       currencySymbol: "$",
       currencyCode: "USD",
       siteName: "Nectar",
-      isMultiBranch: true,
-      defaultBranchId: "",
-      activeBranch: null,
+      isMultiStore: true,
+      defaultStoreId: "",
+      activeStore: null,
       activeFoodType: "all",
       menuViewMode: "grid",
       themeColor: "#FF4D4F",
 
       setCurrency: (currencySymbol, currencyCode) => set({ currencySymbol, currencyCode }),
-      setMultiBranch: (isMultiBranch) => set({ isMultiBranch }),
-      setDefaultBranchId: (defaultBranchId) => set({ defaultBranchId }),
-      setActiveBranch: (activeBranch) => set({ activeBranch }),
+      setMultiStore: (isMultiStore) => set({ isMultiStore }),
+      setDefaultStoreId: (defaultStoreId) => set({ defaultStoreId }),
+      setActiveStore: (activeStore) => set({ activeStore }),
       setActiveFoodType: (activeFoodType) => set({ activeFoodType }),
       setMenuViewMode: (menuViewMode) => set({ menuViewMode }),
       setThemeColor: (themeColor) => set({ themeColor }),

@@ -12,7 +12,7 @@ import { toast } from "sonner";
 export default function CheckoutPage() {
   const router = useRouter();
   const { user, isGuest, guestInfo, token } = useAuthStore();
-  const { items, orderType, setOrderType, getSubtotal, getTotalAmount, branchId, setBranchId, clearCart } = useCartStore();
+  const { items, orderType, setOrderType, getSubtotal, getTotalAmount, storeId, setStoreId, clearCart } = useCartStore();
   const [loading, setLoading] = useState(true);
   const [schedule, setSchedule] = useState<"NOW" | "LATER">("NOW");
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
@@ -42,7 +42,7 @@ export default function CheckoutPage() {
       toast.error("Your cart is empty");
       return;
     }
-    if (!branchId) {
+    if (!storeId) {
       toast.error("Please select a fulfilling store");
       return;
     }
@@ -73,7 +73,7 @@ export default function CheckoutPage() {
           customerEmail,
           customerPhone,
           orderType,
-          branchId,
+          storeId,
           items,
           subtotal,
           taxAmount: 0,
@@ -171,8 +171,8 @@ export default function CheckoutPage() {
                   <p className="text-xs text-[#6e7191] mb-3">Select which store you are ordering from</p>
                   <select 
                     className="w-full p-3 bg-white border border-[#eff0f6] rounded-xl text-sm outline-none focus:border-[#ff006b]"
-                    value={branchId}
-                    onChange={(e) => setBranchId(e.target.value)}
+                    value={storeId}
+                    onChange={(e) => setStoreId(e.target.value)}
                   >
                     <option value="" disabled>Select a store</option>
                     {availableStores.map(store => (
