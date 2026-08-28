@@ -82,33 +82,7 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* ========= TRACK ORDER BAR ========= */}
-      <div className="bg-white border-b border-[#eff0f6] py-3 px-4">
-        <div className="max-w-6xl mx-auto flex items-center gap-3">
-          <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: "#ff006b" }} />
-          <form
-            onSubmit={(e) => { e.preventDefault(); if (trackOrderId) window.location.href = `/order/${trackOrderId}`; }}
-            className="flex items-center gap-2 w-full max-w-md"
-          >
-            <input
-              type="text"
-              value={trackOrderId}
-              onChange={(e) => setTrackOrderId(e.target.value)}
-              placeholder="Enter order ID to track your order..."
-              className="flex-1 text-xs py-1.5 px-3 rounded-lg border border-[#eff0f6] bg-[#f7f7fc] focus:outline-none focus:border-[#ff006b] text-[#14142b] placeholder:text-[#a0a3bd] transition-all"
-            />
-            <button type="submit"
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all flex-shrink-0"
-              style={{ backgroundColor: "#ff006b" }}>
-              Track
-            </button>
-          </form>
-          <span className="hidden sm:block text-xs text-[#a0a3bd]">|</span>
-          <Link href="/menu" className="hidden sm:flex items-center gap-1 text-xs font-medium whitespace-nowrap" style={{ color: "#ff006b" }}>
-            Browse Menu <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-      </div>
+
 
       {/* ========= BANNER SLIDER ========= */}
       <section className="relative overflow-hidden">

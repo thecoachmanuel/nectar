@@ -100,8 +100,8 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
               </Link>
             </nav>
 
-            {/* Search Bar */}
-            <form onSubmit={handleSearch} className="hidden lg:flex items-center border rounded-3xl px-3 gap-2 h-9 w-52 border-[#eff0f6] bg-[#eff0f6] focus-within:bg-white focus-within:border-[#ff006b] transition-all">
+            {/* Search Bar (Visible on both desktop and mobile in PHP app) */}
+            <form onSubmit={handleSearch} className="flex flex-1 lg:flex-none items-center border rounded-3xl px-3 gap-2 h-9 lg:w-52 border-[#eff0f6] bg-[#eff0f6] focus-within:bg-white focus-within:border-[#ff006b] transition-all">
               <button type="submit">
                 <Search className="w-4 h-4 text-[#6e7191]" />
               </button>
@@ -221,8 +221,8 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
             </div>
           </div>
 
-          {/* Veg / Non-Veg + View Mode Filter Row (only on home/menu) */}
-          {(pathname === "/" || pathname === "/menu") && (
+          {/* Veg / Non-Veg + View Mode Filter Row (only on menu) */}
+          {(pathname === "/menu") && (
             <div className="flex items-center justify-between pb-3 gap-4 flex-wrap veg-navs">
               {/* Veg Filter */}
               <div className="flex items-center gap-2">
@@ -270,17 +270,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="lg:hidden border-t border-[#eff0f6] bg-white px-4 py-4 space-y-3">
-            {/* Mobile search */}
-            <form onSubmit={handleSearch} className="flex items-center border rounded-3xl px-3 gap-2 h-9 border-[#eff0f6] bg-[#eff0f6] focus-within:bg-white focus-within:border-[#ff006b] transition-all">
-              <Search className="w-4 h-4 text-[#6e7191]" />
-              <input
-                type="search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search food..."
-                className="w-full h-full bg-transparent text-xs text-[#14142b] outline-none"
-              />
-            </form>
+
 
             <nav className="flex flex-col gap-1">
               {[{ href: "/", label: "Home" }, { href: "/menu", label: "Menu" }, { href: "/offers", label: "Offers" }].map(({ href, label }) => (
