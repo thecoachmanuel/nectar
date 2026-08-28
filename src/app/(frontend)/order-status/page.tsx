@@ -2,16 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { Undo2, MapPin, Phone, MessageSquare } from "lucide-react";
 
-export default function OrderDetailsPage() {
-  const { id } = useParams();
+export default function OrderStatusPage() {
   const [loading, setLoading] = useState(true);
 
   // Mock Data
   const order = {
-    order_serial_no: id || "100452",
+    order_serial_no: "100452",
     order_datetime: "28 Aug 2026, 12:45 PM",
     order_type: "DELIVERY",
     delivery_date: "28 Aug 2026",
@@ -43,7 +41,7 @@ export default function OrderDetailsPage() {
 
   useEffect(() => {
     setTimeout(() => setLoading(false), 800);
-  }, [id]);
+  }, []);
 
   const getStatusIndex = (status: string) => {
     const statuses = ["PENDING", "ACCEPT", "PREPARING", "PREPARED", "OUT_FOR_DELIVERY", "DELIVERED"];

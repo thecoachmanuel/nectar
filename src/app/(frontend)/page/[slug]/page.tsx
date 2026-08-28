@@ -1,111 +1,113 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { Send, Phone, Mail, MapPin } from "lucide-react";
-import { toast } from "sonner";
+import { Mail, Phone } from "lucide-react";
 
-export default function StaticOtherPage() {
-  const params = useParams();
-  const slug = params?.slug as string;
+export default function DynamicPage() {
+  const { slug } = useParams();
+  const [page, setPage] = useState<any>({});
+  const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState<any>({});
 
-  const [contactName, setContactName] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [contactMsg, setContactMsg] = useState("");
+  useEffect(() => {
+    fetchPage();
+    fetchSettings();
+  }, [slug]);
 
-  const handleSendContact = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast.success("Thank you for contacting us! We will reply shortly.");
-    setContactName("");
-    setContactEmail("");
-    setContactMsg("");
+  const fetchPage = async () => {
+    try {
+      const res = await fetch(`/api/frontend/pages/${slug}`);
+      const data = await res.json();
+      if (data.status) {
+        setPage(data.data || {});
+      }
+    } catch {} finally {
+      setLoading(false);
+    }
   };
 
-  const getPageTitle = () => {
-    if (slug === "contact-us") return "Contact Us";
-    if (slug === "about-us") return "About Us";
-    if (slug === "terms-and-conditions") return "Terms & Conditions";
-    if (slug === "privacy-policy") return "Privacy Policy";
-    return "FoodAppi";
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch(`/api/frontend/settings`);
+      const data = await res.json();
+      if (data.status) {
+        setSettings(data.data || {});
+      }
+    } catch {}
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
-      <div className="bg-white rounded-2xl p-8 border border-[#eff0f6] shadow-sm space-y-6">
-        <h1 className="text-2xl font-bold text-[#14142b] border-b border-[#eff0f6] pb-4">
-          {getPageTitle()}
-        </h1>
-
-        {slug === "contact-us" ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-4">
-              <p className="text-sm text-[#6e7191] leading-relaxed">
-                Have questions about your order, delivery zones, or WhatsApp ordering? Feel free to reach out to our team.
-              </p>
-
-              <div className="space-y-3 text-xs font-semibold text-[#14142b]">
-                <div className="flex items-center space-x-3">
-                  <Phone className="w-4 h-4 text-[#ff006b]" />
-                  <span>+1 (800) 123-4567</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Mail className="w-4 h-4 text-[#ff006b]" />
-                  <span>support@foodappi.com</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <MapPin className="w-4 h-4 text-[#ff006b]" />
-                  <span>FoodAppi Headquarters, City Center</span>
-                </div>
+    <>
+      {loading && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/80 backdrop-blur-sm">
+          <div className="foodappi-loader"></div>
+        </div>
+      )}
+      
+      <section className="pt-8 pb-16">
+        <div className="container mx-auto px-4 sm:px-6 max-w-3xl">
+          <div className="mb-6">
+            <h2 className="text-[26px] leading-10 font-semibold capitalize mb-2 text-[#14142b]">
+              {page.title || "Loading..."}
+            </h2>
+            {page.image && (
+              <div className="w-full mb-6">
+                <img src={page.image} alt={page.title} className="w-full rounded-2xl object-cover shadow-sm" />
               </div>
+            )}
+            {page.description && (
+              <div className="ql-editor prose max-w-none text-[#6e7191]" dangerouslySetInnerHTML={{ __html: page.description }}></div>
+            )}
+            {!page.description && !loading && (
+              <div className="text-center py-12 text-[#6e7191]">
+                <p>Page content not available.</p>
+              </div>
+            )}
+          </div>
+          
+          {/* Support Section */}
+          <div className="mb-12 md:mb-20">
+            <h2 className="text-[22px] leading-[34px] font-medium capitalize mb-3 text-[#14142b]">Support</h2>
+            <ul className="flex flex-col gap-2">
+              <li className="flex items-center gap-2.5">
+                <Mail className="w-4 h-4 text-[#6e7191]" />
+                <span className="text-sm leading-6 text-[#14142b]">{settings.company_email || "support@example.com"}</span>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <Phone className="w-4 h-4 text-[#6e7191]" />
+                <span className="text-sm font-medium leading-6 text-[#14142b]">{settings.company_phone || "+1234567890"}</span>
+              </li>
+            </ul>
+          </div>
+          
+          {/* Mock Contact Form if template_id === 1 (from Vue app) */}
+          {page.template_id === 1 && (
+            <div className="bg-[#f7f7fc] p-6 rounded-2xl border border-[#eff0f6]">
+              <h3 className="text-xl font-semibold mb-4 text-[#14142b]">Contact Us</h3>
+              <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[#14142b] mb-1">Name</label>
+                    <input type="text" className="w-full px-4 py-2.5 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-[#ff006b] transition-colors" placeholder="Your Name" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#14142b] mb-1">Email</label>
+                    <input type="email" className="w-full px-4 py-2.5 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-[#ff006b] transition-colors" placeholder="Your Email" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[#14142b] mb-1">Message</label>
+                  <textarea rows={4} className="w-full px-4 py-2.5 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-[#ff006b] transition-colors resize-none" placeholder="Your Message"></textarea>
+                </div>
+                <button type="button" className="w-full py-3 bg-[#ff006b] text-white rounded-xl font-medium hover:bg-rose-600 transition-colors">
+                  Send Message
+                </button>
+              </form>
             </div>
-
-            <form onSubmit={handleSendContact} className="space-y-3">
-              <input
-                type="text"
-                required
-                placeholder="Your Full Name"
-                value={contactName}
-                onChange={(e) => setContactName(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-[#f7f7fc] border border-[#eff0f6] rounded-xl text-sm text-[#14142b] focus:outline-none focus:border-[#ff006b] focus:bg-white transition-all"
-              />
-              <input
-                type="email"
-                required
-                placeholder="Email Address"
-                value={contactEmail}
-                onChange={(e) => setContactEmail(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-[#f7f7fc] border border-[#eff0f6] rounded-xl text-sm text-[#14142b] focus:outline-none focus:border-[#ff006b] focus:bg-white transition-all"
-              />
-              <textarea
-                required
-                rows={4}
-                placeholder="How can we help you?"
-                value={contactMsg}
-                onChange={(e) => setContactMsg(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-[#f7f7fc] border border-[#eff0f6] rounded-xl text-sm text-[#14142b] focus:outline-none focus:border-[#ff006b] focus:bg-white transition-all"
-              ></textarea>
-
-              <button
-                type="submit"
-                className="w-full text-white font-bold text-xs py-3 rounded-xl transition flex items-center justify-center space-x-1.5"
-                style={{ backgroundColor: "#ff006b" }}
-              >
-                <Send className="w-4 h-4" />
-                <span>Send Message</span>
-              </button>
-            </form>
-          </div>
-        ) : (
-          <div className="prose max-w-none text-sm leading-relaxed space-y-4 text-[#6e7191]">
-            <p>
-              Welcome to FoodAppi. We provide progressive web application (PWA) food delivery, POS, and WhatsApp menu ordering systems.
-            </p>
-            <p>
-              All orders are processed with high quality control, instant realtime status updates, and secure payment processing.
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
+          )}
+        </div>
+      </section>
+    </>
   );
 }

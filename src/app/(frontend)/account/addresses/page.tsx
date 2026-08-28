@@ -1,105 +1,77 @@
 "use client";
 
 import React, { useState } from "react";
-import AddressModal from "@/components/frontend/AddressModal";
-import { useAuthStore } from "@/store/useAuthStore";
-import { MapPin, Plus, Trash2, Home, Briefcase } from "lucide-react";
-import { toast } from "sonner";
+import Link from "next/link";
+import { Undo2, Plus, Edit2, Trash2, Home, Briefcase, MapPin } from "lucide-react";
 
-export default function ManageAddressesPage() {
-  const { user, updateUser } = useAuthStore();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+export default function AddressesPage() {
+  const [addresses, setAddresses] = useState([
+    { id: 1, label: "Home", address: "123 Main St, Cityville", apartment: "Apt 4B" },
+    { id: 2, label: "Work", address: "456 Office Tower, Business District", apartment: "Floor 12" }
+  ]);
 
-  const handleAddAddress = (newAddr: any) => {
-    if (!user) return;
-    const updatedAddresses = [...(user.addresses || []), newAddr];
-    updateUser({ addresses: updatedAddresses });
-    toast.success("Address added to your address book!");
+  const handleDelete = (id: number) => {
+    setAddresses(addresses.filter(a => a.id !== id));
   };
 
-  const handleDeleteAddress = (index: number) => {
-    if (!user) return;
-    const updatedAddresses = (user.addresses || []).filter((_, idx) => idx !== index);
-    updateUser({ addresses: updatedAddresses });
-    toast.success("Address deleted.");
+  const getIcon = (label: string) => {
+    if (label.toLowerCase() === "home") return <Home className="w-4 h-4" />;
+    if (label.toLowerCase() === "work") return <Briefcase className="w-4 h-4" />;
+    return <MapPin className="w-4 h-4" />;
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
-      <div className="flex items-center justify-between border-b border-[#eff0f6] pb-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[#14142b]">Manage Addresses</h1>
-          <p className="text-xs text-[#a0a3bd]">Save delivery addresses with map location markers</p>
+    <section className="pt-6 pb-24 sm:pt-8 sm:pb-16 bg-[#f7f7fc] min-h-screen">
+      <div className="container mx-auto px-4 sm:px-6 max-w-3xl">
+        <Link href="/" className="mb-4 inline-flex items-center gap-2 text-[#ff006b] hover:text-rose-600 transition-colors">
+          <Undo2 className="w-4 h-4" />
+          <span className="text-xs font-medium leading-6">Back to home</span>
+        </Link>
+
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-[26px] leading-10 font-semibold capitalize text-[#14142b]">Address</h3>
+          <button className="flex items-center gap-2 bg-[#ff006b] hover:bg-rose-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors shadow-md shadow-[#ff006b]/20">
+            <Plus className="w-4 h-4" />
+            <span>Add New</span>
+          </button>
         </div>
 
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition flex items-center space-x-1.5"
-          style={{ backgroundColor: "#ff006b" }}
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add New Address</span>
-        </button>
-      </div>
-
-      {!user ? (
-        <div className="bg-white rounded-2xl p-12 text-center border border-[#eff0f6] space-y-2">
-          <p className="text-sm font-bold text-[#14142b]">Please login to manage your saved addresses.</p>
-        </div>
-      ) : !user.addresses || user.addresses.length === 0 ? (
-        <div className="bg-white rounded-2xl p-12 text-center border border-[#eff0f6] space-y-3">
-          <MapPin className="w-12 h-12 text-[#a0a3bd] mx-auto opacity-50" />
-          <h3 className="text-lg font-bold text-[#14142b]">No Saved Addresses</h3>
-          <p className="text-xs text-[#a0a3bd]">Click Add New Address to pin your location on map.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {user.addresses.map((addr: any, idx: number) => (
-            <div
-              key={idx}
-              className="bg-white rounded-2xl p-5 border border-[#eff0f6] shadow-sm space-y-3 flex flex-col justify-between"
-            >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold px-2.5 py-1 bg-[#fff0f6] text-[#ff006b] rounded-lg flex items-center space-x-1">
-                    {addr.label === "Home" ? (
-                      <Home className="w-3 h-3" />
-                    ) : (
-                      <Briefcase className="w-3 h-3" />
-                    )}
-                    <span>{addr.label || "Home"}</span>
-                  </span>
-
-                  <button
-                    onClick={() => handleDeleteAddress(idx)}
-                    className="text-[#a0a3bd] hover:text-[#ff006b] p-1"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <p className="text-sm font-bold text-[#14142b]">{addr.address}</p>
-                {addr.apartment && <p className="text-xs text-[#a0a3bd]">{addr.apartment}</p>}
-
-                {addr.latitude && addr.longitude && (
-                  <div className="text-[10px] text-[#a0a3bd] flex items-center space-x-1 pt-1">
-                    <MapPin className="w-3 h-3 text-[#ff006b]" />
-                    <span>
-                      Pin: {addr.latitude.toFixed(4)}, {addr.longitude.toFixed(4)}
-                    </span>
+        {addresses.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {addresses.map(address => (
+              <div key={address.id} className="p-4 rounded-2xl w-full bg-white border border-[#eff0f6] shadow-sm hover:border-[#ff006b]/30 transition-colors">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2 text-[#008BBA] bg-[#D6F5FF] px-2.5 py-1 rounded-full">
+                    {getIcon(address.label)}
+                    <span className="font-medium text-xs leading-6 capitalize">{address.label}</span>
                   </div>
-                )}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button className="w-7 h-7 rounded-full bg-[#ff006b]/10 hover:bg-[#ff006b] text-[#ff006b] hover:text-white flex items-center justify-center transition-colors">
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => handleDelete(address.id)} className="w-7 h-7 rounded-full bg-red-100 hover:bg-red-500 text-red-500 hover:text-white flex items-center justify-center transition-colors">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <MapPin className="w-4 h-4 mt-1 text-[#6e7191] shrink-0" />
+                  <span className="text-sm leading-6 text-[#14142b]">
+                    {address.apartment ? address.apartment + ', ' : ''}
+                    {address.address}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        ) : (
+          <div className="w-full p-8 rounded-2xl shadow-sm bg-white border border-[#eff0f6] text-center text-[#6e7191]">
+            <img src="/images/default/not-found.png" alt="Not Found" className="max-w-[150px] mx-auto opacity-50 mb-4" />
+            No addresses available.
+          </div>
+        )}
 
-      <AddressModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleAddAddress}
-      />
-    </div>
+      </div>
+    </section>
   );
 }

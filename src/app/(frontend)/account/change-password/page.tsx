@@ -4,13 +4,11 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { Undo2 } from "lucide-react";
 
-export default function EditProfilePage() {
+export default function ChangePasswordPage() {
   const [form, setForm] = useState({
-    first_name: "John",
-    last_name: "Doe",
-    email: "admin@example.com",
-    phone: "1234567890",
-    country_code: "+1"
+    old_password: "",
+    password: "",
+    password_confirmation: ""
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -19,8 +17,12 @@ export default function EditProfilePage() {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    // Save logic
-    alert("Profile updated successfully!");
+    if (form.password !== form.password_confirmation) {
+      alert("Passwords do not match");
+      return;
+    }
+    alert("Password changed successfully!");
+    setForm({ old_password: "", password: "", password_confirmation: "" });
   };
 
   return (
@@ -33,64 +35,46 @@ export default function EditProfilePage() {
         
         <div className="py-6 px-4 sm:px-6 shadow-sm rounded-2xl bg-white border border-[#eff0f6]">
           <h2 className="capitalize mb-6 text-left text-[22px] font-semibold leading-[34px] text-[#14142b]">
-            Edit Profile
+            Change Password
           </h2>
           
           <form onSubmit={handleSave}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               
-              <div className="sm:col-span-1">
-                <label htmlFor="first_name" className="block text-xs capitalize mb-1 text-[#6e7191]">First Name</label>
+              <div className="sm:col-span-2">
+                <label htmlFor="old_password" className="block text-sm capitalize mb-1 text-[#6e7191]">Old Password</label>
                 <input 
-                  id="first_name" 
-                  name="first_name"
-                  type="text" 
-                  value={form.first_name}
+                  id="old_password" 
+                  name="old_password"
+                  type="password" 
+                  value={form.old_password}
                   onChange={handleChange}
                   className="w-full h-12 text-sm rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-[#ff006b] transition-colors bg-white"
                 />
               </div>
 
               <div className="sm:col-span-1">
-                <label htmlFor="last_name" className="block text-xs capitalize mb-1 text-[#6e7191]">Last Name</label>
+                <label htmlFor="password" className="block text-sm capitalize mb-1 text-[#6e7191]">New Password</label>
                 <input 
-                  id="last_name" 
-                  name="last_name"
-                  type="text" 
-                  value={form.last_name}
+                  id="password" 
+                  name="password"
+                  type="password" 
+                  value={form.password}
                   onChange={handleChange}
                   className="w-full h-12 text-sm rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-[#ff006b] transition-colors bg-white"
                 />
               </div>
 
               <div className="sm:col-span-1">
-                <label htmlFor="email" className="block text-xs capitalize mb-1 text-[#6e7191]">Email</label>
+                <label htmlFor="password_confirmation" className="block text-sm capitalize mb-1 text-[#6e7191]">Retype New Password</label>
                 <input 
-                  id="email" 
-                  name="email"
-                  type="email" 
-                  value={form.email}
+                  id="password_confirmation" 
+                  name="password_confirmation"
+                  type="password" 
+                  value={form.password_confirmation}
                   onChange={handleChange}
                   className="w-full h-12 text-sm rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-[#ff006b] transition-colors bg-white"
                 />
-              </div>
-
-              <div className="sm:col-span-1">
-                <label htmlFor="phone" className="block text-xs capitalize mb-1 text-[#6e7191]">Phone</label>
-                <div className="w-full h-12 rounded-xl border border-[#eff0f6] px-4 flex items-center bg-white focus-within:border-[#ff006b] transition-colors">
-                  <div className="w-fit flex-shrink-0 flex items-center gap-1 border-r border-[#eff0f6] pr-2 mr-2">
-                    <span className="text-sm">🇺🇸</span>
-                    <span className="whitespace-nowrap flex-shrink-0 text-xs text-[#14142b]">{form.country_code}</span>
-                  </div>
-                  <input 
-                    id="phone" 
-                    name="phone"
-                    type="text" 
-                    value={form.phone}
-                    onChange={handleChange}
-                    className="w-full h-full text-sm text-[#14142b] focus:outline-none bg-transparent"
-                  />
-                </div>
               </div>
 
               <div className="sm:col-span-2 mt-4">
@@ -98,7 +82,7 @@ export default function EditProfilePage() {
                   type="submit"
                   className="w-full h-12 flex items-center justify-center capitalize font-bold text-base rounded-2xl text-white bg-[#ff006b] hover:bg-rose-600 transition-colors shadow-md shadow-[#ff006b]/20"
                 >
-                  Update Profile
+                  Change Password
                 </button>
               </div>
 

@@ -1,139 +1,115 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useAuthStore } from "@/store/useAuthStore";
-import { useSettingStore } from "@/store/useSettingStore";
-import { MessageSquare, Send, Building } from "lucide-react";
-import { toast } from "sonner";
+import React, { useState } from "react";
+import Link from "next/link";
+import { Undo2, Image as ImageIcon, Send } from "lucide-react";
 
-export default function CustomerChatPage() {
-  const { user } = useAuthStore();
-  const { activeBranch } = useSettingStore();
-
-  const [branches, setBranches] = useState<any[]>([]);
-  const [selectedBranchId, setSelectedBranchId] = useState<string>("");
-  const [messages, setMessages] = useState<any[]>([
-    {
-      _id: "1",
-      senderRole: "branch_manager",
-      message: "Hello! Welcome to FoodAppi. How can we assist you with your order today?",
-      createdAt: new Date().toISOString(),
-    },
+export default function ChatPage() {
+  const [branches] = useState([
+    { id: 1, name: "Central Branch" },
+    { id: 2, name: "Downtown Branch" }
   ]);
-  const [newMessage, setNewMessage] = useState("");
+  const [activeBranch, setActiveBranch] = useState(1);
+  const [inputText, setInputText] = useState("");
+  const [messages, setMessages] = useState([
+    { id: 1, text: "Hello! How can we help you?", isUser: false, time: "10:00 AM", senderName: "Central Branch" },
+    { id: 2, text: "I have a question about my order.", isUser: true, time: "10:05 AM" }
+  ]);
 
-  useEffect(() => {
-    fetchBranches();
-  }, []);
-
-  const fetchBranches = async () => {
-    try {
-      const res = await fetch("/api/frontend/branches");
-      const data = await res.json();
-      if (data.status && data.branches) {
-        setBranches(data.branches);
-        if (data.branches[0]) {
-          setSelectedBranchId(activeBranch?._id || data.branches[0]._id);
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
-
-    const msgObj = {
-      _id: Date.now().toString(),
-      senderRole: "customer",
-      message: newMessage,
-      createdAt: new Date().toISOString(),
-    };
-
-    setMessages([...messages, msgObj]);
-    setNewMessage("");
-    toast.success("Message sent to Branch Manager!");
+    if (!inputText.trim()) return;
+    
+    setMessages([
+      ...messages,
+      {
+        id: Date.now(),
+        text: inputText,
+        isUser: true,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+    ]);
+    setInputText("");
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
-      <div className="bg-white rounded-2xl p-6 border border-[#eff0f6] shadow-sm space-y-4 flex flex-col h-[70vh]">
-        {/* Header & Branch Select */}
-        <div className="flex items-center justify-between border-b border-[#eff0f6] pb-4">
-          <div className="flex items-center space-x-2">
-            <MessageSquare className="w-5 h-5 text-[#ff006b]" />
-            <h1 className="text-lg font-bold text-[#14142b]">Chat with Branch Manager</h1>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Building className="w-4 h-4 text-[#a0a3bd]" />
-            <select
-              value={selectedBranchId}
-              onChange={(e) => setSelectedBranchId(e.target.value)}
-              className="px-3 py-1.5 bg-[#f7f7fc] border border-[#eff0f6] rounded-xl text-xs font-semibold text-[#6e7191]"
-            >
-              {branches.map((b) => (
-                <option key={b._id} value={b._id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          </div>
+    <section className="pt-5 sm:py-6 bg-[#f7f7fc] min-h-screen flex flex-col">
+      <div className="container mx-auto max-w-3xl px-0 sm:px-4 flex-1 flex flex-col h-[calc(100vh-100px)]">
+        
+        <div className="px-4 sm:px-0 mb-3">
+          <Link href="/" className="inline-flex items-center gap-2 text-[#ff006b] hover:text-rose-600 transition-colors">
+            <Undo2 className="w-4 h-4" />
+            <span className="text-xs font-medium leading-6">Back to home</span>
+          </Link>
         </div>
 
-        {/* Messages Stream */}
-        <div className="flex-1 overflow-y-auto space-y-3 p-2">
-          {messages.map((msg) => {
-            const isCustomer = msg.senderRole === "customer";
-            return (
-              <div
-                key={msg._id}
-                className={`flex ${isCustomer ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-xs md:max-w-md p-3.5 rounded-2xl text-xs font-medium space-y-1 ${
-                    isCustomer
-                      ? "text-white rounded-tr-none"
-                      : "bg-[#f7f7fc] text-[#14142b] border border-[#eff0f6] rounded-tl-none"
-                  }`}
-                  style={isCustomer ? { backgroundColor: "#ff006b" } : {}}
+        <div className="sm:rounded-2xl sm:shadow-sm bg-white border border-[#eff0f6] flex-1 flex flex-col overflow-hidden">
+          
+          {/* Branches Swiper */}
+          {branches.length > 1 && (
+            <div className="p-3 border-b border-[#eff0f6] flex gap-3 overflow-x-auto hide-scrollbar">
+              {branches.map(branch => (
+                <button 
+                  key={branch.id}
+                  onClick={() => setActiveBranch(branch.id)}
+                  className={`py-2 px-4 rounded-xl text-center text-sm whitespace-nowrap transition-colors ${activeBranch === branch.id ? 'bg-[#ff006b] text-white shadow-md' : 'bg-[#f7f7fc] text-[#14142b] hover:bg-[#fff5f9] hover:text-[#ff006b]'}`}
                 >
-                  <p className="font-bold text-[10px] opacity-80 capitalize">
-                    {isCustomer ? "You" : "Branch Manager"}
-                  </p>
-                  <p>{msg.message}</p>
-                  <p className="text-[9px] opacity-60 text-right">
-                    {new Date(msg.createdAt).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                  {branch.name}
+                </button>
+              ))}
+            </div>
+          )}
 
-        {/* Send Input Box */}
-        <form onSubmit={handleSendMessage} className="border-t border-[#eff0f6] pt-3 flex space-x-2">
-          <input
-            type="text"
-            placeholder="Type your message to branch manager..."
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            className="flex-1 px-4 py-2.5 bg-[#f7f7fc] border border-[#eff0f6] rounded-xl text-sm font-medium text-[#14142b] focus:outline-none focus:border-[#ff006b] focus:bg-white transition-all"
-          />
-          <button
-            type="submit"
-            className="text-white px-4 py-2.5 rounded-xl font-bold transition flex items-center space-x-1"
-            style={{ backgroundColor: "#ff006b" }}
-          >
-            <Send className="w-4 h-4" />
-          </button>
-        </form>
+          {/* Chat Messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-gray-50/50">
+            {messages.map(msg => (
+              <div key={msg.id} className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}>
+                {!msg.isUser && (
+                  <div className="w-8 h-8 rounded-full bg-[#D6F5FF] flex-shrink-0 mr-3 flex items-center justify-center text-[#008BBA] font-bold text-xs">
+                    {msg.senderName?.charAt(0) || "A"}
+                  </div>
+                )}
+                
+                <div className={`max-w-[75%] flex flex-col ${msg.isUser ? 'items-end' : 'items-start'}`}>
+                  <div className={`px-4 py-2.5 rounded-2xl ${msg.isUser ? 'bg-[#ff006b] text-white rounded-tr-sm' : 'bg-white border border-[#eff0f6] text-[#14142b] rounded-tl-sm'}`}>
+                    <p className="text-sm leading-relaxed">{msg.text}</p>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    {!msg.isUser && msg.senderName && (
+                      <span className="text-[10px] text-[#6e7191]">Reply from {msg.senderName}</span>
+                    )}
+                    <span className="text-[10px] text-[#a0a3bd]">{msg.time}</span>
+                  </div>
+                </div>
+
+                {msg.isUser && (
+                  <div className="w-8 h-8 rounded-full bg-[#fff5f9] border border-[#ff006b]/20 flex-shrink-0 ml-3 flex items-center justify-center text-[#ff006b] font-bold text-xs">
+                    U
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Chat Input */}
+          <form onSubmit={handleSend} className="p-4 border-t border-[#eff0f6] bg-white flex items-center gap-3">
+            <button type="button" className="text-[#a0a3bd] hover:text-[#ff006b] transition-colors p-2 bg-[#f7f7fc] rounded-full">
+              <ImageIcon className="w-5 h-5" />
+            </button>
+            <input 
+              type="text" 
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder="Type a message..."
+              className="flex-1 h-12 bg-[#f7f7fc] border border-[#eff0f6] rounded-full px-5 text-sm focus:outline-none focus:border-[#ff006b] transition-colors text-[#14142b]"
+            />
+            <button type="submit" disabled={!inputText.trim()} className="w-12 h-12 rounded-full bg-[#ff006b] flex items-center justify-center text-white hover:bg-rose-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-[#ff006b]/20">
+              <Send className="w-5 h-5 ml-0.5" />
+            </button>
+          </form>
+
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

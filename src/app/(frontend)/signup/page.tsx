@@ -1,0 +1,118 @@
+"use client";
+
+import React, { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+export default function SignupPage() {
+  const router = useRouter();
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    password_confirmation: ""
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSignup = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (form.password !== form.password_confirmation) {
+      alert("Passwords do not match");
+      return;
+    }
+    router.push("/login");
+  };
+
+  return (
+    <section className="pt-6 pb-24 sm:pt-8 sm:pb-16 bg-[#f7f7fc] min-h-screen flex flex-col items-center justify-center">
+      
+      <div className="container max-w-[360px] py-6 p-4 mb-6 sm:px-6 shadow-sm rounded-2xl bg-white border border-[#eff0f6]">
+        <h2 className="capitalize mb-6 text-center text-[22px] font-semibold leading-[34px] text-[#14142b]">
+          Sign Up
+        </h2>
+        
+        <form onSubmit={handleSignup}>
+          <div className="mb-4">
+            <label htmlFor="name" className="block text-sm capitalize mb-1 text-[#6e7191]">Name</label>
+            <input 
+              id="name" 
+              name="name"
+              type="text" 
+              value={form.name}
+              onChange={handleChange}
+              className="w-full h-12 rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-[#ff006b] transition-colors bg-white" 
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="email" className="block text-sm capitalize mb-1 text-[#6e7191]">Email</label>
+            <input 
+              id="email" 
+              name="email"
+              type="email" 
+              value={form.email}
+              onChange={handleChange}
+              className="w-full h-12 rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-[#ff006b] transition-colors bg-white" 
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="phone" className="block text-sm capitalize mb-1 text-[#6e7191]">Phone</label>
+            <input 
+              id="phone" 
+              name="phone"
+              type="tel" 
+              value={form.phone}
+              onChange={handleChange}
+              className="w-full h-12 rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-[#ff006b] transition-colors bg-white" 
+            />
+          </div>
+          
+          <div className="mb-4">
+            <label htmlFor="password" className="block text-sm capitalize mb-1 text-[#6e7191]">Password</label>
+            <input 
+              id="password" 
+              name="password"
+              type="password" 
+              value={form.password}
+              onChange={handleChange}
+              className="w-full h-12 rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-[#ff006b] transition-colors bg-white" 
+            />
+          </div>
+
+          <div className="mb-6">
+            <label htmlFor="password_confirmation" className="block text-sm capitalize mb-1 text-[#6e7191]">Confirm Password</label>
+            <input 
+              id="password_confirmation" 
+              name="password_confirmation"
+              type="password" 
+              value={form.password_confirmation}
+              onChange={handleChange}
+              className="w-full h-12 rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-[#ff006b] transition-colors bg-white" 
+            />
+          </div>
+          
+          <button 
+            type="submit"
+            className="w-full h-12 text-center capitalize font-bold text-base rounded-2xl mb-6 text-white bg-[#ff006b] hover:bg-rose-600 transition-colors shadow-md shadow-[#ff006b]/20"
+          >
+            Sign Up
+          </button>
+          
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-xs text-[#6E7191]">Already have an account?</span>
+            <Link href="/login" className="text-xs font-medium text-[#ff006b] hover:text-rose-600 transition-colors">
+              Login
+            </Link>
+          </div>
+          
+        </form>
+      </div>
+
+    </section>
+  );
+}

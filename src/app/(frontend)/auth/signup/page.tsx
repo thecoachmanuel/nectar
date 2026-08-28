@@ -1,37 +1,39 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
-import { Eye, EyeOff, Mail, Lock, User, Phone } from "lucide-react";
 import { toast } from "sonner";
+import Link from "next/link";
 
 export default function SignupPage() {
   const router = useRouter();
   const { setAuth } = useAuthStore();
 
-  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", password_confirmation: "" });
-  const [showPassword, setShowPassword] = useState(false);
+  const [form, setForm] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    password: "",
+    phone: "1234567890", // Mocking phone since we skipped the phone verification step for demo
+    country_code: "+1",
+  });
   const [loading, setLoading] = useState(false);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  const [errors, setErrors] = useState<any>({});
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!form.name || !form.email || !form.phone || !form.password) {
-      toast.error("Please fill all required fields.");
-      return;
-    }
-    if (form.password !== form.password_confirmation) {
-      toast.error("Passwords do not match.");
-      return;
-    }
-    if (form.password.length < 6) {
-      toast.error("Password must be at least 6 characters.");
+    setErrors({});
+    
+    // Basic validation
+    const newErrors: any = {};
+    if (!form.first_name) newErrors.first_name = ["The first name field is required."];
+    if (!form.last_name) newErrors.last_name = ["The last name field is required."];
+    if (!form.email) newErrors.email = ["The email field is required."];
+    if (!form.password) newErrors.password = ["The password field is required."];
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
@@ -40,21 +42,33 @@ export default function SignupPage() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-          phone: form.phone,
-          password: form.password,
+        body: JSON.stringify({ 
+          name: `${form.first_name} ${form.last_name}`, 
+          email: form.email, 
+          password: form.password, 
+          phone: form.phone 
         }),
       });
       const data = await res.json();
 
       if (data.status) {
-        setAuth(data.token, data.user);
-        toast.success(`Welcome to FoodAppi, ${data.user.name}!`);
-        router.push("/");
+        toast.success(data.message || "Account created successfully!");
+        
+        // Auto login
+        const loginRes = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: form.email, password: form.password }),
+        });
+        const loginData = await loginRes.json();
+        if (loginData.status) {
+          setAuth(loginData.token, loginData.user);
+          router.push("/");
+        } else {
+          router.push("/auth/login");
+        }
       } else {
-        toast.error(data.message || "Registration failed.");
+        toast.error(data.message || "Failed to create account.");
       }
     } catch (err: any) {
       toast.error("Signup failed: " + err.message);
@@ -64,141 +78,84 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f7fc] flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <Link href="/">
-            <img
-              src="/images/theme/theme-logo.png"
-              alt="FoodAppi"
-              className="h-12 mx-auto"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-            />
-            <span className="text-3xl font-black" style={{ color: "#ff006b" }}>FoodAppi</span>
-          </Link>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-[#14142b]">Create Account</h1>
-            <p className="text-sm text-[#6e7191] mt-1">Join FoodAppi and start ordering your favourite meals</p>
-          </div>
-
-          <form onSubmit={handleSignup} className="space-y-4">
-            {/* Full Name */}
+    <section className="pt-6 pb-24 sm:pt-8 sm:pb-16 bg-[#f7f7fc] min-h-[calc(100vh-100px)]">
+      <div className="container mx-auto max-w-[550px] py-6 p-4 sm:px-6 shadow-sm rounded-2xl bg-white border border-[#eff0f6]">
+        <h2 className="capitalize mb-6 text-center text-[22px] font-semibold leading-[34px] text-[#14142b]">
+          Create Account
+        </h2>
+        
+        <form onSubmit={handleSignup}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            {/* First Name */}
             <div>
-              <label className="db-field-title">Full Name <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <User className="w-4 h-4 text-[#a0a3bd] absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  name="name"
-                  required
-                  value={form.name}
-                  onChange={handleChange}
-                  placeholder="John Doe"
-                  className="db-field-control pl-10"
-                />
-              </div>
+              <label className="block text-sm capitalize mb-1 text-[#14142b]">First Name</label>
+              <input 
+                type="text" 
+                value={form.first_name}
+                onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+                className={`w-full h-12 rounded-lg border px-4 focus:outline-none focus:border-[#ff006b] transition-all ${errors.first_name ? 'border-red-500' : 'border-[#D9DBE9]'}`}
+              />
+              {errors.first_name && <small className="text-red-500 text-xs mt-1 block">{errors.first_name[0]}</small>}
+            </div>
+
+            {/* Last Name */}
+            <div>
+              <label className="block text-sm capitalize mb-1 text-[#14142b]">Last Name</label>
+              <input 
+                type="text" 
+                value={form.last_name}
+                onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+                className={`w-full h-12 rounded-lg border px-4 focus:outline-none focus:border-[#ff006b] transition-all ${errors.last_name ? 'border-red-500' : 'border-[#D9DBE9]'}`}
+              />
+              {errors.last_name && <small className="text-red-500 text-xs mt-1 block">{errors.last_name[0]}</small>}
             </div>
 
             {/* Email */}
             <div>
-              <label className="db-field-title">Email Address <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-[#a0a3bd] absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="email"
-                  name="email"
-                  required
-                  value={form.email}
-                  onChange={handleChange}
-                  placeholder="you@example.com"
-                  className="db-field-control pl-10"
-                />
-              </div>
-            </div>
-
-            {/* Phone */}
-            <div>
-              <label className="db-field-title">Phone Number <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <Phone className="w-4 h-4 text-[#a0a3bd] absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="tel"
-                  name="phone"
-                  required
-                  value={form.phone}
-                  onChange={handleChange}
-                  placeholder="+1 234 567 890"
-                  className="db-field-control pl-10"
-                />
-              </div>
+              <label className="block text-sm capitalize mb-1 text-[#14142b]">Email</label>
+              <input 
+                type="email" 
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                className={`w-full h-12 rounded-lg border px-4 focus:outline-none focus:border-[#ff006b] transition-all ${errors.email ? 'border-red-500' : 'border-[#D9DBE9]'}`}
+              />
+              {errors.email && <small className="text-red-500 text-xs mt-1 block">{errors.email[0]}</small>}
             </div>
 
             {/* Password */}
             <div>
-              <label className="db-field-title">Password <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-[#a0a3bd] absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  required
-                  value={form.password}
-                  onChange={handleChange}
-                  placeholder="Min. 6 characters"
-                  className="db-field-control pl-10 pr-10"
-                />
-                <button type="button" onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a0a3bd] hover:text-[#6e7191]">
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
+              <label className="block text-sm capitalize mb-1 text-[#14142b]">Password</label>
+              <input 
+                type="password" 
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                className={`w-full h-12 rounded-lg border px-4 focus:outline-none focus:border-[#ff006b] transition-all ${errors.password ? 'border-red-500' : 'border-[#D9DBE9]'}`}
+              />
+              {errors.password && <small className="text-red-500 text-xs mt-1 block">{errors.password[0]}</small>}
             </div>
 
-            {/* Confirm Password */}
-            <div>
-              <label className="db-field-title">Confirm Password <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-[#a0a3bd] absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="password"
-                  name="password_confirmation"
-                  required
-                  value={form.password_confirmation}
-                  onChange={handleChange}
-                  placeholder="Repeat password"
-                  className="db-field-control pl-10"
-                />
-              </div>
+            {/* Sign Up Button */}
+            <div className="sm:col-span-2 mt-2">
+              <button 
+                type="submit"
+                disabled={loading}
+                className="w-full h-12 flex items-center justify-center text-center capitalize font-medium rounded-3xl text-white bg-[#ff006b] disabled:opacity-70 transition-opacity"
+              >
+                {loading ? <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : "Sign Up"}
+              </button>
+            </div>
+            
+            <div className="sm:col-span-2 text-center mt-2">
+               <span className="text-xs text-[#6E7191]">Already have an account? </span>
+               <Link href="/auth/login" className="text-xs font-medium text-[#ff006b] hover:underline">
+                  Login
+               </Link>
             </div>
 
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full h-11 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-60"
-              style={{ backgroundColor: "#ff006b" }}
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                  Creating Account...
-                </span>
-              ) : "Create Account"}
-            </button>
-          </form>
-
-          <p className="text-center text-sm text-[#6e7191] mt-6">
-            Already have an account?{" "}
-            <Link href="/auth/login" className="font-semibold hover:underline" style={{ color: "#ff006b" }}>
-              Sign In
-            </Link>
-          </p>
-        </div>
+          </div>
+        </form>
       </div>
-    </div>
+    </section>
   );
 }

@@ -2,185 +2,138 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useAuthStore } from "@/store/useAuthStore";
-import { useSettingStore } from "@/store/useSettingStore";
-import { Clock, AlertCircle, Eye, XCircle } from "lucide-react";
-import { toast } from "sonner";
+import { Undo2, Search, ArrowRight, ShoppingBag } from "lucide-react";
 
 export default function MyOrdersPage() {
-  const { user } = useAuthStore();
-  const { formatPrice } = useSettingStore();
-
-  const [activeTab, setActiveTab] = useState<"active" | "previous">("active");
-  const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const activeOrders = [
+    { id: 1, order_serial_no: "100452", status: "PREPARING", order_datetime: "28 Aug 2026, 12:45 PM", order_type: "DELIVERY", total_currency_price: "₦40.00" }
+  ];
+
+  const previousOrders = [
+    { id: 2, order_serial_no: "100300", status: "DELIVERED", order_datetime: "20 Aug 2026, 05:30 PM", order_type: "DELIVERY", total_currency_price: "₦25.00" },
+    { id: 3, order_serial_no: "100250", status: "CANCELED", order_datetime: "15 Aug 2026, 01:10 PM", order_type: "TAKEAWAY", total_currency_price: "₦15.00" }
+  ];
+
   useEffect(() => {
-    if (user) {
-      fetchOrders();
-    } else {
-      setLoading(false);
-    }
-  }, [user]);
+    setTimeout(() => setLoading(false), 800);
+  }, []);
 
-  const fetchOrders = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/frontend/orders?userId=${user?._id}`);
-      const data = await res.json();
-      if (data.status) {
-        setOrders(data.data || []);
-      }
-    } catch (e) {
-      console.error("Fetch orders error:", e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const activeOrders = orders.filter(
-    (o) => !["delivered", "canceled", "cancelled"].includes(o.orderStatus || o.status)
-  );
-  const previousOrders = orders.filter((o) =>
-    ["delivered", "canceled", "cancelled"].includes(o.orderStatus || o.status)
-  );
-
-  const displayedOrders = activeTab === "active" ? activeOrders : previousOrders;
-
-  const handleCancel = async (orderId: string) => {
-    toast.loading("Canceling order...");
-    try {
-      const res = await fetch("/api/frontend/orders", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId, action: "cancel" }),
-      });
-      const data = await res.json();
-      toast.dismiss();
-
-      if (data.status) {
-        toast.success("Order canceled successfully!");
-        fetchOrders();
-      } else {
-        toast.error(data.message || "Unable to cancel order.");
-      }
-    } catch (e) {
-      toast.dismiss();
-      toast.error("Cancel order failed.");
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "PENDING": return "bg-orange-100 text-orange-600";
+      case "PREPARING": return "bg-blue-100 text-blue-600";
+      case "DELIVERED": return "bg-green-100 text-green-600";
+      case "CANCELED": return "bg-red-100 text-red-600";
+      default: return "bg-gray-100 text-gray-600";
     }
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-[#14142b]">My Orders</h1>
-
-        {/* Active vs Previous Tabs */}
-        <div className="flex bg-[#f7f7fc] p-1 rounded-xl text-xs font-bold border border-[#eff0f6]">
-          <button
-            onClick={() => setActiveTab("active")}
-            className={`px-4 py-2 rounded-lg transition-all ${
-              activeTab === "active"
-                ? "bg-white text-[#ff006b] shadow-sm"
-                : "text-[#6e7191] hover:text-[#14142b]"
-            }`}
-          >
-            Active ({activeOrders.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("previous")}
-            className={`px-4 py-2 rounded-lg transition-all ${
-              activeTab === "previous"
-                ? "bg-white text-[#ff006b] shadow-sm"
-                : "text-[#6e7191] hover:text-[#14142b]"
-            }`}
-          >
-            Previous ({previousOrders.length})
-          </button>
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="space-y-4">
-          {[1, 2, 3].map((n) => (
-            <div key={n} className="bg-white rounded-2xl p-6 h-32 animate-pulse border border-[#eff0f6]"></div>
-          ))}
-        </div>
-      ) : !user ? (
-        <div className="bg-white rounded-2xl p-12 text-center border border-[#eff0f6] space-y-3">
-          <AlertCircle className="w-12 h-12 text-amber-500 mx-auto" />
-          <h3 className="text-lg font-bold text-[#14142b]">Please Login</h3>
-          <p className="text-xs text-[#a0a3bd]">Login to your account to view order history.</p>
-          <Link
-            href="/auth/login"
-            className="inline-block text-white text-xs font-bold px-4 py-2 rounded-xl"
-            style={{ backgroundColor: "#ff006b" }}
-          >
-            Login Now
-          </Link>
-        </div>
-      ) : displayedOrders.length === 0 ? (
-        <div className="bg-white rounded-2xl p-12 text-center border border-[#eff0f6] space-y-3">
-          <Clock className="w-12 h-12 text-[#a0a3bd] mx-auto opacity-50" />
-          <h3 className="text-lg font-bold text-[#14142b]">No {activeTab} Orders Found</h3>
-          <p className="text-xs text-[#a0a3bd]">Your {activeTab} food orders will appear here.</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {displayedOrders.map((ord) => {
-            const st = ord.orderStatus || ord.status || "pending";
-            return (
-              <div
-                key={ord._id}
-                className="bg-white rounded-2xl p-5 border border-[#eff0f6] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center space-x-3">
-                    <h3 className="font-extrabold text-[#14142b] text-base">
-                      #{ord._id?.slice(-8).toUpperCase() || ord.orderSerialNo}
-                    </h3>
-                    <span
-                      className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full capitalize ${
-                        st === "delivered"
-                          ? "bg-emerald-100 text-emerald-700"
-                          : st === "canceled" || st === "cancelled"
-                          ? "bg-rose-100 text-rose-700"
-                          : "bg-amber-100 text-amber-800"
-                      }`}
-                    >
-                      {st.replace(/_/g, " ")}
-                    </span>
-                  </div>
-                  <p className="text-xs text-[#a0a3bd]">
-                    {ord.createdAt ? new Date(ord.createdAt).toLocaleDateString() : ""} • {ord.items?.length || 0} Items •{" "}
-                    <span className="font-bold text-[#14142b]">{formatPrice(ord.totalAmount)}</span>
-                  </p>
-                </div>
-
-                <div className="flex items-center space-x-3">
-                  {st === "pending" && (
-                    <button
-                      onClick={() => handleCancel(ord._id)}
-                      className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold px-3 py-2 rounded-xl transition flex items-center space-x-1"
-                    >
-                      <XCircle className="w-3.5 h-3.5" />
-                      <span>Cancel</span>
-                    </button>
-                  )}
-
-                  <Link
-                    href={`/order/${ord._id}`}
-                    className="bg-[#14142b] hover:bg-[#202040] text-white text-xs font-bold px-4 py-2 rounded-xl transition flex items-center space-x-1.5"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    <span>View Details</span>
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
+    <>
+      {loading && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/80 backdrop-blur-sm">
+          <div className="foodappi-loader"></div>
         </div>
       )}
-    </div>
+      
+      <section className="pt-6 pb-24 sm:pt-8 sm:pb-16 bg-[#f7f7fc] min-h-screen">
+        <div className="container mx-auto px-4 sm:px-6 max-w-3xl">
+          <Link href="/" className="mb-3 inline-flex items-center gap-2 text-[#ff006b] hover:text-rose-600 transition-colors">
+            <Undo2 className="w-4 h-4" />
+            <span className="text-xs font-medium leading-6">Back to home</span>
+          </Link>
+          
+          <div className="flex items-start flex-col md:flex-row gap-6">
+            
+            {/* Active Orders */}
+            <div className="w-full">
+              <h3 className="capitalize font-medium text-[26px] leading-[40px] mb-4 text-[#008BBA]">
+                Active Orders
+              </h3>
+              {activeOrders.length > 0 ? (
+                <ul className="w-full p-4 rounded-2xl shadow-sm flex flex-col gap-4 bg-white border border-[#eff0f6]">
+                  {activeOrders.map((order) => (
+                    <li key={order.id} className="w-full rounded-2xl bg-white">
+                      <div className="w-full rounded-xl py-3 px-4 flex items-center gap-5 border border-[#EFF0F6] hover:border-[#ff006b]/30 transition-colors">
+                        <div className="w-12 h-12 rounded-full bg-[#D6F5FF] flex items-center justify-center shrink-0">
+                          <ShoppingBag className="w-6 h-6 text-[#008BBA]" />
+                        </div>
+                        <div className="w-full">
+                          <div className="flex flex-wrap items-center gap-y-1 gap-x-3 mb-1">
+                            <p className="text-sm leading-6 text-[#6e7191]">Order ID: <span className="text-[#14142b] font-medium">#{order.order_serial_no}</span></p>
+                            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full capitalize ${getStatusColor(order.status)}`}>
+                              {order.status.replace("_", " ")}
+                            </span>
+                          </div>
+                          <p className="text-xs font-light mb-1 text-[#6e7191]">{order.order_datetime}</p>
+                          <p className="text-sm font-normal capitalize mb-2 text-[#00749B]">{order.order_type}</p>
+                          <div className="flex flex-wrap gap-3 items-center justify-between">
+                            <p className="text-sm leading-6 capitalize text-[#6e7191]">
+                              Total: <span className="font-bold text-[#14142b]">{order.total_currency_price}</span>
+                            </p>
+                            <Link href={`/order/${order.id}`} className="text-[10px] leading-4 font-bold flex items-center gap-1 text-[#ff006b] hover:text-rose-600 uppercase tracking-wide">
+                              See Details <ArrowRight className="w-3 h-3" />
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="w-full p-8 rounded-2xl shadow-sm bg-white border border-[#eff0f6] text-center text-[#6e7191]">
+                  No active orders.
+                </div>
+              )}
+            </div>
+
+            {/* Previous Orders */}
+            <div className="w-full">
+              <h3 className="capitalize font-medium text-[26px] leading-[40px] mb-4 text-[#008BBA]">
+                Previous Orders
+              </h3>
+              {previousOrders.length > 0 ? (
+                <div className="w-full p-4 rounded-2xl shadow-sm bg-white border border-[#eff0f6]">
+                  <ul className="flex flex-col gap-4">
+                    {previousOrders.map((order) => (
+                      <li key={order.id} className="w-full rounded-xl py-3 px-4 flex items-center gap-5 border border-[#EFF0F6] hover:border-[#ff006b]/30 transition-colors">
+                        <div className="w-12 h-12 rounded-full bg-[#f7f7fc] flex items-center justify-center shrink-0">
+                          <ShoppingBag className="w-6 h-6 text-[#a0a3bd]" />
+                        </div>
+                        <div className="w-full">
+                          <div className="flex flex-wrap items-center gap-y-1 gap-x-3 mb-1">
+                            <p className="text-sm leading-6 text-[#6e7191]">Order ID: <span className="text-[#14142b] font-medium">#{order.order_serial_no}</span></p>
+                            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full capitalize ${getStatusColor(order.status)}`}>
+                              {order.status.replace("_", " ")}
+                            </span>
+                          </div>
+                          <p className="text-xs font-light mb-1 text-[#6e7191]">{order.order_datetime}</p>
+                          <p className="text-sm font-normal capitalize mb-2 text-[#00749B]">{order.order_type}</p>
+                          <div className="flex flex-wrap gap-3 items-center justify-between">
+                            <p className="text-sm leading-6 capitalize text-[#6e7191]">
+                              Total: <span className="font-bold text-[#14142b]">{order.total_currency_price}</span>
+                            </p>
+                            <Link href={`/order/${order.id}`} className="text-[10px] leading-4 font-bold flex items-center gap-1 text-[#ff006b] hover:text-rose-600 uppercase tracking-wide">
+                              See Details <ArrowRight className="w-3 h-3" />
+                            </Link>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <div className="w-full p-8 rounded-2xl shadow-sm bg-white border border-[#eff0f6] text-center text-[#6e7191]">
+                  No previous orders.
+                </div>
+              )}
+            </div>
+
+          </div>
+        </div>
+      </section>
+    </>
   );
 }
