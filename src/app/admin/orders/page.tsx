@@ -1,214 +1,152 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/useAuthStore";
-import {
-  ClipboardList, Search, Filter, Eye, CheckCircle, XCircle,
-  Clock, Truck, ChefHat, Loader2, RefreshCw, Package
+import React, { useState } from "react";
+import { 
+  Search, 
+  Filter, 
+  Download, 
+  Eye,
+  Printer,
+  ChevronRight
 } from "lucide-react";
-import { toast } from "sonner";
+import Link from "next/link";
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
-  pending:    { label: "Pending",    color: "#d97706", bg: "#fef3c7", icon: <Clock className="w-3.5 h-3.5" /> },
-  accepted:   { label: "Accepted",   color: "#2563eb", bg: "#dbeafe", icon: <CheckCircle className="w-3.5 h-3.5" /> },
-  preparing:  { label: "Preparing",  color: "#7c3aed", bg: "#ede9fe", icon: <ChefHat className="w-3.5 h-3.5" /> },
-  on_the_way: { label: "On the Way", color: "#0891b2", bg: "#cffafe", icon: <Truck className="w-3.5 h-3.5" /> },
-  delivered:  { label: "Delivered",  color: "#16a34a", bg: "#dcfce7", icon: <Package className="w-3.5 h-3.5" /> },
-  cancelled:  { label: "Cancelled",  color: "#dc2626", bg: "#fee2e2", icon: <XCircle className="w-3.5 h-3.5" /> },
-};
+export default function OrdersPage() {
+  const [activeTab, setActiveTab] = useState("All");
 
-const ORDER_TYPES = ["all", "pending", "accepted", "preparing", "on_the_way", "delivered", "cancelled"];
+  const tabs = ["All", "Pending", "Accept", "Preparing", "Prepared", "Out for Delivery", "Delivered", "Canceled", "Rejected", "Returned"];
 
-export default function AdminOrdersPage() {
-  const router = useRouter();
-  const { user, token } = useAuthStore();
+  // Mock data
+  const orders = [
+    { id: "#10045", customer: "John Doe", amount: "₦5,500", type: "Delivery", date: "Oct 12, 2026, 14:30", status: "Pending" },
+    { id: "#10044", customer: "Jane Smith", amount: "₦2,000", type: "Takeaway", date: "Oct 12, 2026, 14:15", status: "Preparing" },
+    { id: "#10043", customer: "Guest User", amount: "₦8,500", type: "Delivery", date: "Oct 12, 2026, 13:50", status: "Out for Delivery" },
+    { id: "#10042", customer: "Alice Johnson", amount: "₦1,500", type: "Takeaway", date: "Oct 12, 2026, 12:10", status: "Delivered" },
+    { id: "#10041", customer: "Bob Brown", amount: "₦4,200", type: "Delivery", date: "Oct 12, 2026, 11:30", status: "Canceled" },
+  ];
 
-  const [orders, setOrders] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [updating, setUpdating] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!user || !["admin", "waiter", "chef"].includes(user.role)) {
-      router.push("/admin/login");
-      return;
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Pending": return "bg-[#FFF6E6] text-[#FFB020]";
+      case "Preparing": return "bg-[#e5ebff] text-[#567DFF]";
+      case "Out for Delivery": return "bg-[#E9F9FF] text-[#008BBA]";
+      case "Delivered": return "bg-[#EBE7FF] text-[#8262FE]";
+      case "Canceled": return "bg-[#FFEAEA] text-[#FB4E4E]";
+      default: return "bg-gray-100 text-gray-600";
     }
-    fetchOrders();
-  }, [statusFilter]);
-
-  const fetchOrders = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (statusFilter !== "all") params.set("status", statusFilter);
-      if (search) params.set("search", search);
-      const res = await fetch(`/api/admin/orders?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (data.status) setOrders(data.data || []);
-    } catch { toast.error("Failed to load orders"); }
-    finally { setLoading(false); }
-  };
-
-  const updateStatus = async (orderId: string, newStatus: string) => {
-    setUpdating(orderId);
-    try {
-      const res = await fetch(`/api/admin/orders/${orderId}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ status: newStatus }),
-      });
-      const data = await res.json();
-      if (data.status) {
-        toast.success(`Order status updated to ${newStatus}`);
-        setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
-      } else {
-        toast.error(data.message || "Update failed");
-      }
-    } catch { toast.error("Failed to update status"); }
-    finally { setUpdating(null); }
-  };
-
-  const filteredOrders = orders.filter(o =>
-    !search || o._id?.toLowerCase().includes(search.toLowerCase()) ||
-    o.customer?.name?.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const nextStatuses: Record<string, string[]> = {
-    pending:    ["accepted", "cancelled"],
-    accepted:   ["preparing", "cancelled"],
-    preparing:  ["on_the_way", "cancelled"],
-    on_the_way: ["delivered"],
-    delivered:  [],
-    cancelled:  [],
   };
 
   return (
-    <div className="db-main min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        {/* Breadcrumb */}
-        <div className="db-breadcrumb mb-6">
-          <h1 className="db-breadcrumb-title">Online Orders</h1>
-          <nav className="db-breadcrumb-list text-sm text-[#6e7191]">
-            <span>Admin</span>
-            <span className="mx-1.5">/</span>
-            <span style={{ color: "#ff006b" }}>Orders</span>
-          </nav>
-        </div>
-
-        {/* Status Filter Tabs */}
-        <div className="db-card mb-4">
-          <div className="flex flex-wrap gap-2 p-4 border-b border-gray-100">
-            {ORDER_TYPES.map(type => (
-              <button key={type} onClick={() => setStatusFilter(type)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all border ${statusFilter === type
-                  ? "text-white border-transparent"
-                  : "bg-white border-gray-200 text-gray-600 hover:border-[#ff006b] hover:text-[#ff006b]"
-                }`}
-                style={statusFilter === type ? { backgroundColor: "#ff006b", borderColor: "#ff006b" } : {}}>
-                {type === "on_the_way" ? "On the Way" : type}
-                <span className="ml-1.5 opacity-70">
-                  ({type === "all" ? orders.length : orders.filter(o => o.status === type).length})
-                </span>
-              </button>
-            ))}
-          </div>
-
-          {/* Search & Refresh */}
-          <div className="p-4 flex items-center gap-3">
-            <div className="relative flex-1 max-w-xs">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#a0a3bd]" />
-              <input type="search" value={search} onChange={e => setSearch(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && fetchOrders()}
-                placeholder="Search order ID or customer..."
-                className="db-field-control pl-10 h-9 text-sm" />
+    <div className="pb-16">
+      
+      {/* Header */}
+      <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] mb-6">
+        <div className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EFF0F6]">
+          <h3 className="font-semibold text-lg text-[#14142B]">Online Orders</h3>
+          
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <div className="relative">
+              <input 
+                type="text" 
+                placeholder="Search by Order ID..." 
+                className="h-10 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-sm focus:outline-none focus:border-[#ff006b] w-full sm:w-64 transition-colors"
+              />
+              <Search className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
             </div>
-            <button onClick={fetchOrders}
-              className="db-btn h-9 px-3 text-sm border border-gray-200 bg-white text-gray-600 hover:text-[#ff006b] hover:border-[#ff006b] rounded-md">
-              <RefreshCw className="w-4 h-4" />
+
+            <button className="h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-[#6E7191] flex items-center justify-center hover:bg-[#F7F7FC] transition-colors">
+              <Filter className="w-4 h-4" />
+            </button>
+            <button className="h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-[#6E7191] flex items-center justify-center hover:bg-[#F7F7FC] transition-colors">
+              <Download className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* Orders Table */}
-        <div className="db-card">
-          <div className="db-table-responsive">
-            <table className="db-table">
-              <thead className="db-table-head">
-                <tr>
-                  {["Order ID", "Customer", "Items", "Total", "Type", "Status", "Actions"].map(h => (
-                    <th key={h} className="db-table-head-th">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="db-table-body">
-                {loading ? (
-                  <tr><td colSpan={7} className="py-16 text-center">
-                    <Loader2 className="w-8 h-8 animate-spin mx-auto" style={{ color: "#ff006b" }} />
-                  </td></tr>
-                ) : filteredOrders.length === 0 ? (
-                  <tr><td colSpan={7} className="py-16 text-center text-[#a0a3bd] text-sm">
-                    No orders found
-                  </td></tr>
-                ) : filteredOrders.map(order => {
-                  const sc = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
-                  return (
-                    <tr key={order._id} className="db-table-body-tr hover:bg-[#f9fafb]">
-                      <td className="db-table-body-td">
-                        <span className="font-mono text-xs font-semibold text-[#14142b]">
-                          #{order._id?.slice(-6).toUpperCase()}
-                        </span>
-                      </td>
-                      <td className="db-table-body-td">
-                        <div>
-                          <p className="text-sm font-medium text-[#14142b] capitalize">{order.customer?.name || "Guest"}</p>
-                          <p className="text-xs text-[#6e7191]">{order.customer?.phone || order.customer?.email}</p>
-                        </div>
-                      </td>
-                      <td className="db-table-body-td">
-                        <span className="text-sm text-[#6e7191]">{order.items?.length || 0} item(s)</span>
-                      </td>
-                      <td className="db-table-body-td">
-                        <span className="text-sm font-bold text-[#14142b]">₦{order.totalAmount?.toFixed(2)}</span>
-                      </td>
-                      <td className="db-table-body-td">
-                        <span className={`db-badge capitalize ${order.orderType === "delivery" ? "db-badge-blue" : "db-badge-yellow"}`}>
-                          {order.orderType || "delivery"}
-                        </span>
-                      </td>
-                      <td className="db-table-body-td">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold"
-                          style={{ color: sc.color, backgroundColor: sc.bg }}>
-                          {sc.icon}{sc.label}
-                        </span>
-                      </td>
-                      <td className="db-table-body-td">
-                        <div className="flex items-center gap-1.5">
-                          <button onClick={() => router.push(`/order/${order._id}`)}
-                            className="db-table-action view">
-                            <Eye className="w-3.5 h-3.5 text-[#ff006b] bg-[#fff0f6] p-0.5 rounded" />
-                          </button>
-                          {nextStatuses[order.status]?.map(next => (
-                            <button key={next} onClick={() => updateStatus(order._id, next)}
-                              disabled={updating === order._id}
-                              className="px-2.5 py-1 rounded-lg text-xs font-semibold capitalize transition-all disabled:opacity-50 border"
-                              style={{ color: STATUS_CONFIG[next]?.color, borderColor: STATUS_CONFIG[next]?.color, backgroundColor: STATUS_CONFIG[next]?.bg }}>
-                              {updating === order._id ? <Loader2 className="w-3 h-3 animate-spin" /> : next.replace("_", " ")}
-                            </button>
-                          ))}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+        {/* Tabs */}
+        <div className="border-b border-[#EFF0F6] overflow-x-auto hide-scrollbar">
+          <div className="flex px-4 sm:px-6">
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`whitespace-nowrap px-4 py-4 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === tab 
+                    ? "border-[#ff006b] text-[#ff006b]" 
+                    : "border-transparent text-[#6E7191] hover:text-[#14142B]"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
           </div>
         </div>
+
+        {/* Table */}
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left whitespace-nowrap">
+            <thead className="bg-[#F7F7FC] border-b border-[#EFF0F6]">
+              <tr>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Order ID</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Customer</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Amount</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Type</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Date</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Status</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#EFF0F6]">
+              {orders.map((order) => (
+                <tr key={order.id} className="hover:bg-[#FAFAFC] transition-colors">
+                  <td className="px-6 py-4">
+                    <span className="text-sm font-bold text-[#ff006b]">{order.id}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-sm font-medium text-[#14142B]">{order.customer}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-sm font-semibold text-[#14142B]">{order.amount}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-sm text-[#4E4B66]">{order.type}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-sm text-[#4E4B66]">{order.date}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>
+                      {order.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#14142B] flex items-center justify-center hover:bg-[#e2e2ec] transition-colors">
+                        <Printer className="w-4 h-4" />
+                      </button>
+                      <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#567DFF] flex items-center justify-center hover:bg-[#e5ebff] transition-colors">
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Pagination */}
+        <div className="p-4 sm:p-6 border-t border-[#EFF0F6] flex items-center justify-between">
+          <span className="text-sm text-[#6E7191]">Showing 1 to 5 of 5 entries</span>
+          <div className="flex items-center gap-1">
+            <button className="w-8 h-8 rounded-lg border border-[#EFF0F6] flex items-center justify-center text-[#6E7191] hover:bg-[#F7F7FC] disabled:opacity-50">«</button>
+            <button className="w-8 h-8 rounded-lg bg-[#ff006b] text-white flex items-center justify-center text-sm font-medium shadow-md shadow-[#ff006b]/20">1</button>
+            <button className="w-8 h-8 rounded-lg border border-[#EFF0F6] flex items-center justify-center text-[#6E7191] hover:bg-[#F7F7FC] disabled:opacity-50">»</button>
+          </div>
+        </div>
+
       </div>
+
     </div>
   );
 }

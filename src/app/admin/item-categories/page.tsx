@@ -1,113 +1,136 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { useAuthStore } from "@/store/useAuthStore";
-import { useRouter } from "next/navigation";
-import { Search, Plus, Pencil, Trash2, Loader2, LayoutGrid } from "lucide-react";
-import { toast } from "sonner";
 
-export default function AdminCategoriesPage() {
-  const router = useRouter();
-  const { user, token } = useAuthStore();
-  const [categories, setCategories] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [deleting, setDeleting] = useState<string | null>(null);
+import React, { useState } from "react";
+import { 
+  Plus, 
+  Search, 
+  Filter, 
+  Download, 
+  Upload, 
+  Edit,
+  Trash2,
+  Eye
+} from "lucide-react";
 
-  useEffect(() => {
-    if (!user || !["admin"].includes(user.role)) { router.push("/admin/login"); return; }
-    fetchCategories();
-  }, []);
+export default function ItemCategoriesPage() {
+  const [showFilter, setShowFilter] = useState(false);
 
-  const fetchCategories = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/admin/categories", { headers: { Authorization: `Bearer ${token}` } });
-      const data = await res.json();
-      if (data.status) setCategories(data.data || []);
-    } catch { toast.error("Failed to load categories"); }
-    finally { setLoading(false); }
-  };
-
-  const deleteCategory = async (id: string) => {
-    if (!confirm("Delete this category?")) return;
-    setDeleting(id);
-    try {
-      const res = await fetch(`/api/admin/categories/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
-      const data = await res.json();
-      if (data.status) { toast.success("Category deleted"); setCategories(prev => prev.filter(c => c._id !== id)); }
-      else toast.error(data.message || "Delete failed");
-    } catch { toast.error("Delete failed"); }
-    finally { setDeleting(null); }
-  };
-
-  const filtered = categories.filter(c => !search || c.name?.toLowerCase().includes(search.toLowerCase()));
+  // Mock data
+  const categories = [
+    { id: 1, name: "Main Course", items: 24, status: "Active" },
+    { id: 2, name: "Fast Food", items: 15, status: "Active" },
+    { id: 3, name: "Beverages", items: 8, status: "Active" },
+    { id: 4, name: "Dessert", items: 12, status: "Inactive" },
+    { id: 5, name: "Appetizers", items: 10, status: "Active" },
+  ];
 
   return (
-    <div className="db-main min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        <div className="db-breadcrumb mb-6">
-          <h1 className="db-breadcrumb-title">Item Categories</h1>
-          <nav className="db-breadcrumb-list text-sm text-[#6e7191]">
-            <span>Admin</span><span className="mx-1.5">/</span>
-            <span style={{ color: "#ff006b" }}>Categories</span>
-          </nav>
+    <div className="pb-16">
+      
+      {/* Header */}
+      <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] mb-6">
+        <div className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EFF0F6]">
+          <h3 className="font-semibold text-lg text-[#14142B]">Item Categories</h3>
+          
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <div className="relative">
+              <input 
+                type="text" 
+                placeholder="Search..." 
+                className="h-10 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-sm focus:outline-none focus:border-[#ff006b] w-full sm:w-48 transition-colors"
+              />
+              <Search className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            </div>
+
+            <button 
+              onClick={() => setShowFilter(!showFilter)}
+              className="h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-[#6E7191] flex items-center justify-center hover:bg-[#F7F7FC] transition-colors"
+            >
+              <Filter className="w-4 h-4" />
+            </button>
+
+            <button className="h-10 px-4 rounded-xl bg-[#ff006b] text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-[#ff006b]/20">
+              <Plus className="w-4 h-4" />
+              <span className="text-sm font-medium">Add Category</span>
+            </button>
+          </div>
         </div>
 
-        <div className="db-card">
-          <div className="db-card-header">
-            <h2 className="db-card-title flex items-center gap-2">
-              <LayoutGrid className="w-4 h-4" style={{ color: "#ff006b" }} />
-              All Categories
-            </h2>
-            <div className="db-card-filter">
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#a0a3bd]" />
-                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search categories..."
-                  className="db-field-control pl-10 h-9 text-sm w-48" />
-              </div>
-              <button onClick={() => router.push("/admin/item-categories/create")}
-                className="db-btn text-white text-sm px-4 py-2 rounded-lg"
-                style={{ backgroundColor: "#ff006b" }}>
-                <Plus className="w-4 h-4" /> Add Category
-              </button>
+        {/* Filter Section */}
+        {showFilter && (
+          <div className="p-4 sm:p-6 border-b border-[#EFF0F6] bg-[#FAFAFC] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Name</label>
+              <input type="text" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Status</label>
+              <select className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]">
+                <option>-- Select --</option>
+                <option>Active</option>
+                <option>Inactive</option>
+              </select>
+            </div>
+            <div className="lg:col-span-2 flex items-center gap-3 pt-2">
+              <button className="h-10 px-6 rounded-xl bg-[#ff006b] text-white text-sm font-medium hover:bg-[#e60060] transition-colors">Search</button>
+              <button className="h-10 px-6 rounded-xl bg-gray-600 text-white text-sm font-medium hover:bg-gray-700 transition-colors">Clear</button>
             </div>
           </div>
+        )}
 
-          {loading ? (
-            <div className="flex justify-center py-16">
-              <Loader2 className="w-8 h-8 animate-spin" style={{ color: "#ff006b" }} />
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-5">
-              {filtered.length === 0 ? (
-                <div className="col-span-full text-center py-12 text-[#a0a3bd] text-sm">No categories found</div>
-              ) : filtered.map(cat => (
-                <div key={cat._id} className="relative group bg-white rounded-xl border border-[#eff0f6] hover:shadow-md transition-all overflow-hidden">
-                  <img src={cat.image || "/images/category/thumb.png"} alt={cat.name}
-                    className="w-full h-28 object-cover"
-                    onError={(e) => { (e.target as HTMLImageElement).src = "/images/category/thumb.png"; }} />
-                  <div className="p-3 text-center">
-                    <h3 className="text-sm font-semibold text-[#14142b] capitalize truncate">{cat.name}</h3>
-                    <span className={`text-xs mt-1 inline-block db-badge ${cat.status ? "db-badge-green" : "db-badge-red"}`}>
-                      {cat.status ? "Active" : "Inactive"}
+        {/* Table */}
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left whitespace-nowrap">
+            <thead className="bg-[#F7F7FC] border-b border-[#EFF0F6]">
+              <tr>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Name</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Items Count</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Status</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#EFF0F6]">
+              {categories.map((category) => (
+                <tr key={category.id} className="hover:bg-[#FAFAFC] transition-colors">
+                  <td className="px-6 py-4">
+                    <span className="text-sm font-medium text-[#14142B]">{category.name}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-sm font-semibold text-[#14142B]">{category.items}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${category.status === 'Active' ? 'bg-[#E0FFED] text-[#1AB759]' : 'bg-[#FFEAEA] text-[#FB4E4E]'}`}>
+                      {category.status}
                     </span>
-                  </div>
-                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                    <button onClick={() => router.push(`/admin/item-categories/${cat._id}/edit`)}
-                      className="w-7 h-7 rounded-md bg-white shadow text-emerald-600 flex items-center justify-center hover:bg-emerald-50 transition-all">
-                      <Pencil className="w-3 h-3" />
-                    </button>
-                    <button onClick={() => deleteCategory(cat._id)} disabled={deleting === cat._id}
-                      className="w-7 h-7 rounded-md bg-white shadow text-red-500 flex items-center justify-center hover:bg-red-50 transition-all disabled:opacity-50">
-                      {deleting === cat._id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
-                    </button>
-                  </div>
-                </div>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#1AB759] flex items-center justify-center hover:bg-[#E0FFED] transition-colors">
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#FB4E4E] flex items-center justify-center hover:bg-[#FFEAEA] transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
               ))}
-            </div>
-          )}
+            </tbody>
+          </table>
         </div>
+        
+        {/* Pagination */}
+        <div className="p-4 sm:p-6 border-t border-[#EFF0F6] flex items-center justify-between">
+          <span className="text-sm text-[#6E7191]">Showing 1 to 5 of 5 entries</span>
+          <div className="flex items-center gap-1">
+            <button className="w-8 h-8 rounded-lg border border-[#EFF0F6] flex items-center justify-center text-[#6E7191] hover:bg-[#F7F7FC] disabled:opacity-50">«</button>
+            <button className="w-8 h-8 rounded-lg bg-[#ff006b] text-white flex items-center justify-center text-sm font-medium shadow-md shadow-[#ff006b]/20">1</button>
+            <button className="w-8 h-8 rounded-lg border border-[#EFF0F6] flex items-center justify-center text-[#6E7191] hover:bg-[#F7F7FC] disabled:opacity-50">»</button>
+          </div>
+        </div>
+
       </div>
+
     </div>
   );
 }

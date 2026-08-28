@@ -1,0 +1,134 @@
+"use client";
+
+import React, { useState } from "react";
+import Link from "next/link";
+import { Menu, Maximize2, Minimize2, ChevronDown, Store, Globe, LogOut, User, Key } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+interface NavbarProps {
+  toggleSidebar: () => void;
+}
+
+export default function Navbar({ toggleSidebar }: NavbarProps) {
+  const router = useRouter();
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [branchOpen, setBranchOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    }
+  };
+
+  const handleLogout = () => {
+    // Implement logout logic
+    router.push("/login");
+  };
+
+  return (
+    <header className="h-[70px] bg-white border-b border-[#EFF0F6] flex items-center justify-between px-4 sm:px-6 z-30 sticky top-0">
+      <div className="flex items-center gap-4">
+        <button 
+          onClick={toggleSidebar}
+          className="w-10 h-10 rounded-xl bg-[#F7F7FC] text-[#ff006b] flex items-center justify-center hover:bg-[#fff5f9] transition-colors lg:hidden"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        {/* Branch Selector */}
+        <div className="relative hidden sm:block">
+          <button 
+            onClick={() => { setBranchOpen(!branchOpen); setProfileOpen(false); setLangOpen(false); }}
+            className="flex items-center gap-3"
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#fff5f9] text-[#ff006b] flex items-center justify-center">
+              <Store className="w-5 h-5" />
+            </div>
+            <div className="text-left">
+              <span className="block text-[10px] text-[#6E7191] uppercase tracking-wider font-semibold">Branch</span>
+              <span className="block text-xs font-bold text-[#14142B] -mt-0.5">Central Branch</span>
+            </div>
+            <ChevronDown className="w-4 h-4 text-[#A0A3BD]" />
+          </button>
+          
+          {branchOpen && (
+            <div className="absolute top-12 left-0 w-48 bg-white border border-[#EFF0F6] rounded-xl shadow-lg py-2 z-50">
+              <button className="w-full text-left px-4 py-2 text-sm text-[#14142B] hover:bg-[#F7F7FC] flex items-center gap-2">
+                <input type="radio" checked readOnly className="accent-[#ff006b]" /> Central Branch
+              </button>
+              <button className="w-full text-left px-4 py-2 text-sm text-[#6E7191] hover:bg-[#F7F7FC] flex items-center gap-2">
+                <input type="radio" readOnly className="accent-[#ff006b]" /> Downtown Branch
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3 sm:gap-5">
+        
+        <button 
+          onClick={toggleFullscreen}
+          className="hidden sm:flex w-10 h-10 rounded-xl bg-[#E0FFED] text-[#1AB759] items-center justify-center transition-colors hover:bg-[#cbf7dc]"
+        >
+          {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+        </button>
+
+        <div className="relative">
+          <button 
+            onClick={() => { setLangOpen(!langOpen); setProfileOpen(false); setBranchOpen(false); }}
+            className="flex items-center gap-2 h-10 px-3 rounded-xl bg-[#fff5f9] text-[#ff006b] hover:bg-rose-100 transition-colors"
+          >
+            <Globe className="w-4 h-4" />
+            <span className="text-xs font-semibold uppercase">EN</span>
+          </button>
+        </div>
+
+        {/* Profile Dropdown */}
+        <div className="relative">
+          <button 
+            onClick={() => { setProfileOpen(!profileOpen); setBranchOpen(false); setLangOpen(false); }}
+            className="flex items-center gap-2"
+          >
+            <img src="/images/default/admin.png" alt="Admin" className="w-10 h-10 rounded-xl object-cover bg-gray-100" />
+            <div className="text-left hidden md:block">
+              <span className="block text-[10px] text-[#6E7191] font-medium">Hello,</span>
+              <span className="block text-xs font-bold text-[#14142B] -mt-0.5">Admin</span>
+            </div>
+            <ChevronDown className="w-4 h-4 text-[#A0A3BD] hidden sm:block" />
+          </button>
+
+          {profileOpen && (
+            <div className="absolute top-14 right-0 w-72 bg-white border border-[#EFF0F6] rounded-2xl shadow-xl py-4 z-50">
+              <div className="px-6 pb-4 border-b border-[#EFF0F6] text-center">
+                <div className="w-20 h-20 mx-auto rounded-full p-1 bg-gradient-to-tr from-[#ff006b] to-orange-400 mb-3">
+                  <img src="/images/default/admin.png" alt="Admin" className="w-full h-full rounded-full border-2 border-white object-cover bg-white" />
+                </div>
+                <h3 className="font-bold text-[#14142B] text-base">Admin User</h3>
+                <p className="text-[#6E7191] text-xs">admin@example.com</p>
+              </div>
+              <div className="pt-2">
+                <Link href="/admin/profile" className="flex items-center gap-3 px-6 py-3 text-sm text-[#14142B] hover:bg-[#F7F7FC] transition-colors">
+                  <User className="w-4 h-4 text-[#A0A3BD]" /> Edit Profile
+                </Link>
+                <Link href="/admin/change-password" className="flex items-center gap-3 px-6 py-3 text-sm text-[#14142B] hover:bg-[#F7F7FC] transition-colors">
+                  <Key className="w-4 h-4 text-[#A0A3BD]" /> Change Password
+                </Link>
+                <button onClick={handleLogout} className="w-full flex items-center gap-3 px-6 py-3 text-sm text-red-500 hover:bg-red-50 transition-colors">
+                  <LogOut className="w-4 h-4" /> Logout
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+}

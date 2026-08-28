@@ -11,17 +11,15 @@ import {
   Trash2,
   Eye
 } from "lucide-react";
-import Link from "next/link";
 
-export default function CustomersPage() {
+export default function OffersPage() {
   const [showFilter, setShowFilter] = useState(false);
 
   // Mock data
-  const customers = [
-    { id: 1, name: "John Doe", email: "john@example.com", phone: "+234 800 000 0000", balance: "₦0", status: "Active" },
-    { id: 2, name: "Jane Smith", email: "jane@example.com", phone: "+234 811 111 1111", balance: "₦1,500", status: "Active" },
-    { id: 3, name: "Michael Johnson", email: "michael@example.com", phone: "+234 822 222 2222", balance: "₦0", status: "Inactive" },
-    { id: 4, name: "Alice Brown", email: "alice@example.com", phone: "+234 833 333 3333", balance: "₦500", status: "Active" },
+  const offers = [
+    { id: 1, name: "Summer Discount", code: "SUMMER20", discount: "20%", type: "Percentage", validity: "2026-10-30", status: "Active" },
+    { id: 2, name: "Welcome Bonus", code: "WELCOME500", discount: "₦500", type: "Fixed", validity: "2026-12-31", status: "Active" },
+    { id: 3, name: "Flash Sale", code: "FLASH", discount: "50%", type: "Percentage", validity: "2026-10-15", status: "Inactive" },
   ];
 
   return (
@@ -30,7 +28,7 @@ export default function CustomersPage() {
       {/* Header */}
       <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] mb-6">
         <div className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EFF0F6]">
-          <h3 className="font-semibold text-lg text-[#14142B]">Customers</h3>
+          <h3 className="font-semibold text-lg text-[#14142B]">Offers</h3>
           
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <div className="relative">
@@ -59,7 +57,7 @@ export default function CustomersPage() {
 
             <button className="h-10 px-4 rounded-xl bg-[#ff006b] text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-[#ff006b]/20">
               <Plus className="w-4 h-4" />
-              <span className="text-sm font-medium">Add Customer</span>
+              <span className="text-sm font-medium">Add Offer</span>
             </button>
           </div>
         </div>
@@ -72,11 +70,7 @@ export default function CustomersPage() {
               <input type="text" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Email</label>
-              <input type="text" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Phone</label>
+              <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Code</label>
               <input type="text" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
             </div>
             <div>
@@ -87,7 +81,7 @@ export default function CustomersPage() {
                 <option>Inactive</option>
               </select>
             </div>
-            <div className="lg:col-span-4 flex items-center gap-3 pt-2">
+            <div className="lg:col-span-1 flex items-center gap-3 pt-2">
               <button className="h-10 px-6 rounded-xl bg-[#ff006b] text-white text-sm font-medium hover:bg-[#e60060] transition-colors">Search</button>
               <button className="h-10 px-6 rounded-xl bg-gray-600 text-white text-sm font-medium hover:bg-gray-700 transition-colors">Clear</button>
             </div>
@@ -100,31 +94,35 @@ export default function CustomersPage() {
             <thead className="bg-[#F7F7FC] border-b border-[#EFF0F6]">
               <tr>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Name</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Email</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Phone</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Balance</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Code</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Discount</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Type</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Validity</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EFF0F6]">
-              {customers.map((customer) => (
-                <tr key={customer.id} className="hover:bg-[#FAFAFC] transition-colors">
+              {offers.map((offer) => (
+                <tr key={offer.id} className="hover:bg-[#FAFAFC] transition-colors">
                   <td className="px-6 py-4">
-                    <span className="text-sm font-medium text-[#14142B]">{customer.name}</span>
+                    <span className="text-sm font-medium text-[#14142B]">{offer.name}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm text-[#4E4B66]">{customer.email}</span>
+                    <span className="text-sm font-bold text-[#ff006b]">{offer.code}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm text-[#4E4B66]">{customer.phone}</span>
+                    <span className="text-sm font-semibold text-[#14142B]">{offer.discount}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm font-semibold text-[#ff006b]">{customer.balance}</span>
+                    <span className="text-sm text-[#4E4B66]">{offer.type}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${customer.status === 'Active' ? 'bg-[#E0FFED] text-[#1AB759]' : 'bg-[#FFEAEA] text-[#FB4E4E]'}`}>
-                      {customer.status}
+                    <span className="text-sm text-[#4E4B66]">{offer.validity}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${offer.status === 'Active' ? 'bg-[#E0FFED] text-[#1AB759]' : 'bg-[#FFEAEA] text-[#FB4E4E]'}`}>
+                      {offer.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -148,7 +146,7 @@ export default function CustomersPage() {
         
         {/* Pagination */}
         <div className="p-4 sm:p-6 border-t border-[#EFF0F6] flex items-center justify-between">
-          <span className="text-sm text-[#6E7191]">Showing 1 to 4 of 4 entries</span>
+          <span className="text-sm text-[#6E7191]">Showing 1 to 3 of 3 entries</span>
           <div className="flex items-center gap-1">
             <button className="w-8 h-8 rounded-lg border border-[#EFF0F6] flex items-center justify-center text-[#6E7191] hover:bg-[#F7F7FC] disabled:opacity-50">«</button>
             <button className="w-8 h-8 rounded-lg bg-[#ff006b] text-white flex items-center justify-center text-sm font-medium shadow-md shadow-[#ff006b]/20">1</button>

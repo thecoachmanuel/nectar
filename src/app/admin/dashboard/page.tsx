@@ -1,233 +1,378 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import { useAuthStore } from "@/store/useAuthStore";
-import { useSettingStore } from "@/store/useSettingStore";
-import {
-  ShoppingBag,
-  DollarSign,
-  Users,
-  Utensils,
-  TrendingUp,
-  Store,
+import dynamic from "next/dynamic";
+import { 
+  ShoppingBag, 
+  ShoppingCart, 
+  Users, 
+  Utensils, 
+  Calendar,
   Clock,
-  ArrowUpRight,
-  ShieldCheck,
-  Building,
+  CheckCircle,
+  Truck,
+  PackageCheck,
+  XCircle,
+  RotateCcw,
+  Ban
 } from "lucide-react";
 
+// Dynamically import ApexCharts since it relies on window
+const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
+
 export default function AdminDashboardPage() {
-  const { user } = useAuthStore();
-  const { formatPrice, activeBranch } = useSettingStore();
-
-  const [stats, setStats] = useState({
-    totalOrders: 124,
-    totalSales: 3480.5,
-    totalCustomers: 89,
-    totalItems: 42,
-  });
-
-  const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, [activeBranch]);
+    // Simulate loading data
+    const timer = setTimeout(() => setLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
 
-  const fetchDashboardData = async () => {
-    setLoading(true);
-    try {
-      let url = "/api/frontend/orders?";
-      if (activeBranch && activeBranch._id) {
-        url += `branchId=${activeBranch._id}`;
-      }
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.status && data.data) {
-        setRecentOrders(data.data.slice(0, 5));
-        const totalSales = data.data.reduce((acc: number, o: any) => acc + (o.totalAmount || 0), 0);
-        setStats({
-          totalOrders: data.data.length,
-          totalSales,
-          totalCustomers: 89,
-          totalItems: 42,
-        });
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
+  const getGreeting = () => {
+    const hrs = new Date().getHours();
+    if (hrs < 12) return "Good Morning";
+    if (hrs < 17) return "Good Afternoon";
+    return "Good Evening";
   };
 
+  // Chart Options
+  const salesChartOptions: any = {
+    chart: { type: 'area', fontFamily: 'inherit', zoom: { enabled: false }, toolbar: { show: false } },
+    xaxis: { tooltip: { enabled: false }, axisBorder: { show: false }, labels: { show: false } },
+    stroke: { width: 3, lineCap: "round", curve: "smooth" },
+    colors: ["#FF4F99"],
+    grid: { show: false },
+    yaxis: { show: false },
+    dataLabels: { enabled: false },
+  };
+
+  const salesChartSeries = [{ name: 'Sales', data: [10, 41, 35, 51, 49, 62, 69, 91, 148] }];
+
+  const ordersChartOptions: any = {
+    chart: { type: 'area', fontFamily: 'inherit', zoom: { enabled: false }, toolbar: { show: false } },
+    xaxis: { tooltip: { enabled: false }, axisBorder: { show: false }, labels: { show: false } },
+    stroke: { width: 3, lineCap: "round", curve: "smooth" },
+    colors: ["#8262FE"],
+    grid: { show: false },
+    yaxis: { show: false },
+    dataLabels: { enabled: false },
+  };
+  const ordersChartSeries = [{ name: 'Orders', data: [5, 20, 15, 30, 25, 40, 35, 50, 80] }];
+
+  const customerChartOptions: any = {
+    chart: { type: 'area', fontFamily: 'inherit', zoom: { enabled: false }, toolbar: { show: false } },
+    xaxis: { tooltip: { enabled: false }, axisBorder: { show: false }, labels: { show: false } },
+    stroke: { width: 3, lineCap: "round", curve: "smooth" },
+    colors: ["#567DFF"],
+    grid: { show: false },
+    yaxis: { show: false },
+    dataLabels: { enabled: false },
+  };
+  const customerChartSeries = [{ name: 'Customers', data: [2, 10, 8, 25, 20, 35, 45, 60, 90] }];
+
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
-      {/* Top Admin Bar */}
-      <header className="bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-500 to-rose-600 flex items-center justify-center text-white font-black text-xl shadow-md">
-            F
-          </div>
-          <div>
-            <h1 className="font-black text-lg text-white">FoodAppi Backoffice</h1>
-            <p className="text-xs text-slate-400">
-              Admin & Staff Portal • {activeBranch ? activeBranch.name : "All Branches"}
-            </p>
-          </div>
+    <div className="pb-16 relative">
+      {loading && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/80 backdrop-blur-sm">
+          <div className="foodappi-loader"></div>
         </div>
+      )}
 
-        {/* Action Shortcuts */}
-        <div className="flex items-center space-x-3 text-xs font-bold">
-          <Link
-            href="/admin/pos"
-            className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl transition flex items-center space-x-1.5 shadow"
-          >
-            <Store className="w-4 h-4" />
-            <span>POS Register</span>
-          </Link>
+      {/* Greeting */}
+      <div className="mb-8">
+        <h3 className="font-semibold text-[26px] leading-10 capitalize text-[#ff006b]">{getGreeting()}</h3>
+        <h4 className="font-medium text-[22px] leading-[34px] capitalize text-[#14142B]">Admin</h4>
+      </div>
 
-          <Link
-            href="/admin/kds"
-            className="bg-amber-500 hover:bg-amber-600 text-slate-950 px-4 py-2 rounded-xl transition flex items-center space-x-1.5 shadow"
-          >
-            <Utensils className="w-4 h-4" />
-            <span>KDS Display</span>
-          </Link>
+      {/* Overview Cards */}
+      <div className="mb-9">
+        <h4 className="font-semibold text-[22px] leading-[34px] mb-3 capitalize text-[#14142B]">Overview</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+          
+          <div className="p-4 rounded-2xl flex items-center gap-4 bg-[#FF4F99] shadow-md shadow-[#FF4F99]/20">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-white shrink-0">
+              <ShoppingBag className="w-6 h-6 text-[#FF4F99]" />
+            </div>
+            <div>
+              <h3 className="font-medium text-white text-sm">Total Sales</h3>
+              <h4 className="font-semibold text-[22px] leading-[34px] text-white">₦24,500</h4>
+            </div>
+          </div>
+          
+          <div className="p-4 rounded-2xl flex items-center gap-4 bg-[#8262FE] shadow-md shadow-[#8262FE]/20">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-white shrink-0">
+              <ShoppingCart className="w-6 h-6 text-[#8262FE]" />
+            </div>
+            <div>
+              <h3 className="font-medium text-white text-sm">Total Orders</h3>
+              <h4 className="font-semibold text-[22px] leading-[34px] text-white">450</h4>
+            </div>
+          </div>
+          
+          <div className="p-4 rounded-2xl flex items-center gap-4 bg-[#567DFF] shadow-md shadow-[#567DFF]/20">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-white shrink-0">
+              <Users className="w-6 h-6 text-[#567DFF]" />
+            </div>
+            <div>
+              <h3 className="font-medium text-white text-sm">Total Customers</h3>
+              <h4 className="font-semibold text-[22px] leading-[34px] text-white">128</h4>
+            </div>
+          </div>
+          
+          <div className="p-4 rounded-2xl flex items-center gap-4 bg-[#A953FF] shadow-md shadow-[#A953FF]/20">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-white shrink-0">
+              <Utensils className="w-6 h-6 text-[#A953FF]" />
+            </div>
+            <div>
+              <h3 className="font-medium text-white text-sm">Total Menu Items</h3>
+              <h4 className="font-semibold text-[22px] leading-[34px] text-white">56</h4>
+            </div>
+          </div>
 
-          <Link
-            href="/"
-            className="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-xl transition"
-          >
-            Storefront
-          </Link>
         </div>
-      </header>
+      </div>
 
-      {/* Main Backoffice Content */}
-      <main className="p-6 max-w-7xl mx-auto w-full space-y-6 flex-1">
-        {/* Metric Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-slate-800 border border-slate-700/60 rounded-2xl p-5 space-y-2">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-bold uppercase tracking-wider">Total Sales</span>
-              <DollarSign className="w-5 h-5 text-emerald-400" />
-            </div>
-            <p className="text-2xl font-black text-white">{formatPrice(stats.totalSales)}</p>
-            <span className="text-[10px] text-emerald-400 font-semibold flex items-center">
-              <TrendingUp className="w-3 h-3 mr-1" /> +14% vs last week
-            </span>
-          </div>
-
-          <div className="bg-slate-800 border border-slate-700/60 rounded-2xl p-5 space-y-2">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-bold uppercase tracking-wider">Total Orders</span>
-              <ShoppingBag className="w-5 h-5 text-red-400" />
-            </div>
-            <p className="text-2xl font-black text-white">{stats.totalOrders}</p>
-            <span className="text-[10px] text-slate-400">Online & POS Orders</span>
-          </div>
-
-          <div className="bg-slate-800 border border-slate-700/60 rounded-2xl p-5 space-y-2">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-bold uppercase tracking-wider">Customers</span>
-              <Users className="w-5 h-5 text-cyan-400" />
-            </div>
-            <p className="text-2xl font-black text-white">{stats.totalCustomers}</p>
-            <span className="text-[10px] text-slate-400">Registered users</span>
-          </div>
-
-          <div className="bg-slate-800 border border-slate-700/60 rounded-2xl p-5 space-y-2">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-bold uppercase tracking-wider">Menu Items</span>
-              <Utensils className="w-5 h-5 text-amber-400" />
-            </div>
-            <p className="text-2xl font-black text-white">{stats.totalItems}</p>
-            <span className="text-[10px] text-slate-400">Active food catalog</span>
-          </div>
+      {/* Order Statistics */}
+      <div className="mb-9">
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="font-semibold text-[22px] leading-[34px] capitalize text-[#14142B]">Order Statistics</h4>
+          <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#EFF0F6] bg-white text-sm text-[#14142B] hover:border-[#ff006b] transition-colors">
+            <Calendar className="w-4 h-4 text-[#ff006b]" />
+            Today
+          </button>
         </div>
-
-        {/* Recent Orders Table & Navigation Modules */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Table */}
-          <div className="lg:col-span-2 bg-slate-800 border border-slate-700/60 rounded-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-700 pb-3">
-              <h3 className="font-bold text-white text-base">Recent Live Orders</h3>
-              <Link href="/admin/online-orders" className="text-xs font-bold text-red-400 hover:underline">
-                View All
-              </Link>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4 mb-3">
+          
+          {/* Total Orders */}
+          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-[#ff006b]/30 transition-colors">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#fff5f9] shrink-0">
+              <ShoppingCart className="w-6 h-6 text-[#ff006b]" />
             </div>
+            <div>
+              <h3 className="font-normal text-sm leading-6 capitalize text-[#6E7191]">Total Orders</h3>
+              <h4 className="font-bold text-lg leading-[34px] text-[#14142B]">450</h4>
+            </div>
+          </div>
 
-            {loading ? (
-              <div className="p-8 text-center text-xs text-slate-400">Loading orders...</div>
-            ) : recentOrders.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-400">No orders recorded yet.</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs font-medium text-slate-300">
-                  <thead className="text-slate-400 uppercase tracking-wider border-b border-slate-700">
-                    <tr>
-                      <th className="py-2.5 px-3">Order #</th>
-                      <th className="py-2.5 px-3">Customer</th>
-                      <th className="py-2.5 px-3">Type</th>
-                      <th className="py-2.5 px-3">Status</th>
-                      <th className="py-2.5 px-3 text-right">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-700/50">
-                    {recentOrders.map((ord) => (
-                      <tr key={ord._id} className="hover:bg-slate-700/30 transition">
-                        <td className="py-3 px-3 font-bold text-white">{ord.orderSerialNo}</td>
-                        <td className="py-3 px-3">{ord.customerName}</td>
-                        <td className="py-3 px-3 capitalize">{ord.orderType}</td>
-                        <td className="py-3 px-3">
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-slate-700 text-amber-300">
-                            {ord.orderStatus}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 text-right font-bold text-white">
-                          {formatPrice(ord.totalAmount)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          {/* Pending */}
+          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-[#ff006b]/30 transition-colors">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#FFF6E6] shrink-0">
+              <Clock className="w-6 h-6 text-[#FFB020]" />
+            </div>
+            <div>
+              <h3 className="font-normal text-sm leading-6 capitalize text-[#6E7191]">Pending</h3>
+              <h4 className="font-bold text-lg leading-[34px] text-[#14142B]">12</h4>
+            </div>
+          </div>
+
+          {/* Accept */}
+          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-[#ff006b]/30 transition-colors">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#E7FFF0] shrink-0">
+              <CheckCircle className="w-6 h-6 text-[#1AB759]" />
+            </div>
+            <div>
+              <h3 className="font-normal text-sm leading-6 capitalize text-[#6E7191]">Accept</h3>
+              <h4 className="font-bold text-lg leading-[34px] text-[#14142B]">35</h4>
+            </div>
+          </div>
+
+          {/* Preparing */}
+          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-[#ff006b]/30 transition-colors">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#e5ebff] shrink-0">
+              <Utensils className="w-6 h-6 text-[#567DFF]" />
+            </div>
+            <div>
+              <h3 className="font-normal text-sm leading-6 capitalize text-[#6E7191]">Preparing</h3>
+              <h4 className="font-bold text-lg leading-[34px] text-[#14142B]">8</h4>
+            </div>
+          </div>
+
+          {/* Prepared */}
+          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-[#ff006b]/30 transition-colors">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#F5EAFF] shrink-0">
+              <PackageCheck className="w-6 h-6 text-[#A953FF]" />
+            </div>
+            <div>
+              <h3 className="font-normal text-sm leading-6 capitalize text-[#6E7191]">Prepared</h3>
+              <h4 className="font-bold text-lg leading-[34px] text-[#14142B]">5</h4>
+            </div>
+          </div>
+
+          {/* Out for Delivery */}
+          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-[#ff006b]/30 transition-colors">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#E9F9FF] shrink-0">
+              <Truck className="w-6 h-6 text-[#008BBA]" />
+            </div>
+            <div>
+              <h3 className="font-normal text-sm leading-6 capitalize text-[#6E7191]">Out for Delivery</h3>
+              <h4 className="font-bold text-lg leading-[34px] text-[#14142B]">15</h4>
+            </div>
+          </div>
+
+          {/* Delivered */}
+          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-[#ff006b]/30 transition-colors">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#EBE7FF] shrink-0">
+              <CheckCircle className="w-6 h-6 text-[#8262FE]" />
+            </div>
+            <div>
+              <h3 className="font-normal text-sm leading-6 capitalize text-[#6E7191]">Delivered</h3>
+              <h4 className="font-bold text-lg leading-[34px] text-[#14142B]">370</h4>
+            </div>
+          </div>
+
+          {/* Canceled */}
+          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-[#ff006b]/30 transition-colors">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#FFEAEA] shrink-0">
+              <XCircle className="w-6 h-6 text-[#FB4E4E]" />
+            </div>
+            <div>
+              <h3 className="font-normal text-sm leading-6 capitalize text-[#6E7191]">Canceled</h3>
+              <h4 className="font-bold text-lg leading-[34px] text-[#14142B]">2</h4>
+            </div>
+          </div>
+
+          {/* Returned */}
+          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-[#ff006b]/30 transition-colors">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#E9EEFF] shrink-0">
+              <RotateCcw className="w-6 h-6 text-[#567DFF]" />
+            </div>
+            <div>
+              <h3 className="font-normal text-sm leading-6 capitalize text-[#6E7191]">Returned</h3>
+              <h4 className="font-bold text-lg leading-[34px] text-[#14142B]">1</h4>
+            </div>
+          </div>
+
+          {/* Rejected */}
+          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-[#ff006b]/30 transition-colors">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#FFEAEA] shrink-0">
+              <Ban className="w-6 h-6 text-[#FB4E4E]" />
+            </div>
+            <div>
+              <h3 className="font-normal text-sm leading-6 capitalize text-[#6E7191]">Rejected</h3>
+              <h4 className="font-bold text-lg leading-[34px] text-[#14142B]">2</h4>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-9">
+        
+        {/* Sales Summary */}
+        <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] p-6 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-4 border-b border-[#EFF0F6] pb-4">
+            <h3 className="font-semibold text-lg text-[#14142B]">Sales Summary</h3>
+            <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#EFF0F6] bg-[#f7f7fc] text-sm text-[#14142B] hover:border-[#ff006b] transition-colors">
+              <Calendar className="w-4 h-4 text-[#ff006b]" />
+              This Month
+            </button>
+          </div>
+          <div className="flex gap-11 mb-2">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h3 className="font-bold text-[22px] leading-[34px] text-[#14142B]">₦24,500</h3>
               </div>
-            )}
-          </div>
-
-          {/* Quick Management Links */}
-          <div className="bg-slate-800 border border-slate-700/60 rounded-2xl p-6 space-y-4">
-            <h3 className="font-bold text-white text-base border-b border-slate-700 pb-3">
-              Management Modules
-            </h3>
-
-            <div className="space-y-2 text-xs font-semibold">
-              <Link
-                href="/admin/online-orders"
-                className="flex items-center justify-between p-3 rounded-xl bg-slate-700/50 hover:bg-slate-700 text-slate-200 transition"
-              >
-                <span>Online Orders & Status</span>
-                <ArrowUpRight className="w-4 h-4 text-slate-400" />
-              </Link>
-              <Link
-                href="/admin/reports/sales"
-                className="flex items-center justify-between p-3 rounded-xl bg-slate-700/50 hover:bg-slate-700 text-slate-200 transition"
-              >
-                <span>Sales & PDF/XLSX Reports</span>
-                <ArrowUpRight className="w-4 h-4 text-slate-400" />
-              </Link>
-              <Link
-                href="/admin/settings"
-                className="flex items-center justify-between p-3 rounded-xl bg-slate-700/50 hover:bg-slate-700 text-slate-200 transition"
-              >
-                <span>Paystack & Gateway Settings</span>
-                <ArrowUpRight className="w-4 h-4 text-slate-400" />
-              </Link>
+              <p className="text-xs text-[#6E7191]">Total Sales</p>
+            </div>
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h3 className="font-bold text-[22px] leading-[34px] text-[#14142B]">₦816</h3>
+              </div>
+              <p className="text-xs text-[#6E7191]">Avg Sales per day</p>
             </div>
           </div>
+          <div className="-ml-3">
+            <Chart options={salesChartOptions} series={salesChartSeries} type="area" height={250} />
+          </div>
         </div>
-      </main>
+
+        {/* Orders Summary */}
+        <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] p-6 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-4 border-b border-[#EFF0F6] pb-4">
+            <h3 className="font-semibold text-lg text-[#14142B]">Orders Summary</h3>
+            <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#EFF0F6] bg-[#f7f7fc] text-sm text-[#14142B] hover:border-[#8262FE] transition-colors">
+              <Calendar className="w-4 h-4 text-[#8262FE]" />
+              This Month
+            </button>
+          </div>
+          <div className="flex gap-11 mb-2">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h3 className="font-bold text-[22px] leading-[34px] text-[#14142B]">450</h3>
+              </div>
+              <p className="text-xs text-[#6E7191]">Total Orders</p>
+            </div>
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h3 className="font-bold text-[22px] leading-[34px] text-[#14142B]">15</h3>
+              </div>
+              <p className="text-xs text-[#6E7191]">Avg Orders per day</p>
+            </div>
+          </div>
+          <div className="-ml-3">
+            <Chart options={ordersChartOptions} series={ordersChartSeries} type="area" height={250} />
+          </div>
+        </div>
+
+      </div>
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-9">
+        
+        {/* Customer Stats */}
+        <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] p-6 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-4 border-b border-[#EFF0F6] pb-4">
+            <h3 className="font-semibold text-lg text-[#14142B]">Customer Stats</h3>
+            <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#EFF0F6] bg-[#f7f7fc] text-sm text-[#14142B] hover:border-[#567DFF] transition-colors">
+              <Calendar className="w-4 h-4 text-[#567DFF]" />
+              This Month
+            </button>
+          </div>
+          <div className="flex gap-11 mb-2">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h3 className="font-bold text-[22px] leading-[34px] text-[#14142B]">128</h3>
+              </div>
+              <p className="text-xs text-[#6E7191]">Total Customers</p>
+            </div>
+          </div>
+          <div className="-ml-3">
+            <Chart options={customerChartOptions} series={customerChartSeries} type="area" height={250} />
+          </div>
+        </div>
+
+        {/* Top Customers (Table) */}
+        <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] p-6 hover:shadow-md transition-shadow flex flex-col h-[380px]">
+          <div className="flex items-center justify-between mb-4 border-b border-[#EFF0F6] pb-4 shrink-0">
+            <h3 className="font-semibold text-lg text-[#14142B]">Top Customers</h3>
+          </div>
+          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+            <ul className="space-y-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <li key={i} className="flex items-center justify-between p-3 rounded-xl border border-[#EFF0F6] hover:bg-[#F7F7FC] transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-[#f7f7fc] text-[#ff006b] flex items-center justify-center font-bold">
+                      C{i}
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-[#14142B]">Customer {i}</h4>
+                      <p className="text-xs text-[#6E7191]">+1 234 567 890{i}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="block text-sm font-bold text-[#14142B]">2{i} Orders</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+      </div>
+
     </div>
   );
 }
