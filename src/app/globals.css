@@ -406,6 +406,12 @@ body {
   z-index: 50;
 }
 
+@media (min-width: 1024px) {
+  .mobile-bottom-nav {
+    display: none !important;
+  }
+}
+
 /* =====================
    BADGE COLORS
    ===================== */

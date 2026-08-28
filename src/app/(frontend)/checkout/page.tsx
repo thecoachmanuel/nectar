@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import Navbar from "@/components/frontend/Navbar";
-import Footer from "@/components/frontend/Footer";
 import AddressModal from "@/components/frontend/AddressModal";
 import { useCartStore } from "@/store/useCartStore";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -175,11 +173,8 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <Navbar />
-
-      <main className="max-w-7xl mx-auto px-4 py-8 flex-1 w-full space-y-8">
-        <h1 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">Checkout</h1>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <h1 className="text-2xl font-bold text-[#14142b]">Checkout</h1>
 
         {items.length === 0 ? (
           <div className="bg-white rounded-2xl p-12 text-center border border-slate-100 space-y-4 max-w-md mx-auto">
@@ -494,10 +489,6 @@ export default function CheckoutPage() {
             </div>
           </div>
         )}
-      </main>
-
-      <Footer />
-
       <AddressModal
         isOpen={isAddressModalOpen}
         onClose={() => setIsAddressModalOpen(false)}

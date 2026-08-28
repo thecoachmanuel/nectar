@@ -1,8 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Navbar from "@/components/frontend/Navbar";
-import Footer from "@/components/frontend/Footer";
+import React, { useState, useEffect, Suspense } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { useSettingStore } from "@/store/useSettingStore";
 import {
@@ -18,6 +16,14 @@ import {
 import { toast } from "sonner";
 
 export default function OrderDetailsPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center py-20"><Clock className="w-8 h-8 animate-spin text-[#ff006b]" /></div>}>
+      <OrderDetailsContent />
+    </Suspense>
+  );
+}
+
+function OrderDetailsContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -117,166 +123,134 @@ export default function OrderDetailsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <Navbar />
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <button
+        onClick={() => router.push("/account/orders")}
+        className="inline-flex items-center space-x-1.5 text-xs font-bold text-[#6e7191] hover:text-[#14142b] transition"
+      >
+        <ChevronLeft className="w-4 h-4" />
+        <span>Back to My Orders</span>
+      </button>
 
-      <main className="max-w-4xl mx-auto px-4 py-8 flex-1 w-full space-y-6">
-        <button
-          onClick={() => router.push("/account/orders")}
-          className="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          <span>Back to My Orders</span>
-        </button>
-
-        {loading ? (
-          <div className="bg-white rounded-2xl p-12 text-center border border-slate-100 animate-pulse">
-            <div className="h-6 bg-slate-200 rounded w-1/3 mx-auto mb-4"></div>
-            <div className="h-4 bg-slate-200 rounded w-1/2 mx-auto"></div>
-          </div>
-        ) : !order ? (
-          <div className="bg-white rounded-2xl p-12 text-center border border-slate-100 space-y-3">
-            <AlertCircle className="w-12 h-12 text-amber-500 mx-auto" />
-            <h3 className="text-lg font-bold text-slate-800">Order Not Found</h3>
-            <p className="text-xs text-slate-400">The requested order details could not be retrieved.</p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {/* Header Status Card */}
-            <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-                <div>
-                  <h2 className="text-xl font-extrabold text-slate-800">{order.orderSerialNo}</h2>
-                  <p className="text-xs text-slate-400">
-                    Placed on: {new Date(order.createdAt).toLocaleString()}
-                  </p>
-                </div>
-
-                <div className="flex items-center space-x-3">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-bold capitalize ${
-                      order.orderStatus === "delivered"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : order.orderStatus === "canceled"
-                        ? "bg-rose-100 text-rose-700"
-                        : "bg-amber-100 text-amber-800"
-                    }`}
-                  >
-                    Status: {order.orderStatus.replace(/_/g, " ")}
-                  </span>
-
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
-                      order.paymentStatus === "paid"
-                        ? "bg-emerald-500 text-white"
-                        : "bg-slate-200 text-slate-700"
-                    }`}
-                  >
-                    Payment: {order.paymentStatus}
-                  </span>
-                </div>
+      {loading ? (
+        <div className="bg-white rounded-2xl p-12 h-64 animate-pulse border border-[#eff0f6]"></div>
+      ) : !order ? (
+        <div className="bg-white rounded-2xl p-12 text-center border border-[#eff0f6] space-y-3">
+          <AlertCircle className="w-12 h-12 text-rose-500 mx-auto" />
+          <h3 className="text-lg font-bold text-[#14142b]">Order Not Found</h3>
+          <p className="text-xs text-[#a0a3bd]">The requested order ID does not exist or was deleted.</p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* Header Serial & Status */}
+          <div className="bg-white rounded-2xl p-6 border border-[#eff0f6] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center space-x-3">
+                <h1 className="text-xl font-extrabold text-[#14142b]">#{order._id?.slice(-8).toUpperCase() || order.orderSerialNo}</h1>
+                <span
+                  className={`text-xs font-bold px-3 py-1 rounded-full capitalize ${
+                    order.orderStatus === "delivered"
+                      ? "bg-emerald-100 text-emerald-700"
+                      : order.orderStatus === "canceled"
+                      ? "bg-rose-100 text-rose-700"
+                      : "bg-amber-100 text-amber-800"
+                  }`}
+                >
+                  {order.orderStatus.replace(/_/g, " ")}
+                </span>
               </div>
-
-              {/* Status Timeline Bar */}
-              {order.orderStatus !== "canceled" && (
-                <div className="py-4">
-                  <div className="relative flex items-center justify-between">
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-100 z-0"></div>
-                    {statusSteps.map((step, idx) => {
-                      const currentIdx = getStepIndex(order.orderStatus);
-                      const isCompleted = idx <= currentIdx;
-                      return (
-                        <div key={step} className="relative z-10 flex flex-col items-center">
-                          <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition ${
-                              isCompleted
-                                ? "bg-red-500 text-white shadow-md shadow-red-500/30"
-                                : "bg-slate-200 text-slate-500"
-                            }`}
-                          >
-                            {isCompleted ? <CheckCircle className="w-4 h-4" /> : idx + 1}
-                          </div>
-                          <span className="text-[10px] font-semibold text-slate-600 capitalize mt-2 hidden sm:block">
-                            {step.replace(/_/g, " ")}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Cancel Order Action Button */}
-              {order.orderStatus === "pending" && (
-                <div className="pt-2 flex justify-end">
-                  <button
-                    onClick={handleCancelOrder}
-                    disabled={canceling}
-                    className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold text-xs px-4 py-2 rounded-xl transition flex items-center space-x-1.5"
-                  >
-                    <XCircle className="w-4 h-4" />
-                    <span>Cancel Order</span>
-                  </button>
-                </div>
-              )}
+              <p className="text-xs text-[#a0a3bd]">Placed on {new Date(order.createdAt).toLocaleString()}</p>
             </div>
 
-            {/* Order Items Breakdown */}
-            <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-3 flex items-center space-x-2">
-                <FileText className="w-4 h-4 text-red-500" />
-                <span>Ordered Items</span>
-              </h3>
+            {order.orderStatus === "pending" && (
+              <button
+                onClick={handleCancelOrder}
+                disabled={canceling}
+                className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5"
+              >
+                <XCircle className="w-4 h-4" />
+                <span>Cancel Order</span>
+              </button>
+            )}
+          </div>
 
-              <div className="divide-y divide-slate-100">
-                {order.items.map((item: any, idx: number) => (
-                  <div key={idx} className="py-3 flex items-center justify-between text-sm">
-                    <div>
-                      <p className="font-bold text-slate-800">{item.name}</p>
-                      {item.variationName && (
-                        <p className="text-xs text-slate-400">Variant: {item.variationName}</p>
-                      )}
-                      <p className="text-xs text-slate-400">Qty: {item.quantity}</p>
+          {/* Stepper Progress */}
+          {order.orderStatus !== "canceled" && (
+            <div className="bg-white rounded-2xl p-6 border border-[#eff0f6] shadow-sm space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#6e7191]">Order Timeline</h3>
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+                {statusSteps.map((step, idx) => {
+                  const currentIdx = getStepIndex(order.orderStatus);
+                  const isDone = currentIdx >= idx;
+                  const isCurrent = currentIdx === idx;
+                  return (
+                    <div
+                      key={step}
+                      className={`p-3 rounded-xl border text-center space-y-1 transition ${
+                        isDone
+                          ? "border-[#ff006b] bg-[#fff0f6] text-[#ff006b]"
+                          : "border-[#eff0f6] bg-[#f7f7fc] text-[#a0a3bd]"
+                      }`}
+                    >
+                      <div className="flex justify-center">
+                        {isDone ? (
+                          <CheckCircle className="w-5 h-5 text-[#ff006b]" />
+                        ) : (
+                          <Clock className="w-5 h-5 opacity-40" />
+                        )}
+                      </div>
+                      <p className="text-[10px] font-bold capitalize">{step.replace(/_/g, " ")}</p>
                     </div>
-                    <span className="font-extrabold text-slate-900">{formatPrice(item.itemTotal)}</span>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Details & Items */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-2 bg-white rounded-2xl p-6 border border-[#eff0f6] shadow-sm space-y-4">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-[#14142b] border-b border-[#eff0f6] pb-3">
+                Items Ordered
+              </h3>
+              <div className="space-y-3">
+                {order.items?.map((item: any, i: number) => (
+                  <div key={i} className="flex items-center justify-between text-xs font-medium">
+                    <div className="space-y-0.5">
+                      <p className="font-bold text-[#14142b]">{item.name}</p>
+                      {item.variationName && (
+                        <p className="text-[10px] text-[#a0a3bd]">Variant: {item.variationName}</p>
+                      )}
+                      <p className="text-[10px] text-[#a0a3bd]">Qty: {item.quantity}</p>
+                    </div>
+                    <span className="font-bold text-[#14142b]">{formatPrice(item.itemTotal || item.price * item.quantity)}</span>
                   </div>
                 ))}
               </div>
+            </div>
 
-              {/* Financial Totals */}
-              <div className="border-t border-slate-100 pt-3 space-y-2 text-xs font-medium text-slate-600">
+            <div className="bg-white rounded-2xl p-6 border border-[#eff0f6] shadow-sm space-y-4">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-[#14142b] border-b border-[#eff0f6] pb-3">
+                Order Summary
+              </h3>
+              <div className="space-y-2 text-xs font-medium text-[#6e7191]">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span className="font-bold text-slate-800">{formatPrice(order.subtotal)}</span>
+                  <span className="font-bold text-[#14142b]">{formatPrice(order.subtotal || order.totalAmount)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Tax (5%)</span>
-                  <span>{formatPrice(order.taxAmount)}</span>
+                  <span>Payment Method</span>
+                  <span className="font-bold text-[#14142b] capitalize">{order.paymentMethod || "Cash"}</span>
                 </div>
-                {order.deliveryCharge > 0 && (
-                  <div className="flex justify-between">
-                    <span>Delivery Charge</span>
-                    <span>{formatPrice(order.deliveryCharge)}</span>
-                  </div>
-                )}
-                {order.discountAmount > 0 && (
-                  <div className="flex justify-between text-emerald-600 font-bold">
-                    <span>Discount</span>
-                    <span>-{formatPrice(order.discountAmount)}</span>
-                  </div>
-                )}
-
-                <div className="border-t border-slate-100 pt-2 flex justify-between text-base font-black text-slate-900">
+                <div className="border-t border-[#eff0f6] pt-2 flex justify-between text-sm font-black text-[#14142b]">
                   <span>Total Paid</span>
-                  <span className="text-red-500">{formatPrice(order.totalAmount)}</span>
+                  <span className="text-[#ff006b]">{formatPrice(order.totalAmount)}</span>
                 </div>
               </div>
             </div>
           </div>
-        )}
-      </main>
-
-      <Footer />
+        </div>
+      )}
     </div>
   );
 }
