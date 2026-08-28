@@ -3,6 +3,8 @@ import connectToDatabase from "@/lib/db";
 import Item from "@/models/Item";
 import ItemCategory from "@/models/ItemCategory";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: Request) {
   try {
     await connectToDatabase();
@@ -11,7 +13,7 @@ export async function GET(req: Request) {
     const categoryId = searchParams.get("categoryId");
     const itemType = searchParams.get("itemType"); // "veg" | "non_veg"
     const search = searchParams.get("search");
-    const isFeatured = searchParams.get("isFeatured");
+    const isFeatured = searchParams.get("isFeatured") || searchParams.get("featured");
 
     const query: any = { status: true };
 

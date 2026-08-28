@@ -35,7 +35,7 @@ export async function POST(req: Request) {
         password: hashedPassword,
         phone: newStore.phone,
         role: "store_manager",
-        storeId: newStore._id,
+        storeId: newStore._id.toString(),
         status: true,
       });
     }

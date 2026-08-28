@@ -46,7 +46,7 @@ const UserSchema = new Schema<IUser>(
     phone: { type: String },
     role: {
       type: String,
-      enum: ["admin", "customer", "chef", "waiter", "delivery_boy"],
+      enum: ["admin", "customer", "chef", "waiter", "delivery_boy", "store_manager"],
       default: "customer",
     },
     storeId: { type: Schema.Types.Mixed, default: 0 },

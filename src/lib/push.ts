@@ -1,5 +1,5 @@
 import dbConnect from "@/lib/dbConnect";
-import { Setting } from "@/models/Setting";
+import Setting from "@/models/Setting";
 
 export async function sendPushNotification(token: string, title: string, body: string, data?: any) {
   try {

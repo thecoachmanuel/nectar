@@ -9,7 +9,7 @@ const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "foodappi_secret_key_default_2026"
 );
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await dbConnect();
     const cookieStore = await cookies();
@@ -26,7 +26,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       return NextResponse.json({ status: false, message: "PIN is required" }, { status: 400 });
     }
 
-    const order = await Order.findById(params.id);
+    const { id } = await params;
+    const order = await Order.findById(id);
     if (!order) return NextResponse.json({ status: false, message: "Order not found" }, { status: 404 });
 
     if (order.deliveryPin !== pin) {

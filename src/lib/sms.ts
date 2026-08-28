@@ -1,6 +1,6 @@
 import twilio from "twilio";
 import dbConnect from "@/lib/dbConnect";
-import { Setting } from "@/models/Setting";
+import Setting from "@/models/Setting";
 
 export async function sendSMS(to: string, message: string) {
   try {

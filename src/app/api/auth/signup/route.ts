@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 import User from "@/models/User";
-import { Setting } from "@/models/Setting";
+import Setting from "@/models/Setting";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
 

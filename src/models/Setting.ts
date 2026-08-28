@@ -3,6 +3,7 @@ import mongoose, { Document, Model } from 'mongoose';
 export interface ISetting extends Document {
   group: string;
   key: string;
+  payload?: any;
   iosAppUrl?: string;
   playStoreUrl?: string;
   baseDeliveryFee: number;
@@ -25,6 +26,7 @@ const SettingSchema = new mongoose.Schema<ISetting>(
       required: true,
       unique: true, // e.g., 'site_name', 'primary_color'
     },
+    payload: { type: mongoose.Schema.Types.Mixed },
     iosAppUrl: { type: String },
     playStoreUrl: { type: String },
     baseDeliveryFee: { type: Number, default: 500 },
