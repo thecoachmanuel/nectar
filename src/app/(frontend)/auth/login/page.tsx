@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setAuth } = useAuthStore();
+  const { setAuth, setGuest } = useAuthStore();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -52,12 +52,7 @@ export default function LoginPage() {
   };
 
   const handleGuestLogin = () => {
-    setAuth("guest", {
-      name: "Guest",
-      email: "guest@foodappi.com",
-      role: "customer",
-      isGuest: true,
-    });
+    setGuest({ name: "Guest", email: "guest@foodappi.com", phone: "" });
     toast.success("Continuing as guest.");
     router.push("/");
   };

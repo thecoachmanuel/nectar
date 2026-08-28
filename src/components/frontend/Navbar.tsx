@@ -17,7 +17,7 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const { user, token, logout } = useAuthStore();
-  const { cartItems } = useCartStore();
+  const { items: cartItems } = useCartStore();
   const { activeFoodType, setActiveFoodType, menuViewMode, setMenuViewMode } = useSettingStore();
 
   const [scrolled, setScrolled] = useState(false);
@@ -26,8 +26,8 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const profileRef = useRef<HTMLDivElement>(null);
 
-  const cartCount = cartItems.reduce((sum, i) => sum + i.quantity, 0);
-  const cartTotal = cartItems.reduce((sum, i) => sum + i.totalPrice, 0);
+  const cartCount = cartItems.reduce((sum: number, i: any) => sum + i.quantity, 0);
+  const cartTotal = cartItems.reduce((sum: number, i: any) => sum + i.itemTotal, 0);
 
   // Sticky header on scroll
   useEffect(() => {
