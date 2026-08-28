@@ -2,152 +2,174 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useAuthStore } from "@/store/useAuthStore";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, User, ArrowRight, UserCheck } from "lucide-react";
+import { useAuthStore } from "@/store/useAuthStore";
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { toast } from "sonner";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setAuth, setGuest } = useAuthStore();
+  const { setAuth } = useAuthStore();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error("Please fill in email and password.");
+      toast.error("Please fill in all fields.");
       return;
     }
 
     setLoading(true);
-    toast.loading("Authenticating...");
-
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-
       const data = await res.json();
-      toast.dismiss();
 
       if (data.status) {
         setAuth(data.token, data.user);
-        toast.success("Welcome back, " + data.user.name);
-
-        if (data.user.role === "admin") {
+        toast.success(`Welcome back, ${data.user.name}!`);
+        // Redirect admins to backoffice, customers to home
+        if (data.user.role === "admin" || data.user.role === "chef" || data.user.role === "waiter") {
           router.push("/admin/dashboard");
         } else {
-          router.push("/checkout");
+          router.push("/");
         }
       } else {
-        toast.error(data.message || "Invalid credentials.");
+        toast.error(data.message || "Invalid email or password.");
       }
-    } catch (e: any) {
-      toast.dismiss();
-      toast.error("Login error: " + e.message);
+    } catch (err: any) {
+      toast.error("Login failed: " + err.message);
     } finally {
       setLoading(false);
     }
   };
 
   const handleGuestLogin = () => {
-    setGuest({
-      name: "Guest Customer",
+    setAuth("guest", {
+      name: "Guest",
       email: "guest@foodappi.com",
-      phone: "+1000000000",
+      role: "customer",
+      isGuest: true,
     });
-    toast.success("Proceeding as Guest Customer");
-    router.push("/checkout");
+    toast.success("Continuing as guest.");
+    router.push("/");
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8 space-y-6 border border-slate-100">
-        {/* Brand Header */}
-        <div className="text-center space-y-2">
-          <Link href="/" className="inline-flex items-center space-x-2">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-red-500 to-rose-600 flex items-center justify-center text-white font-black text-2xl shadow-md">
-              F
-            </div>
-            <span className="font-extrabold text-2xl tracking-tight text-slate-900">
-              Food<span className="text-red-500">Appi</span>
-            </span>
+    <div className="min-h-screen bg-[#f7f7fc] flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <Link href="/">
+            <img
+              src="/images/theme/theme-logo.png"
+              alt="FoodAppi"
+              className="h-12 mx-auto"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+            <span className="text-3xl font-black" style={{ color: "#ff006b" }}>FoodAppi</span>
           </Link>
-          <h2 className="text-xl font-extrabold text-slate-800 pt-2">Sign in to your Account</h2>
-          <p className="text-xs text-slate-400">Or continue as guest for instant food ordering</p>
         </div>
 
-        {/* Login Form */}
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider block mb-1.5">
-              Email Address
-            </label>
-            <div className="relative">
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="email"
-                required
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:border-red-500"
-              />
-            </div>
+        <div className="bg-white rounded-2xl shadow-lg p-8">
+          {/* Header */}
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-[#14142b] capitalize">Welcome Back</h1>
+            <p className="text-sm text-[#6e7191] mt-1">Sign in to continue ordering your favourite food</p>
           </div>
 
-          <div>
-            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider block mb-1.5">
-              Password
-            </label>
-            <div className="relative">
-              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="password"
-                required
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:border-red-500"
-              />
+          {/* Form */}
+          <form onSubmit={handleLogin} className="space-y-5">
+            {/* Email */}
+            <div>
+              <label className="db-field-title">Email Address</label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-[#a0a3bd] absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@example.com"
+                  className="db-field-control pl-10"
+                />
+              </div>
             </div>
+
+            {/* Password */}
+            <div>
+              <label className="db-field-title">Password</label>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-[#a0a3bd] absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="db-field-control pl-10 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a0a3bd] hover:text-[#6e7191]"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Login Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="db-btn db-btn-primary w-full h-11 text-sm font-semibold rounded-xl disabled:opacity-60"
+              style={{ backgroundColor: "#ff006b", color: "#fff" }}
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  Signing In...
+                </span>
+              ) : "Sign In"}
+            </button>
+          </form>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-5">
+            <hr className="flex-1 border-[#eff0f6]" />
+            <span className="text-xs text-[#a0a3bd] font-medium">OR</span>
+            <hr className="flex-1 border-[#eff0f6]" />
           </div>
 
+          {/* Guest Login */}
           <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white font-bold text-sm py-3 rounded-xl shadow-md transition flex items-center justify-center space-x-2"
+            onClick={handleGuestLogin}
+            className="w-full h-11 rounded-xl text-sm font-medium text-[#6e7191] border border-[#e2e8f0] hover:border-[#ff006b] hover:text-[#ff006b] hover:bg-[#fff5f9] transition-all"
           >
-            <span>Sign In</span>
-            <ArrowRight className="w-4 h-4" />
+            Continue as Guest
           </button>
-        </form>
 
-        <div className="relative border-t border-slate-100 my-4 text-center">
-          <span className="bg-white px-3 text-xs font-semibold text-slate-400 relative -top-2.5">
-            OR
-          </span>
+          {/* Sign Up link */}
+          <p className="text-center text-sm text-[#6e7191] mt-6">
+            Don&apos;t have an account?{" "}
+            <Link href="/auth/signup" className="font-semibold hover:underline" style={{ color: "#ff006b" }}>
+              Create Account
+            </Link>
+          </p>
         </div>
 
-        {/* Guest Login Action */}
-        <button
-          onClick={handleGuestLogin}
-          className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-3 rounded-xl transition flex items-center justify-center space-x-2"
-        >
-          <UserCheck className="w-4 h-4 text-slate-500" />
-          <span>Continue as Guest</span>
-        </button>
-
-        <div className="text-center text-xs text-slate-500">
-          Don't have an account?{" "}
-          <Link href="/auth/signup" className="text-red-500 font-bold hover:underline">
-            Sign Up
-          </Link>
+        {/* Demo credentials hint */}
+        <div className="mt-4 p-3 rounded-xl text-xs text-[#6e7191] bg-white border border-[#eff0f6] text-center">
+          <span className="font-semibold text-[#14142b]">Demo Admin:</span> admin@example.com &nbsp;/&nbsp;
+          <span className="font-semibold text-[#14142b]">Password:</span> 123456
         </div>
       </div>
     </div>
