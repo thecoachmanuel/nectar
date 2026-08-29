@@ -71,7 +71,7 @@ export default function OrderDetailsPage() {
       
       <section className="pt-6 pb-24 sm:pt-8 sm:pb-16 bg-[#f7f7fc] min-h-screen">
         <div className="container mx-auto px-4 sm:px-6 max-w-3xl">
-          <Link href="/account/my-orders" className="mb-3 inline-flex items-center gap-2 text-primary hover:text-rose-600 transition-colors">
+          <Link href="/account/orders" className="mb-3 inline-flex items-center gap-2 text-primary hover:text-rose-600 transition-colors">
             <Undo2 className="w-4 h-4" />
             <span className="text-xs font-medium leading-6">Back to orders</span>
           </Link>
@@ -105,41 +105,62 @@ export default function OrderDetailsPage() {
                 {/* Status Tracker */}
                 <div className="mb-8">
                   <p className="text-xs text-center mb-2 text-[#6e7191]">Estimated Delivery Time</p>
-                  <h4 className="text-xl font-medium text-center mb-6 text-[#14142b]">30 min</h4>
+                  <h4 className="text-xl font-medium text-center mb-6 text-[#14142b]">{order.estimatedDeliveryTime || "30 min"}</h4>
                   
-                  <img src="/images/default/payment-success.gif" alt="Order Status" className="h-32 mx-auto mb-4 object-contain" />
-                  <h5 className="text-xs font-normal text-center mb-8 text-[#6e7191]">
-                    {order.orderStatus === "pending" ? "Your order is pending confirmation" :
-                     order.orderStatus === "accepted" ? "Your order has been accepted" :
-                     order.orderStatus === "preparing" ? "Your order is being prepared" :
-                     order.orderStatus === "ready" ? "Your order is ready" :
-                     order.orderStatus === "out_for_delivery" ? "Your order is on the way" :
-                     order.orderStatus === "delivered" ? "Your order has been delivered" :
-                     "Your order is processing"}
-                  </h5>
+                  {order.orderStatus === "canceled" ? (
+                    <div className="text-center p-6 bg-red-50 rounded-2xl mb-8 border border-red-100">
+                      <h4 className="text-lg font-bold text-red-600 mb-2">Order Canceled</h4>
+                      <p className="text-sm text-red-500">We're sorry, but this order has been canceled.</p>
+                    </div>
+                  ) : (
+                    <>
+                      <img src="/images/default/payment-success.gif" alt="Order Status" className="h-32 mx-auto mb-4 object-contain" />
+                      <h5 className="text-xs font-normal text-center mb-8 text-[#6e7191]">
+                        {order.orderStatus === "pending" ? "Your order is pending confirmation" :
+                         order.orderStatus === "accepted" ? "Your order has been accepted" :
+                         order.orderStatus === "preparing" ? "Your order is being prepared" :
+                         order.orderStatus === "ready" ? "Your order is ready" :
+                         order.orderStatus === "out_for_delivery" ? "Your order is on the way" :
+                         order.orderStatus === "delivered" ? "Your order has been delivered" :
+                         "Your order is processing"}
+                      </h5>
 
-                  <div className="px-4">
-                    <ul className="flex items-center justify-between mx-2 mb-[70px] relative before:absolute before:top-2 before:left-0 before:w-full before:h-1 before:bg-primary/20">
-                      <div 
-                        className="absolute top-2 left-0 h-1 bg-primary transition-all duration-500" 
-                        style={{ width: `${(currentStatusIndex / (statuses.length - 1)) * 100}%` }}
-                      ></div>
-                      
-                      {statuses.map((status, index) => {
-                        const isCompleted = index <= currentStatusIndex;
-                        return (
-                          <li key={status.key} className="relative z-10 flex flex-col items-center">
-                            <div className={`w-5 h-5 rounded-full border-[3px] bg-white transition-colors duration-300 ${isCompleted ? 'border-primary' : 'border-[#eff0f6]'}`}>
-                              {isCompleted && <div className="w-full h-full rounded-full bg-primary scale-50"></div>}
-                            </div>
-                            <span className="absolute top-8 w-16 text-center text-[10px] leading-3 text-[#14142b] font-medium">
-                              {status.label}
-                            </span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
+                      <div className="px-4">
+                        <ul className="flex items-center justify-between mx-2 mb-[70px] relative before:absolute before:top-2 before:left-0 before:w-full before:h-1 before:bg-primary/20">
+                          <div 
+                            className="absolute top-2 left-0 h-1 bg-primary transition-all duration-500" 
+                            style={{ width: `${(Math.max(0, currentStatusIndex) / (statuses.length - 1)) * 100}%` }}
+                          ></div>
+                          
+                          {statuses.map((status, index) => {
+                            const isCompleted = index <= currentStatusIndex;
+                            return (
+                              <li key={status.key} className="relative z-10 flex flex-col items-center">
+                                <div className={`w-5 h-5 rounded-full border-[3px] bg-white transition-colors duration-300 ${isCompleted ? 'border-primary' : 'border-[#eff0f6]'}`}>
+                                  {isCompleted && <div className="w-full h-full rounded-full bg-primary scale-50"></div>}
+                                </div>
+                                <span className="absolute top-8 w-16 text-center text-[10px] leading-3 text-[#14142b] font-medium">
+                                  {status.label}
+                                </span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    </>
+                  )}
+
+                  {order.orderType === "delivery" && order.deliveryPin && order.orderStatus !== "canceled" && (
+                    <div className="mt-8 p-5 bg-indigo-50 border border-indigo-100 rounded-2xl flex flex-col items-center">
+                      <p className="text-xs font-semibold text-indigo-800 uppercase tracking-wider mb-2">Your Delivery PIN</p>
+                      <div className="bg-white px-8 py-3 rounded-xl shadow-sm text-2xl font-bold tracking-[0.25em] text-indigo-600 border border-indigo-200">
+                        {order.deliveryPin}
+                      </div>
+                      <p className="text-xs text-indigo-600/80 mt-3 text-center max-w-xs">
+                        Please provide this 4-digit PIN to the delivery boy to confirm you've received your order.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Branch Info */}

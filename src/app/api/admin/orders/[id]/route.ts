@@ -20,6 +20,12 @@ export async function PUT(
       return NextResponse.json({ status: false, message: "Order not found" }, { status: 404 });
     }
 
+    if (body.orderStatus === "delivered" && oldOrder.orderType === "delivery") {
+      if (!body.providedPin || body.providedPin !== oldOrder.deliveryPin) {
+        return NextResponse.json({ status: false, message: "Invalid or missing delivery PIN" }, { status: 400 });
+      }
+    }
+
     const order = await Order.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,

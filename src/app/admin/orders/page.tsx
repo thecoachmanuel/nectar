@@ -26,11 +26,23 @@ export default function OrdersPage() {
     fetchOrders();
   }, []);
 
-  const handleStatusChange = async (id: string, status: string) => {
+  const handleStatusChange = async (id: string, status: string, order: any) => {
+    let providedPin = undefined;
+    
+    if (status === "delivered" && order.orderType === "delivery") {
+      providedPin = window.prompt("Enter the 4-digit PIN provided by the customer:");
+      if (!providedPin) {
+        toast.error("Delivery PIN is required to mark as delivered.");
+        // We fetch orders to reset the dropdown UI since it was aborted
+        fetchOrders();
+        return;
+      }
+    }
+
     try {
       await updateOrder(`/api/admin/orders/${id}`, {
         method: "PUT",
-        body: { orderStatus: status },
+        body: { orderStatus: status, providedPin },
         successMessage: `Order marked as ${status.replace("_", " ")}`,
       });
       fetchOrders();
@@ -139,7 +151,7 @@ export default function OrdersPage() {
                     <td className="px-6 py-4">
                       <select
                         value={order.orderStatus}
-                        onChange={(e) => handleStatusChange(order._id, e.target.value)}
+                        onChange={(e) => handleStatusChange(order._id, e.target.value, order)}
                         className={`text-xs font-semibold rounded-full px-2 py-1 border-none focus:ring-0 cursor-pointer capitalize ${getStatusColor(order.orderStatus)}`}
                       >
                         {tabs.filter(t => t !== "All").map(statusOption => (

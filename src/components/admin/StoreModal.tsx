@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { X, ImagePlus, Loader2, MapPin, Eye, EyeOff } from "lucide-react";
+import { X, ImagePlus, Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import MapComponent from "@/components/frontend/MapComponent";
 
 interface StoreModalProps {
   isOpen: boolean;
@@ -111,34 +112,13 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
     }
   }, [storeToEdit, isOpen]);
 
-  const fetchCoordinates = async () => {
-    if (!formData.address) {
-      toast.error("Please enter an address first");
-      return;
-    }
-    setFetchingCoords(true);
-    try {
-      // Combine address components to improve search accuracy on Nominatim
-      const queryParts = [formData.address, formData.city, formData.state, formData.zipCode, "Nigeria"].filter(Boolean);
-      const searchQuery = queryParts.join(", ");
-
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=ng&q=${encodeURIComponent(searchQuery)}&limit=1`);
-      const data = await res.json();
-      if (data && data.length > 0) {
-        setFormData(prev => ({
-          ...prev,
-          latitude: data[0].lat,
-          longitude: data[0].lon,
-        }));
-        toast.success("Coordinates fetched successfully");
-      } else {
-        toast.error("Could not find coordinates for this address");
-      }
-    } catch (err) {
-      toast.error("Error fetching coordinates");
-    } finally {
-      setFetchingCoords(false);
-    }
+  const handleLocationSelect = (lat: number, lng: number, addr: string, isFromAutocomplete?: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      latitude: lat.toString(),
+      longitude: lng.toString(),
+      ...(addr && { address: addr })
+    }));
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: "profileImage" | "bannerImage") => {
@@ -159,6 +139,12 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
     setLoading(true);
 
     try {
+      if (!formData.latitude || !formData.longitude) {
+        toast.error("Please pin the store location on the map");
+        setLoading(false);
+        return;
+      }
+
       const url = storeToEdit ? `/api/admin/stores/${storeToEdit._id}` : `/api/admin/stores`;
       const method = storeToEdit ? "PUT" : "POST";
 
@@ -262,29 +248,20 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Address *</label>
-              <div className="flex gap-2">
-                <input required type="text" placeholder="Enter address..." value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="flex-1 px-3 py-2 border rounded-xl outline-none focus:border-primary" />
-                <button type="button" onClick={fetchCoordinates} disabled={fetchingCoords} className="px-4 py-2 bg-[#F7F7FC] border border-[#EFF0F6] text-[#6E7191] rounded-xl hover:bg-[#EFF0F6] transition-colors flex items-center gap-2 font-medium text-sm whitespace-nowrap">
-                  {fetchingCoords ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
-                  Fetch
-                </button>
-              </div>
+            <div className="mt-2">
+              <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Search & Pin Store Location *</label>
+              <MapComponent 
+                initialLat={formData.latitude ? parseFloat(formData.latitude) : undefined} 
+                initialLng={formData.longitude ? parseFloat(formData.longitude) : undefined} 
+                addressText={formData.address}
+                onLocationSelect={handleLocationSelect} 
+              />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">City *</label>
                 <input required type="text" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Latitude *</label>
-                <input required type="number" step="any" value={formData.latitude} onChange={(e) => setFormData({ ...formData, latitude: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Longitude *</label>
-                <input required type="number" step="any" value={formData.longitude} onChange={(e) => setFormData({ ...formData, longitude: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary" />
               </div>
             </div>
 
