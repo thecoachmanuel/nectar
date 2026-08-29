@@ -134,7 +134,7 @@ export async function PATCH(req: Request) {
     if (action === "resolve") {
       await Message.updateMany({ threadId, status: { $ne: "deleted" } }, { $set: { status: "resolved" } });
     } else if (action === "delete") {
-      await Message.updateMany({ threadId }, { $set: { status: "deleted" } });
+      await Message.deleteMany({ threadId });
     }
 
     return NextResponse.json({ status: true, message: `Thread ${action}d successfully` });

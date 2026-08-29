@@ -87,7 +87,7 @@ export async function GET(req: Request) {
 
     // Map store name
     items = items.map(item => {
-      let storeName = "Nectar Online Groceries"; // Default for unassigned / global
+      let storeName = stores.length > 0 ? stores[0].name : "Main Store"; // Default for unassigned / global
       if (item.storeId && item.storeId !== "0" && item.storeId !== "admin") {
         const store = stores.find((s: any) => s._id.toString() === item.storeId.toString());
         if (store) storeName = store.name;

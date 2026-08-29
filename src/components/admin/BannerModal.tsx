@@ -81,10 +81,9 @@ export default function BannerModal({ isOpen, onClose, banner, onSuccess }: Bann
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-[#14142B] mb-1">Title <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium text-[#14142B] mb-1">Title</label>
           <input 
             type="text" 
-            required
             value={formData.title}
             onChange={(e) => setFormData({...formData, title: e.target.value})}
             className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors"

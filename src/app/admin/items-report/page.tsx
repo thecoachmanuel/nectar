@@ -13,32 +13,11 @@ import { toast } from "sonner";
 export default function ItemsReportPage() {
   const [showFilter, setShowFilter] = useState(false);
 
-  const { execute, data: orders, loading } = useApi();
+  const { execute, data: reports, loading } = useApi();
 
   useEffect(() => {
-    execute("/api/admin/orders");
+    execute("/api/admin/reports/items");
   }, []);
-
-  // Aggregate item sales
-  const itemMap: Record<string, any> = {};
-  orders?.forEach((order: any) => {
-    order.items?.forEach((item: any) => {
-      const key = item.itemId;
-      if (!itemMap[key]) {
-        itemMap[key] = {
-          id: key,
-          name: item.name,
-          category: "-", // Note: Category would need to be populated on orders or cross-referenced with Items
-          quantitySold: 0,
-          revenue: 0,
-        };
-      }
-      itemMap[key].quantitySold += (item.quantity || 1);
-      itemMap[key].revenue += (item.itemTotal || item.price * (item.quantity || 1));
-    });
-  });
-
-  const reports = Object.values(itemMap).sort((a: any, b: any) => b.quantitySold - a.quantitySold);
 
   const exportToExcel = async () => {
     if (!reports || reports.length === 0) {
@@ -52,6 +31,7 @@ export default function ItemsReportPage() {
 
       worksheet.columns = [
         { header: "Item Name", key: "name", width: 30 },
+        { header: "Store", key: "store", width: 20 },
         { header: "Category", key: "category", width: 20 },
         { header: "Quantity Sold", key: "quantitySold", width: 15 },
         { header: "Total Revenue", key: "revenue", width: 20 },
@@ -60,7 +40,8 @@ export default function ItemsReportPage() {
       reports.forEach((item: any) => {
         worksheet.addRow({
           name: item.name,
-          category: item.category,
+          store: item.store || "-",
+          category: item.category || "-",
           quantitySold: item.quantitySold,
           revenue: `₦${item.revenue.toLocaleString()}`,
         });
@@ -154,31 +135,35 @@ export default function ItemsReportPage() {
           <table className="w-full text-left whitespace-nowrap">
             <thead className="bg-[#F7F7FC] border-b border-[#EFF0F6]">
               <tr>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Item Name</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Item Details</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Store</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Category</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider text-right">Quantity Sold</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider text-right">Total Revenue</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Quantity Sold</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Total Revenue</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EFF0F6]">
-              {loading && !orders ? (
-                <tr><td colSpan={4} className="p-8 text-center text-[#6E7191]">Loading...</td></tr>
-              ) : reports.length === 0 ? (
-                <tr><td colSpan={4} className="p-8 text-center text-[#6E7191]">No items found</td></tr>
+              {loading && !reports ? (
+                <tr><td colSpan={5} className="p-8 text-center text-[#6E7191]">Loading...</td></tr>
+              ) : !reports || reports.length === 0 ? (
+                <tr><td colSpan={5} className="p-8 text-center text-[#6E7191]">No data found</td></tr>
               ) : (
-                reports.map((report: any) => (
-                  <tr key={report.id} className="hover:bg-[#FAFAFC] transition-colors">
+                reports.map((item: any, idx: number) => (
+                  <tr key={idx} className="hover:bg-[#FAFAFC] transition-colors">
                     <td className="px-6 py-4">
-                      <span className="text-sm font-medium text-[#14142B]">{report.name}</span>
+                      <span className="text-sm font-bold text-[#14142B]">{item.name}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-[#4E4B66]">{report.category}</span>
+                      <span className="text-sm text-[#4E4B66]">{item.store || "-"}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-[#4E4B66]">{item.category || "-"}</span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <span className="text-sm font-semibold text-[#1AB759]">{report.quantitySold}</span>
+                      <span className="text-sm font-semibold text-[#1AB759]">{item.quantitySold}</span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <span className="text-sm font-bold text-[#14142B]">₦{report.revenue.toLocaleString()}</span>
+                      <span className="text-sm font-bold text-[#14142B]">₦{item.revenue.toLocaleString()}</span>
                     </td>
                   </tr>
                 ))

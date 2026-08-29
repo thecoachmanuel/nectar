@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 import Order from "@/models/Order";
 import Coupon from "@/models/Coupon";
+import User from "@/models/User";
+import Store from "@/models/Store";
 import { jwtVerify } from "jose";
+import { sendPushNotification } from "@/lib/push";
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "nectar_secret_key_default_2026"
@@ -108,12 +111,12 @@ export async function POST(req: Request) {
       let actualStoreId: any = sId;
       
       if (sId === "admin" || sId === "0" || !sId) {
-        // Fallback to "Nectar Online Groceries" store
-        let defaultStore = await Store.findOne({ name: "Nectar Online Groceries" });
+        // Fallback to first active store
+        let defaultStore = await Store.findOne({ status: true });
         if (!defaultStore) {
           defaultStore = await Store.create({
-            name: "Nectar Online Groceries",
-            email: "contact@nectargroceries.com",
+            name: "Main Store",
+            email: "contact@mainstore.com",
             phone: "+1234567890",
             address: "Main Center",
             status: true,
@@ -135,12 +138,12 @@ export async function POST(req: Request) {
             actualStoreId = store._id.toString();
           } else {
             // fallback if not found
-            let defaultStore = await Store.findOne({ name: "Nectar Online Groceries" });
+            let defaultStore = await Store.findOne({ status: true });
             if (defaultStore) actualStoreId = defaultStore._id.toString();
           }
         } catch (e) {
           // invalid ObjectId, fallback to global
-          let defaultStore = await Store.findOne({ name: "Nectar Online Groceries" });
+          let defaultStore = await Store.findOne({ status: true });
           if (defaultStore) actualStoreId = defaultStore._id.toString();
         }
       }
@@ -192,10 +195,11 @@ export async function POST(req: Request) {
       const savedOrder = await newOrder.save();
       createdOrders.push(savedOrder);
     }
-    
     if (userId && paymentMethod === "wallet" && userDoc) {
-      userDoc.walletBalance = (userDoc.walletBalance || 0) - totalAmount;
-      await userDoc.save();
+      const User = (await import("@/models/User")).default;
+      await User.findByIdAndUpdate(userId, {
+        $inc: { walletBalance: -totalAmount }
+      });
     }
 
     if (couponCode) {
@@ -204,6 +208,34 @@ export async function POST(req: Request) {
         { $inc: { usedCount: 1 } }
       );
     }
+
+    // --- Dispatch Push Notifications ---
+    try {
+      const orderIdsString = createdOrders.map(o => o.orderSerialNo).join(", ");
+      const notificationTitle = `New Order Placed: #${orderIdsString}`;
+      const notificationBody = `Customer ${customerName || "Guest"} has placed a new order for ${formatPrice(totalAmount)}.`;
+      
+      // 1. Notify all Admins
+      const admins = await User.find({ role: "admin", deviceToken: { $exists: true, $ne: "" } });
+      for (const admin of admins) {
+        sendPushNotification(admin.deviceToken, notificationTitle, notificationBody).catch(console.error);
+      }
+
+      // 2. Notify the Store Manager
+      // If store is global (0), maybe no specific manager, otherwise try to find them
+      if (actualStoreId && String(actualStoreId) !== "0") {
+        const store = await Store.findById(actualStoreId);
+        if (store && store.email) {
+          const manager = await User.findOne({ email: store.email, role: "store_manager", deviceToken: { $exists: true, $ne: "" } });
+          if (manager) {
+            sendPushNotification(manager.deviceToken, notificationTitle, notificationBody).catch(console.error);
+          }
+        }
+      }
+    } catch (notifErr) {
+      console.error("Failed to send order creation push notifications:", notifErr);
+    }
+    // -----------------------------------
 
     return NextResponse.json({ 
       status: true, 
@@ -217,6 +249,15 @@ export async function POST(req: Request) {
     console.error("Order Checkout Error:", error);
     return NextResponse.json({ status: false, message: error.message }, { status: 500 });
   }
+}
+
+// Format price helper for notifications
+function formatPrice(amount: number) {
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    minimumFractionDigits: 0,
+  }).format(amount || 0);
 }
 
 export async function GET(req: Request) {

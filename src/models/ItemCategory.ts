@@ -4,8 +4,9 @@ export interface IItemCategory extends Document {
   name: string;
   slug: string;
   image?: string;
-  sortOrder: number;
   status: boolean;
+  isFeatured: boolean;
+  sortOrder: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -15,8 +16,9 @@ const ItemCategorySchema = new Schema<IItemCategory>(
     name: { type: String, required: true },
     slug: { type: String, required: true, unique: true },
     image: { type: String },
-    sortOrder: { type: Number, default: 0 },
     status: { type: Boolean, default: true },
+    isFeatured: { type: Boolean, default: false },
+    sortOrder: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

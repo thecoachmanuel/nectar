@@ -63,6 +63,7 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
       icon: <BarChart3 className="w-4 h-4" />, 
       roles: ["admin", "store_manager"],
       children: [
+        { name: "Financial Summary", path: "/admin/financial-summary" },
         { name: "Sales Report", path: "/admin/sales-report" },
         { name: "Items Report", path: "/admin/items-report" },
         { name: "Credit Balance", path: "/admin/credit-balance-report" },

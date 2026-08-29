@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Plus, X, Trash2 } from "lucide-react";
 import Modal from "./Modal";
 import { useApi } from "@/hooks/useApi";
 
@@ -26,6 +27,8 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
     isFeatured: false,
     status: true,
     image: "",
+    variations: [] as any[],
+    extras: [] as any[],
   });
 
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -51,6 +54,8 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
         isFeatured: item.isFeatured ?? false,
         status: item.status ?? true,
         image: item.image || "",
+        variations: item.variations || [],
+        extras: item.extras || [],
       });
     } else {
       setFormData({
@@ -64,6 +69,8 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
         isFeatured: false,
         status: true,
         image: "",
+        variations: [],
+        extras: [],
       });
     }
   }, [item, isOpen]);
@@ -196,7 +203,58 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
           </div>
         </div>
 
-        <div className="flex items-center gap-6 pt-2">
+        {/* Variations */}
+        <div className="pt-4 border-t border-[#EFF0F6]">
+          <div className="flex justify-between items-center mb-2">
+            <label className="block text-sm font-medium text-[#14142B]">Variations (Options)</label>
+            <button type="button" onClick={() => setFormData({ ...formData, variations: [...formData.variations, { name: "", options: [] }] })} className="text-xs font-semibold text-primary flex items-center gap-1 hover:underline">
+              <Plus className="w-3 h-3" /> Add Variation Group
+            </button>
+          </div>
+          <div className="space-y-4">
+            {formData.variations.map((vg, vIdx) => (
+              <div key={vIdx} className="p-3 border border-[#EFF0F6] rounded-xl bg-[#FAFAFC]">
+                <div className="flex gap-2 mb-2">
+                  <input type="text" placeholder="Group Name (e.g. Size)" value={vg.name} onChange={e => { const nv = [...formData.variations]; nv[vIdx].name = e.target.value; setFormData({ ...formData, variations: nv }) }} className="flex-1 h-9 px-3 rounded-lg border border-[#EFF0F6] text-sm focus:outline-none focus:border-primary" />
+                  <button type="button" onClick={() => { const nv = formData.variations.filter((_, i) => i !== vIdx); setFormData({ ...formData, variations: nv }) }} className="w-9 h-9 flex items-center justify-center text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+                </div>
+                <div className="space-y-2 pl-4 border-l-2 border-[#EFF0F6] ml-2">
+                  {vg.options.map((opt: any, oIdx: number) => (
+                    <div key={oIdx} className="flex gap-2 items-center">
+                      <input type="text" placeholder="Option (e.g. 250g)" value={opt.name} onChange={e => { const nv = [...formData.variations]; nv[vIdx].options[oIdx].name = e.target.value; setFormData({ ...formData, variations: nv }) }} className="flex-1 h-8 px-2 rounded border border-[#EFF0F6] text-xs focus:outline-none focus:border-primary" />
+                      <input type="number" placeholder="Price (₦)" value={opt.price} onChange={e => { const nv = [...formData.variations]; nv[vIdx].options[oIdx].price = Number(e.target.value); setFormData({ ...formData, variations: nv }) }} className="w-24 h-8 px-2 rounded border border-[#EFF0F6] text-xs focus:outline-none focus:border-primary" />
+                      <button type="button" onClick={() => { const nv = [...formData.variations]; nv[vIdx].options = nv[vIdx].options.filter((_: any, i: number) => i !== oIdx); setFormData({ ...formData, variations: nv }) }} className="text-red-500 hover:text-red-700"><X className="w-3 h-3" /></button>
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => { const nv = [...formData.variations]; nv[vIdx].options.push({ name: "", price: 0 }); setFormData({ ...formData, variations: nv }) }} className="text-xs font-medium text-slate-500 hover:text-primary flex items-center gap-1 mt-1">
+                    <Plus className="w-3 h-3" /> Add Option
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Extras */}
+        <div className="pt-4 border-t border-[#EFF0F6]">
+          <div className="flex justify-between items-center mb-2">
+            <label className="block text-sm font-medium text-[#14142B]">Extra Services</label>
+            <button type="button" onClick={() => setFormData({ ...formData, extras: [...formData.extras, { name: "", price: 0 }] })} className="text-xs font-semibold text-primary flex items-center gap-1 hover:underline">
+              <Plus className="w-3 h-3" /> Add Extra
+            </button>
+          </div>
+          <div className="space-y-2">
+            {formData.extras.map((extra, eIdx) => (
+              <div key={eIdx} className="flex gap-2 items-center">
+                <input type="text" placeholder="Extra Name (e.g. Extra Cheese)" value={extra.name} onChange={e => { const ne = [...formData.extras]; ne[eIdx].name = e.target.value; setFormData({ ...formData, extras: ne }) }} className="flex-1 h-9 px-3 rounded-lg border border-[#EFF0F6] text-sm focus:outline-none focus:border-primary" />
+                <input type="number" placeholder="Price (₦)" value={extra.price} onChange={e => { const ne = [...formData.extras]; ne[eIdx].price = Number(e.target.value); setFormData({ ...formData, extras: ne }) }} className="w-28 h-9 px-3 rounded-lg border border-[#EFF0F6] text-sm focus:outline-none focus:border-primary" />
+                <button type="button" onClick={() => { const ne = formData.extras.filter((_, i) => i !== eIdx); setFormData({ ...formData, extras: ne }) }} className="w-9 h-9 flex items-center justify-center text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-6 pt-2 border-t border-[#EFF0F6]">
           <div className="flex items-center gap-2">
             <input 
               type="checkbox" 

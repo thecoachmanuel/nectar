@@ -4,10 +4,12 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import ItemModal from "@/components/frontend/ItemModal";
 import { useSettingStore } from "@/store/useSettingStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 import { Search, Plus, Star, Leaf, Drumstick, Tag, MapPin, ChevronLeft, ChevronRight, Loader2, ArrowRight, Clock } from "lucide-react";
 
 export default function HomePage() {
   const { menuViewMode } = useSettingStore();
+  const { settings } = useSettingsStore();
 
   const [categories, setCategories] = useState<any[]>([]);
   const [featuredItems, setFeaturedItems] = useState<any[]>([]);
@@ -128,21 +130,21 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-4 sm:mt-8">
           <div className="relative rounded-2xl overflow-hidden h-52 md:h-72 lg:h-80 banner-swiper">
             {sliders.map((slide, i) => (
-              <div key={i} className={`absolute inset-0 transition-all duration-700 ${i === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"}`}>
-                <img src={slide.image} alt={slide.title}
+              <Link key={i} href={slide.link || "/menu"} className={`absolute inset-0 block transition-all duration-700 ${i === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"}`}>
+                <img src={slide.image} alt={slide.title || "Banner"}
                   className="w-full h-full object-cover rounded-2xl"
                   onError={(e) => { (e.target as HTMLImageElement).src = "/images/default/slider.png"; }} />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent rounded-2xl" />
-                <div className="absolute left-6 md:left-10 top-1/2 -translate-y-1/2 text-white">
-                  <p className="text-xs font-semibold opacity-80 mb-1">⚡ Today&apos;s Special</p>
-                  <h2 className="text-xl md:text-3xl font-black leading-tight mb-2">{slide.title}</h2>
-                  <p className="text-xs md:text-sm opacity-90 mb-4">{slide.subtitle}</p>
-                  <Link href={slide.link || "/menu"} className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold text-white transition-all"
-                    style={{ backgroundColor: "var(--primary-hex)" }}>
-                    Order Now <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
-              </div>
+                {(slide.title || slide.subtitle) && (
+                  <>
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent rounded-2xl pointer-events-none" />
+                    <div className="absolute left-6 md:left-10 top-1/2 -translate-y-1/2 text-white pointer-events-none">
+                      <p className="text-xs font-semibold opacity-80 mb-1">⚡ Today&apos;s Special</p>
+                      {slide.title && <h2 className="text-xl md:text-3xl font-black leading-tight mb-2">{slide.title}</h2>}
+                      {slide.subtitle && <p className="text-xs md:text-sm opacity-90 mb-4">{slide.subtitle}</p>}
+                    </div>
+                  </>
+                )}
+              </Link>
             ))}
             {/* Prev/Next */}
             <button onClick={() => setCurrentSlide(p => (p - 1 + sliders.length) % sliders.length)}
@@ -208,7 +210,7 @@ export default function HomePage() {
       )}
 
       {/* ========= SHOP BY STORE ========= */}
-      {stores.length > 0 && (
+      {settings.site_show_shop_by_store !== "No" && stores.length > 0 && (
         <section className="mb-6 sm:mb-12">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between gap-2 mb-4">
@@ -267,7 +269,7 @@ export default function HomePage() {
       )}
 
       {/* ========= FEATURED ITEMS ========= */}
-      {featuredItems.length > 0 && (
+      {settings.site_show_featured_items !== "No" && featuredItems.length > 0 && (
         <section className="mb-8 sm:mb-12">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between gap-2 mb-4">
