@@ -16,7 +16,7 @@ export default function StoresPage() {
       const res = await fetch("/api/admin/stores");
       const data = await res.json();
       if (data.status) {
-        setStores(data.stores);
+        setStores(data.data || data.stores || []);
       }
     } catch (error) {
       console.error("Error fetching stores:", error);
@@ -93,8 +93,8 @@ export default function StoresPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${store.status === 'active' ? 'bg-[#E7FFF0] text-[#1AB759]' : 'bg-[#FFEAEA] text-[#FB4E4E]'}`}>
-                        {store.status === 'active' ? 'Active' : 'Inactive'}
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${store.status ? 'bg-[#E7FFF0] text-[#1AB759]' : 'bg-[#FFEAEA] text-[#FB4E4E]'}`}>
+                        {store.status ? 'Active' : 'Inactive'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">

@@ -220,13 +220,24 @@ export default function HomePage() {
                 className="flex gap-4 overflow-x-auto pb-2 scrollbar-none px-10 menu-slides">
                 {stores.map(store => (
                   <div key={store._id}
-                    className="flex-shrink-0 flex flex-col gap-2 p-3 rounded-2xl border bg-white border-[#eff0f6] w-[200px] sm:w-[240px]">
-                    <img src={store.coverImage || "/images/default/store.png"} alt={store.storeName}
-                      className="w-full h-24 rounded-xl object-cover"
-                      onError={(e) => { (e.target as HTMLImageElement).src = "/images/default/store.png"; }} />
-                    <div>
-                      <h4 className="text-sm font-semibold text-[#14142b] truncate">{store.storeName}</h4>
-                      <p className="text-xs text-[#6e7191] line-clamp-1 mt-0.5">{store.address}</p>
+                    className="flex-shrink-0 flex flex-col gap-2 p-3 rounded-2xl border bg-white border-[#eff0f6] w-[200px] sm:w-[240px] shadow-sm hover:shadow-md transition-shadow group cursor-pointer relative overflow-hidden">
+                    <div className="relative w-full h-28 sm:h-32 rounded-xl overflow-hidden">
+                      <img src={store.bannerImage || store.profileImage || "/images/default/store.png"} alt={store.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        onError={(e) => { (e.target as HTMLImageElement).src = "/images/default/store.png"; }} />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                      {!store.status && (
+                        <div className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-md">
+                          Closed
+                        </div>
+                      )}
+                    </div>
+                    <div className="px-1 pb-1">
+                      <h4 className="text-sm font-bold text-[#14142b] truncate group-hover:text-primary transition-colors">{store.name}</h4>
+                      <div className="flex items-center gap-1 mt-1 text-[#6e7191]">
+                        <MapPin className="w-3 h-3" />
+                        <p className="text-[11px] line-clamp-1">{store.address}</p>
+                      </div>
                     </div>
                   </div>
                 ))}
