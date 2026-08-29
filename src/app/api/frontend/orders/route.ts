@@ -193,8 +193,8 @@ export async function POST(req: Request) {
       createdOrders.push(savedOrder);
     }
     
-    if (userId && paymentMethod === "wallet") {
-      userDoc.walletBalance -= totalAmount;
+    if (userId && paymentMethod === "wallet" && userDoc) {
+      userDoc.walletBalance = (userDoc.walletBalance || 0) - totalAmount;
       await userDoc.save();
     }
 
