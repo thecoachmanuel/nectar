@@ -86,7 +86,6 @@ export default function WalletPage() {
   };
 
   return (
-  return (
     <section className="pt-7 pb-16 bg-[#f7f7fc] min-h-screen">
       <div className="container mx-auto px-4 max-w-[800px]">
         <Link href="/" className="mb-3 inline-flex items-center gap-2 text-primary hover:text-rose-600 transition-colors">
