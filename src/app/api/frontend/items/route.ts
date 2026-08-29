@@ -28,14 +28,8 @@ export async function GET(req: Request) {
     }
 
     if (storeId && storeId !== "0") {
-      // If a specific store is requested, return items that belong to that store OR global items (0 or admin or null)
-      query.$or = [
-        { storeId: storeId },
-        { storeId: "0" },
-        { storeId: "admin" },
-        { storeId: { $exists: false } },
-        { storeId: null }
-      ];
+      // Strictly return items that belong to the requested store
+      query.storeId = storeId;
     }
     if (isFeatured === "true") {
       query.isFeatured = true;
