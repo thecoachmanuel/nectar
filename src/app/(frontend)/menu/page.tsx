@@ -144,8 +144,9 @@ function MenuContent() {
                         <div className="flex flex-wrap items-center gap-x-2">
                           <h4 className="text-xs sm:text-lg font-medium text-[#14142b]">₦{item.price?.toFixed(2)}</h4>
                         </div>
-                        <button className="flex items-center gap-1 sm:gap-1.5 rounded-3xl capitalize text-sm font-medium h-5 sm:h-6 px-2 shadow-md transition bg-white text-[#14142b] hover:bg-primary hover:text-white">
-                          <span className="text-[10px] sm:text-xs">Add</span>
+                        <button className="flex items-center gap-1 sm:gap-1.5 rounded-3xl capitalize text-sm font-medium h-5 sm:h-6 px-3 shadow-md transition text-white hover:opacity-90"
+                          style={{ backgroundColor: "var(--primary-hex)" }}>
+                          <span className="text-[10px] sm:text-xs font-semibold">Add</span>
                         </button>
                       </div>
                     </div>
@@ -164,8 +165,9 @@ function MenuContent() {
                       <p className="text-[10px] sm:text-xs text-[#6e7191] line-clamp-2 mb-2 sm:mb-3">{item.description}</p>
                       <div className="flex items-center justify-between">
                         <h4 className="text-sm sm:text-base font-bold text-[#14142b]">₦{item.price?.toFixed(2)}</h4>
-                        <button className="flex items-center gap-1.5 rounded-3xl capitalize text-sm font-medium h-6 sm:h-7 px-3 shadow-md transition bg-white text-[#14142b] hover:bg-primary hover:text-white">
-                          <span className="text-[10px] sm:text-xs">Add</span>
+                        <button className="flex items-center gap-1 sm:gap-1.5 rounded-3xl capitalize text-sm font-medium h-6 sm:h-7 px-4 shadow-md transition text-white hover:opacity-90"
+                          style={{ backgroundColor: "var(--primary-hex)" }}>
+                          <span className="text-[10px] sm:text-xs font-semibold">Add</span>
                         </button>
                       </div>
                     </div>

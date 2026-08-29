@@ -25,11 +25,13 @@ export default function OfferDetailsPage() {
       const res = await fetch(`/api/frontend/offers/${slug}`);
       const data = await res.json();
       if (data.status) {
-        setOffer(data.data || {});
-        // Since we are mocking items, we'll just fetch all items and assume they belong to the offer for demo parity
-        const itemsRes = await fetch("/api/frontend/items");
-        const itemsData = await itemsRes.json();
-        setItems((itemsData.data || []).slice(0, 4));
+        const offerData = data.data || {};
+        setOffer(offerData);
+        if (offerData._id) {
+          const itemsRes = await fetch(`/api/frontend/items?offerId=${offerData._id}`);
+          const itemsData = await itemsRes.json();
+          setItems(itemsData.data || []);
+        }
       }
     } catch {} finally {
       setLoading(false);
