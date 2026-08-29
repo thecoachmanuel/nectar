@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Undo2 } from "lucide-react";
+import { Undo2, Eye, EyeOff } from "lucide-react";
 
 export default function ChangePasswordPage() {
   const [form, setForm] = useState({
@@ -10,6 +10,7 @@ export default function ChangePasswordPage() {
     password: "",
     password_confirmation: ""
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -43,38 +44,65 @@ export default function ChangePasswordPage() {
               
               <div className="sm:col-span-2">
                 <label htmlFor="old_password" className="block text-sm capitalize mb-1 text-[#6e7191]">Old Password</label>
-                <input 
-                  id="old_password" 
-                  name="old_password"
-                  type="password" 
-                  value={form.old_password}
-                  onChange={handleChange}
-                  className="w-full h-12 text-sm rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-primary transition-colors bg-white"
-                />
+                <div className="relative">
+                  <input 
+                    id="old_password" 
+                    name="old_password"
+                    type={showPassword ? "text" : "password"} 
+                    value={form.old_password}
+                    onChange={handleChange}
+                    className="w-full h-12 text-sm rounded-xl border border-[#eff0f6] pl-4 pr-12 text-[#14142b] focus:outline-none focus:border-primary transition-colors bg-white"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#A0A3BD] hover:text-[#14142B] transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
 
               <div className="sm:col-span-1">
                 <label htmlFor="password" className="block text-sm capitalize mb-1 text-[#6e7191]">New Password</label>
-                <input 
-                  id="password" 
-                  name="password"
-                  type="password" 
-                  value={form.password}
-                  onChange={handleChange}
-                  className="w-full h-12 text-sm rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-primary transition-colors bg-white"
-                />
+                <div className="relative">
+                  <input 
+                    id="password" 
+                    name="password"
+                    type={showPassword ? "text" : "password"} 
+                    value={form.password}
+                    onChange={handleChange}
+                    className="w-full h-12 text-sm rounded-xl border border-[#eff0f6] pl-4 pr-12 text-[#14142b] focus:outline-none focus:border-primary transition-colors bg-white"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#A0A3BD] hover:text-[#14142B] transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
 
               <div className="sm:col-span-1">
                 <label htmlFor="password_confirmation" className="block text-sm capitalize mb-1 text-[#6e7191]">Retype New Password</label>
-                <input 
-                  id="password_confirmation" 
-                  name="password_confirmation"
-                  type="password" 
-                  value={form.password_confirmation}
-                  onChange={handleChange}
-                  className="w-full h-12 text-sm rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-primary transition-colors bg-white"
-                />
+                <div className="relative">
+                  <input 
+                    id="password_confirmation" 
+                    name="password_confirmation"
+                    type={showPassword ? "text" : "password"} 
+                    value={form.password_confirmation}
+                    onChange={handleChange}
+                    className="w-full h-12 text-sm rounded-xl border border-[#eff0f6] pl-4 pr-12 text-[#14142b] focus:outline-none focus:border-primary transition-colors bg-white"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#A0A3BD] hover:text-[#14142B] transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
 
               <div className="sm:col-span-2 mt-4">

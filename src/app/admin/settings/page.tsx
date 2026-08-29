@@ -11,7 +11,9 @@ import {
   ShieldCheck,
   PaintBucket,
   Save,
-  Loader2
+  Loader2,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { useSettingsStore, SettingItem } from "@/store/useSettingsStore";
 import { toast } from "sonner";
@@ -24,6 +26,7 @@ export default function SettingsPage() {
   // Local state to hold form changes before saving
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -263,12 +266,21 @@ export default function SettingsPage() {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Mail Password</label>
-                <input 
-                  type="password" 
-                  value={formData.mail_password || ""} 
-                  onChange={(e) => handleChange("mail_password", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
-                />
+                <div className="relative">
+                  <input 
+                    type={showPassword ? "text" : "password"} 
+                    value={formData.mail_password || ""} 
+                    onChange={(e) => handleChange("mail_password", e.target.value)}
+                    className="w-full h-12 pl-4 pr-12 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#A0A3BD] hover:text-[#14142B] transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Mail From Address</label>
@@ -349,12 +361,21 @@ export default function SettingsPage() {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Paystack Secret Key</label>
-                <input 
-                  type="password" 
-                  value={formData.pay_paystack_secret || ""} 
-                  onChange={(e) => handleChange("pay_paystack_secret", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
-                />
+                <div className="relative">
+                  <input 
+                    type={showPassword ? "text" : "password"} 
+                    value={formData.pay_paystack_secret || ""} 
+                    onChange={(e) => handleChange("pay_paystack_secret", e.target.value)}
+                    className="w-full h-12 pl-4 pr-12 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#A0A3BD] hover:text-[#14142B] transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Enable Paystack</label>
@@ -437,12 +458,21 @@ export default function SettingsPage() {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Twilio Auth Token</label>
-                <input 
-                  type="password" 
-                  value={formData.sms_twilio_token || ""} 
-                  onChange={(e) => handleChange("sms_twilio_token", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
-                />
+                <div className="relative">
+                  <input 
+                    type={showPassword ? "text" : "password"} 
+                    value={formData.sms_twilio_token || ""} 
+                    onChange={(e) => handleChange("sms_twilio_token", e.target.value)}
+                    className="w-full h-12 pl-4 pr-12 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#A0A3BD] hover:text-[#14142B] transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Twilio From Number</label>
@@ -472,12 +502,21 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Firebase Server Key</label>
-                <input 
-                  type="password" 
-                  value={formData.push_firebase_key || ""} 
-                  onChange={(e) => handleChange("push_firebase_key", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
-                />
+                <div className="relative">
+                  <input 
+                    type={showPassword ? "text" : "password"} 
+                    value={formData.push_firebase_key || ""} 
+                    onChange={(e) => handleChange("push_firebase_key", e.target.value)}
+                    className="w-full h-12 pl-4 pr-12 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#A0A3BD] hover:text-[#14142B] transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Firebase Sender ID</label>

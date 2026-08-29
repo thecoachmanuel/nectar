@@ -3,6 +3,7 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 export interface IOffer extends Document {
   title: string;
   slug: string;
+  price?: number;
   image?: string;
   status: boolean;
   createdAt: Date;
@@ -13,6 +14,7 @@ const OfferSchema = new Schema<IOffer>(
   {
     title: { type: String, required: true },
     slug: { type: String, required: true, unique: true },
+    price: { type: Number, default: 0 },
     image: { type: String },
     status: { type: Boolean, default: true },
   },

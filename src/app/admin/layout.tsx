@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/admin/Sidebar";
 import Navbar from "@/components/admin/Navbar";
 import { usePathname, useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/useAuthStore";
 
 function getCookie(name: string) {
   if (typeof document === 'undefined') return null;
@@ -20,8 +21,8 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { user } = useAuthStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,26 +31,15 @@ export default function AdminLayout({
       return;
     }
 
-    let storedUser = localStorage.getItem("user");
-    if (!storedUser) {
+    if (!user) {
+      // Fallback check if state not hydrated yet
       const authStorage = localStorage.getItem("nectar_auth_storage");
-      if (authStorage) {
-        try {
-          const parsed = JSON.parse(authStorage);
-          if (parsed?.state?.user) {
-            storedUser = JSON.stringify(parsed.state.user);
-          }
-        } catch (e) {}
+      if (!authStorage) {
+        router.push("/admin/login");
       }
     }
-
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    } else {
-      router.push("/admin/login");
-    }
     setLoading(false);
-  }, [router, pathname]);
+  }, [router, pathname, user]);
 
   if (pathname === "/admin/login") {
     return <main className="min-h-screen bg-[#f7f7fc]">{children}</main>;

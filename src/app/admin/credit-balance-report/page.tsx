@@ -15,18 +15,25 @@ export default function CreditBalanceReportPage() {
   
   // Filters
   const [balanceStatus, setBalanceStatus] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterName, setFilterName] = useState("");
+  const [filterPhone, setFilterPhone] = useState("");
+
+  // Pagination (Mocked for now, but state can be added)
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     fetchReports();
-  }, [balanceStatus]);
+  }, [balanceStatus, searchTerm, page]);
 
   const fetchReports = async () => {
     setLoading(true);
     try {
-      let url = "/api/admin/credit-balance-report";
-      if (balanceStatus !== "all") {
-        url += `?balanceStatus=${balanceStatus}`;
-      }
+      let url = `/api/admin/credit-balance-report?page=${page}`;
+      if (balanceStatus !== "all") url += `&balanceStatus=${balanceStatus}`;
+      if (searchTerm) url += `&search=${encodeURIComponent(searchTerm)}`;
+      if (filterName) url += `&name=${encodeURIComponent(filterName)}`;
+      if (filterPhone) url += `&phone=${encodeURIComponent(filterPhone)}`;
       const res = await fetch(url);
       const data = await res.json();
       if (data.status) {
@@ -78,6 +85,8 @@ export default function CreditBalanceReportPage() {
             <div className="relative">
               <input 
                 type="text" 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search Customer..." 
                 className="h-10 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-sm focus:outline-none focus:border-primary w-full sm:w-48 transition-colors"
               />
@@ -103,11 +112,11 @@ export default function CreditBalanceReportPage() {
           <div className="p-4 sm:p-6 border-b border-[#EFF0F6] bg-[#FAFAFC] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Customer Name</label>
-              <input type="text" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" />
+              <input type="text" value={filterName} onChange={(e) => setFilterName(e.target.value)} className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Phone</label>
-              <input type="text" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" />
+              <input type="text" value={filterPhone} onChange={(e) => setFilterPhone(e.target.value)} className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Balance Status</label>
@@ -123,7 +132,13 @@ export default function CreditBalanceReportPage() {
             </div>
             <div className="flex items-center gap-3 pt-6">
               <button onClick={fetchReports} className="h-10 px-6 rounded-xl bg-primary text-white text-sm font-medium hover:bg-[#e60060] transition-colors flex-1">Filter</button>
-              <button onClick={() => setBalanceStatus("all")} className="h-10 px-6 rounded-xl bg-gray-600 text-white text-sm font-medium hover:bg-gray-700 transition-colors flex-1">Clear</button>
+              <button onClick={() => {
+                setBalanceStatus("all");
+                setFilterName("");
+                setFilterPhone("");
+                setSearchTerm("");
+                fetchReports(); // Trigger fetch directly since we bypass useEffect deps for some
+              }} className="h-10 px-6 rounded-xl bg-gray-600 text-white text-sm font-medium hover:bg-gray-700 transition-colors flex-1">Clear</button>
             </div>
           </div>
         )}

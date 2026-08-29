@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Modal from "./Modal";
 import { useApi } from "@/hooks/useApi";
+import { Eye, EyeOff } from "lucide-react";
 
 interface UserModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface UserModalProps {
 
 export default function UserModal({ isOpen, onClose, user, role, onSuccess }: UserModalProps) {
   const { execute, loading } = useApi();
+  const [showPassword, setShowPassword] = useState(false);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -108,13 +110,22 @@ export default function UserModal({ isOpen, onClose, user, role, onSuccess }: Us
           <label className="block text-sm font-medium text-[#14142B] mb-1">
             Password {user ? "(Leave blank to keep unchanged)" : <span className="text-red-500">*</span>}
           </label>
-          <input 
-            type="password" 
-            required={!user}
-            value={formData.password}
-            onChange={(e) => setFormData({...formData, password: e.target.value})}
-            className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors"
-          />
+          <div className="relative">
+            <input 
+              type={showPassword ? "text" : "password"} 
+              required={!user}
+              value={formData.password}
+              onChange={(e) => setFormData({...formData, password: e.target.value})}
+              className="w-full h-11 pl-4 pr-12 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors"
+            />
+            <button 
+              type="button" 
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#A0A3BD] hover:text-[#14142B] transition-colors"
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 pt-2">

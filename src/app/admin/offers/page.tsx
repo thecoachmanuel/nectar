@@ -80,6 +80,7 @@ export default function OffersPage() {
               <tr className="bg-[#F7F7FC] border-b border-[#EFF0F6]">
                 <th className="px-6 py-4 text-xs font-bold text-[#6E7191] uppercase tracking-wider">Banner</th>
                 <th className="px-6 py-4 text-xs font-bold text-[#6E7191] uppercase tracking-wider">Title / Slug</th>
+                <th className="px-6 py-4 text-xs font-bold text-[#6E7191] uppercase tracking-wider">Price</th>
                 <th className="px-6 py-4 text-xs font-bold text-[#6E7191] uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-xs font-bold text-[#6E7191] uppercase tracking-wider text-right">Actions</th>
               </tr>
@@ -97,6 +98,9 @@ export default function OffersPage() {
                   <td className="px-6 py-4">
                     <p className="text-sm font-semibold text-[#14142B]">{offer.title}</p>
                     <p className="text-xs text-[#6E7191]">{offer.slug}</p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-sm font-bold text-[#14142B]">₦{offer.price || 0}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
@@ -129,7 +133,7 @@ export default function OffersPage() {
               ))}
               {offers.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-[#6E7191]">
+                  <td colSpan={5} className="px-6 py-12 text-center text-[#6E7191]">
                     No offers found. Create one to get started!
                   </td>
                 </tr>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
-import { Check } from "lucide-react";
+import { Check, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,6 +13,7 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -87,14 +88,23 @@ export default function LoginPage() {
           </div>
           <div className="mb-4">
             <label htmlFor="formPassword" className="block text-sm capitalize mb-1 text-[#14142b]">Password</label>
-            <input 
-              type="password"
-              id="formPassword"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full h-12 rounded-lg border px-4 border-[#D9DBE9] focus:outline-none focus:border-primary transition-all" 
-            />
+            <div className="relative">
+              <input 
+                type={showPassword ? "text" : "password"}
+                id="formPassword"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full h-12 rounded-lg border pl-4 pr-12 border-[#D9DBE9] focus:outline-none focus:border-primary transition-all" 
+              />
+              <button 
+                type="button" 
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#A0A3BD] hover:text-[#14142B] transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
           
           <div className="flex items-center justify-between mb-6">

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { X, ImagePlus, Loader2, MapPin } from "lucide-react";
+import { X, ImagePlus, Loader2, MapPin, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 interface StoreModalProps {
@@ -13,6 +13,7 @@ interface StoreModalProps {
 
 export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: StoreModalProps) {
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const searchBoxRef = useRef<any>(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -29,7 +30,7 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
     password: "",
     taxAmount: 0,
     taxType: "percentage",
-    status: "active",
+    status: true,
     profileImage: "",
     bannerImage: "",
   });
@@ -53,7 +54,7 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
         password: "", // Don't pre-fill password on edit
         taxAmount: storeToEdit.taxAmount || 0,
         taxType: storeToEdit.taxType || "percentage",
-        status: storeToEdit.status || "active",
+        status: storeToEdit.status ?? true,
         profileImage: storeToEdit.profileImage || "",
         bannerImage: storeToEdit.bannerImage || "",
       });
@@ -73,7 +74,7 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
         password: "",
         taxAmount: 0,
         taxType: "percentage",
-        status: "active",
+        status: true,
         profileImage: "",
         bannerImage: "",
       });
@@ -88,10 +89,10 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
     setFetchingCoords(true);
     try {
       // Combine address components to improve search accuracy on Nominatim
-      const queryParts = [formData.address, formData.city, formData.state, formData.zipCode].filter(Boolean);
+      const queryParts = [formData.address, formData.city, formData.state, formData.zipCode, "Nigeria"].filter(Boolean);
       const searchQuery = queryParts.join(", ");
 
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=1`);
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=ng&q=${encodeURIComponent(searchQuery)}&limit=1`);
       const data = await res.json();
       if (data && data.length > 0) {
         setFormData(prev => ({
@@ -218,7 +219,16 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Manager Password {storeToEdit && '(Leave blank to keep)'}</label>
-                <input type="password" required={!storeToEdit} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary" />
+                <div className="relative">
+                  <input type={showPassword ? "text" : "password"} required={!storeToEdit} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="w-full px-3 py-2 pr-10 border rounded-xl outline-none focus:border-primary" />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A0A3BD] hover:text-[#14142B] transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -260,9 +270,9 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Status *</label>
-                <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary">
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
+                <select value={formData.status ? "true" : "false"} onChange={(e) => setFormData({ ...formData, status: e.target.value === "true" })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary">
+                  <option value="true">Active</option>
+                  <option value="false">Inactive</option>
                 </select>
               </div>
             </div>

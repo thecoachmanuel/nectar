@@ -85,16 +85,36 @@ export async function POST(req: Request) {
       let actualStoreId: any = sId;
       
       if (sId === "admin" || sId === "0" || !sId) {
-        actualStoreId = "0";
+        // Fallback to "Nectar Online Groceries" store
+        let defaultStore = await Store.findOne({ name: "Nectar Online Groceries" });
+        if (!defaultStore) {
+          defaultStore = await Store.create({
+            name: "Nectar Online Groceries",
+            email: "contact@nectargroceries.com",
+            phone: "+1234567890",
+            address: "Main Center",
+            status: true,
+            city: "Main City",
+            latitude: 23.8,
+            longitude: 90.3,
+          });
+        }
+        actualStoreId = defaultStore._id.toString();
       } else {
         try {
           const store = await Store.findById(sId);
           if (store) {
             commissionRate = store.commissionRate || 0;
+            actualStoreId = store._id.toString();
+          } else {
+            // fallback if not found
+            let defaultStore = await Store.findOne({ name: "Nectar Online Groceries" });
+            if (defaultStore) actualStoreId = defaultStore._id.toString();
           }
         } catch (e) {
           // invalid ObjectId, fallback to global
-          actualStoreId = "0";
+          let defaultStore = await Store.findOne({ name: "Nectar Online Groceries" });
+          if (defaultStore) actualStoreId = defaultStore._id.toString();
         }
       }
 

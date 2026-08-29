@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -19,6 +20,7 @@ export default function SignupPage() {
     country_code: "+1",
   });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<any>({});
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -126,12 +128,21 @@ export default function SignupPage() {
             {/* Password */}
             <div>
               <label className="block text-sm capitalize mb-1 text-[#14142b]">Password</label>
-              <input 
-                type="password" 
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                className={`w-full h-12 rounded-lg border px-4 focus:outline-none focus:border-primary transition-all ${errors.password ? 'border-red-500' : 'border-[#D9DBE9]'}`}
-              />
+              <div className="relative">
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  className={`w-full h-12 rounded-lg border pl-4 pr-12 focus:outline-none focus:border-primary transition-all ${errors.password ? 'border-red-500' : 'border-[#D9DBE9]'}`}
+                />
+                <button 
+                  type="button" 
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#A0A3BD] hover:text-[#14142B] transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
               {errors.password && <small className="text-red-500 text-xs mt-1 block">{errors.password[0]}</small>}
             </div>
 

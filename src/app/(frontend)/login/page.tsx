@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check } from "lucide-react";
+import { Check, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,6 +12,7 @@ export default function LoginPage() {
     password: ""
   });
   const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -53,14 +54,23 @@ export default function LoginPage() {
           
           <div className="mb-4">
             <label htmlFor="password" className="block text-sm capitalize mb-1 text-[#6e7191]">Password</label>
-            <input 
-              id="password" 
-              name="password"
-              type="password" 
-              value={form.password}
-              onChange={handleChange}
-              className="w-full h-12 rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-primary transition-colors bg-white" 
-            />
+            <div className="relative">
+              <input 
+                id="password" 
+                name="password"
+                type={showPassword ? "text" : "password"} 
+                value={form.password}
+                onChange={handleChange}
+                className="w-full h-12 rounded-xl border border-[#eff0f6] pl-4 pr-12 text-[#14142b] focus:outline-none focus:border-primary transition-colors bg-white" 
+              />
+              <button 
+                type="button" 
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#A0A3BD] hover:text-[#14142B] transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
           
           <div className="flex items-center justify-between mb-6">

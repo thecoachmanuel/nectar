@@ -60,6 +60,13 @@ export async function POST(req: Request) {
         );
       }
 
+      if (user.role === "admin") {
+        return NextResponse.json(
+          { status: false, message: "Admin login is restricted to environment credentials." },
+          { status: 403 }
+        );
+      }
+
       if (!user.status) {
         return NextResponse.json(
           { status: false, message: "Your account has been deactivated" },
@@ -99,6 +106,7 @@ export async function POST(req: Request) {
         storeId: user.storeId,
         addresses: user.addresses,
         permissions: user.permissions,
+        image: user.image,
       },
     });
     

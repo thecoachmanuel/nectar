@@ -251,18 +251,21 @@ export async function GET() {
       {
         title: "Buy 1 Get 1 Free on all Burgers",
         slug: "buy-1-get-1-free-burgers",
+        price: 5000,
         image: "/images/seeder/offer/bogo-burger.png",
         status: true
       },
       {
         title: "20% Off your First Order",
         slug: "20-percent-off-first-order",
+        price: 2000,
         image: "/images/seeder/offer/20-off.png",
         status: true
       },
       {
         title: "Free Delivery on Orders over ₦15,000",
         slug: "free-delivery-over-15000",
+        price: 1500,
         image: "/images/seeder/offer/free-delivery.png",
         status: true
       }

@@ -15,6 +15,7 @@ export default function OfferModal({ isOpen, onClose, offer, onSuccess }: OfferM
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
+    price: 0,
     status: true,
     image: "",
   });
@@ -26,6 +27,7 @@ export default function OfferModal({ isOpen, onClose, offer, onSuccess }: OfferM
       setFormData({
         title: offer.title || "",
         slug: offer.slug || "",
+        price: offer.price || 0,
         status: offer.status ?? true,
         image: offer.image || "",
       });
@@ -33,6 +35,7 @@ export default function OfferModal({ isOpen, onClose, offer, onSuccess }: OfferM
       setFormData({
         title: "",
         slug: "",
+        price: 0,
         status: true,
         image: "",
       });
@@ -87,6 +90,19 @@ export default function OfferModal({ isOpen, onClose, offer, onSuccess }: OfferM
             value={formData.slug}
             onChange={(e) => setFormData({...formData, slug: e.target.value})}
             placeholder="Auto-generated if left empty"
+            className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-[#14142B] mb-1">Price (₦) <span className="text-red-500">*</span></label>
+          <input 
+            type="number" 
+            required
+            min="0"
+            step="0.01"
+            value={formData.price}
+            onChange={(e) => setFormData({...formData, price: Number(e.target.value)})}
             className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors"
           />
         </div>
