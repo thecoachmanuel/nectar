@@ -108,11 +108,11 @@ export default function DynamicPage() {
             <ul className="flex flex-col gap-2">
               <li className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-[#6e7191]" />
-                <span className="text-sm leading-6 text-[#14142b]">{settings.company_email || "support@example.com"}</span>
+                <span className="text-sm leading-6 text-[#14142b]">{settings.company_email || settings.contactEmail || "info@nectar.com"}</span>
               </li>
               <li className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-[#6e7191]" />
-                <span className="text-sm font-medium leading-6 text-[#14142b]">{settings.company_phone || "+1234567890"}</span>
+                <span className="text-sm font-medium leading-6 text-[#14142b]">{settings.company_phone || settings.contactPhone || "+1 800 123 4567"}</span>
               </li>
             </ul>
           </div>

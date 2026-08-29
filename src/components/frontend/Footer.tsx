@@ -35,8 +35,8 @@ export default function Footer() {
   const [email, setEmail] = useState("");
   const { settings } = useSettingsStore();
 
-  const contactEmail = settings?.contactEmail || "info@nectar.com";
-  const contactPhone = settings?.contactPhone || "+1 800 123 4567";
+  const contactEmail = settings?.company_email || settings?.contactEmail || "info@nectar.com";
+  const contactPhone = settings?.company_phone || settings?.contactPhone || "+1 800 123 4567";
   const facebookUrl = settings?.facebookUrl || "#";
   const twitterUrl = settings?.twitterUrl || "#";
   const instagramUrl = settings?.instagramUrl || "#";

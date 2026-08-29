@@ -68,6 +68,14 @@ export default function SettingsPage() {
       
       // If we are modifying everything at once, we just send settingsToUpdate.
       // Let's send the specific ones that changed. For now, sending all mapped.
+      // Also sync alias keys contactEmail and contactPhone if company_email / company_phone are present
+      if (formData.company_email) {
+        settingsToUpdate.push({ key: "contactEmail", group: "Company", payload: formData.company_email });
+      }
+      if (formData.company_phone) {
+        settingsToUpdate.push({ key: "contactPhone", group: "Company", payload: formData.company_phone });
+      }
+
       await updateSettings(settingsToUpdate);
       toast.success(`${activeTab} Settings saved successfully!`);
     } catch (error: any) {
