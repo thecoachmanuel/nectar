@@ -62,7 +62,10 @@ export default function AdminProfilePage() {
             body: { image: data.url },
             successMessage: "Avatar uploaded successfully!",
           });
-          if (updatedUser) updateUser(updatedUser);
+          if (updatedUser) {
+            updateUser(updatedUser);
+            localStorage.setItem("user", JSON.stringify({ ...user, ...updatedUser }));
+          }
         }
       } catch (err) {
         console.error(err);
@@ -87,6 +90,7 @@ export default function AdminProfilePage() {
       });
       if (data) {
         updateUser(data);
+        localStorage.setItem("user", JSON.stringify({ ...user, ...data }));
       }
     } catch (err) {}
   };
@@ -133,7 +137,7 @@ export default function AdminProfilePage() {
                 {uploadingAvatar ? (
                    <span className="w-8 h-8 border-4 border-primary/40 border-t-[#ff006b] rounded-full animate-spin"></span>
                 ) : (
-                   <img src={user?.image || "/images/default/user.png"} alt="Profile" className="w-full h-full object-cover" />
+                   <img src={user?.image || "/images/default/admin.png"} alt="Profile" className="w-full h-full object-cover" />
                 )}
               </div>
               <label className="absolute bottom-0 right-0 w-10 h-10 bg-primary rounded-full text-white flex items-center justify-center border-2 border-white shadow-md hover:bg-[#e60060] transition-colors cursor-pointer">

@@ -55,7 +55,7 @@ export async function PUT(
               $inc: { walletBalance: order.deliveryCharge || 0 }
             });
           }
-          if (order.storeId && order.storeId !== 0 && order.storeId !== "0") {
+          if (order.storeId && String(order.storeId) !== "0") {
             const storeEarnings = (order.totalAmount || 0) - (order.commissionAmount || 0) - (order.deliveryCharge || 0);
             await Store.findByIdAndUpdate(order.storeId, {
               $inc: { walletBalance: storeEarnings }
