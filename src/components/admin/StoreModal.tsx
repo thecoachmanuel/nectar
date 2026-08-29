@@ -33,6 +33,16 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
     status: true,
     profileImage: "",
     bannerImage: "",
+    estimatedDeliveryTime: "30-45 mins",
+    timeSlots: [
+      { day: "Monday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
+      { day: "Tuesday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
+      { day: "Wednesday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
+      { day: "Thursday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
+      { day: "Friday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
+      { day: "Saturday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
+      { day: "Sunday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
+    ]
   });
 
   const [fetchingCoords, setFetchingCoords] = useState(false);
@@ -57,6 +67,16 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
         status: storeToEdit.status ?? true,
         profileImage: storeToEdit.profileImage || "",
         bannerImage: storeToEdit.bannerImage || "",
+        estimatedDeliveryTime: storeToEdit.estimatedDeliveryTime || "30-45 mins",
+        timeSlots: storeToEdit.timeSlots?.length > 0 ? storeToEdit.timeSlots : [
+          { day: "Monday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
+          { day: "Tuesday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
+          { day: "Wednesday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
+          { day: "Thursday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
+          { day: "Friday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
+          { day: "Saturday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
+          { day: "Sunday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
+        ]
       });
     } else {
       setFormData({
@@ -77,6 +97,16 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
         status: true,
         profileImage: "",
         bannerImage: "",
+        estimatedDeliveryTime: "30-45 mins",
+        timeSlots: [
+          { day: "Monday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
+          { day: "Tuesday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
+          { day: "Wednesday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
+          { day: "Thursday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
+          { day: "Friday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
+          { day: "Saturday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
+          { day: "Sunday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
+        ]
       });
     }
   }, [storeToEdit, isOpen]);
@@ -259,10 +289,14 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
             </div>
 
             {/* Configs */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Delivery Radius (km)</label>
                 <input type="number" value={formData.deliveryRadius} onChange={(e) => setFormData({ ...formData, deliveryRadius: Number(e.target.value) })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Est. Delivery Time</label>
+                <input type="text" placeholder="e.g. 30-45 mins" value={formData.estimatedDeliveryTime} onChange={(e) => setFormData({ ...formData, estimatedDeliveryTime: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Admin Commission (%)</label>
@@ -274,6 +308,60 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
                   <option value="true">Active</option>
                   <option value="false">Inactive</option>
                 </select>
+              </div>
+            </div>
+
+            {/* Time Slots */}
+            <div className="border border-[#EFF0F6] rounded-xl overflow-hidden mt-4">
+              <div className="bg-[#F7F7FC] px-4 py-3 border-b border-[#EFF0F6]">
+                <h3 className="font-semibold text-[#14142B] text-sm">Opening Hours</h3>
+              </div>
+              <div className="p-4 space-y-3 max-h-[300px] overflow-y-auto">
+                {formData.timeSlots.map((slot, idx) => (
+                  <div key={slot.day} className="flex items-center gap-3">
+                    <div className="w-24 shrink-0 text-sm font-medium text-[#14142B]">{slot.day}</div>
+                    
+                    <div className="flex-1 flex items-center gap-2">
+                      <input 
+                        type="time" 
+                        disabled={slot.isClosed}
+                        value={slot.openingTime}
+                        onChange={(e) => {
+                          const newSlots = [...formData.timeSlots];
+                          newSlots[idx].openingTime = e.target.value;
+                          setFormData({ ...formData, timeSlots: newSlots });
+                        }}
+                        className="w-full px-2 py-1.5 border rounded-lg text-sm outline-none disabled:opacity-50"
+                      />
+                      <span className="text-[#6E7191] text-xs">to</span>
+                      <input 
+                        type="time" 
+                        disabled={slot.isClosed}
+                        value={slot.closingTime}
+                        onChange={(e) => {
+                          const newSlots = [...formData.timeSlots];
+                          newSlots[idx].closingTime = e.target.value;
+                          setFormData({ ...formData, timeSlots: newSlots });
+                        }}
+                        className="w-full px-2 py-1.5 border rounded-lg text-sm outline-none disabled:opacity-50"
+                      />
+                    </div>
+
+                    <label className="flex items-center gap-2 cursor-pointer shrink-0 w-24 justify-end">
+                      <input 
+                        type="checkbox" 
+                        checked={slot.isClosed}
+                        onChange={(e) => {
+                          const newSlots = [...formData.timeSlots];
+                          newSlots[idx].isClosed = e.target.checked;
+                          setFormData({ ...formData, timeSlots: newSlots });
+                        }}
+                        className="w-4 h-4 rounded text-primary focus:ring-primary"
+                      />
+                      <span className="text-sm font-medium text-[#6E7191]">Closed</span>
+                    </label>
+                  </div>
+                ))}
               </div>
             </div>
           </form>

@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { MessageCircle, Send, Loader2 } from "lucide-react";
+import { MessageCircle, Send, Loader2, Undo2 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
+import Link from "next/link";
 
 export default function ChatPage() {
   const { user, token } = useAuthStore();
@@ -85,7 +86,13 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] overflow-hidden flex flex-col h-[600px] max-h-[80vh]">
+    <section className="pt-7 pb-16 bg-[#f7f7fc] min-h-screen">
+      <div className="container mx-auto px-4 max-w-4xl">
+        <Link href="/" className="mb-3 inline-flex items-center gap-2 text-primary hover:text-rose-600 transition-colors">
+          <Undo2 className="w-4 h-4" />
+          <span className="text-xs font-medium leading-6">Back to home</span>
+        </Link>
+        <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] overflow-hidden flex flex-col h-[calc(100vh-140px)] max-h-[800px]">
       {/* Header */}
       <div className="p-4 sm:p-5 border-b border-[#EFF0F6] flex items-center gap-3 bg-[#FAFAFC]">
         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
@@ -147,6 +154,8 @@ export default function ChatPage() {
           </button>
         </form>
       </div>
-    </div>
+      </div>
+      </div>
+    </section>
   );
 }

@@ -97,7 +97,15 @@ export default function OrderStatusPage() {
                   <h4 className="text-xl font-medium text-center mb-6 text-[#14142b]">30 min</h4>
                   
                   <img src="/images/default/order-preparing.gif" alt="Order Status" className="h-32 mx-auto mb-4 object-contain opacity-80" />
-                  <h5 className="text-xs font-normal text-center mb-8 text-[#6e7191]">The chef is preparing your food</h5>
+                  <h5 className="text-xs font-normal text-center mb-8 text-[#6e7191]">
+                    {order.status === "PENDING" ? "Your order is pending confirmation" :
+                     order.status === "ACCEPT" ? "Your order has been accepted" :
+                     order.status === "PREPARING" ? "Your order is being prepared" :
+                     order.status === "PREPARED" ? "Your order is ready" :
+                     order.status === "OUT_FOR_DELIVERY" ? "Your order is on the way" :
+                     order.status === "DELIVERED" ? "Your order has been delivered" :
+                     "Your order is processing"}
+                  </h5>
 
                   <div className="px-4">
                     <ul className="flex items-center justify-between mx-2 mb-[70px] relative before:absolute before:top-2 before:left-0 before:w-full before:h-1 before:bg-primary/20">

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import ItemModal from "@/components/frontend/ItemModal";
 import { useSettingStore } from "@/store/useSettingStore";
-import { Search, Plus, Star, Leaf, Drumstick, Tag, MapPin, ChevronLeft, ChevronRight, Loader2, ArrowRight } from "lucide-react";
+import { Search, Plus, Star, Leaf, Drumstick, Tag, MapPin, ChevronLeft, ChevronRight, Loader2, ArrowRight, Clock } from "lucide-react";
 
 export default function HomePage() {
   const { menuViewMode } = useSettingStore();
@@ -225,7 +225,7 @@ export default function HomePage() {
               <div ref={storeScrollRef}
                 className="flex gap-4 overflow-x-auto pb-2 scrollbar-none px-10 menu-slides">
                 {stores.map(store => (
-                  <div key={store._id}
+                  <Link href={`/store/${store._id}`} key={store._id}
                     className="flex-shrink-0 flex flex-col gap-2 p-3 rounded-2xl border bg-white border-[#eff0f6] w-[200px] sm:w-[240px] shadow-sm hover:shadow-md transition-shadow group cursor-pointer relative overflow-hidden">
                     <div className="relative w-full h-28 sm:h-32 rounded-xl overflow-hidden">
                       <img src={store.bannerImage || store.profileImage || "/images/default/store.png"} alt={store.name}
@@ -237,15 +237,24 @@ export default function HomePage() {
                           Closed
                         </div>
                       )}
+                      {store.distance !== undefined && store.distance !== Infinity && (
+                        <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-sm text-white text-[10px] font-medium px-2 py-1 rounded-md">
+                          {store.distance.toFixed(1)} km
+                        </div>
+                      )}
                     </div>
                     <div className="px-1 pb-1">
                       <h4 className="text-sm font-bold text-[#14142b] truncate group-hover:text-primary transition-colors">{store.name}</h4>
+                      <div className="flex items-center gap-1 mt-1 text-[#6e7191]">
+                        <Clock className="w-3 h-3" />
+                        <p className="text-[11px] font-medium">{store.estimatedDeliveryTime || "30-45 mins"}</p>
+                      </div>
                       <div className="flex items-center gap-1 mt-1 text-[#6e7191]">
                         <MapPin className="w-3 h-3" />
                         <p className="text-[11px] line-clamp-1">{store.address}</p>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
               <button onClick={() => scrollStores("right")}

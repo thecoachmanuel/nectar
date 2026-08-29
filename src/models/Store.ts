@@ -24,6 +24,8 @@ export interface IStore extends Document {
   };
   profileImage?: string;
   bannerImage?: string;
+  estimatedDeliveryTime?: string;
+  walletBalance: number;
   commissionRate: number;
   deliveryRadius: number;
   password?: string;
@@ -52,13 +54,15 @@ const StoreSchema = new Schema<IStore>(
     zipCode: { type: String },
     status: { type: Boolean, default: true },
     zone: {
-      type: { type: String, default: "Polygon" },
+      type: { type: String, enum: ["Polygon"], default: "Polygon" },
       coordinates: { type: [[[Number]]], default: [] },
     },
     profileImage: { type: String },
     bannerImage: { type: String },
+    estimatedDeliveryTime: { type: String, default: "30-45 mins" },
+    walletBalance: { type: Number, default: 0 },
     commissionRate: { type: Number, default: 0 },
-    deliveryRadius: { type: Number, default: 5 },
+    deliveryRadius: { type: Number, default: 10 },
     password: { type: String },
     timeSlots: [TimeSlotSchema],
   },

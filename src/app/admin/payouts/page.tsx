@@ -51,6 +51,25 @@ export default function PayoutsPage() {
     }
   };
 
+  const handleUpdateStatus = async (id: string, status: string) => {
+    try {
+      const res = await fetch(`/api/admin/payouts/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json();
+      if (data.status) {
+        toast.success(`Payout ${status}`);
+        fetchPayouts();
+      } else {
+        toast.error(data.message);
+      }
+    } catch (err) {
+      toast.error(`Failed to ${status} payout`);
+    }
+  };
+
   if (loading) return <div className="flex justify-center p-10"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
 
   const isAdmin = user?.role === "admin";
@@ -101,8 +120,8 @@ export default function PayoutsPage() {
                     <td className="px-6 py-4">
                       {p.status === "pending" && (
                         <div className="flex gap-2">
-                          <button className="text-green-500 hover:bg-green-50 px-2 py-1 rounded text-xs font-bold">Approve</button>
-                          <button className="text-red-500 hover:bg-red-50 px-2 py-1 rounded text-xs font-bold">Reject</button>
+                          <button onClick={() => handleUpdateStatus(p._id, "approved")} className="text-green-500 hover:bg-green-50 px-2 py-1 rounded text-xs font-bold">Approve</button>
+                          <button onClick={() => handleUpdateStatus(p._id, "rejected")} className="text-red-500 hover:bg-red-50 px-2 py-1 rounded text-xs font-bold">Reject</button>
                         </div>
                       )}
                     </td>

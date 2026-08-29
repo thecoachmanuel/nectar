@@ -21,6 +21,8 @@ export default function UserModal({ isOpen, onClose, user, role, onSuccess }: Us
     phone: "",
     password: "",
     status: true,
+    deliveryCommissionType: "fixed",
+    deliveryCommissionValue: 0,
   });
 
   useEffect(() => {
@@ -31,6 +33,8 @@ export default function UserModal({ isOpen, onClose, user, role, onSuccess }: Us
         phone: user.phone || "",
         password: "", // Don't populate password on edit
         status: user.status ?? true,
+        deliveryCommissionType: user.deliveryCommissionType || "fixed",
+        deliveryCommissionValue: user.deliveryCommissionValue || 0,
       });
     } else {
       setFormData({
@@ -39,6 +43,8 @@ export default function UserModal({ isOpen, onClose, user, role, onSuccess }: Us
         phone: "",
         password: "",
         status: true,
+        deliveryCommissionType: "fixed",
+        deliveryCommissionValue: 0,
       });
     }
   }, [user, isOpen]);
@@ -140,6 +146,31 @@ export default function UserModal({ isOpen, onClose, user, role, onSuccess }: Us
             Active Account
           </label>
         </div>
+
+        {role === "delivery_boy" && (
+          <div className="grid grid-cols-2 gap-4 mt-2">
+            <div>
+              <label className="block text-sm font-medium text-[#14142B] mb-1">Commission Type</label>
+              <select 
+                value={formData.deliveryCommissionType}
+                onChange={(e) => setFormData({...formData, deliveryCommissionType: e.target.value})}
+                className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors bg-white"
+              >
+                <option value="fixed">Fixed (₦)</option>
+                <option value="percentage">Percentage (%)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#14142B] mb-1">Value</label>
+              <input 
+                type="number" 
+                value={formData.deliveryCommissionValue}
+                onChange={(e) => setFormData({...formData, deliveryCommissionValue: Number(e.target.value)})}
+                className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors"
+              />
+            </div>
+          </div>
+        )}
 
         <div className="pt-4 border-t border-[#EFF0F6] flex justify-end gap-3 mt-6">
           <button 

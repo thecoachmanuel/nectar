@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Order from "@/models/Order";
 import User from "@/models/User";
+import Store from "@/models/Store";
 import { sendSMS } from "@/lib/sms";
 import { sendPushNotification } from "@/lib/push";
 
@@ -45,6 +46,24 @@ export async function PUT(
         }
       } catch (err) {
         console.error("Failed to send order notifications", err);
+      }
+
+      if (body.orderStatus === "delivered") {
+        try {
+          if (order.deliveryBoyId) {
+            await User.findByIdAndUpdate(order.deliveryBoyId, {
+              $inc: { walletBalance: order.deliveryCharge || 0 }
+            });
+          }
+          if (order.storeId && order.storeId !== 0 && order.storeId !== "0") {
+            const storeEarnings = (order.totalAmount || 0) - (order.commissionAmount || 0) - (order.deliveryCharge || 0);
+            await Store.findByIdAndUpdate(order.storeId, {
+              $inc: { walletBalance: storeEarnings }
+            });
+          }
+        } catch (walletErr) {
+          console.error("Failed to update wallet balances", walletErr);
+        }
       }
     }
 

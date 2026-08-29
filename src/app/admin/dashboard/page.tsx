@@ -22,8 +22,12 @@ const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) setUser(JSON.parse(storedUser));
+    
     const fetchDashboard = async () => {
       try {
         const res = await fetch("/api/admin/dashboard");
@@ -73,51 +77,78 @@ export default function AdminDashboardPage() {
       {/* Greeting */}
       <div className="mb-8">
         <h3 className="font-semibold text-[26px] leading-10 capitalize text-primary">{getGreeting()}</h3>
-        <h4 className="font-medium text-[22px] leading-[34px] capitalize text-[#14142B]">Admin</h4>
+        <h4 className="font-medium text-[22px] leading-[34px] capitalize text-[#14142B]">{user?.name || "Admin"}</h4>
       </div>
 
       {/* Overview Cards */}
       <div className="mb-9">
         <h4 className="font-semibold text-[22px] leading-[34px] mb-3 capitalize text-[#14142B]">Overview</h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           
-          <div className="p-4 rounded-2xl flex items-center gap-4 bg-[#FF4F99] shadow-md shadow-[#FF4F99]/20">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-white shrink-0">
-              <ShoppingBag className="w-6 h-6 text-[#FF4F99]" />
+          <div className="p-4 rounded-2xl flex items-center gap-3 bg-[#FF4F99] shadow-md shadow-[#FF4F99]/20">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white shrink-0">
+              <ShoppingBag className="w-5 h-5 text-[#FF4F99]" />
+            </div>
+            {user?.role === "store_manager" ? (
+              <div>
+                <h3 className="font-medium text-white text-[11px] uppercase tracking-wide">Net Earnings</h3>
+                <h4 className="font-semibold text-lg text-white">₦{dashboardData?.storeManagerEarnings?.toLocaleString() || 0}</h4>
+              </div>
+            ) : (
+              <div>
+                <h3 className="font-medium text-white text-[11px] uppercase tracking-wide">Total Revenue</h3>
+                <h4 className="font-semibold text-lg text-white">₦{dashboardData?.totalSales?.toLocaleString() || 0}</h4>
+              </div>
+            )}
+          </div>
+
+          <div className="p-4 rounded-2xl flex items-center gap-3 bg-[#00D09C] shadow-md shadow-[#00D09C]/20">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white shrink-0">
+              <Truck className="w-5 h-5 text-[#00D09C]" />
             </div>
             <div>
-              <h3 className="font-medium text-white text-sm">Total Sales</h3>
-              <h4 className="font-semibold text-[22px] leading-[34px] text-white">₦{dashboardData?.totalSales?.toLocaleString() || 0}</h4>
+              <h3 className="font-medium text-white text-[11px] uppercase tracking-wide">Delivery Fees</h3>
+              <h4 className="font-semibold text-lg text-white">₦{dashboardData?.totalDeliveryCharges?.toLocaleString() || 0}</h4>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-2xl flex items-center gap-3 bg-[#FFA500] shadow-md shadow-[#FFA500]/20">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white shrink-0">
+              <CheckCircle className="w-5 h-5 text-[#FFA500]" />
+            </div>
+            <div>
+              <h3 className="font-medium text-white text-[11px] uppercase tracking-wide">Commission</h3>
+              <h4 className="font-semibold text-lg text-white">₦{dashboardData?.totalCommission?.toLocaleString() || 0}</h4>
             </div>
           </div>
           
-          <div className="p-4 rounded-2xl flex items-center gap-4 bg-[#8262FE] shadow-md shadow-[#8262FE]/20">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-white shrink-0">
-              <ShoppingCart className="w-6 h-6 text-[#8262FE]" />
+          <div className="p-4 rounded-2xl flex items-center gap-3 bg-[#8262FE] shadow-md shadow-[#8262FE]/20">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white shrink-0">
+              <ShoppingCart className="w-5 h-5 text-[#8262FE]" />
             </div>
             <div>
-              <h3 className="font-medium text-white text-sm">Total Orders</h3>
-              <h4 className="font-semibold text-[22px] leading-[34px] text-white">{dashboardData?.totalOrders || 0}</h4>
+              <h3 className="font-medium text-white text-[11px] uppercase tracking-wide">Total Orders</h3>
+              <h4 className="font-semibold text-lg text-white">{dashboardData?.totalOrders || 0}</h4>
             </div>
           </div>
           
-          <div className="p-4 rounded-2xl flex items-center gap-4 bg-[#567DFF] shadow-md shadow-[#567DFF]/20">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-white shrink-0">
-              <Users className="w-6 h-6 text-[#567DFF]" />
+          <div className="p-4 rounded-2xl flex items-center gap-3 bg-[#567DFF] shadow-md shadow-[#567DFF]/20">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white shrink-0">
+              <Users className="w-5 h-5 text-[#567DFF]" />
             </div>
             <div>
-              <h3 className="font-medium text-white text-sm">Total Customers</h3>
-              <h4 className="font-semibold text-[22px] leading-[34px] text-white">{dashboardData?.totalCustomers || 0}</h4>
+              <h3 className="font-medium text-white text-[11px] uppercase tracking-wide">Total Customers</h3>
+              <h4 className="font-semibold text-lg text-white">{dashboardData?.totalCustomers || 0}</h4>
             </div>
           </div>
           
-          <div className="p-4 rounded-2xl flex items-center gap-4 bg-[#A953FF] shadow-md shadow-[#A953FF]/20">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-white shrink-0">
-              <Utensils className="w-6 h-6 text-[#A953FF]" />
+          <div className="p-4 rounded-2xl flex items-center gap-3 bg-[#A953FF] shadow-md shadow-[#A953FF]/20">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white shrink-0">
+              <Utensils className="w-5 h-5 text-[#A953FF]" />
             </div>
             <div>
-              <h3 className="font-medium text-white text-sm">Total Menu Items</h3>
-              <h4 className="font-semibold text-[22px] leading-[34px] text-white">{dashboardData?.totalItems || 0}</h4>
+              <h3 className="font-medium text-white text-[11px] uppercase tracking-wide">Menu Items</h3>
+              <h4 className="font-semibold text-lg text-white">{dashboardData?.totalItems || 0}</h4>
             </div>
           </div>
 

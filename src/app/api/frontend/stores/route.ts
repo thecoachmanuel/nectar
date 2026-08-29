@@ -47,12 +47,13 @@ export async function GET(req: Request) {
       const latitude = parseFloat(lat);
       const longitude = parseFloat(lng);
 
-      // Sort by haversine distance
-      stores = stores.sort((a, b) => {
-        const distA = a.latitude !== undefined && a.longitude !== undefined ? haversineDistance(latitude, longitude, a.latitude, a.longitude) : Infinity;
-        const distB = b.latitude !== undefined && b.longitude !== undefined ? haversineDistance(latitude, longitude, b.latitude, b.longitude) : Infinity;
-        return distA - distB;
-      });
+      // Sort by haversine distance and map distance property
+      stores = stores.map((store: any) => {
+        const dist = store.latitude !== undefined && store.longitude !== undefined 
+          ? haversineDistance(latitude, longitude, store.latitude, store.longitude) 
+          : Infinity;
+        return { ...store, distance: dist };
+      }).sort((a: any, b: any) => a.distance - b.distance);
 
       // Find if location falls inside any store zone polygon (optional context)
       let matchedStore = null;

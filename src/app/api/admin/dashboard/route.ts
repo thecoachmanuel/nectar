@@ -46,18 +46,21 @@ export async function GET() {
       ])
     ]);
 
-    const totalSales = orders.reduce((sum, order: any) => sum + (order.subtotal || 0) + (order.taxAmount || 0) + (order.deliveryCharge || 0) - (order.discount || order.couponDiscount || 0), 0);
+    const totalSales = orders.reduce((sum, order: any) => sum + (order.totalAmount || 0), 0);
+    const totalCommission = orders.reduce((sum, order: any) => sum + (order.commissionAmount || 0), 0);
+    const totalDeliveryCharges = orders.reduce((sum, order: any) => sum + (order.deliveryCharge || 0), 0);
+    const storeManagerEarnings = totalSales - totalCommission - totalDeliveryCharges;
 
     const orderStats = {
-      pending: orders.filter(o => (o as any).status === "pending").length,
-      accept: orders.filter(o => (o as any).status === "accept").length,
-      preparing: orders.filter(o => (o as any).status === "preparing").length,
-      prepared: orders.filter(o => (o as any).status === "prepared").length,
-      out_for_delivery: orders.filter(o => (o as any).status === "out_for_delivery").length,
-      delivered: orders.filter(o => (o as any).status === "delivered").length,
-      canceled: orders.filter(o => (o as any).status === "canceled").length,
-      returned: orders.filter(o => (o as any).status === "returned").length,
-      rejected: orders.filter(o => (o as any).status === "rejected").length,
+      pending: orders.filter(o => (o as any).orderStatus === "pending").length,
+      accept: orders.filter(o => (o as any).orderStatus === "accepted").length,
+      preparing: orders.filter(o => (o as any).orderStatus === "preparing").length,
+      ready: orders.filter(o => (o as any).orderStatus === "ready").length,
+      out_for_delivery: orders.filter(o => (o as any).orderStatus === "out_for_delivery").length,
+      delivered: orders.filter(o => (o as any).orderStatus === "delivered").length,
+      canceled: orders.filter(o => (o as any).orderStatus === "canceled").length,
+      returned: orders.filter(o => (o as any).orderStatus === "returned").length,
+      rejected: orders.filter(o => (o as any).orderStatus === "rejected").length,
     };
 
     return NextResponse.json({
@@ -65,6 +68,9 @@ export async function GET() {
       data: {
         totalOrders,
         totalSales,
+        totalCommission,
+        totalDeliveryCharges,
+        storeManagerEarnings,
         totalCustomers,
         totalItems,
         orderStats,
