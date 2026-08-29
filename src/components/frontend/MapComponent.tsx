@@ -12,7 +12,7 @@ const defaultCenter = { lat: 40.7128, lng: -74.0060 }; // New York fallback
 interface MapComponentProps {
   initialLat?: number;
   initialLng?: number;
-  onLocationSelect: (lat: number, lng: number, address: string) => void;
+  onLocationSelect: (lat: number, lng: number, address: string, isFromAutocomplete?: boolean) => void;
 }
 
 export default function MapComponent({ initialLat, initialLng, onLocationSelect }: MapComponentProps) {
@@ -100,7 +100,7 @@ export default function MapComponent({ initialLat, initialLng, onLocationSelect 
         mapRef.current?.panTo(newPos);
         mapRef.current?.setZoom(16);
         if (place.formatted_address) {
-          onLocationSelect(lat, lng, place.formatted_address);
+          onLocationSelect(lat, lng, place.formatted_address, true);
         }
       }
     }

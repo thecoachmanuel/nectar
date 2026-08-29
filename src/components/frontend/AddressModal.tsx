@@ -9,28 +9,44 @@ interface AddressModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (address: {
+    _id?: string;
     label: string;
     address: string;
     apartment?: string;
     latitude?: number;
     longitude?: number;
   }) => void;
+  initialData?: any;
 }
 
-export default function AddressModal({ isOpen, onClose, onSave }: AddressModalProps) {
-  const [label, setLabel] = useState("Home");
-  const [address, setAddress] = useState("");
-  const [apartment, setApartment] = useState("");
-  const [latitude, setLatitude] = useState<number | undefined>(undefined);
-  const [longitude, setLongitude] = useState<number | undefined>(undefined);
+export default function AddressModal({ isOpen, onClose, onSave, initialData }: AddressModalProps) {
+  const [label, setLabel] = useState(initialData?.label || "Home");
+  const [address, setAddress] = useState(initialData?.address || "");
+  const [apartment, setApartment] = useState(initialData?.apartment || "");
+  const [latitude, setLatitude] = useState<number | undefined>(initialData?.latitude || undefined);
+  const [longitude, setLongitude] = useState<number | undefined>(initialData?.longitude || undefined);
+  const [addressTouched, setAddressTouched] = useState(false);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setLabel(initialData?.label || "Home");
+      setAddress(initialData?.address || "");
+      setApartment(initialData?.apartment || "");
+      setLatitude(initialData?.latitude || undefined);
+      setLongitude(initialData?.longitude || undefined);
+      setAddressTouched(false);
+    }
+  }, [isOpen, initialData]);
 
   if (!isOpen) return null;
 
-  const handleLocationSelect = (lat: number, lng: number, addr: string) => {
+  const handleLocationSelect = (lat: number, lng: number, addr: string, isFromAutocomplete?: boolean) => {
     setLatitude(lat);
     setLongitude(lng);
     if (addr) {
-      setAddress(addr);
+      if (isFromAutocomplete || (!addressTouched && !initialData)) {
+        setAddress(addr);
+      }
     }
   };
 
@@ -42,6 +58,7 @@ export default function AddressModal({ isOpen, onClose, onSave }: AddressModalPr
     }
 
     onSave({
+      _id: initialData?._id,
       label,
       address,
       apartment,
@@ -57,7 +74,7 @@ export default function AddressModal({ isOpen, onClose, onSave }: AddressModalPr
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
       <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 space-y-5">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h3 className="text-lg font-bold text-slate-800">Add New Delivery Address</h3>
+          <h3 className="text-lg font-bold text-slate-800">{initialData ? "Edit Address" : "Add New Delivery Address"}</h3>
           <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg">
             <X className="w-5 h-5" />
           </button>
@@ -97,7 +114,10 @@ export default function AddressModal({ isOpen, onClose, onSave }: AddressModalPr
               required
               placeholder="e.g. 123 Main Street, Suite 4B"
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={(e) => {
+                setAddress(e.target.value);
+                setAddressTouched(true);
+              }}
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
             />
           </div>

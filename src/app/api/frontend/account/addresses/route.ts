@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     if (!userId) return NextResponse.json({ status: false, message: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();
-    const { label, address, apartment, latitude, longitude } = body;
+    const { _id, label, address, apartment, latitude, longitude } = body;
 
     if (!address) {
       return NextResponse.json({ status: false, message: "Address is required" }, { status: 400 });
@@ -51,10 +51,25 @@ export async function POST(req: Request) {
     if (!user) return NextResponse.json({ status: false, message: "User not found" }, { status: 404 });
 
     const newAddress = { label, address, apartment, latitude, longitude };
-    user.addresses.push(newAddress);
+    
+    if (_id) {
+      const addressIndex = user.addresses.findIndex((a: any) => a._id.toString() === _id);
+      if (addressIndex > -1) {
+        user.addresses[addressIndex].label = label;
+        user.addresses[addressIndex].address = address;
+        user.addresses[addressIndex].apartment = apartment;
+        user.addresses[addressIndex].latitude = latitude;
+        user.addresses[addressIndex].longitude = longitude;
+      } else {
+        user.addresses.push(newAddress);
+      }
+    } else {
+      user.addresses.push(newAddress);
+    }
+    
     await user.save();
 
-    return NextResponse.json({ status: true, message: "Address added successfully", data: user.addresses });
+    return NextResponse.json({ status: true, message: _id ? "Address updated successfully" : "Address added successfully", data: user.addresses });
   } catch (error: any) {
     return NextResponse.json({ status: false, message: error.message }, { status: 500 });
   }

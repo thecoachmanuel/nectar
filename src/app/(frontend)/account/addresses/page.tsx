@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 
 export default function AddressesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState<any>(null);
   const { user, token, updateUser } = useAuthStore();
   const [addresses, setAddresses] = useState<any[]>(user?.addresses || []);
   const router = useRouter();
@@ -56,7 +57,7 @@ export default function AddressesPage() {
         setAddresses(data.data);
         updateUser({ addresses: data.data });
         setIsModalOpen(false);
-        toast.success("Address added successfully");
+        toast.success(data.message || "Address saved successfully");
       } else {
         toast.error(data.message || "Failed to add address");
       }
@@ -108,7 +109,10 @@ export default function AddressesPage() {
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-[26px] leading-10 font-semibold capitalize text-[#14142b]">Address</h3>
           <button 
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => {
+              setSelectedAddress(null);
+              setIsModalOpen(true);
+            }}
             className="flex items-center gap-2 bg-primary hover:bg-rose-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors shadow-md shadow-primary/20"
           >
             <Plus className="w-4 h-4" />
@@ -126,6 +130,16 @@ export default function AddressesPage() {
                     <span className="font-medium text-xs leading-6 capitalize">{address.label || "Other"}</span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
+                    <button 
+                      onClick={() => {
+                        setSelectedAddress(address);
+                        setIsModalOpen(true);
+                      }} 
+                      className="w-7 h-7 rounded-full bg-[#D6F5FF] hover:bg-[#008BBA] text-[#008BBA] hover:text-white flex items-center justify-center transition-colors"
+                      title="Edit Address"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                    </button>
                     <button onClick={() => handleDelete(address._id)} className="w-7 h-7 rounded-full bg-red-100 hover:bg-red-500 text-red-500 hover:text-white flex items-center justify-center transition-colors">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -150,8 +164,12 @@ export default function AddressesPage() {
 
         <AddressModal 
           isOpen={isModalOpen} 
-          onClose={() => setIsModalOpen(false)} 
-          onSave={handleSaveAddress} 
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedAddress(null);
+          }} 
+          onSave={handleSaveAddress}
+          initialData={selectedAddress}
         />
       </div>
     </section>
