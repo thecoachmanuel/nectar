@@ -7,12 +7,14 @@ import { Undo2, MapPin, Edit2, Clock, X, Home as HomeIcon } from "lucide-react";
 import { useSettingStore } from "@/store/useSettingStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useCartStore } from "@/store/useCartStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 import { toast } from "sonner";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { user, isGuest, guestInfo, token } = useAuthStore();
   const { items, orderType, setOrderType, getSubtotal, getTotalAmount, clearCart } = useCartStore();
+  const { settings } = useSettingsStore();
   const [loading, setLoading] = useState(true);
   const [schedule, setSchedule] = useState<"NOW" | "LATER">("NOW");
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
@@ -251,12 +253,14 @@ export default function CheckoutPage() {
                     >
                       Delivery
                     </button>
-                    <button 
-                      onClick={() => setOrderType("takeaway")}
-                      className={`py-1.5 px-4 rounded-2xl text-xs font-medium capitalize transition-colors ${orderType === "takeaway" ? 'bg-[#008BBA] text-white' : 'text-[#008BBA] hover:bg-white/50'}`}
-                    >
-                      Takeaway
-                    </button>
+                    {settings.takeaway_enabled === "Yes" && (
+                      <button 
+                        onClick={() => setOrderType("takeaway")}
+                        className={`py-1.5 px-4 rounded-2xl text-xs font-medium capitalize transition-colors ${orderType === "takeaway" ? 'bg-[#008BBA] text-white' : 'text-[#008BBA] hover:bg-white/50'}`}
+                      >
+                        Takeaway
+                      </button>
+                    )}
                   </div>
 
                   {/* Cart Items */}

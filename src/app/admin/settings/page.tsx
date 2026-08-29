@@ -321,6 +321,17 @@ export default function SettingsPage() {
                   className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Enable Takeaway Option</label>
+                <select 
+                  value={formData.takeaway_enabled || "No"}
+                  onChange={(e) => handleChange("takeaway_enabled", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary"
+                >
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
             </div>
           )}
 

@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/useCartStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 import { X, Plus, Minus, Trash2, ShoppingBag, ChevronRight } from "lucide-react";
 
 interface CartDrawerProps {
@@ -14,6 +15,7 @@ interface CartDrawerProps {
 export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const router = useRouter();
   const { items, updateQuantity, removeItem, clearCart, getSubtotal, orderType } = useCartStore();
+  const { settings } = useSettingsStore();
 
   const subtotal = getSubtotal();
 
@@ -63,9 +65,9 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         <div className="flex items-center p-4 gap-3 border-b border-[#eff0f6] bg-[#f7f7fc]">
           <span className="text-xs font-medium text-[#6e7191]">Order Type:</span>
           <div className="flex items-center gap-2">
-            {(["delivery", "takeaway"] as const).map((type) => (
+            {(["delivery", ...(settings.takeaway_enabled === "Yes" ? ["takeaway"] : [])] as const).map((type) => (
               <button key={type}
-                onClick={() => useCartStore.getState().setOrderType(type)}
+                onClick={() => useCartStore.getState().setOrderType(type as any)}
                 className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize transition-all ${orderType === type ? "bg-[#008BBA] text-white" : "bg-white border border-[#e2e8f0] text-[#6e7191]"}`}>
                 {type}
               </button>
