@@ -57,6 +57,9 @@ export default function CheckoutPage() {
         const data = await res.json();
         if (data.status) {
           setDeliveryCharge(data.data.deliveryCharge);
+        } else {
+          setDeliveryCharge(-1);
+          toast.error(data.message || "Failed to calculate delivery fee");
         }
       } catch (err) {
         console.error("Failed to calculate delivery fee", err);
@@ -77,6 +80,10 @@ export default function CheckoutPage() {
     }
     if (orderType === "delivery" && !selectedAddress) {
       toast.error("Please select a delivery address");
+      return;
+    }
+    if (orderType === "delivery" && deliveryCharge === -1) {
+      toast.error("Your address is out of delivery range for one or more items.");
       return;
     }
     if (paymentMethod === "wallet" && walletBalance < total) {
@@ -342,7 +349,9 @@ export default function CheckoutPage() {
                       {orderType === "delivery" && (
                         <li className="flex items-center justify-between text-[#6e7191]">
                           <span className="text-sm capitalize">Delivery Charge</span>
-                          <span className="text-sm font-medium text-[#1AB759]">₦{deliveryCharge.toFixed(2)}</span>
+                          <span className={`text-sm font-medium ${deliveryCharge === -1 ? 'text-[#FB4E4E]' : 'text-[#1AB759]'}`}>
+                            {deliveryCharge === -1 ? "Out of Range" : `₦${deliveryCharge.toFixed(2)}`}
+                          </span>
                         </li>
                       )}
                     </ul>
@@ -354,7 +363,7 @@ export default function CheckoutPage() {
                   
                   <button 
                     onClick={handlePlaceOrder}
-                    disabled={loading || (paymentMethod === "wallet" && walletBalance < total)}
+                    disabled={loading || (paymentMethod === "wallet" && walletBalance < total) || (orderType === "delivery" && deliveryCharge === -1)}
                     className="w-full flex justify-center items-center gap-2 rounded-2xl capitalize font-bold text-base py-3.5 text-white bg-primary hover:bg-rose-600 transition-colors shadow-md shadow-primary/20 disabled:opacity-50"
                   >
                     {paymentMethod === "paystack" ? "Proceed to Payment" : "Place Order"}

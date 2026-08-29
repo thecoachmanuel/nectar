@@ -68,6 +68,10 @@ export async function POST(req: Request) {
     let userDoc = null;
     const User = (await import("@/models/User")).default;
     
+    if (orderType === "delivery" && (deliveryCharge === undefined || deliveryCharge < 0)) {
+      return NextResponse.json({ status: false, message: "Your address is out of delivery range." }, { status: 400 });
+    }
+
     if (paymentMethod === "wallet") {
       if (!userId) {
         return NextResponse.json({ status: false, message: "You must be logged in to use Wallet." }, { status: 400 });

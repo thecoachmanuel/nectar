@@ -25,6 +25,7 @@ export interface IStore extends Document {
   profileImage?: string;
   bannerImage?: string;
   commissionRate: number;
+  deliveryRadius: number;
   password?: string;
   timeSlots: ITimeSlot[];
   createdAt: Date;
@@ -57,6 +58,7 @@ const StoreSchema = new Schema<IStore>(
     profileImage: { type: String },
     bannerImage: { type: String },
     commissionRate: { type: Number, default: 0 },
+    deliveryRadius: { type: Number, default: 5 },
     password: { type: String },
     timeSlots: [TimeSlotSchema],
   },
