@@ -94,8 +94,8 @@ export async function POST(req: Request) {
     }
 
     const newMessage = await Message.create({
-      senderId: payload.userId,
-      senderRole: payload.role, // "admin" or "store_manager"
+      senderId: payload.userId as string,
+      senderRole: payload.role as "admin" | "store_manager",
       storeId: "admin",
       message,
       threadId,
