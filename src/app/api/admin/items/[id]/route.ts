@@ -16,6 +16,10 @@ export async function PUT(
       body.slug = body.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     }
 
+    if (body.offerId === "") {
+      body.offerId = null;
+    }
+
     const item = await Item.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,

@@ -55,6 +55,10 @@ export async function POST(req: Request) {
       body.slug = body.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     }
 
+    if (body.offerId === "") {
+      delete body.offerId;
+    }
+
     const existing = await Item.findOne({ slug: body.slug });
     if (existing) {
       return NextResponse.json(
