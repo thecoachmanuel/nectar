@@ -125,14 +125,17 @@ export default function BannerModal({ isOpen, onClose, banner, onSuccess }: Bann
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[#14142B] mb-1">Banner Image <span className="text-red-500">*</span></label>
-          <div className="flex items-center gap-4">
+          <label className="block text-sm font-medium text-[#14142B] mb-2">Banner Image <span className="text-red-500">*</span></label>
+          <div className="flex flex-col gap-4">
             {formData.image && (
-              <img src={formData.image} alt="Preview" className="w-24 h-12 object-cover rounded-lg border border-[#EFF0F6]" />
+              <div className="relative w-full aspect-[21/9] rounded-xl overflow-hidden border border-[#EFF0F6] bg-[#FAFAFC]">
+                <img src={formData.image} alt="Preview" className="absolute inset-0 w-full h-full object-cover" />
+              </div>
             )}
-            <input 
-              type="file" 
-              accept="image/*"
+            <div className="flex items-center gap-4">
+              <input 
+                type="file" 
+                accept="image/*"
               required={!formData.image}
               onChange={async (e) => {
                 if (e.target.files && e.target.files[0]) {
@@ -153,6 +156,7 @@ export default function BannerModal({ isOpen, onClose, banner, onSuccess }: Bann
               className="w-full h-11 px-4 py-2 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors bg-white file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
             />
             {uploadingImage && <span className="w-5 h-5 border-2 border-primary/40 border-t-[#ff006b] rounded-full animate-spin"></span>}
+            </div>
           </div>
         </div>
 
