@@ -1,61 +1,7 @@
-import mongoose from "mongoose";
-import "@/models/User";
-import "@/models/ItemCategory";
-import "@/models/Addon";
-import "@/models/Item";
-import "@/models/Order";
-import "@/models/Store";
-import "@/models/Setting";
-import "@/models/Coupon";
-import "@/models/PaymentGateway";
-import "@/models/PayoutRequest";
-import "@/models/Message";
-
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/foodappi";
-
-if (!MONGODB_URI) {
-  throw new Error("Please define the MONGODB_URI environment variable inside .env.local");
-}
-
-interface MongooseCache {
-  conn: typeof mongoose | null;
-  promise: Promise<typeof mongoose> | null;
-}
-
-declare global {
-  // eslint-disable-next-line no-var
-  var mongooseCache: MongooseCache | undefined;
-}
-
-let cached = global.mongooseCache;
-
-if (!cached) {
-  cached = global.mongooseCache = { conn: null, promise: null };
-}
+import dbConnect from "./dbConnect";
 
 export async function connectToDatabase() {
-  if (cached!.conn) {
-    return cached!.conn;
-  }
-
-  if (!cached!.promise) {
-    const opts = {
-      bufferCommands: false,
-    };
-
-    cached!.promise = mongoose.connect(MONGODB_URI, opts).then((mongooseInstance) => {
-      return mongooseInstance;
-    });
-  }
-
-  try {
-    cached!.conn = await cached!.promise;
-  } catch (e) {
-    cached!.promise = null;
-    throw e;
-  }
-
-  return cached!.conn;
+  return await dbConnect();
 }
 
 export default connectToDatabase;

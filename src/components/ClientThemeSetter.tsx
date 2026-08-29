@@ -7,11 +7,9 @@ export default function ClientThemeSetter() {
   const { settings, fetchSettings } = useSettingsStore();
 
   useEffect(() => {
-    // Fetch settings on mount to ensure we have the latest on client
-    if (Object.keys(settings).length === 0) {
-      fetchSettings();
-    }
-  }, [fetchSettings, settings]);
+    // Always fetch latest settings silently on mount to keep storefront in sync with DB
+    fetchSettings();
+  }, [fetchSettings]);
 
   useEffect(() => {
     const color = settings.theme_primary_color;

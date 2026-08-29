@@ -11,7 +11,12 @@ export async function GET(request: Request) {
     const query = group ? { group } : {};
     const settings = await Setting.find(query).lean();
 
-    return NextResponse.json({ success: true, data: settings }, { status: 200 });
+    return NextResponse.json({ success: true, data: settings }, { 
+      status: 200,
+      headers: {
+        "Cache-Control": "public, s-maxage=10, stale-while-revalidate=60",
+      }
+    });
   } catch (error: any) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
