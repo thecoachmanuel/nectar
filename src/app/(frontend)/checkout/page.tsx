@@ -27,8 +27,6 @@ export default function CheckoutPage() {
   const addresses = user?.addresses || [];
   const [selectedAddress, setSelectedAddress] = useState<string | null>(addresses.length > 0 ? addresses[0]._id || null : null);
   const [deliveryCharge, setDeliveryCharge] = useState(0);
-  
-  const [deliveryCharge, setDeliveryCharge] = useState(0);
 
   const subtotal = getSubtotal();
   const total = getTotalAmount(0, deliveryCharge);
