@@ -32,7 +32,7 @@ export async function POST(req: Request) {
 
     items.forEach((item: any) => {
       subtotal += item.itemTotal || (item.price * item.quantity);
-      if (item.storeId && item.storeId !== "admin") {
+      if (item.storeId && item.storeId !== "admin" && item.storeId !== "0") {
         storeIds.add(item.storeId);
       }
     });
