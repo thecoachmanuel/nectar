@@ -5,6 +5,7 @@ export interface IBanner extends Document {
   subtitle?: string;
   image: string;
   link?: string;
+  showText: boolean;  // Controls whether title/subtitle text overlay is shown
   order: number;
   status: boolean;
   createdAt: Date;
@@ -17,6 +18,7 @@ const BannerSchema = new Schema<IBanner>(
     subtitle: { type: String },
     image: { type: String, required: true },
     link: { type: String },
+    showText: { type: Boolean, default: true },
     order: { type: Number, default: 0 },
     status: { type: Boolean, default: true },
   },

@@ -33,7 +33,8 @@ export default function HomePage() {
     image: b.image,
     title: b.title,
     subtitle: b.subtitle,
-    link: b.link || "/menu"
+    link: b.link || "",
+    showText: b.showText !== false, // default true
   }));
 
   // Auto-advance slider
@@ -119,23 +120,29 @@ export default function HomePage() {
         <section className="relative overflow-hidden">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-4 sm:mt-8">
             <div className="group relative rounded-2xl overflow-hidden h-52 md:h-72 lg:h-80 banner-swiper">
-              {sliders.map((slide, i) => (
-                <Link key={i} href={slide.link || "/menu"} className={`absolute inset-0 block transition-all duration-700 ${i === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"}`}>
-                  <img src={slide.image} alt={slide.title || "Banner"}
-                    className="w-full h-full object-cover rounded-2xl"
-                    onError={(e) => { (e.target as HTMLImageElement).src = "/images/default/slider.png"; }} />
-                  {(slide.title || slide.subtitle) && (
-                    <>
-                      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent rounded-2xl pointer-events-none" />
-                      <div className="absolute left-6 md:left-10 top-1/2 -translate-y-1/2 text-white pointer-events-none">
-                        <p className="text-xs font-semibold opacity-80 mb-1">⚡ Today&apos;s Special</p>
-                        {slide.title && <h2 className="text-xl md:text-3xl font-black leading-tight mb-2">{slide.title}</h2>}
-                        {slide.subtitle && <p className="text-xs md:text-sm opacity-90 mb-4">{slide.subtitle}</p>}
-                      </div>
-                    </>
-                  )}
-                </Link>
-              ))}
+              {sliders.map((slide, i) => {
+                const Wrapper = slide.link ? Link : 'div';
+                const wrapperProps: any = slide.link
+                  ? { href: slide.link, className: `absolute inset-0 block transition-all duration-700 ${i === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"}` }
+                  : { className: `absolute inset-0 transition-all duration-700 ${i === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"}` };
+                return (
+                  <Wrapper key={i} {...wrapperProps}>
+                    <img src={slide.image} alt={slide.title || "Banner"}
+                      className="w-full h-full object-cover rounded-2xl"
+                      onError={(e) => { (e.target as HTMLImageElement).src = "/images/default/slider.png"; }} />
+                    {slide.showText && (slide.title || slide.subtitle) && (
+                      <>
+                        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent rounded-2xl pointer-events-none" />
+                        <div className="absolute left-6 md:left-10 top-1/2 -translate-y-1/2 text-white pointer-events-none">
+                          <p className="text-xs font-semibold opacity-80 mb-1">⚡ Today&apos;s Special</p>
+                          {slide.title && <h2 className="text-xl md:text-3xl font-black leading-tight mb-2">{slide.title}</h2>}
+                          {slide.subtitle && <p className="text-xs md:text-sm opacity-90 mb-4">{slide.subtitle}</p>}
+                        </div>
+                      </>
+                    )}
+                  </Wrapper>
+                );
+              })}
               {/* Prev/Next */}
               {sliders.length > 1 && (
                 <>
