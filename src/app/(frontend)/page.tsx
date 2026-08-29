@@ -38,9 +38,10 @@ export default function HomePage() {
 
   // Auto-advance slider
   useEffect(() => {
+    if (sliders.length <= 1) return;
     const t = setInterval(() => setCurrentSlide(p => (p + 1) % sliders.length), 4000);
     return () => clearInterval(t);
-  }, []);
+  }, [sliders.length]);
 
   // Get location and load data
   useEffect(() => {
@@ -117,7 +118,7 @@ export default function HomePage() {
       {sliders.length > 0 && (
         <section className="relative overflow-hidden">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-4 sm:mt-8">
-            <div className="relative rounded-2xl overflow-hidden h-52 md:h-72 lg:h-80 banner-swiper">
+            <div className="group relative rounded-2xl overflow-hidden h-52 md:h-72 lg:h-80 banner-swiper">
               {sliders.map((slide, i) => (
                 <Link key={i} href={slide.link || "/menu"} className={`absolute inset-0 block transition-all duration-700 ${i === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"}`}>
                   <img src={slide.image} alt={slide.title || "Banner"}
@@ -136,22 +137,28 @@ export default function HomePage() {
                 </Link>
               ))}
               {/* Prev/Next */}
-              <button onClick={() => setCurrentSlide(p => (p - 1 + sliders.length) % sliders.length)}
-                className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center text-[#14142b] hover:bg-primary hover:text-white transition-all opacity-0 hover:opacity-100 group-hover:opacity-100">
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button onClick={() => setCurrentSlide(p => (p + 1) % sliders.length)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center text-[#14142b] hover:bg-primary hover:text-white transition-all">
-                <ChevronRight className="w-4 h-4" />
-              </button>
+              {sliders.length > 1 && (
+                <>
+                  <button onClick={() => setCurrentSlide(p => (p - 1 + sliders.length) % sliders.length)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center text-[#14142b] hover:bg-primary hover:text-white transition-all opacity-0 hover:opacity-100 group-hover:opacity-100">
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => setCurrentSlide(p => (p + 1) % sliders.length)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center text-[#14142b] hover:bg-primary hover:text-white transition-all opacity-0 hover:opacity-100 group-hover:opacity-100">
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </>
+              )}
               {/* Dots */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-                {sliders.map((_, i) => (
-                  <button key={i} onClick={() => setCurrentSlide(i)}
-                    className={`h-2 transition-all rounded-full ${i === currentSlide ? "w-6 bg-primary" : "w-2 bg-white/60 hover:bg-white"}`}
-                  />
-                ))}
-              </div>
+              {sliders.length > 1 && (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+                  {sliders.map((_, i) => (
+                    <button key={i} onClick={() => setCurrentSlide(i)}
+                      className={`h-2 transition-all rounded-full ${i === currentSlide ? "w-6 bg-primary" : "w-2 bg-white/60 hover:bg-white"}`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -413,7 +420,7 @@ function ItemCard({ item, onOpen }: { item: any; onOpen: (item: any) => void }) 
         <div className="flex items-center justify-between">
           <span className="text-sm font-bold text-[#14142b]">₦{item.price?.toFixed(2)}</span>
           <button onClick={(e) => { e.stopPropagation(); onOpen(item); }}
-            className="product-card-grid-cart-btn text-primary hover:bg-primary hover:text-white">
+            className="product-card-grid-cart-btn">
             <Plus className="w-3.5 h-3.5" />
             <span className="text-[10px]">Add</span>
           </button>

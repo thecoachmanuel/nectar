@@ -83,7 +83,7 @@ body {
   box-shadow: 0 2px 8px rgba(0,0,0,0.12);
   background: #fff;
   transition: all 0.3s ease;
-  color: var(--heading);
+  color: var(--primary-hex);
 }
 .product-card-grid-cart-btn:hover {
   background: var(--primary-hex);

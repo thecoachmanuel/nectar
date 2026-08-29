@@ -101,7 +101,7 @@ export default function SearchContent() {
                 <p className="text-[10px] text-[#6e7191] line-clamp-1 mb-2">{item.description}</p>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-bold text-[#14142b]">₦{item.price?.toFixed(2)}</span>
-                  <button className="product-card-grid-cart-btn text-primary hover:bg-primary hover:text-white">
+                  <button className="product-card-grid-cart-btn">
                     <Plus className="w-3.5 h-3.5" />
                   </button>
                 </div>
