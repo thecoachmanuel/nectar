@@ -20,9 +20,8 @@ export async function POST(req: Request) {
 
     // Determine which collection to update
     const isStore = userRole === "store_manager";
-    const ModelToUpdate = isStore ? Store : User;
 
-    const account = await ModelToUpdate.findById(userId);
+    const account = isStore ? await Store.findById(userId) : await User.findById(userId);
 
     if (!account) {
       return NextResponse.json(
@@ -45,15 +44,21 @@ export async function POST(req: Request) {
       amount,
       paymentMethod: paymentMethod || "manual",
       status: "approved",
-      notes: notes || "Initiated by admin",
+      adminNote: notes || "Initiated by admin",
       createdAt: new Date(),
       updatedAt: new Date()
     });
 
     // Deduct from wallet balance
-    await ModelToUpdate.findByIdAndUpdate(userId, {
-      $inc: { walletBalance: -amount }
-    });
+    if (isStore) {
+      await Store.findByIdAndUpdate(userId, {
+        $inc: { walletBalance: -amount }
+      });
+    } else {
+      await User.findByIdAndUpdate(userId, {
+        $inc: { walletBalance: -amount }
+      });
+    }
 
     return NextResponse.json({
       status: true,

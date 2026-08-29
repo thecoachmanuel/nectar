@@ -45,6 +45,7 @@ interface CartState {
   removeCoupon: () => void;
   setDeliveryTimeSlot: (slot: string) => void;
   setSelectedAddressId: (addressId: string) => void;
+  setItems: (items: CartItem[]) => void;
 
   // Calculations
   getSubtotal: () => number;
@@ -65,6 +66,7 @@ export const useCartStore = create<CartState>()(
 
 
       setOrderType: (orderType) => set({ orderType }),
+      setItems: (items) => set({ items }),
 
       addItem: (newItem) => {
         const extrasHash = newItem.extras.map((e) => e.name).sort().join(",");

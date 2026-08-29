@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/useCartStore";
@@ -23,6 +23,23 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     onClose();
     router.push("/checkout");
   };
+
+  useEffect(() => {
+    if (isOpen && items.length > 0) {
+      fetch("/api/frontend/cart/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status && data.data) {
+          useCartStore.getState().setItems(data.data);
+        }
+      })
+      .catch(err => console.error("Cart sync failed:", err));
+    }
+  }, [isOpen]);
 
   return (
     <>

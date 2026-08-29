@@ -37,8 +37,25 @@ export default function CheckoutPage() {
   const total = Math.max(0, subtotal + (deliveryCharge > 0 ? deliveryCharge : 0) - discountAmount);
 
   useEffect(() => {
-    // Simulate initial loading
-    setTimeout(() => setLoading(false), 800);
+    if (items.length > 0) {
+      fetch("/api/frontend/cart/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status && data.data) {
+          useCartStore.getState().setItems(data.data);
+        }
+      })
+      .catch(err => console.error("Cart sync failed:", err))
+      .finally(() => {
+        setTimeout(() => setLoading(false), 300);
+      });
+    } else {
+      setTimeout(() => setLoading(false), 500);
+    }
   }, []);
 
   useEffect(() => {

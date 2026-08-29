@@ -11,7 +11,7 @@ export async function GET() {
 
     // 1. Gross Revenue (Delivered Orders)
     const allOrders = await Order.find({ 
-      orderStatus: { $in: ["delivered", "completed"] }
+      orderStatus: { $in: ["delivered"] }
     });
     
     const grossRevenue = allOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
