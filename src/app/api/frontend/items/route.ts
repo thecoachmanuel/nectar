@@ -11,6 +11,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
 
     const categoryId = searchParams.get("categoryId");
+    const offerId = searchParams.get("offerId");
 
     const search = searchParams.get("search");
     const isFeatured = searchParams.get("isFeatured") || searchParams.get("featured");
@@ -21,6 +22,9 @@ export async function GET(req: Request) {
     
     if (categoryId) {
       query.categoryId = categoryId;
+    }
+    if (offerId) {
+      query.offerId = offerId;
     }
 
     if (storeId && storeId !== "0") {

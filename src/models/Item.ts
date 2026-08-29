@@ -22,6 +22,7 @@ export interface IItem extends Document {
   slug: string;
   storeId: mongoose.Types.ObjectId | string;
   categoryId: mongoose.Types.ObjectId;
+  offerId?: mongoose.Types.ObjectId;
   description?: string;
   price: number;
 
@@ -57,6 +58,7 @@ const ItemSchema = new Schema<IItem>(
     slug: { type: String, required: true, unique: true },
     storeId: { type: Schema.Types.Mixed, required: true, default: 0 },
     categoryId: { type: Schema.Types.ObjectId, ref: "ItemCategory", required: true },
+    offerId: { type: Schema.Types.ObjectId, ref: "Offer" },
     description: { type: String },
     price: { type: Number, required: true },
     status: { type: Boolean, default: true },

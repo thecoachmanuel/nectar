@@ -15,6 +15,7 @@ export default function HomePage() {
   const [stores, setStores] = useState<any[]>([]);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [offers, setOffers] = useState<any[]>([]);
+  const [banners, setBanners] = useState<any[]>([]);
   const [allItems, setAllItems] = useState<any[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
   const [loading, setLoading] = useState(true);
@@ -26,11 +27,11 @@ export default function HomePage() {
   const catScrollRef = useRef<HTMLDivElement>(null);
   const storeScrollRef = useRef<HTMLDivElement>(null);
 
-  const sliders = offers.length > 0 ? offers.map(o => ({
-    image: o.image,
-    title: o.title,
-    subtitle: o.slug,
-    link: `/menu?offer=${o._id}`
+  const sliders = banners.length > 0 ? banners.map(b => ({
+    image: b.image,
+    title: b.title,
+    subtitle: b.subtitle,
+    link: b.link || "/menu"
   })) : [
     { image: "/images/seeder/slider/slider_one.png", title: "Flame Grilled Burgers", subtitle: "Cooked fresh, every single time", link: "/menu" },
     { image: "/images/seeder/slider/slider_two.png", title: "Exclusive Deals Today", subtitle: "Save big on your favourite meals", link: "/menu" },
@@ -62,13 +63,18 @@ export default function HomePage() {
         fetch(`/api/frontend/items?popular=true${andLocQuery}`).then(r => r.json()),
         fetch("/api/frontend/offers").then(r => r.json()).catch(() => ({ status: false })),
         fetch(`/api/frontend/stores${locQuery}`).then(r => r.json()).catch(() => ({ status: false })),
-      ]).then(([cats, feat, pop, offs, strs]) => {
+        fetch("/api/frontend/banners").then(r => r.json()).catch(() => ({ status: false })),
+      ]).then(([cats, feat, pop, offs, strs, bans]) => {
         if (cats.status) setCategories(cats.data || []);
         if (feat.status) setFeaturedItems((feat.data || []).slice(0, 10));
         if (pop.status) setPopularItems((pop.data || []).slice(0, 10));
+        
         if (offs.status && offs.data?.length > 0) setOffers(offs.data.slice(0, 4));
         else setOffers(seederOffers);
+        
         if (strs.status) setStores(strs.stores || []);
+        
+        if (bans.status && bans.data?.length > 0) setBanners(bans.data);
       }).finally(() => setLoading(false));
     };
 

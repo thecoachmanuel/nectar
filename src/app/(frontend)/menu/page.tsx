@@ -16,6 +16,7 @@ function MenuContent() {
   const categoryParam = searchParams.get("category");
   const searchParam = searchParams.get("search");
   const featuredParam = searchParams.get("featured");
+  const offerParam = searchParams.get("offer");
 
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
@@ -30,7 +31,7 @@ function MenuContent() {
 
   useEffect(() => {
     fetchItems();
-  }, [selectedCategory, searchParam, featuredParam]);
+  }, [selectedCategory, searchParam, featuredParam, offerParam]);
 
   const fetchCategories = async () => {
     try {
@@ -62,6 +63,7 @@ function MenuContent() {
 
       if (searchParam) url += `search=${encodeURIComponent(searchParam)}&`;
       if (featuredParam === "true") url += `isFeatured=true&`;
+      if (offerParam) url += `offerId=${offerParam}&`;
       const res = await fetch(url);
       const data = await res.json();
       if (data.status) setItems(data.data || []);

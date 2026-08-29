@@ -13,11 +13,13 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
   const { execute, loading } = useApi();
   const { execute: fetchCategories, data: categories } = useApi();
   const { execute: fetchStores, data: stores } = useApi();
+  const { execute: fetchOffers, data: offers } = useApi();
   
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
     categoryId: "",
+    offerId: "",
     storeId: "0",
     price: 0,
 
@@ -32,6 +34,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
     if (isOpen) {
       fetchCategories("/api/admin/item-categories");
       fetchStores("/api/admin/stores");
+      fetchOffers("/api/admin/offers");
     }
   }, [isOpen]);
 
@@ -41,6 +44,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
         name: item.name || "",
         slug: item.slug || "",
         categoryId: item.categoryId?._id || item.categoryId || "",
+        offerId: item.offerId?._id || item.offerId || "",
         storeId: item.storeId || "0",
         price: item.price || 0,
 
@@ -53,6 +57,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
         name: "",
         slug: "",
         categoryId: "",
+        offerId: "",
         storeId: "0",
         price: 0,
 
@@ -129,6 +134,20 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
             <option value="0">Global (All Stores)</option>
             {stores?.map((store: any) => (
               <option key={store._id} value={store._id}>{store.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-[#14142B] mb-1">Offer (Optional)</label>
+          <select 
+            value={formData.offerId}
+            onChange={(e) => setFormData({...formData, offerId: e.target.value})}
+            className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors bg-white"
+          >
+            <option value="">No Offer</option>
+            {offers?.map((offer: any) => (
+              <option key={offer._id} value={offer._id}>{offer.title}</option>
             ))}
           </select>
         </div>
