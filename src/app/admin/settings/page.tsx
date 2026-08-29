@@ -51,6 +51,7 @@ export default function SettingsPage() {
         if (key.startsWith("sms_")) group = "SMS Gateway";
         if (key.startsWith("push_")) group = "Push Notification";
         if (key.startsWith("theme_")) group = "Theme";
+        if (["baseDeliveryFee", "feePerKm", "multiStoreExtraFee", "freeDeliveryThreshold"].includes(key)) group = "Delivery";
         
         return {
           key,
@@ -75,6 +76,7 @@ export default function SettingsPage() {
     { name: "Company", icon: Building2 },
     { name: "Site", icon: Globe },
     { name: "Mail", icon: Mail },
+    { name: "Delivery", icon: Smartphone },
     { name: "Payment Gateway", icon: CreditCard },
     { name: "SMS Gateway", icon: MessageSquare },
     { name: "Push Notification", icon: Smartphone },
@@ -274,6 +276,48 @@ export default function SettingsPage() {
                   type="email" 
                   value={formData.mail_from_address || ""} 
                   onChange={(e) => handleChange("mail_from_address", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Delivery */}
+          {activeTab === "Delivery" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Base Delivery Fee (₦)</label>
+                <input 
+                  type="number" 
+                  value={formData.baseDeliveryFee || 0} 
+                  onChange={(e) => handleChange("baseDeliveryFee", Number(e.target.value))}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Fee Per Km (₦)</label>
+                <input 
+                  type="number" 
+                  value={formData.feePerKm || 0} 
+                  onChange={(e) => handleChange("feePerKm", Number(e.target.value))}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Multi-Store Extra Pickup Fee (₦)</label>
+                <input 
+                  type="number" 
+                  value={formData.multiStoreExtraFee || 0} 
+                  onChange={(e) => handleChange("multiStoreExtraFee", Number(e.target.value))}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Free Delivery Threshold (₦) [Optional]</label>
+                <input 
+                  type="number" 
+                  value={formData.freeDeliveryThreshold || ""} 
+                  onChange={(e) => handleChange("freeDeliveryThreshold", e.target.value ? Number(e.target.value) : undefined)}
                   className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
                 />
               </div>

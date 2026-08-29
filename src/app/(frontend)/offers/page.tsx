@@ -16,7 +16,7 @@ export default function OffersPage() {
 
   const fetchOffers = async () => {
     try {
-      const res = await fetch("/api/frontend/offers");
+      const res = await fetch("/api/frontend/coupons");
       const data = await res.json();
       if (data.status) {
         setOffers(data.data || []);

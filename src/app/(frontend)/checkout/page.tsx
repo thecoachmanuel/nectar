@@ -21,6 +21,7 @@ export default function CheckoutPage() {
   
   const addresses = user?.addresses || [];
   const [selectedAddress, setSelectedAddress] = useState<string | null>(addresses.length > 0 ? addresses[0]._id || null : null);
+  const [deliveryCharge, setDeliveryCharge] = useState(0);
   
   // Mock stores for selection
   const availableStores = [
@@ -29,7 +30,6 @@ export default function CheckoutPage() {
   ];
 
   const subtotal = getSubtotal();
-  const deliveryCharge = orderType === "delivery" ? 5.00 : 0; // Fixed for now, can be dynamic
   const total = getTotalAmount(0, deliveryCharge);
 
   useEffect(() => {
@@ -37,13 +37,43 @@ export default function CheckoutPage() {
     setTimeout(() => setLoading(false), 800);
   }, []);
 
+  useEffect(() => {
+    const fetchDeliveryCharge = async () => {
+      if (orderType === "takeaway" || items.length === 0) {
+        setDeliveryCharge(0);
+        return;
+      }
+      
+      let deliveryAddressObj = undefined;
+      if (orderType === "delivery" && selectedAddress) {
+        deliveryAddressObj = addresses.find(a => a._id === selectedAddress);
+      }
+
+      try {
+        const res = await fetch("/api/frontend/checkout/calculate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ items, orderType, deliveryAddress: deliveryAddressObj })
+        });
+        const data = await res.json();
+        if (data.status) {
+          setDeliveryCharge(data.data.deliveryCharge);
+        }
+      } catch (err) {
+        console.error("Failed to calculate delivery fee", err);
+      }
+    };
+    
+    fetchDeliveryCharge();
+  }, [items, orderType, selectedAddress, addresses]);
+
   const handlePlaceOrder = async () => {
     if (items.length === 0) {
       toast.error("Your cart is empty");
       return;
     }
-    if (!storeId) {
-      toast.error("Please select a fulfilling store");
+    if (items.length === 0) {
+      toast.error("Your cart is empty");
       return;
     }
     if (orderType === "delivery" && !selectedAddress) {
@@ -73,7 +103,6 @@ export default function CheckoutPage() {
           customerEmail,
           customerPhone,
           orderType,
-          storeId,
           items,
           subtotal,
           taxAmount: 0,
@@ -165,21 +194,6 @@ export default function CheckoutPage() {
                   </div>
                 )}
                 
-                {/* Store Selection */}
-                <div className="mb-6 border-t border-[#eff0f6] pt-6">
-                  <h4 className="font-medium mb-3 text-[#14142b]">Fulfilling Store</h4>
-                  <p className="text-xs text-[#6e7191] mb-3">Select which store you are ordering from</p>
-                  <select 
-                    className="w-full p-3 bg-white border border-[#eff0f6] rounded-xl text-sm outline-none focus:border-[#ff006b]"
-                    value={storeId}
-                    onChange={(e) => setStoreId(e.target.value)}
-                  >
-                    <option value="" disabled>Select a store</option>
-                    {availableStores.map(store => (
-                      <option key={store.id} value={store.id}>{store.name}</option>
-                    ))}
-                  </select>
-                </div>
 
                 {/* Preferred Time */}
                 <div>

@@ -83,7 +83,7 @@ export default function ItemsPage() {
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Item</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Category</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Price</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Type</th>
+
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider text-right">Action</th>
               </tr>
@@ -115,16 +115,7 @@ export default function ItemsPage() {
                     <td className="px-6 py-4">
                       <span className="text-sm font-semibold text-[#14142B]">₦{item.price?.toFixed(2)}</span>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-[#4E4B66] flex items-center gap-1.5 capitalize">
-                        <img 
-                          src={`/images/item-type/${item.itemType === "veg" ? "non-veg" : "veg"}.png`} 
-                          alt={item.itemType} 
-                          className="w-4 h-4 object-contain"
-                        />
-                        {item.itemType.replace("_", " ")}
-                      </span>
-                    </td>
+
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.status ? 'bg-[#E0FFED] text-[#1AB759]' : 'bg-[#FFEAEA] text-[#FB4E4E]'}`}>
                         {item.status ? "Active" : "Inactive"}

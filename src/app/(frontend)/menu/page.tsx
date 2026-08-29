@@ -8,8 +8,15 @@ import { List, Grid, XCircle } from "lucide-react";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 
-export default function MenuPage() {
-  const { activeFoodType, setActiveFoodType, menuViewMode, setMenuViewMode } = useSettingStore();
+import { useSearchParams } from "next/navigation";
+
+function MenuContent() {
+  const { menuViewMode, setMenuViewMode } = useSettingStore();
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams.get("category");
+  const searchParam = searchParams.get("search");
+  const featuredParam = searchParams.get("featured");
+
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
   const [items, setItems] = useState<any[]>([]);
@@ -23,17 +30,26 @@ export default function MenuPage() {
 
   useEffect(() => {
     fetchItems();
-  }, [selectedCategory, activeFoodType]);
+  }, [selectedCategory, searchParam, featuredParam]);
 
   const fetchCategories = async () => {
     try {
       const res = await fetch("/api/frontend/categories");
       const data = await res.json();
       if (data.status) {
-        setCategories(data.data || []);
-        if (data.data?.length > 0) {
-          setSelectedCategory(data.data[0]); // Default to first category to mimic Vue behavior when a query matches
+        const fetchedCats = data.data || [];
+        setCategories(fetchedCats);
+
+        if (categoryParam && categoryParam !== "all") {
+          const found = fetchedCats.find(
+            (c: any) => c._id === categoryParam || c.slug === categoryParam
+          );
+          if (found) {
+            setSelectedCategory(found);
+            return;
+          }
         }
+        setSelectedCategory(null); // Default to All Categories
       }
     } catch {}
   };
@@ -43,7 +59,9 @@ export default function MenuPage() {
     try {
       let url = `/api/frontend/items?`;
       if (selectedCategory) url += `categoryId=${selectedCategory._id}&`;
-      if (activeFoodType !== "all") url += `itemType=${activeFoodType}&`;
+
+      if (searchParam) url += `search=${encodeURIComponent(searchParam)}&`;
+      if (featuredParam === "true") url += `isFeatured=true&`;
       const res = await fetch(url);
       const data = await res.json();
       if (data.status) setItems(data.data || []);
@@ -52,13 +70,7 @@ export default function MenuPage() {
     }
   };
 
-  const itemTypeSet = (type: "all" | "veg" | "non_veg") => {
-    setActiveFoodType(type);
-  };
 
-  const itemTypeReset = () => {
-    setActiveFoodType("all");
-  };
 
   return (
     <>
@@ -96,30 +108,6 @@ export default function MenuPage() {
                   </SwiperSlide>
                 ))}
               </Swiper>
-            </div>
-          )}
-
-          {/* VEG / NON-VEG FILTERS */}
-          {categories.length > 0 && (
-            <div className="flex flex-wrap gap-3 w-full mb-6 sm:mb-12 veg-navs">
-              <button 
-                disabled={activeFoodType === "veg"}
-                onClick={() => activeFoodType === "non_veg" ? itemTypeReset() : itemTypeSet("non_veg")}
-                className={`flex items-center gap-3 w-fit pl-3 pr-4 py-1 sm:py-1.5 rounded-3xl transition hover:shadow-md hover:bg-white ${activeFoodType === "non_veg" ? 'veg-active' : 'bg-[#EFF0F6]'}`}
-              >
-                <img src="/images/item-type/veg.png" alt="category" className="h-6" />
-                <span className="capitalize text-xs sm:text-sm font-medium text-[#14142b]">Non Veg</span>
-                {activeFoodType === "non_veg" && <XCircle className="w-5 h-5 text-red-500 ml-2" />}
-              </button>
-              <button 
-                disabled={activeFoodType === "non_veg"}
-                onClick={() => activeFoodType === "veg" ? itemTypeReset() : itemTypeSet("veg")}
-                className={`flex items-center gap-3 w-fit pl-3 pr-4 py-1 sm:py-1.5 rounded-3xl transition hover:shadow-md hover:bg-white ${activeFoodType === "veg" ? 'veg-active' : 'bg-[#EFF0F6]'}`}
-              >
-                <img src="/images/item-type/non-veg.png" alt="category" className="h-6" />
-                <span className="capitalize text-xs sm:text-sm font-medium text-[#14142b]">Veg</span>
-                {activeFoodType === "veg" && <XCircle className="w-5 h-5 text-red-500 ml-2" />}
-              </button>
             </div>
           )}
 
@@ -196,5 +184,17 @@ export default function MenuPage() {
 
       <ItemModal item={selectedItem} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </>
+  );
+}
+
+export default function MenuPage() {
+  return (
+    <React.Suspense fallback={
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="foodappi-loader"></div>
+      </div>
+    }>
+      <MenuContent />
+    </React.Suspense>
   );
 }

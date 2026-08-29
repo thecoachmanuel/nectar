@@ -7,11 +7,13 @@ import { useSettingStore } from "@/store/useSettingStore";
 import { Search, Plus, Star, Leaf, Drumstick, Tag, MapPin, ChevronLeft, ChevronRight, Loader2, ArrowRight } from "lucide-react";
 
 export default function HomePage() {
-  const { activeFoodType, menuViewMode } = useSettingStore();
+  const { menuViewMode } = useSettingStore();
 
   const [categories, setCategories] = useState<any[]>([]);
   const [featuredItems, setFeaturedItems] = useState<any[]>([]);
   const [popularItems, setPopularItems] = useState<any[]>([]);
+  const [stores, setStores] = useState<any[]>([]);
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [offers, setOffers] = useState<any[]>([]);
   const [allItems, setAllItems] = useState<any[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
@@ -22,6 +24,7 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const catScrollRef = useRef<HTMLDivElement>(null);
+  const storeScrollRef = useRef<HTMLDivElement>(null);
 
   const sliders = [
     { image: "/images/seeder/slider/slider_one.png", title: "Flame Grilled Burgers", subtitle: "Cooked fresh, every single time" },
@@ -33,7 +36,7 @@ export default function HomePage() {
     { _id: "1", title: "New Kings Collection", slug: "new-kings-collection", image: "/images/seeder/offer/new_kings_collection.png" },
     { _id: "2", title: "Free Fiery Chicken", slug: "free-fiery-chicken", image: "/images/seeder/offer/free_fiery_chicken.png" },
     { _id: "3", title: "Free Apple Shake", slug: "free-apple-thik-shake", image: "/images/seeder/offer/free_apple_thik_shake.png" },
-    { _id: "4", title: "Kings $49 Off", slug: "new-kings-collection-off", image: "/images/seeder/offer/new_kings_collection_off_$49.png" },
+    { _id: "4", title: "Kings ₦5,000 Off", slug: "new-kings-collection-off", image: "/images/seeder/offer/new_kings_collection_off_$49.png" },
   ];
 
   // Auto-advance slider
@@ -42,32 +45,53 @@ export default function HomePage() {
     return () => clearInterval(t);
   }, []);
 
-  // Load data
+  // Get location and load data
   useEffect(() => {
-    Promise.all([
-      fetch("/api/frontend/categories").then(r => r.json()),
-      fetch("/api/frontend/items?featured=true").then(r => r.json()),
-      fetch("/api/frontend/items?popular=true").then(r => r.json()),
-      fetch("/api/frontend/offers").then(r => r.json()).catch(() => ({ status: false })),
-    ]).then(([cats, feat, pop, offs]) => {
-      if (cats.status) setCategories(cats.data || []);
-      if (feat.status) setFeaturedItems((feat.data || []).slice(0, 10));
-      if (pop.status) setPopularItems((pop.data || []).slice(0, 10));
-      if (offs.status && offs.data?.length > 0) setOffers(offs.data.slice(0, 4));
-      else setOffers(seederOffers);
-    }).finally(() => setLoading(false));
+    const fetchData = (lat?: number, lng?: number) => {
+      const locQuery = lat && lng ? `?latitude=${lat}&longitude=${lng}` : '';
+      const andLocQuery = lat && lng ? `&latitude=${lat}&longitude=${lng}` : '';
+      
+      Promise.all([
+        fetch("/api/frontend/categories").then(r => r.json()),
+        fetch(`/api/frontend/items?featured=true${andLocQuery}`).then(r => r.json()),
+        fetch(`/api/frontend/items?popular=true${andLocQuery}`).then(r => r.json()),
+        fetch("/api/frontend/offers").then(r => r.json()).catch(() => ({ status: false })),
+        fetch(`/api/frontend/stores${locQuery}`).then(r => r.json()).catch(() => ({ status: false })),
+      ]).then(([cats, feat, pop, offs, strs]) => {
+        if (cats.status) setCategories(cats.data || []);
+        if (feat.status) setFeaturedItems((feat.data || []).slice(0, 10));
+        if (pop.status) setPopularItems((pop.data || []).slice(0, 10));
+        if (offs.status && offs.data?.length > 0) setOffers(offs.data.slice(0, 4));
+        else setOffers(seederOffers);
+        if (strs.status) setStores(strs.stores || []);
+      }).finally(() => setLoading(false));
+    };
+
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
+          fetchData(position.coords.latitude, position.coords.longitude);
+        },
+        () => { fetchData(); },
+        { timeout: 5000 }
+      );
+    } else {
+      fetchData();
+    }
   }, []);
 
   // Reload items when category/food type changes
   useEffect(() => {
     fetchItems();
-  }, [selectedCategoryId, activeFoodType]);
+  }, [selectedCategoryId]);
 
   const fetchItems = async () => {
     try {
       let url = `/api/frontend/items?`;
       if (selectedCategoryId !== "all") url += `categoryId=${selectedCategoryId}&`;
-      if (activeFoodType !== "all") url += `itemType=${activeFoodType}&`;
+      if (userLocation) url += `latitude=${userLocation.lat}&longitude=${userLocation.lng}&`;
+
       const res = await fetch(url);
       const data = await res.json();
       if (data.status) setAllItems(data.data || []);
@@ -78,6 +102,10 @@ export default function HomePage() {
 
   const scrollCats = (dir: "left" | "right") => {
     if (catScrollRef.current) catScrollRef.current.scrollBy({ left: dir === "left" ? -200 : 200, behavior: "smooth" });
+  };
+  
+  const scrollStores = (dir: "left" | "right") => {
+    if (storeScrollRef.current) storeScrollRef.current.scrollBy({ left: dir === "left" ? -250 : 250, behavior: "smooth" });
   };
 
   return (
@@ -132,8 +160,7 @@ export default function HomePage() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between gap-2 mb-4">
               <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b]">Our Menu</h2>
-              <Link href="/menu" className="rounded-3xl capitalize text-xs sm:text-sm leading-6 font-medium py-0.5 px-3 transition-all hover:text-white hover:bg-[#ff006b]"
-                style={{ color: "#ff006b", backgroundColor: "#D8FFFC" }}>
+              <Link href="/menu" className="text-xs font-medium" style={{ color: "#ff006b" }}>
                 View All
               </Link>
             </div>
@@ -144,23 +171,62 @@ export default function HomePage() {
               </button>
               <div ref={catScrollRef}
                 className="flex gap-3 overflow-x-auto pb-2 scrollbar-none px-10 menu-slides">
-                <button onClick={() => setSelectedCategoryId("all")}
-                  className={`flex-shrink-0 flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all min-w-[80px] ${selectedCategoryId === "all" ? "menu-category-active border-[#ff006b] bg-[#fff5f9]" : "bg-white border-[#eff0f6] hover:bg-[#f7f7fc]"}`}>
+                <Link href="/menu?category=all"
+                  className={`flex-shrink-0 flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all min-w-[80px] bg-white border-[#eff0f6] hover:bg-[#f7f7fc]`}>
                   <img src="/images/default/all-category.png" alt="All" className="w-10 h-10 rounded-lg object-cover"
                     onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                   <span className="text-[10px] font-semibold text-[#14142b] whitespace-nowrap">All</span>
-                </button>
+                </Link>
                 {categories.map(cat => (
-                  <button key={cat._id} onClick={() => setSelectedCategoryId(cat._id)}
-                    className={`flex-shrink-0 flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all min-w-[80px] ${selectedCategoryId === cat._id ? "menu-category-active border-[#ff006b] bg-[#fff5f9]" : "bg-white border-[#eff0f6] hover:bg-[#f7f7fc]"}`}>
+                  <Link key={cat._id} href={`/menu?category=${cat._id}`}
+                    className={`flex-shrink-0 flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all min-w-[80px] bg-white border-[#eff0f6] hover:bg-[#f7f7fc]`}>
                     <img src={cat.image || "/images/category/thumb.png"} alt={cat.name}
                       className="w-10 h-10 rounded-lg object-cover"
                       onError={(e) => { (e.target as HTMLImageElement).src = "/images/category/thumb.png"; }} />
                     <span className="text-[10px] font-semibold text-[#14142b] whitespace-nowrap max-w-[70px] truncate">{cat.name}</span>
-                  </button>
+                  </Link>
                 ))}
               </div>
               <button onClick={() => scrollCats("right")}
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center text-[#14142b] hover:text-[#ff006b] transition-all">
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ========= SHOP BY STORE ========= */}
+      {stores.length > 0 && (
+        <section className="mb-6 sm:mb-12">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <div className="flex items-center justify-between gap-2 mb-4">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-5 h-5" style={{ color: "#ff006b" }} />
+                <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b]">Shop By Store</h2>
+              </div>
+            </div>
+            <div className="relative">
+              <button onClick={() => scrollStores("left")}
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center text-[#14142b] hover:text-[#ff006b] transition-all">
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <div ref={storeScrollRef}
+                className="flex gap-4 overflow-x-auto pb-2 scrollbar-none px-10 menu-slides">
+                {stores.map(store => (
+                  <div key={store._id}
+                    className="flex-shrink-0 flex flex-col gap-2 p-3 rounded-2xl border bg-white border-[#eff0f6] w-[200px] sm:w-[240px]">
+                    <img src={store.coverImage || "/images/default/store.png"} alt={store.storeName}
+                      className="w-full h-24 rounded-xl object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).src = "/images/default/store.png"; }} />
+                    <div>
+                      <h4 className="text-sm font-semibold text-[#14142b] truncate">{store.storeName}</h4>
+                      <p className="text-xs text-[#6e7191] line-clamp-1 mt-0.5">{store.address}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => scrollStores("right")}
                 className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center text-[#14142b] hover:text-[#ff006b] transition-all">
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -178,7 +244,7 @@ export default function HomePage() {
                 <Star className="w-5 h-5 fill-[#ff006b] text-[#ff006b]" />
                 <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b]">Featured Items</h2>
               </div>
-              <Link href="/menu" className="text-xs font-medium" style={{ color: "#ff006b" }}>View All</Link>
+              <Link href="/menu?featured=true" className="text-xs font-medium" style={{ color: "#ff006b" }}>View All</Link>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {featuredItems.map((item) => (
@@ -232,11 +298,7 @@ export default function HomePage() {
                   <div className="p-3 flex-1">
                     <div className="flex items-start gap-2 mb-1">
                       <h4 className="text-sm font-semibold text-[#14142b] flex-1 capitalize">{item.name}</h4>
-                      <img 
-                        src={`/images/item-type/${item.itemType === "veg" ? "non-veg" : "veg"}.png`} 
-                        alt={item.itemType} 
-                        className="w-4 h-4 object-contain flex-shrink-0"
-                      />
+
                     </div>
                     <p className="text-xs text-[#6e7191] line-clamp-1 mb-2">{item.description}</p>
                     <div className="flex items-center justify-between">
@@ -286,11 +348,7 @@ export default function HomePage() {
                   <div className="p-3 flex-1">
                     <div className="flex items-start gap-2 mb-1">
                       <h4 className="text-sm font-semibold text-[#14142b] flex-1 capitalize">{item.name}</h4>
-                      <img 
-                        src={`/images/item-type/${item.itemType === "veg" ? "non-veg" : "veg"}.png`} 
-                        alt={item.itemType} 
-                        className="w-4 h-4 object-contain flex-shrink-0"
-                      />
+
                     </div>
                     <p className="text-xs text-[#6e7191] line-clamp-1 mb-2">{item.description}</p>
                     <div className="flex items-center justify-between">
@@ -321,13 +379,7 @@ function ItemCard({ item, onOpen }: { item: any; onOpen: (item: any) => void }) 
         <img src={item.image || "/images/item/thumb.png"} alt={item.name}
           className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
-        <div className="absolute top-2 left-2">
-          <img 
-            src={`/images/item-type/${item.itemType === "veg" ? "non-veg" : "veg"}.png`} 
-            alt={item.itemType} 
-            className="w-5 h-5 object-contain"
-          />
-        </div>
+
         {item.isFeatured && (
           <div className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: "#ff006b" }}>
             <Star className="w-3 h-3 fill-white text-white" />

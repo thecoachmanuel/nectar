@@ -8,6 +8,7 @@ export interface ISetting extends Document {
   playStoreUrl?: string;
   baseDeliveryFee: number;
   feePerKm: number;
+  multiStoreExtraFee?: number;
   freeDeliveryThreshold?: number;
   themeColor: string;
   createdAt: Date;
@@ -31,6 +32,7 @@ const SettingSchema = new mongoose.Schema<ISetting>(
     playStoreUrl: { type: String },
     baseDeliveryFee: { type: Number, default: 500 },
     feePerKm: { type: Number, default: 100 },
+    multiStoreExtraFee: { type: Number, default: 0 },
     freeDeliveryThreshold: { type: Number },
     themeColor: { type: String, default: "#ff006b" },
   },

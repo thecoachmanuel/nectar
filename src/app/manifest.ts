@@ -14,9 +14,9 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "en",
     categories: ["food", "shopping", "lifestyle"],
     icons: [
-      { src: "/images/theme/theme-favicon-logo.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
-      { src: "/images/theme/theme-favicon-logo.png", sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: "/images/theme/theme-favicon-logo.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: "/images/theme/theme-favicon-logo.png?v=2", sizes: "192x192", type: "image/png", purpose: "maskable" },
+      { src: "/images/theme/theme-favicon-logo.png?v=2", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/images/theme/theme-favicon-logo.png?v=2", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
     shortcuts: [
       {
@@ -24,21 +24,21 @@ export default function manifest(): MetadataRoute.Manifest {
         short_name: "Order",
         description: "Browse our menu and order food",
         url: "/menu",
-        icons: [{ src: "/images/theme/theme-favicon-logo.png", sizes: "96x96" }],
+        icons: [{ src: "/images/theme/theme-favicon-logo.png?v=2", sizes: "96x96" }],
       },
       {
         name: "My Orders",
         short_name: "Orders",
         description: "Track your current orders",
         url: "/account/orders",
-        icons: [{ src: "/images/theme/theme-favicon-logo.png", sizes: "96x96" }],
+        icons: [{ src: "/images/theme/theme-favicon-logo.png?v=2", sizes: "96x96" }],
       },
       {
         name: "Offers",
         short_name: "Offers",
         description: "View current deals and offers",
         url: "/offers",
-        icons: [{ src: "/images/theme/theme-favicon-logo.png", sizes: "96x96" }],
+        icons: [{ src: "/images/theme/theme-favicon-logo.png?v=2", sizes: "96x96" }],
       },
     ],
   };

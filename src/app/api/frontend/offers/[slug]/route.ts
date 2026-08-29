@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
-import Coupon from "@/models/Coupon";
+import Offer from "@/models/Offer";
 
 export const dynamic = "force-dynamic";
 
@@ -11,14 +11,14 @@ export async function GET(
   try {
     await connectToDatabase();
     const { slug } = await params;
-    const coupon = await Coupon.findOne({ $or: [{ code: slug }, { _id: slug }] });
-    if (!coupon) {
+    const offer = await Offer.findOne({ $or: [{ slug: slug }, { _id: slug }] });
+    if (!offer) {
       return NextResponse.json(
         { status: false, message: "Offer not found" },
         { status: 404 }
       );
     }
-    return NextResponse.json({ status: true, data: coupon });
+    return NextResponse.json({ status: true, data: offer });
   } catch (error: any) {
     return NextResponse.json(
       { status: false, message: error.message },

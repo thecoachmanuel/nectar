@@ -24,7 +24,7 @@ export interface IItem extends Document {
   categoryId: mongoose.Types.ObjectId;
   description?: string;
   price: number;
-  itemType: "veg" | "non_veg";
+
   status: boolean;
   isFeatured: boolean;
   image?: string;
@@ -59,7 +59,6 @@ const ItemSchema = new Schema<IItem>(
     categoryId: { type: Schema.Types.ObjectId, ref: "ItemCategory", required: true },
     description: { type: String },
     price: { type: Number, required: true },
-    itemType: { type: String, enum: ["veg", "non_veg"], default: "veg" },
     status: { type: Boolean, default: true },
     isFeatured: { type: Boolean, default: false },
     image: { type: String },

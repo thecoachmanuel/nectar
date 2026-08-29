@@ -15,10 +15,10 @@ export const metadata: Metadata = {
   formatDetection: { telephone: false },
   icons: {
     icon: [
-      { url: "/images/theme/theme-favicon-logo.png", sizes: "192x192", type: "image/png" },
+      { url: "/images/theme/theme-favicon-logo.png?v=2", sizes: "192x192", type: "image/png" },
     ],
     apple: [
-      { url: "/images/theme/theme-favicon-logo.png", sizes: "192x192", type: "image/png" },
+      { url: "/images/theme/theme-favicon-logo.png?v=2", sizes: "192x192", type: "image/png" },
     ],
   },
   other: {
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "default",
     "apple-mobile-web-app-title": "Nectar",
-    "msapplication-TileImage": "/images/theme/theme-favicon-logo.png",
+    "msapplication-TileImage": "/images/theme/theme-favicon-logo.png?v=2",
     "msapplication-TileColor": "#ff006b",
     "theme-color": "#ff006b",
     // iOS splash screens
@@ -47,8 +47,8 @@ export const viewport: Viewport = {
   themeColor: "#ff006b",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 5,
-  userScalable: true,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export const dynamic = "force-dynamic";

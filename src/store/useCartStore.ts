@@ -14,6 +14,7 @@ export interface CartAddon {
 export interface CartItem {
   id: string; // unique item + variation hash
   itemId: string;
+  storeId?: string; // added to support multi-store cart items
   name: string;
   image?: string;
   price: number; // base price + variation price
@@ -26,7 +27,7 @@ export interface CartItem {
 
 interface CartState {
   items: CartItem[];
-  storeId: string; // active store for cart
+
   orderType: "delivery" | "takeaway";
   couponCode: string;
   couponDiscount: number;
@@ -34,7 +35,7 @@ interface CartState {
   selectedAddressId?: string;
 
   // Actions
-  setStoreId: (storeId: string) => void;
+
   setOrderType: (orderType: "delivery" | "takeaway") => void;
   addItem: (item: Omit<CartItem, "id" | "itemTotal">) => void;
   updateQuantity: (id: string, delta: number) => void;
@@ -54,26 +55,21 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
-      storeId: "",
+
       orderType: "delivery",
       couponCode: "",
       couponDiscount: 0,
       deliveryTimeSlot: "As soon as possible",
       selectedAddressId: undefined,
 
-      setStoreId: (storeId) => {
-        if (get().storeId !== storeId) {
-          // If store changes, clear cart to prevent cross-store ordering
-          set({ storeId, items: [], couponCode: "", couponDiscount: 0 });
-        }
-      },
+
 
       setOrderType: (orderType) => set({ orderType }),
 
       addItem: (newItem) => {
         const extrasHash = newItem.extras.map((e) => e.name).sort().join(",");
         const addonsHash = newItem.addons.map((a) => a.name).sort().join(",");
-        const id = `${newItem.itemId}_${newItem.variationName || "default"}_${extrasHash}_${addonsHash}`;
+        const id = `${newItem.itemId}_${newItem.storeId || "admin"}_${newItem.variationName || "default"}_${extrasHash}_${addonsHash}`;
 
         const existingIndex = get().items.findIndex((item) => item.id === id);
 

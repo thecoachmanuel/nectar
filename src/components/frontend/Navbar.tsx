@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useCartStore } from "@/store/useCartStore";
 import { useSettingStore } from "@/store/useSettingStore";
@@ -24,7 +24,8 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const searchParams = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams?.get("search") || "");
   const profileRef = useRef<HTMLDivElement>(null);
 
   const cartCount = cartItems.reduce((sum: number, i: any) => sum + i.quantity, 0);
@@ -74,7 +75,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
             {/* Logo */}
             <Link href="/" className="flex-shrink-0">
               <img
-                src="/images/theme/theme-logo.png"
+                src="/images/theme/theme-logo.png?v=2"
                 alt="FoodAppi"
                 className="w-24 sm:w-32 h-auto"
                 onError={(e) => {
@@ -108,8 +109,16 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
               <input
                 type="search"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search food..."
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSearchQuery(val);
+                  if (val.trim()) {
+                    router.replace(`/menu?search=${encodeURIComponent(val.trim())}`);
+                  } else if (pathname === '/menu') {
+                    router.replace(`/menu`);
+                  }
+                }}
+                placeholder="Search groceries"
                 className="w-full h-full bg-transparent text-xs text-[#14142b] placeholder:text-[#a0a3bd] outline-none"
               />
             </form>
@@ -221,50 +230,6 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
             </div>
           </div>
 
-          {/* Veg / Non-Veg + View Mode Filter Row (only on menu) */}
-          {(pathname === "/menu") && (
-            <div className="flex items-center justify-between pb-3 gap-4 flex-wrap veg-navs">
-              {/* Veg Filter */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setActiveFoodType("all")}
-                  className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border transition-all ${activeFoodType === "all" ? "veg-active border-[#ff006b] text-[#ff006b] bg-white shadow-sm" : "border-[#eff0f6] bg-[#eff0f6] text-[#6e7191]"}`}
-                >
-                  All
-                </button>
-                <button
-                  onClick={() => setActiveFoodType("veg")}
-                  className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border transition-all ${activeFoodType === "veg" ? "veg-active border-[#ff006b] text-[#ff006b] bg-white shadow-sm" : "border-[#eff0f6] bg-[#eff0f6] text-[#6e7191]"}`}
-                >
-                  <img src="/images/item-type/veg.png" alt="Veg" className="w-4 h-4" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                  Veg
-                </button>
-                <button
-                  onClick={() => setActiveFoodType("non_veg")}
-                  className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border transition-all ${activeFoodType === "non_veg" ? "veg-active border-[#ff006b] text-[#ff006b] bg-white shadow-sm" : "border-[#eff0f6] bg-[#eff0f6] text-[#6e7191]"}`}
-                >
-                  <img src="/images/item-type/non-veg.png" alt="Non-Veg" className="w-4 h-4" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                  Non-Veg
-                </button>
-              </div>
-
-              {/* Grid/List toggle */}
-              <div className="flex items-center gap-1 bg-[#eff0f6] p-1 rounded-xl">
-                <button
-                  onClick={() => setMenuViewMode("grid")}
-                  className={`p-1.5 rounded-lg transition-all ${menuViewMode === "grid" ? "bg-white text-[#ff006b] shadow-sm" : "text-[#6e7191]"}`}
-                >
-                  <LayoutGrid className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setMenuViewMode("list")}
-                  className={`p-1.5 rounded-lg transition-all ${menuViewMode === "list" ? "bg-white text-[#ff006b] shadow-sm" : "text-[#6e7191]"}`}
-                >
-                  <List className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Mobile Menu */}

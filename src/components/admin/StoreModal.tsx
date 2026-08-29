@@ -1,11 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { X, ImagePlus, Loader2 } from "lucide-react";
+import { X, ImagePlus, Loader2, MapPin } from "lucide-react";
 import { toast } from "sonner";
-import { useJsApiLoader, StandaloneSearchBox } from "@react-google-maps/api";
-
-const libraries: any = ["places"];
 
 interface StoreModalProps {
   isOpen: boolean;
@@ -37,10 +34,7 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
     bannerImage: "",
   });
 
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-    libraries,
-  });
+  const [fetchingCoords, setFetchingCoords] = useState(false);
 
   useEffect(() => {
     if (storeToEdit) {
@@ -86,16 +80,29 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
     }
   }, [storeToEdit, isOpen]);
 
-  const handlePlacesChanged = () => {
-    const places = searchBoxRef.current?.getPlaces();
-    if (places && places.length > 0) {
-      const place = places[0];
-      setFormData((prev) => ({
-        ...prev,
-        address: place.formatted_address || place.name || prev.address,
-        latitude: place.geometry?.location?.lat()?.toString() || prev.latitude,
-        longitude: place.geometry?.location?.lng()?.toString() || prev.longitude,
-      }));
+  const fetchCoordinates = async () => {
+    if (!formData.address) {
+      toast.error("Please enter an address first");
+      return;
+    }
+    setFetchingCoords(true);
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.address)}`);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          latitude: data[0].lat,
+          longitude: data[0].lon,
+        }));
+        toast.success("Coordinates fetched successfully");
+      } else {
+        toast.error("Could not find coordinates for this address");
+      }
+    } catch (err) {
+      toast.error("Error fetching coordinates");
+    } finally {
+      setFetchingCoords(false);
     }
   };
 
@@ -211,19 +218,15 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
               </div>
             </div>
 
-            {/* Location */}
             <div>
               <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Address *</label>
-              {isLoaded ? (
-                <StandaloneSearchBox
-                  onLoad={(ref) => (searchBoxRef.current = ref)}
-                  onPlacesChanged={handlePlacesChanged}
-                >
-                  <input required type="text" placeholder="Search address to auto-fill lat/lng..." value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
-                </StandaloneSearchBox>
-              ) : (
-                <input required type="text" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
-              )}
+              <div className="flex gap-2">
+                <input required type="text" placeholder="Enter address..." value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="flex-1 px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
+                <button type="button" onClick={fetchCoordinates} disabled={fetchingCoords} className="px-4 py-2 bg-[#F7F7FC] border border-[#EFF0F6] text-[#6E7191] rounded-xl hover:bg-[#EFF0F6] transition-colors flex items-center gap-2 font-medium text-sm whitespace-nowrap">
+                  {fetchingCoords ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
+                  Fetch
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-3 gap-4">

@@ -13,7 +13,7 @@ interface ItemModalProps {
 }
 
 export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
-  const { addItem, storeId } = useCartStore();
+  const { addItem } = useCartStore();
   const { formatPrice } = useSettingStore();
 
   const [quantity, setQuantity] = useState(1);
@@ -52,6 +52,7 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
   const handleAddToCart = () => {
     addItem({
       itemId: item._id,
+      storeId: typeof item.storeId === "object" ? item.storeId._id : item.storeId,
       name: item.name,
       image: item.image,
       price: basePrice,
@@ -81,14 +82,7 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
           >
             <X className="w-5 h-5" />
           </button>
-          <div className="absolute bottom-3 left-3 bg-slate-900/80 text-white text-xs font-semibold px-2.5 py-1 rounded-full capitalize flex items-center gap-1.5">
-            <img 
-              src={`/images/item-type/${item.itemType === "veg" ? "non-veg" : "veg"}.png`} 
-              alt={item.itemType} 
-              className="w-3.5 h-3.5 object-contain"
-            />
-            {item.itemType.replace("_", " ")}
-          </div>
+
         </div>
 
         {/* Content Body */}

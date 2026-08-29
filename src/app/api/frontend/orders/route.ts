@@ -38,7 +38,6 @@ export async function POST(req: Request) {
       customerEmail,
       customerPhone,
       orderType,
-      storeId,
       items,
       subtotal,
       taxAmount,
@@ -56,61 +55,98 @@ export async function POST(req: Request) {
     if (!items || items.length === 0) {
       return NextResponse.json({ status: false, message: "Cart is empty" }, { status: 400 });
     }
-    
-    if (!storeId) {
-      return NextResponse.json({ status: false, message: "Store selection is required" }, { status: 400 });
-    }
-
-    // Fetch the Store to get the commission rate
-    const Store = (await import("@/models/Store")).default;
-    const store = await Store.findById(storeId);
-    if (!store) {
-      return NextResponse.json({ status: false, message: "Invalid store selected" }, { status: 400 });
-    }
 
     if (orderType === "delivery" && !deliveryAddress) {
       return NextResponse.json({ status: false, message: "Delivery address is required" }, { status: 400 });
     }
 
-    const deliveryPin = Math.floor(1000 + Math.random() * 9000).toString();
-    const calculatedCommission = ((subtotal || 0) * (store.commissionRate || 0)) / 100;
+    const Store = (await import("@/models/Store")).default;
 
-    const newOrder = new Order({
-      orderSerialNo: generateOrderSerial(),
-      userId: userId || null,
-      customerName: customerName || "Guest",
-      customerEmail: customerEmail || "",
-      customerPhone: customerPhone || "N/A",
-      orderType,
-      storeId,
-      items,
-      subtotal,
-      taxAmount: taxAmount || 0,
-      discountAmount: discountAmount || 0,
-      deliveryCharge: deliveryCharge || 0,
-      commissionAmount: calculatedCommission,
-      deliveryPin: orderType === "delivery" ? deliveryPin : undefined,
-      totalAmount,
-      couponCode,
-      couponDiscount: couponDiscount || 0,
-      deliveryAddress: orderType === "delivery" ? deliveryAddress : undefined,
-      deliveryTimeSlot,
-      paymentMethod: paymentMethod || "cash_on_delivery",
-      paymentStatus: "unpaid",
-      orderStatus: "pending",
-      statusTimeline: [
-        { status: "pending", timestamp: new Date(), note: "Order placed by customer" }
-      ],
-      notes,
+    // 1. Group items by storeId
+    const storeGroups: Record<string, any[]> = {};
+    items.forEach((item: any) => {
+      const sId = item.storeId || "admin";
+      if (!storeGroups[sId]) storeGroups[sId] = [];
+      storeGroups[sId].push(item);
     });
 
-    await newOrder.save();
+    const storeIds = Object.keys(storeGroups);
+    const createdOrders = [];
+
+    // Process each store group as a separate order
+    for (let i = 0; i < storeIds.length; i++) {
+      const sId = storeIds[i];
+      const groupItems = storeGroups[sId];
+      
+      // Calculate group subtotal
+      const groupSubtotal = groupItems.reduce((acc, item) => acc + (item.itemTotal || (item.price * item.quantity)), 0);
+      
+      // Fetch store to get commission rate
+      let commissionRate = 0;
+      let actualStoreId: any = sId;
+      
+      if (sId !== "admin") {
+        const store = await Store.findById(sId);
+        if (store) {
+          commissionRate = store.commissionRate || 0;
+        }
+      } else {
+        actualStoreId = null;
+      }
+
+      const calculatedCommission = (groupSubtotal * commissionRate) / 100;
+      
+      // Apply the delivery charge and coupon ONLY to the first order to avoid double counting
+      const groupDeliveryCharge = i === 0 ? (deliveryCharge || 0) : 0;
+      const groupCouponDiscount = i === 0 ? (couponDiscount || 0) : 0;
+      const groupCouponCode = i === 0 ? couponCode : undefined;
+      
+      // Simple tax split proportional to subtotal (or just apply to all if it's a fixed rate)
+      const groupTax = taxAmount ? (taxAmount * (groupSubtotal / (subtotal || 1))) : 0;
+      
+      const groupTotal = Math.max(0, groupSubtotal + groupTax + groupDeliveryCharge - groupCouponDiscount);
+      
+      const deliveryPin = Math.floor(1000 + Math.random() * 9000).toString();
+
+      const newOrder = new Order({
+        orderSerialNo: generateOrderSerial(),
+        userId: userId || null,
+        customerName: customerName || "Guest",
+        customerEmail: customerEmail || "",
+        customerPhone: customerPhone || "N/A",
+        orderType,
+        storeId: actualStoreId,
+        items: groupItems,
+        subtotal: groupSubtotal,
+        taxAmount: groupTax,
+        discountAmount: groupCouponDiscount,
+        deliveryCharge: groupDeliveryCharge,
+        commissionAmount: calculatedCommission,
+        deliveryPin: orderType === "delivery" ? deliveryPin : undefined,
+        totalAmount: groupTotal,
+        couponCode: groupCouponCode,
+        couponDiscount: groupCouponDiscount,
+        deliveryAddress: orderType === "delivery" ? deliveryAddress : undefined,
+        deliveryTimeSlot,
+        paymentMethod: paymentMethod || "cash_on_delivery",
+        paymentStatus: "unpaid",
+        orderStatus: "pending",
+        statusTimeline: [
+          { status: "pending", timestamp: new Date(), note: "Order placed by customer" }
+        ],
+        notes,
+      });
+
+      await newOrder.save();
+      createdOrders.push(newOrder);
+    }
 
     return NextResponse.json({ 
       status: true, 
       message: "Order placed successfully", 
-      orderId: newOrder._id,
-      orderSerialNo: newOrder.orderSerialNo
+      orderId: createdOrders[0]._id, // Return first orderId for tracking/redirect
+      orderSerialNo: createdOrders.map(o => o.orderSerialNo).join(", "),
+      allOrderIds: createdOrders.map(o => o._id)
     }, { status: 201 });
 
   } catch (error: any) {

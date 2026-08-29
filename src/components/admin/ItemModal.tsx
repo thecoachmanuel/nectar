@@ -18,7 +18,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
     slug: "",
     categoryId: "",
     price: 0,
-    itemType: "veg",
+
     isFeatured: false,
     status: true,
     image: "",
@@ -39,7 +39,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
         slug: item.slug || "",
         categoryId: item.categoryId?._id || item.categoryId || "",
         price: item.price || 0,
-        itemType: item.itemType || "veg",
+
         isFeatured: item.isFeatured ?? false,
         status: item.status ?? true,
         image: item.image || "",
@@ -50,7 +50,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
         slug: "",
         categoryId: "",
         price: 0,
-        itemType: "veg",
+
         isFeatured: false,
         status: true,
         image: "",
@@ -114,7 +114,6 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
           </select>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-[#14142B] mb-1">Price (₦) <span className="text-red-500">*</span></label>
             <input 
@@ -127,18 +126,6 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
               className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-[#ff006b] transition-colors"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-[#14142B] mb-1">Type</label>
-            <select 
-              value={formData.itemType}
-              onChange={(e) => setFormData({...formData, itemType: e.target.value})}
-              className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-[#ff006b] transition-colors bg-white"
-            >
-              <option value="veg">Vegetarian</option>
-              <option value="non_veg">Non-Vegetarian</option>
-            </select>
-          </div>
-        </div>
 
         <div>
           <label className="block text-sm font-medium text-[#14142B] mb-1">Image</label>
