@@ -33,6 +33,17 @@ export default function MapComponent({ initialLat, initialLng, addressText, onLo
     setInputValue(addressText || "");
   }, [addressText]);
 
+  // Recenter and reset marker when initialLat/initialLng change (store edit)
+  useEffect(() => {
+    if (initialLat && initialLng) {
+      const newPos = { lat: initialLat, lng: initialLng };
+      setCenter(newPos);
+      setMarker(newPos);
+      mapRef.current?.panTo(newPos);
+      mapRef.current?.setZoom(15);
+    }
+  }, [initialLat, initialLng]);
+
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
 
