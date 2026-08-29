@@ -5,6 +5,8 @@ import Store from "@/models/Store";
 import ItemCategory from "@/models/ItemCategory";
 import Item from "@/models/Item";
 import PaymentGateway from "@/models/PaymentGateway";
+import Banner from "@/models/Banner";
+import Offer from "@/models/Offer";
 import bcrypt from "bcryptjs";
 
 export async function GET() {
@@ -255,27 +257,26 @@ export async function GET() {
         image: "/images/seeder/offer/bogo-burger.png",
         status: true
       },
-      {
-        title: "20% Off your First Order",
-        slug: "20-percent-off-first-order",
-        price: 2000,
-        image: "/images/seeder/offer/20-off.png",
-        status: true
-      },
-      {
-        title: "Free Delivery on Orders over ₦15,000",
-        slug: "free-delivery-over-15000",
-        price: 1500,
-        image: "/images/seeder/offer/free-delivery.png",
-        status: true
-      }
+      { title: "New Kings Collection", slug: "new-kings-collection", image: "/images/seeder/offer/new_kings_collection.png" },
+      { title: "Free Fiery Chicken", slug: "free-fiery-chicken", image: "/images/seeder/offer/free_fiery_chicken.png" },
+      { title: "Free Apple Shake", slug: "free-apple-thik-shake", image: "/images/seeder/offer/free_apple_thik_shake.png" },
+      { title: "Kings ₦5,000 Off", slug: "new-kings-collection-off", image: "/images/seeder/offer/new_kings_collection_off_$49.png" },
     ];
+    for (const o of offersData) {
+      const exists = await Offer.findOne({ slug: o.slug });
+      if (!exists) await Offer.create(o);
+    }
 
-    for (const off of offersData) {
-      const existingOffer = await Offer.findOne({ slug: off.slug });
-      if (!existingOffer) {
-        await Offer.create(off);
-      }
+    // 8. Seed Banners
+    const { default: Banner } = await import("@/models/Banner");
+    const bannersData = [
+      { image: "/images/seeder/slider/slider_one.png", title: "Flame Grilled Burgers", subtitle: "Cooked fresh, every single time", link: "/menu", order: 1 },
+      { image: "/images/seeder/slider/slider_two.png", title: "Exclusive Deals Today", subtitle: "Save big on your favourite meals", link: "/menu", order: 2 },
+      { image: "/images/seeder/slider/slider_three.png", title: "Order in Minutes", subtitle: "Fast delivery right to your door", link: "/menu", order: 3 },
+    ];
+    for (const b of bannersData) {
+      const exists = await Banner.findOne({ title: b.title });
+      if (!exists) await Banner.create(b);
     }
 
     return NextResponse.json({

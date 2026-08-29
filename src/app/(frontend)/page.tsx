@@ -29,23 +29,12 @@ export default function HomePage() {
   const catScrollRef = useRef<HTMLDivElement>(null);
   const storeScrollRef = useRef<HTMLDivElement>(null);
 
-  const sliders = banners.length > 0 ? banners.map(b => ({
+  const sliders = banners.map(b => ({
     image: b.image,
     title: b.title,
     subtitle: b.subtitle,
     link: b.link || "/menu"
-  })) : [
-    { image: "/images/seeder/slider/slider_one.png", title: "Flame Grilled Burgers", subtitle: "Cooked fresh, every single time", link: "/menu" },
-    { image: "/images/seeder/slider/slider_two.png", title: "Exclusive Deals Today", subtitle: "Save big on your favourite meals", link: "/menu" },
-    { image: "/images/seeder/slider/slider_three.png", title: "Order in Minutes", subtitle: "Fast delivery right to your door", link: "/menu" },
-  ];
-
-  const seederOffers = [
-    { _id: "1", title: "New Kings Collection", slug: "new-kings-collection", image: "/images/seeder/offer/new_kings_collection.png" },
-    { _id: "2", title: "Free Fiery Chicken", slug: "free-fiery-chicken", image: "/images/seeder/offer/free_fiery_chicken.png" },
-    { _id: "3", title: "Free Apple Shake", slug: "free-apple-thik-shake", image: "/images/seeder/offer/free_apple_thik_shake.png" },
-    { _id: "4", title: "Kings ₦5,000 Off", slug: "new-kings-collection-off", image: "/images/seeder/offer/new_kings_collection_off_$49.png" },
-  ];
+  }));
 
   // Auto-advance slider
   useEffect(() => {
@@ -71,8 +60,7 @@ export default function HomePage() {
         if (feat.status) setFeaturedItems((feat.data || []).slice(0, 10));
         if (pop.status) setPopularItems((pop.data || []).slice(0, 10));
         
-        if (offs.status && offs.data?.length > 0) setOffers(offs.data.slice(0, 4));
-        else setOffers(seederOffers);
+        if (offs.status && offs.data?.length > 0) setOffers(offs.data);
         
         if (strs.status) setStores(strs.stores || []);
         
@@ -126,46 +114,48 @@ export default function HomePage() {
 
 
       {/* ========= BANNER SLIDER ========= */}
-      <section className="relative overflow-hidden">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-4 sm:mt-8">
-          <div className="relative rounded-2xl overflow-hidden h-52 md:h-72 lg:h-80 banner-swiper">
-            {sliders.map((slide, i) => (
-              <Link key={i} href={slide.link || "/menu"} className={`absolute inset-0 block transition-all duration-700 ${i === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"}`}>
-                <img src={slide.image} alt={slide.title || "Banner"}
-                  className="w-full h-full object-cover rounded-2xl"
-                  onError={(e) => { (e.target as HTMLImageElement).src = "/images/default/slider.png"; }} />
-                {(slide.title || slide.subtitle) && (
-                  <>
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent rounded-2xl pointer-events-none" />
-                    <div className="absolute left-6 md:left-10 top-1/2 -translate-y-1/2 text-white pointer-events-none">
-                      <p className="text-xs font-semibold opacity-80 mb-1">⚡ Today&apos;s Special</p>
-                      {slide.title && <h2 className="text-xl md:text-3xl font-black leading-tight mb-2">{slide.title}</h2>}
-                      {slide.subtitle && <p className="text-xs md:text-sm opacity-90 mb-4">{slide.subtitle}</p>}
-                    </div>
-                  </>
-                )}
-              </Link>
-            ))}
-            {/* Prev/Next */}
-            <button onClick={() => setCurrentSlide(p => (p - 1 + sliders.length) % sliders.length)}
-              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center text-[#14142b] hover:bg-primary hover:text-white transition-all opacity-0 hover:opacity-100 group-hover:opacity-100">
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button onClick={() => setCurrentSlide(p => (p + 1) % sliders.length)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center text-[#14142b] hover:bg-primary hover:text-white transition-all">
-              <ChevronRight className="w-4 h-4" />
-            </button>
-            {/* Dots */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-              {sliders.map((_, i) => (
-                <button key={i} onClick={() => setCurrentSlide(i)}
-                  className={`rounded-full transition-all duration-300 ${i === currentSlide ? "w-4 h-1.5 opacity-100" : "w-3 h-1.5 opacity-30"}`}
-                  style={{ backgroundColor: "var(--primary-hex)" }} />
+      {sliders.length > 0 && (
+        <section className="relative overflow-hidden">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-4 sm:mt-8">
+            <div className="relative rounded-2xl overflow-hidden h-52 md:h-72 lg:h-80 banner-swiper">
+              {sliders.map((slide, i) => (
+                <Link key={i} href={slide.link || "/menu"} className={`absolute inset-0 block transition-all duration-700 ${i === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"}`}>
+                  <img src={slide.image} alt={slide.title || "Banner"}
+                    className="w-full h-full object-cover rounded-2xl"
+                    onError={(e) => { (e.target as HTMLImageElement).src = "/images/default/slider.png"; }} />
+                  {(slide.title || slide.subtitle) && (
+                    <>
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent rounded-2xl pointer-events-none" />
+                      <div className="absolute left-6 md:left-10 top-1/2 -translate-y-1/2 text-white pointer-events-none">
+                        <p className="text-xs font-semibold opacity-80 mb-1">⚡ Today&apos;s Special</p>
+                        {slide.title && <h2 className="text-xl md:text-3xl font-black leading-tight mb-2">{slide.title}</h2>}
+                        {slide.subtitle && <p className="text-xs md:text-sm opacity-90 mb-4">{slide.subtitle}</p>}
+                      </div>
+                    </>
+                  )}
+                </Link>
               ))}
+              {/* Prev/Next */}
+              <button onClick={() => setCurrentSlide(p => (p - 1 + sliders.length) % sliders.length)}
+                className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center text-[#14142b] hover:bg-primary hover:text-white transition-all opacity-0 hover:opacity-100 group-hover:opacity-100">
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button onClick={() => setCurrentSlide(p => (p + 1) % sliders.length)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center text-[#14142b] hover:bg-primary hover:text-white transition-all">
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              {/* Dots */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+                {sliders.map((_, i) => (
+                  <button key={i} onClick={() => setCurrentSlide(i)}
+                    className={`h-2 transition-all rounded-full ${i === currentSlide ? "w-6 bg-primary" : "w-2 bg-white/60 hover:bg-white"}`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ========= CATEGORY SECTION ========= */}
       {categories.length > 0 && (
