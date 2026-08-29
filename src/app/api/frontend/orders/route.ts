@@ -218,17 +218,21 @@ export async function POST(req: Request) {
       // 1. Notify all Admins
       const admins = await User.find({ role: "admin", deviceToken: { $exists: true, $ne: "" } });
       for (const admin of admins) {
-        sendPushNotification(admin.deviceToken, notificationTitle, notificationBody).catch(console.error);
+        if (admin.deviceToken) {
+          sendPushNotification(admin.deviceToken, notificationTitle, notificationBody).catch(console.error);
+        }
       }
 
-      // 2. Notify the Store Manager
-      // If store is global (0), maybe no specific manager, otherwise try to find them
-      if (actualStoreId && String(actualStoreId) !== "0") {
-        const store = await Store.findById(actualStoreId);
-        if (store && store.email) {
-          const manager = await User.findOne({ email: store.email, role: "store_manager", deviceToken: { $exists: true, $ne: "" } });
-          if (manager) {
-            sendPushNotification(manager.deviceToken, notificationTitle, notificationBody).catch(console.error);
+      // 2. Notify the Store Managers
+      const uniqueStoreIds = Array.from(new Set(createdOrders.map(o => o.storeId?.toString()).filter(Boolean)));
+      for (const sId of uniqueStoreIds) {
+        if (sId !== "0" && sId !== "admin") {
+          const store = await Store.findById(sId);
+          if (store && store.email) {
+            const manager = await User.findOne({ email: store.email, role: "store_manager", deviceToken: { $exists: true, $ne: "" } });
+            if (manager && manager.deviceToken) {
+              sendPushNotification(manager.deviceToken, notificationTitle, notificationBody).catch(console.error);
+            }
           }
         }
       }
