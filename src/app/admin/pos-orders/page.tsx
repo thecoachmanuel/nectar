@@ -146,10 +146,10 @@ export default function PosOrdersPage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <Link href={`/admin/orders/${order._id}`} className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#567DFF] flex items-center justify-center hover:bg-[#e5ebff] transition-colors">
+                      <Link href={`/order/${order._id}`} className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#567DFF] flex items-center justify-center hover:bg-[#e5ebff] transition-colors" title="View Order">
                         <Eye className="w-4 h-4" />
                       </Link>
-                      <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#14142B] flex items-center justify-center hover:bg-gray-200 transition-colors">
+                      <button onClick={() => window.open(`/order/${order._id}?print=true`, '_blank')} className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#14142B] flex items-center justify-center hover:bg-gray-200 transition-colors" title="Print Invoice">
                         <Printer className="w-4 h-4" />
                       </button>
                     </div>

@@ -9,6 +9,7 @@ export default function OrderDetailsPage() {
   const { id } = useParams();
   const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState<any>(null);
+  const [sitePhone, setSitePhone] = useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -20,12 +21,26 @@ export default function OrderDetailsPage() {
         if (data.status) {
           setOrder(data.data);
         }
+        
+        // Fetch settings for phone
+        const settingsRes = await fetch("/api/settings");
+        const settingsData = await settingsRes.json();
+        if (settingsData.status) {
+          const phoneSetting = settingsData.data.find((s: any) => s.key === "sitePhone");
+          if (phoneSetting) setSitePhone(phoneSetting.payload);
+        }
       } catch (error) {
         console.error("Failed to fetch order", error);
       } finally {
         setLoading(false);
       }
     };
+    
+    // Auto-print if query param is set
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get("print") === "true") {
+      setTimeout(() => window.print(), 1000);
+    }
 
     fetchOrder();
   }, [id]);
@@ -92,7 +107,7 @@ export default function OrderDetailsPage() {
                   <p className="text-xs text-center mb-2 text-[#6e7191]">Estimated Delivery Time</p>
                   <h4 className="text-xl font-medium text-center mb-6 text-[#14142b]">30 min</h4>
                   
-                  <img src="/images/default/order-preparing.gif" alt="Order Status" className="h-32 mx-auto mb-4 object-contain opacity-80" />
+                  <img src="/images/default/payment-success.gif" alt="Order Status" className="h-32 mx-auto mb-4 object-contain" />
                   <h5 className="text-xs font-normal text-center mb-8 text-[#6e7191]">The chef is preparing your food</h5>
 
                   <div className="px-4">
@@ -124,12 +139,12 @@ export default function OrderDetailsPage() {
                   <h3 className="font-medium mb-2 text-[#14142b]">Store / Branch ID: {order.branchId}</h3>
                   <div className="flex items-center justify-between gap-5">
                     <div className="flex gap-3">
-                      <button className="w-8 h-8 rounded-full flex items-center justify-center bg-[#D8FFFC] text-[#008BBA] hover:bg-[#008BBA] hover:text-white transition-colors">
+                      <Link href="/account/chat" className="w-8 h-8 rounded-full flex items-center justify-center bg-[#D8FFFC] text-[#008BBA] hover:bg-[#008BBA] hover:text-white transition-colors">
                         <MessageSquare className="w-4 h-4" />
-                      </button>
-                      <button className="w-8 h-8 rounded-full flex items-center justify-center bg-[#D8FFFC] text-[#008BBA] hover:bg-[#008BBA] hover:text-white transition-colors">
+                      </Link>
+                      <a href={`tel:${sitePhone}`} className="w-8 h-8 rounded-full flex items-center justify-center bg-[#D8FFFC] text-[#008BBA] hover:bg-[#008BBA] hover:text-white transition-colors">
                         <Phone className="w-4 h-4" />
-                      </button>
+                      </a>
                     </div>
                   </div>
                 </div>

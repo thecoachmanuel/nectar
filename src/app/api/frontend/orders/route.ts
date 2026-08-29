@@ -179,7 +179,7 @@ export async function POST(req: Request) {
         deliveryAddress: orderType === "delivery" ? deliveryAddress : undefined,
         deliveryTimeSlot,
         paymentMethod: paymentMethod || "cash_on_delivery",
-        paymentStatus: paymentMethod === "wallet" ? "paid" : "unpaid",
+        paymentStatus: paymentMethod === "cash_on_delivery" ? "unpaid" : "paid",
         orderStatus: isPos ? "accepted" : "pending",
         statusTimeline: [
           { status: isPos ? "accepted" : "pending", timestamp: new Date(), note: isPos ? "POS Order placed" : "Order placed by customer" }
