@@ -108,6 +108,18 @@ export default function AddressModal({ isOpen, onClose, onSave, initialData }: A
 
           {/* Street Address has been moved to MapComponent Search */}
 
+          <div className="mt-2">
+            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider block mb-1.5">
+              Search & Pin Your Location
+            </label>
+            <MapComponent 
+              initialLat={latitude} 
+              initialLng={longitude} 
+              addressText={address}
+              onLocationSelect={handleLocationSelect} 
+            />
+          </div>
+
           {/* Apartment / Building */}
           <div>
             <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider block mb-1.5">
@@ -119,18 +131,6 @@ export default function AddressModal({ isOpen, onClose, onSave, initialData }: A
               value={apartment}
               onChange={(e) => setApartment(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
-            />
-          </div>
-
-          <div className="mt-2">
-            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider block mb-1.5">
-              Search & Pin Your Location
-            </label>
-            <MapComponent 
-              initialLat={latitude} 
-              initialLng={longitude} 
-              addressText={address}
-              onLocationSelect={handleLocationSelect} 
             />
           </div>
 
