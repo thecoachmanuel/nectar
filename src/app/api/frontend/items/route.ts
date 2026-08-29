@@ -34,7 +34,7 @@ export async function GET(req: Request) {
     const lat = searchParams.get("latitude");
     const lng = searchParams.get("longitude");
 
-    let items = await Item.find(query)
+    let items: any[] = await Item.find(query)
       .populate("categoryId", "name slug")
       .populate("addonIds", "name price")
       .lean();
