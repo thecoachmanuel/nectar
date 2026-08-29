@@ -14,10 +14,13 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const storeId = searchParams.get("storeId");
     const status = searchParams.get("status");
+    const isPos = searchParams.get("isPos");
 
     const query: any = {};
     if (storeId) query.storeId = storeId;
     if (status) query.orderStatus = status;
+    if (isPos === "true") query.isPos = true;
+    if (isPos === "false") query.isPos = { $ne: true };
 
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;

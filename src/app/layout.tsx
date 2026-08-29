@@ -102,20 +102,23 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <Toaster position="top-right" richColors />
         {children}
 
-        {/* PWA Service Worker Registration with Auto-Update */}
-        <Script id="register-sw" strategy="afterInteractive">
+        {/* Force Unregister Stuck Service Workers */}
+        <Script id="unregister-sw" strategy="afterInteractive">
           {`
             if ('serviceWorker' in navigator) {
-              window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/serviceworker.js')
-                  .then(function(reg) {
-                    // Check for updates on every page load
-                    reg.update();
-                  })
-                  .catch(function(err) {
-                    console.warn('[Nectar PWA] Service Worker registration failed:', err);
-                  });
+              navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                  registration.unregister();
+                  console.log('[Nectar] Unregistered stuck service worker');
+                }
               });
+              
+              // Clear caches that might be holding old data
+              if (window.caches) {
+                caches.keys().then(function(names) {
+                  for (let name of names) caches.delete(name);
+                });
+              }
             }
           `}
         </Script>

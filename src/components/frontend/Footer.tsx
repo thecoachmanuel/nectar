@@ -29,9 +29,18 @@ const YoutubeIcon = () => (
   </svg>
 );
 import { toast } from "sonner";
+import { useSettingsStore } from "@/store/useSettingsStore";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
+  const { settings } = useSettingsStore();
+
+  const contactEmail = settings?.contactEmail || "info@nectar.com";
+  const contactPhone = settings?.contactPhone || "+1 800 123 4567";
+  const facebookUrl = settings?.facebookUrl || "#";
+  const twitterUrl = settings?.twitterUrl || "#";
+  const instagramUrl = settings?.instagramUrl || "#";
+  const youtubeUrl = settings?.youtubeUrl || "#";
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,12 +111,12 @@ export default function Footer() {
             <h3 className="text-xs capitalize mb-4 text-white font-medium">Follow us on</h3>
             <nav className="flex items-center gap-4">
               {[
-                { icon: <FacebookIcon />, href: "#" },
-                { icon: <TwitterIcon />, href: "#" },
-                { icon: <InstagramIcon />, href: "#" },
-                { icon: <YoutubeIcon />, href: "#" },
+                { icon: <FacebookIcon />, href: facebookUrl },
+                { icon: <TwitterIcon />, href: twitterUrl },
+                { icon: <InstagramIcon />, href: instagramUrl },
+                { icon: <YoutubeIcon />, href: youtubeUrl },
               ].map(({ icon, href }, i) => (
-                <a key={i} href={href} className="w-7 h-7 rounded-full shadow-lg bg-white flex items-center justify-center text-primary hover:scale-110 transition-transform">
+                <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="w-7 h-7 rounded-full shadow-lg bg-white flex items-center justify-center text-primary hover:scale-110 transition-transform">
                   {icon}
                 </a>
               ))}
@@ -138,11 +147,11 @@ export default function Footer() {
             <ul className="flex flex-col gap-4">
               <li className="flex items-center gap-2.5 text-white">
                 <Mail className="w-5 h-5 flex-shrink-0 opacity-80" />
-                <span className="text-sm">info@nectar.com</span>
+                <span className="text-sm">{contactEmail}</span>
               </li>
               <li className="flex items-center gap-2.5 text-white">
                 <Phone className="w-5 h-5 flex-shrink-0 opacity-80" />
-                <span className="text-sm font-medium">+1 800 123 4567</span>
+                <span className="text-sm font-medium">{contactPhone}</span>
               </li>
             </ul>
 

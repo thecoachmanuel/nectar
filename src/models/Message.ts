@@ -6,6 +6,8 @@ export interface IMessage extends Document {
   storeId: mongoose.Types.ObjectId | string;
   message: string;
   isRead: boolean;
+  threadId: string;
+  status: "open" | "resolved" | "deleted";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -17,6 +19,8 @@ const MessageSchema = new Schema<IMessage>(
     storeId: { type: Schema.Types.Mixed, required: true },
     message: { type: String, required: true },
     isRead: { type: Boolean, default: false },
+    threadId: { type: String, required: true },
+    status: { type: String, enum: ["open", "resolved", "deleted"], default: "open" },
   },
   { timestamps: true }
 );

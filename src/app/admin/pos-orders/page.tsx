@@ -6,17 +6,40 @@ import {
   Filter, 
   Download,
   Eye,
-  Printer
+  Printer,
+  Loader2
 } from "lucide-react";
+import { useAuthStore } from "@/store/useAuthStore";
+import Link from "next/link";
 
 export default function PosOrdersPage() {
   const [showFilter, setShowFilter] = useState(false);
 
-  // Mock data
-  const orders = [
-    { id: "#POS001", waiter: "Steve Jobs", items: 2, date: "Oct 12, 2026, 18:30", amount: "₦12,500", status: "Delivered" },
-    { id: "#POS002", waiter: "Elon Musk", items: 5, date: "Oct 12, 2026, 19:00", amount: "₦45,000", status: "Delivered" },
-  ];
+  const { activeAdminStoreId, user } = useAuthStore();
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      setLoading(true);
+      try {
+        let url = `/api/admin/orders?isPos=true`;
+        if (activeAdminStoreId && activeAdminStoreId !== "0") {
+          url += `&storeId=${activeAdminStoreId}`;
+        }
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.status) {
+          setOrders(data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch POS orders", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrders();
+  }, [activeAdminStoreId]);
 
   return (
     <div className="pb-16">
@@ -87,33 +110,45 @@ export default function PosOrdersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EFF0F6]">
-              {orders.map((order) => (
-                <tr key={order.id} className="hover:bg-[#FAFAFC] transition-colors">
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
+                  </td>
+                </tr>
+              ) : orders.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-[#6E7191]">
+                    No POS orders found for this store context.
+                  </td>
+                </tr>
+              ) : orders.map((order) => (
+                <tr key={order._id} className="hover:bg-[#FAFAFC] transition-colors">
                   <td className="px-6 py-4">
-                    <span className="text-sm font-bold text-primary">{order.id}</span>
+                    <span className="text-sm font-bold text-primary">{order.orderSerialNo}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm font-medium text-[#14142B]">{order.waiter}</span>
+                    <span className="text-sm font-medium text-[#14142B]">{order.customerName || "POS Customer"}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm font-semibold text-[#14142B]">{order.items}</span>
+                    <span className="text-sm font-semibold text-[#14142B]">{order.items?.length || 0}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm font-semibold text-[#14142B]">{order.amount}</span>
+                    <span className="text-sm font-semibold text-[#14142B]">₦{(order.totalAmount || 0).toLocaleString()}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm text-[#4E4B66]">{order.date}</span>
+                    <span className="text-sm text-[#4E4B66]">{new Date(order.createdAt).toLocaleString()}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === 'Delivered' ? 'bg-[#E0FFED] text-[#1AB759]' : 'bg-[#FFF4E5] text-[#FF9F43]'}`}>
-                      {order.status}
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${order.orderStatus === 'delivered' ? 'bg-[#E0FFED] text-[#1AB759]' : 'bg-[#FFF4E5] text-[#FF9F43]'}`}>
+                      {order.orderStatus?.replace('_', ' ')}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#567DFF] flex items-center justify-center hover:bg-[#e5ebff] transition-colors">
+                      <Link href={`/admin/orders/${order._id}`} className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#567DFF] flex items-center justify-center hover:bg-[#e5ebff] transition-colors">
                         <Eye className="w-4 h-4" />
-                      </button>
+                      </Link>
                       <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#14142B] flex items-center justify-center hover:bg-gray-200 transition-colors">
                         <Printer className="w-4 h-4" />
                       </button>

@@ -136,7 +136,6 @@ function MenuContent() {
                     <div className="p-2 sm:py-4 sm:px-3 rounded-b-2xl h-full flex flex-col">
                       <div className="flex flex-col gap-0.5 mb-2">
                         <h3 className="text-xs sm:text-sm font-semibold capitalize text-ellipsis whitespace-nowrap overflow-hidden w-fit max-w-[200px]">{item.name}</h3>
-                        <span className="text-[9px] sm:text-[10px] text-primary font-medium">{item.storeName}</span>
                       </div>
                       <p className="text-[10px] leading-4 sm:text-xs sm:leading-5 text-ellipsis mb-4 flex-auto text-[#6e7191] line-clamp-2">{item.description}</p>
                       <div className="flex items-center justify-between gap-2">
@@ -159,7 +158,6 @@ function MenuContent() {
                     <div className="p-3 sm:p-4 flex-1">
                       <div className="flex flex-col justify-between mb-1">
                         <h3 className="text-sm font-semibold capitalize text-[#14142b] line-clamp-1">{item.name}</h3>
-                        <span className="text-[10px] text-primary font-medium">{item.storeName}</span>
                       </div>
                       <p className="text-[10px] sm:text-xs text-[#6e7191] line-clamp-2 mb-2 sm:mb-3">{item.description}</p>
                       <div className="flex items-center justify-between">

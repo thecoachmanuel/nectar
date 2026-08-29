@@ -25,6 +25,7 @@ export interface IUser extends Document {
   deliveryCommissionType?: "fixed" | "percentage";
   deliveryCommissionValue?: number;
   walletBalance?: number;
+  processedReferences: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -56,7 +57,14 @@ const UserSchema = new Schema<IUser>(
     image: { type: String },
     deliveryCommissionType: { type: String, enum: ["fixed", "percentage"], default: "fixed" },
     deliveryCommissionValue: { type: Number, default: 0 },
-    walletBalance: { type: Number, default: 0 },
+    walletBalance: {
+      type: Number,
+      default: 0,
+    },
+    processedReferences: {
+      type: [String],
+      default: []
+    },
     deviceToken: { type: String },
   },
   { timestamps: true }

@@ -21,15 +21,14 @@ export default function CheckoutPage() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [scheduleTab, setScheduleTab] = useState<"TODAY" | "TOMORROW">("TODAY");
   
+  const [paymentMethod, setPaymentMethod] = useState<"paystack" | "wallet">("paystack");
+  const walletBalance = (user as any)?.walletBalance || 0;
+  
   const addresses = user?.addresses || [];
   const [selectedAddress, setSelectedAddress] = useState<string | null>(addresses.length > 0 ? addresses[0]._id || null : null);
   const [deliveryCharge, setDeliveryCharge] = useState(0);
   
-  // Mock stores for selection
-  const availableStores = [
-    { id: "1", name: "Central Store (Downtown)" },
-    { id: "2", name: "Uptown Groceries" },
-  ];
+  const [deliveryCharge, setDeliveryCharge] = useState(0);
 
   const subtotal = getSubtotal();
   const total = getTotalAmount(0, deliveryCharge);
@@ -82,6 +81,10 @@ export default function CheckoutPage() {
       toast.error("Please select a delivery address");
       return;
     }
+    if (paymentMethod === "wallet" && walletBalance < total) {
+      toast.error("Insufficient wallet balance");
+      return;
+    }
 
     const customerName = user?.name || guestInfo?.name || "Guest";
     const customerEmail = user?.email || guestInfo?.email || "";
@@ -113,7 +116,7 @@ export default function CheckoutPage() {
           totalAmount: total,
           deliveryAddress: deliveryAddressObj,
           deliveryTimeSlot: schedule === "NOW" ? "As soon as possible" : selectedTime,
-          paymentMethod: "cash_on_delivery",
+          paymentMethod: paymentMethod,
         })
       });
       
@@ -236,6 +239,38 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
+                {/* Payment Method */}
+                <div className="mt-6 border-t border-[#eff0f6] pt-6">
+                  <h4 className="font-medium mb-3 text-[#14142b]">Payment Method</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <label 
+                      onClick={() => setPaymentMethod("paystack")}
+                      className={`w-full py-3 px-4 rounded-xl flex items-center justify-between cursor-pointer border transition-all duration-300 ${paymentMethod === "paystack" ? 'bg-[#fff5f9] border-primary' : 'bg-white border-[#eff0f6]'}`}
+                    >
+                      <span className="text-sm font-medium text-[#14142b]">Pay Online (Paystack)</span>
+                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === "paystack" ? 'border-primary' : 'border-[#a0a3bd]'}`}>
+                        {paymentMethod === "paystack" && <div className="w-2 h-2 rounded-full bg-primary" />}
+                      </div>
+                    </label>
+
+                    <label 
+                      onClick={() => setPaymentMethod("wallet")}
+                      className={`w-full py-3 px-4 rounded-xl flex items-center justify-between cursor-pointer border transition-all duration-300 ${paymentMethod === "wallet" ? 'bg-[#fff5f9] border-primary' : 'bg-white border-[#eff0f6]'}`}
+                    >
+                      <div>
+                        <span className="block text-sm font-medium text-[#14142b]">Wallet</span>
+                        <span className="block text-xs font-bold text-primary mt-0.5">Bal: ₦{walletBalance.toLocaleString()}</span>
+                      </div>
+                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === "wallet" ? 'border-primary' : 'border-[#a0a3bd]'}`}>
+                        {paymentMethod === "wallet" && <div className="w-2 h-2 rounded-full bg-primary" />}
+                      </div>
+                    </label>
+                  </div>
+                  {paymentMethod === "wallet" && walletBalance < total && (
+                    <p className="text-xs text-[#FB4E4E] mt-2 font-medium">Insufficient wallet balance. Please add funds or pay online.</p>
+                  )}
+                </div>
+
               </div>
             </div>
 
@@ -321,9 +356,10 @@ export default function CheckoutPage() {
                   
                   <button 
                     onClick={handlePlaceOrder}
-                    className="w-full rounded-2xl capitalize font-bold text-base py-3.5 text-white bg-primary hover:bg-rose-600 transition-colors shadow-md shadow-primary/20"
+                    disabled={loading || (paymentMethod === "wallet" && walletBalance < total)}
+                    className="w-full flex justify-center items-center gap-2 rounded-2xl capitalize font-bold text-base py-3.5 text-white bg-primary hover:bg-rose-600 transition-colors shadow-md shadow-primary/20 disabled:opacity-50"
                   >
-                    Place Order
+                    {paymentMethod === "paystack" ? "Proceed to Payment" : "Place Order"}
                   </button>
                 </div>
               </div>

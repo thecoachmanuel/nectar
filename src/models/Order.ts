@@ -52,6 +52,7 @@ export interface IOrder extends Document {
   statusTimeline: IStatusTimeline[];
   tableNumber?: string;
   notes?: string;
+  isPos?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -117,6 +118,7 @@ const OrderSchema = new Schema<IOrder>(
     statusTimeline: [StatusTimelineSchema],
     tableNumber: { type: String },
     notes: { type: String },
+    isPos: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

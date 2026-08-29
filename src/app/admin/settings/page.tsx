@@ -185,6 +185,42 @@ export default function SettingsPage() {
                   className="w-full p-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary resize-none"
                 ></textarea>
               </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Facebook URL</label>
+                <input 
+                  type="text" 
+                  value={formData.facebookUrl || ""} 
+                  onChange={(e) => handleChange("facebookUrl", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Twitter URL</label>
+                <input 
+                  type="text" 
+                  value={formData.twitterUrl || ""} 
+                  onChange={(e) => handleChange("twitterUrl", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Instagram URL</label>
+                <input 
+                  type="text" 
+                  value={formData.instagramUrl || ""} 
+                  onChange={(e) => handleChange("instagramUrl", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">YouTube URL</label>
+                <input 
+                  type="text" 
+                  value={formData.youtubeUrl || ""} 
+                  onChange={(e) => handleChange("youtubeUrl", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                />
+              </div>
             </div>
           )}
 
@@ -312,6 +348,15 @@ export default function SettingsPage() {
                   type="number" 
                   value={formData.feePerKm || 0} 
                   onChange={(e) => handleChange("feePerKm", Number(e.target.value))}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Base Fee Coverage (Km)</label>
+                <input 
+                  type="number" 
+                  value={formData.baseDeliveryCoverage || 3} 
+                  onChange={(e) => handleChange("baseDeliveryCoverage", Number(e.target.value))}
                   className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>

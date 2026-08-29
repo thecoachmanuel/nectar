@@ -10,7 +10,7 @@ export default function EditProfilePage() {
     last_name: "Doe",
     email: "admin@example.com",
     phone: "1234567890",
-    country_code: "+1"
+    country_code: "+234"
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,8 +70,8 @@ export default function EditProfilePage() {
                   name="email"
                   type="email" 
                   value={form.email}
-                  onChange={handleChange}
-                  className="w-full h-12 text-sm rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-primary transition-colors bg-white"
+                  readOnly
+                  className="w-full h-12 text-sm rounded-xl border border-[#eff0f6] px-4 text-[#6e7191] bg-[#f7f7fc] cursor-not-allowed focus:outline-none"
                 />
               </div>
 
@@ -79,7 +79,7 @@ export default function EditProfilePage() {
                 <label htmlFor="phone" className="block text-xs capitalize mb-1 text-[#6e7191]">Phone</label>
                 <div className="w-full h-12 rounded-xl border border-[#eff0f6] px-4 flex items-center bg-white focus-within:border-primary transition-colors">
                   <div className="w-fit flex-shrink-0 flex items-center gap-1 border-r border-[#eff0f6] pr-2 mr-2">
-                    <span className="text-sm">🇺🇸</span>
+                    <span className="text-sm">🇳🇬</span>
                     <span className="whitespace-nowrap flex-shrink-0 text-xs text-[#14142b]">{form.country_code}</span>
                   </div>
                   <input 

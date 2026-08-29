@@ -26,10 +26,15 @@ export default function HomePage() {
   const catScrollRef = useRef<HTMLDivElement>(null);
   const storeScrollRef = useRef<HTMLDivElement>(null);
 
-  const sliders = [
-    { image: "/images/seeder/slider/slider_one.png", title: "Flame Grilled Burgers", subtitle: "Cooked fresh, every single time" },
-    { image: "/images/seeder/slider/slider_two.png", title: "Exclusive Deals Today", subtitle: "Save big on your favourite meals" },
-    { image: "/images/seeder/slider/slider_three.png", title: "Order in Minutes", subtitle: "Fast delivery right to your door" },
+  const sliders = offers.length > 0 ? offers.map(o => ({
+    image: o.image,
+    title: o.title,
+    subtitle: o.slug,
+    link: `/menu?offer=${o._id}`
+  })) : [
+    { image: "/images/seeder/slider/slider_one.png", title: "Flame Grilled Burgers", subtitle: "Cooked fresh, every single time", link: "/menu" },
+    { image: "/images/seeder/slider/slider_two.png", title: "Exclusive Deals Today", subtitle: "Save big on your favourite meals", link: "/menu" },
+    { image: "/images/seeder/slider/slider_three.png", title: "Order in Minutes", subtitle: "Fast delivery right to your door", link: "/menu" },
   ];
 
   const seederOffers = [
@@ -126,7 +131,7 @@ export default function HomePage() {
                   <p className="text-xs font-semibold opacity-80 mb-1">⚡ Today&apos;s Special</p>
                   <h2 className="text-xl md:text-3xl font-black leading-tight mb-2">{slide.title}</h2>
                   <p className="text-xs md:text-sm opacity-90 mb-4">{slide.subtitle}</p>
-                  <Link href="/menu" className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold text-white transition-all"
+                  <Link href={slide.link || "/menu"} className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold text-white transition-all"
                     style={{ backgroundColor: "var(--primary-hex)" }}>
                     Order Now <ArrowRight className="w-4 h-4" />
                   </Link>
@@ -298,7 +303,6 @@ export default function HomePage() {
                   <div className="p-3 flex-1">
                     <div className="flex flex-col gap-0.5 mb-1">
                       <h4 className="text-sm font-semibold text-[#14142b] flex-1 capitalize">{item.name}</h4>
-                      <span className="text-[10px] text-primary font-medium truncate">{item.storeName}</span>
                     </div>
                     <p className="text-xs text-[#6e7191] line-clamp-1 mb-2">{item.description}</p>
                     <div className="flex items-center justify-between">
@@ -348,7 +352,6 @@ export default function HomePage() {
                   <div className="p-3 flex-1">
                     <div className="flex flex-col gap-0.5 mb-1">
                       <h4 className="text-sm font-semibold text-[#14142b] flex-1 capitalize">{item.name}</h4>
-                      <span className="text-[10px] text-primary font-medium truncate">{item.storeName}</span>
                     </div>
                     <p className="text-xs text-[#6e7191] line-clamp-1 mb-2">{item.description}</p>
                     <div className="flex items-center justify-between">
@@ -388,7 +391,6 @@ function ItemCard({ item, onOpen }: { item: any; onOpen: (item: any) => void }) 
       </div>
       <div className="p-2.5 flex-1 flex flex-col">
         <h4 className="text-xs font-semibold text-[#14142b] truncate mb-0.5">{item.name}</h4>
-        <span className="text-[9px] text-primary font-medium mb-1 truncate">{item.storeName}</span>
         <p className="text-[10px] text-[#6e7191] line-clamp-2 mb-2 flex-1">{item.description}</p>
         <div className="flex items-center justify-between">
           <span className="text-sm font-bold text-[#14142b]">₦{item.price?.toFixed(2)}</span>

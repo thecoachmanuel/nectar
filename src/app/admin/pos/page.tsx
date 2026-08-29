@@ -12,19 +12,23 @@ import {
   Trash2,
   UserPlus,
   ChevronDown,
-  Loader2
+  Loader2,
+  Store
 } from "lucide-react";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function POSPage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [cartOpen, setCartOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   
+  const { activeAdminStoreId } = useAuthStore();
+  
   const [categories, setCategories] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
   
-  const [selectedBranch, setSelectedBranch] = useState("");
+  const [selectedBranch, setSelectedBranch] = useState(activeAdminStoreId || "0");
   const [orderType, setOrderType] = useState("takeaway");
   const [customerName, setCustomerName] = useState("Walk-in Customer");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,7 +41,7 @@ export default function POSPage() {
       try {
         const [catRes, itemRes, branchRes] = await Promise.all([
           fetch("/api/frontend/categories").catch(() => null),
-          fetch("/api/frontend/items").catch(() => null),
+          fetch(`/api/frontend/items?storeId=${activeAdminStoreId || "0"}`).catch(() => null),
           fetch("/api/frontend/stores").catch(() => null)
         ]);
 
@@ -55,9 +59,6 @@ export default function POSPage() {
           const branchData = await branchRes.json();
           if (branchData.status && Array.isArray(branchData.data)) {
             setBranches(branchData.data);
-            if (branchData.data.length > 0) {
-              setSelectedBranch(branchData.data[0]._id);
-            }
           }
         }
       } catch (err) {
@@ -69,6 +70,10 @@ export default function POSPage() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    setSelectedBranch(activeAdminStoreId || "0");
+  }, [activeAdminStoreId]);
+  
   const addToCart = (product: any) => {
     setCart(prev => {
       const existing = prev.find(item => item.itemId === product._id);
@@ -106,7 +111,7 @@ export default function POSPage() {
 
   const handleOrder = async () => {
     if (cart.length === 0) return toast.error("Cart is empty");
-    if (!selectedBranch) return toast.error("Please select a store branch");
+    if (!selectedBranch || selectedBranch === "0") return toast.error("Please select a specific store context in the Navbar to place an order.");
     
     setIsSubmitting(true);
     try {
@@ -124,7 +129,8 @@ export default function POSPage() {
           totalAmount: total,
           paymentMethod: "cash_on_delivery",
           orderStatus: "accepted", // POS orders can be immediately accepted
-          deliveryAddress: orderType === "delivery" ? "POS Manual Delivery" : undefined
+          deliveryAddress: orderType === "delivery" ? "POS Manual Delivery" : undefined,
+          isPos: true
         })
       });
       const data = await res.json();
@@ -258,16 +264,11 @@ export default function POSPage() {
                 </select>
                 <ChevronDown className="w-4 h-4 text-[#A0A3BD] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
-              <div className="flex-1 relative">
-                <select 
-                  value={selectedBranch}
-                  onChange={(e) => setSelectedBranch(e.target.value)}
-                  className="w-full h-11 pl-3 pr-8 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-primary appearance-none font-medium text-[#14142B]"
-                >
-                  <option value="">Select Store</option>
-                  {branches.map(b => <option key={b._id} value={b._id}>{b.name}</option>)}
-                </select>
-                <ChevronDown className="w-4 h-4 text-[#A0A3BD] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <div className="flex-1 relative bg-[#FAFAFC] border border-[#EFF0F6] rounded-xl h-11 flex items-center px-3">
+                <Store className="w-4 h-4 text-[#A0A3BD] mr-2" />
+                <span className="text-sm font-medium text-[#14142B] truncate">
+                  {selectedBranch === "0" ? "All Stores (Select in Nav)" : (branches.find(b => b._id === selectedBranch)?.name || "Store Context")}
+                </span>
               </div>
             </div>
 

@@ -19,6 +19,7 @@ export interface UserProfile {
   }[];
   permissions?: string[];
   image?: string;
+  walletBalance?: number;
 }
 
 interface AuthState {
@@ -31,9 +32,12 @@ interface AuthState {
     phone: string;
   } | null;
 
+  activeAdminStoreId: string;
+
   setAuth: (token: string, user: UserProfile) => void;
   setGuest: (info: { name: string; email: string; phone: string }) => void;
   updateUser: (partialUser: Partial<UserProfile>) => void;
+  setActiveAdminStoreId: (storeId: string) => void;
   logout: () => void;
 }
 
@@ -44,6 +48,7 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       isGuest: false,
       guestInfo: null,
+      activeAdminStoreId: "0",
 
       setAuth: (token, user) => set({ token, user, isGuest: false, guestInfo: null }),
 
@@ -54,7 +59,9 @@ export const useAuthStore = create<AuthState>()(
           user: state.user ? { ...state.user, ...partialUser } : null,
         })),
 
-      logout: () => set({ token: null, user: null, isGuest: false, guestInfo: null }),
+      setActiveAdminStoreId: (storeId) => set({ activeAdminStoreId: storeId }),
+
+      logout: () => set({ token: null, user: null, isGuest: false, guestInfo: null, activeAdminStoreId: "0" }),
     }),
     {
       name: "nectar_auth_storage",

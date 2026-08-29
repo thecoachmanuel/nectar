@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Menu, Maximize2, Minimize2, ChevronDown, Store, Globe, LogOut, User, Key } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useEffect } from "react";
 
 interface NavbarProps {
   toggleSidebar: () => void;
@@ -13,10 +14,30 @@ interface NavbarProps {
 
 export default function Navbar({ toggleSidebar, user }: NavbarProps) {
   const router = useRouter();
+  const { activeAdminStoreId, setActiveAdminStoreId } = useAuthStore();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [storeOpen, setStoreOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
+  const [stores, setStores] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (user?.role === "admin" || user?.role === "store_manager") {
+      fetch("/api/admin/stores")
+        .then(res => res.json())
+        .then(data => {
+          if (data.status) setStores(data.data);
+          if (user.role === "store_manager") {
+            setActiveAdminStoreId(user.storeId as string);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [user, setActiveAdminStoreId]);
+
+  const activeStoreName = activeAdminStoreId === "0" 
+    ? "All Stores (Global)" 
+    : stores.find(s => s._id === activeAdminStoreId)?.name || "Store";
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -48,32 +69,58 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
         </button>
 
         {/* Store Selector */}
-        <div className="relative hidden sm:block">
-          <button 
-            onClick={() => { setStoreOpen(!storeOpen); setProfileOpen(false); setLangOpen(false); }}
-            className="flex items-center gap-3"
-          >
-            <div className="w-10 h-10 rounded-xl bg-[#fff5f9] text-primary flex items-center justify-center">
-              <Store className="w-5 h-5" />
-            </div>
-            <div className="text-left">
-              <span className="block text-[10px] text-[#6E7191] uppercase tracking-wider font-semibold">Store</span>
-              <span className="block text-xs font-bold text-[#14142B] -mt-0.5">Central Store</span>
-            </div>
-            <ChevronDown className="w-4 h-4 text-[#A0A3BD]" />
-          </button>
-          
-          {storeOpen && (
-            <div className="absolute top-12 left-0 w-48 bg-white border border-[#EFF0F6] rounded-xl shadow-lg py-2 z-50">
-              <label className="flex items-center gap-3 p-3 rounded-lg hover:bg-[#fff5f9] cursor-pointer text-sm text-[#14142B] font-medium transition-colors">
-                <input type="radio" checked readOnly className="accent-[#ff006b]" /> Central Store
-              </label>
-              <label className="flex items-center gap-3 p-3 rounded-lg hover:bg-[#fff5f9] cursor-pointer text-sm text-[#14142B] font-medium transition-colors">
-                <input type="radio" readOnly className="accent-[#ff006b]" /> Downtown Store
-              </label>
-            </div>
-          )}
-        </div>
+        {(user?.role === "admin" || user?.role === "store_manager") && (
+          <div className="relative hidden sm:block">
+            <button 
+              onClick={() => { 
+                if (user?.role === "admin") setStoreOpen(!storeOpen); 
+                setProfileOpen(false); 
+                setLangOpen(false); 
+              }}
+              className={`flex items-center gap-3 ${user?.role === "store_manager" ? "cursor-default" : ""}`}
+            >
+              <div className="w-10 h-10 rounded-xl bg-[#fff5f9] text-primary flex items-center justify-center">
+                <Store className="w-5 h-5" />
+              </div>
+              <div className="text-left">
+                <span className="block text-[10px] text-[#6E7191] uppercase tracking-wider font-semibold">
+                  {user?.role === "store_manager" ? "My Store" : "Store Context"}
+                </span>
+                <span className="block text-xs font-bold text-[#14142B] -mt-0.5 whitespace-nowrap">
+                  {activeStoreName}
+                </span>
+              </div>
+              {user?.role === "admin" && <ChevronDown className="w-4 h-4 text-[#A0A3BD]" />}
+            </button>
+            
+            {storeOpen && user?.role === "admin" && (
+              <div className="absolute top-12 left-0 w-56 max-h-64 overflow-y-auto custom-scrollbar bg-white border border-[#EFF0F6] rounded-xl shadow-lg py-2 z-50">
+                <label className="flex items-center gap-3 p-3 rounded-lg hover:bg-[#fff5f9] cursor-pointer text-sm text-[#14142B] font-medium transition-colors">
+                  <input 
+                    type="radio" 
+                    name="admin_store"
+                    checked={activeAdminStoreId === "0"} 
+                    onChange={() => { setActiveAdminStoreId("0"); setStoreOpen(false); }}
+                    className="accent-[#ff006b]" 
+                  /> 
+                  All Stores (Global)
+                </label>
+                {stores.map(store => (
+                  <label key={store._id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-[#fff5f9] cursor-pointer text-sm text-[#14142B] font-medium transition-colors">
+                    <input 
+                      type="radio" 
+                      name="admin_store"
+                      checked={activeAdminStoreId === store._id} 
+                      onChange={() => { setActiveAdminStoreId(store._id); setStoreOpen(false); }}
+                      className="accent-[#ff006b]" 
+                    /> 
+                    {store.name}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-3 sm:gap-5">

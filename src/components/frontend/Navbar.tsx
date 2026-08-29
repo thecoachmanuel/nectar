@@ -9,7 +9,7 @@ import { useSettingStore } from "@/store/useSettingStore";
 import {
   Search, ShoppingBag, User, LogOut, MapPin, MessageCircle,
   Lock, ClipboardList, Menu, X, ChevronDown, Leaf, Drumstick,
-  LayoutGrid, List, Globe
+  LayoutGrid, List, Globe, Wallet
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -189,6 +189,11 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
                           <ClipboardList className="w-4 h-4" />
                           <span>My Orders</span>
                         </Link>
+                        <Link href="/account/wallet" onClick={() => setProfileOpen(false)}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#14142b] hover:text-primary hover:bg-[#fff5f9] transition-all border-b border-[#eff0f6] capitalize">
+                          <Wallet className="w-4 h-4" />
+                          <span>Wallet</span>
+                        </Link>
                         <Link href="/account/profile" onClick={() => setProfileOpen(false)}
                           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#14142b] hover:text-primary hover:bg-[#fff5f9] transition-all border-b border-[#eff0f6] capitalize">
                           <User className="w-4 h-4" />
@@ -257,6 +262,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
                 <p className="text-xs font-semibold text-[#a0a3bd] uppercase tracking-wider px-3 py-1">Account</p>
                 {[
                   { href: "/account/orders", label: "My Orders", icon: <ClipboardList className="w-4 h-4" /> },
+                  { href: "/account/wallet", label: "Wallet", icon: <Wallet className="w-4 h-4" /> },
                   { href: "/account/profile", label: "Edit Profile", icon: <User className="w-4 h-4" /> },
                   { href: "/account/addresses", label: "Addresses", icon: <MapPin className="w-4 h-4" /> },
                   { href: "/account/chat", label: "Chat", icon: <MessageCircle className="w-4 h-4" /> },

@@ -64,14 +64,20 @@ export default function SignupPage() {
 
           <div className="mb-4">
             <label htmlFor="phone" className="block text-sm capitalize mb-1 text-[#6e7191]">Phone</label>
-            <input 
-              id="phone" 
-              name="phone"
-              type="tel" 
-              value={form.phone}
-              onChange={handleChange}
-              className="w-full h-12 rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-primary transition-colors bg-white" 
-            />
+            <div className="w-full h-12 rounded-xl border border-[#eff0f6] px-4 flex items-center bg-white focus-within:border-primary transition-colors">
+              <div className="w-fit flex-shrink-0 flex items-center gap-1 border-r border-[#eff0f6] pr-2 mr-2">
+                <span className="text-sm">🇳🇬</span>
+                <span className="whitespace-nowrap flex-shrink-0 text-sm text-[#14142b]">+234</span>
+              </div>
+              <input 
+                id="phone" 
+                name="phone"
+                type="tel" 
+                value={form.phone}
+                onChange={handleChange}
+                className="w-full h-full text-sm text-[#14142b] focus:outline-none bg-transparent"
+              />
+            </div>
           </div>
           
           <div className="mb-4">

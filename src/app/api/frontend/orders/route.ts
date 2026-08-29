@@ -50,6 +50,7 @@ export async function POST(req: Request) {
       deliveryTimeSlot,
       paymentMethod,
       notes,
+      isPos
     } = body;
 
     if (!items || items.length === 0) {
@@ -58,6 +59,23 @@ export async function POST(req: Request) {
 
     if (orderType === "delivery" && !deliveryAddress) {
       return NextResponse.json({ status: false, message: "Delivery address is required" }, { status: 400 });
+    }
+    
+    if (paymentMethod === "cash_on_delivery" && !isPos) {
+      return NextResponse.json({ status: false, message: "Cash on delivery is not available for online orders." }, { status: 400 });
+    }
+    
+    let userDoc = null;
+    const User = (await import("@/models/User")).default;
+    
+    if (paymentMethod === "wallet") {
+      if (!userId) {
+        return NextResponse.json({ status: false, message: "You must be logged in to use Wallet." }, { status: 400 });
+      }
+      userDoc = await User.findById(userId);
+      if (!userDoc || (userDoc.walletBalance || 0) < totalAmount) {
+        return NextResponse.json({ status: false, message: "Insufficient wallet balance." }, { status: 400 });
+      }
     }
 
     const Store = (await import("@/models/Store")).default;
@@ -97,6 +115,10 @@ export async function POST(req: Request) {
             city: "Main City",
             latitude: 23.8,
             longitude: 90.3,
+            zone: {
+              type: "Polygon",
+              coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
+            }
           });
         }
         actualStoreId = defaultStore._id.toString();
@@ -153,16 +175,23 @@ export async function POST(req: Request) {
         deliveryAddress: orderType === "delivery" ? deliveryAddress : undefined,
         deliveryTimeSlot,
         paymentMethod: paymentMethod || "cash_on_delivery",
-        paymentStatus: "unpaid",
-        orderStatus: "pending",
+        paymentStatus: paymentMethod === "wallet" ? "paid" : "unpaid",
+        orderStatus: isPos ? "accepted" : "pending",
         statusTimeline: [
-          { status: "pending", timestamp: new Date(), note: "Order placed by customer" }
+          { status: isPos ? "accepted" : "pending", timestamp: new Date(), note: isPos ? "POS Order placed" : "Order placed by customer" }
         ],
         notes,
+        isPos: !!isPos
       });
 
       await newOrder.save();
       createdOrders.push(newOrder);
+    }
+    
+    // Deduct wallet balance if wallet payment
+    if (paymentMethod === "wallet" && userDoc) {
+      userDoc.walletBalance = (userDoc.walletBalance || 0) - totalAmount;
+      await userDoc.save();
     }
 
     return NextResponse.json({ 

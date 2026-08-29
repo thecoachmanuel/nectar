@@ -124,6 +124,7 @@ export default function MapComponent({ initialLat, initialLng, onLocationSelect 
           <Autocomplete
             onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
             onPlaceChanged={onPlaceChanged}
+            options={{ componentRestrictions: { country: "ng" } }}
           >
             <input
               type="text"
