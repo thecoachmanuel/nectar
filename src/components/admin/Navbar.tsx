@@ -26,7 +26,7 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
       fetch("/api/admin/stores")
         .then(res => res.json())
         .then(data => {
-          if (data.status) setStores(data.data);
+          if (data.status) setStores(data.stores || []);
           if (user.role === "store_manager") {
             setActiveAdminStoreId(user.storeId as string);
           }
@@ -37,7 +37,7 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
 
   const activeStoreName = activeAdminStoreId === "0" 
     ? "All Stores (Global)" 
-    : stores.find(s => s._id === activeAdminStoreId)?.name || "Store";
+    : (stores || []).find(s => s._id === activeAdminStoreId)?.name || "Store";
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -105,7 +105,7 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
                   /> 
                   All Stores (Global)
                 </label>
-                {stores.map(store => (
+                {(stores || []).map(store => (
                   <label key={store._id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-[#fff5f9] cursor-pointer text-sm text-[#14142B] font-medium transition-colors">
                     <input 
                       type="radio" 
