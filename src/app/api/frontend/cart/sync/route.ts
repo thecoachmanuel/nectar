@@ -24,7 +24,13 @@ export async function POST(req: Request) {
 
         // Variation price
         if (cartItem.variationName && dbItem.variations && Array.isArray(dbItem.variations)) {
-          const matchedVar = dbItem.variations.find((v: any) => v.name === cartItem.variationName);
+          let matchedVar: any = undefined;
+          for (const group of dbItem.variations) {
+            if (group.options && Array.isArray(group.options)) {
+              matchedVar = group.options.find((o: any) => o.name === cartItem.variationName);
+              if (matchedVar) break;
+            }
+          }
           if (matchedVar) {
             newBasePrice = matchedVar.price;
           }
