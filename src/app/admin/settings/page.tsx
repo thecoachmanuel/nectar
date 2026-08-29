@@ -186,6 +186,26 @@ export default function SettingsPage() {
                 ></textarea>
               </div>
               <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Company Latitude</label>
+                <input 
+                  type="number" 
+                  step="any"
+                  value={formData.company_latitude || ""} 
+                  onChange={(e) => handleChange("company_latitude", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Company Longitude</label>
+                <input 
+                  type="number" 
+                  step="any"
+                  value={formData.company_longitude || ""} 
+                  onChange={(e) => handleChange("company_longitude", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                />
+              </div>
+              <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Facebook URL</label>
                 <input 
                   type="text" 

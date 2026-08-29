@@ -43,60 +43,87 @@ export async function POST(req: Request) {
       const userLat = parseFloat(deliveryAddress.latitude);
       const userLng = parseFloat(deliveryAddress.longitude);
       
-      const settings = await Setting.find({ key: { $in: ["baseDeliveryFee", "feePerKm", "multiStoreExtraFee", "freeDeliveryThreshold"] } }).lean();
+      const settings = await Setting.find({ key: { $in: ["baseDeliveryFee", "feePerKm", "multiStoreExtraFee", "freeDeliveryThreshold", "company_latitude", "company_longitude"] } }).lean();
       
       let baseFee = 1500;
       let feePerKm = 100;
       let multiStoreExtraFee = 0;
       let freeThreshold: number | undefined;
+      let adminLat: number | undefined;
+      let adminLng: number | undefined;
 
       settings.forEach((s: any) => {
         if (s.key === "baseDeliveryFee") baseFee = parseFloat(s.payload) || 1500;
         if (s.key === "feePerKm") feePerKm = parseFloat(s.payload) || 100;
         if (s.key === "multiStoreExtraFee") multiStoreExtraFee = parseFloat(s.payload) || 0;
         if (s.key === "freeDeliveryThreshold") freeThreshold = parseFloat(s.payload) || undefined;
+        if (s.key === "company_latitude" && s.payload) adminLat = parseFloat(s.payload);
+        if (s.key === "company_longitude" && s.payload) adminLng = parseFloat(s.payload);
       });
 
       if (freeThreshold !== undefined && subtotal >= freeThreshold) {
         deliveryCharge = 0;
       } else {
+        let maxDistance = 0;
+        let validStoresCount = 0;
+        let outOfRangeStoreIds: string[] = [];
+        let outOfRangeStoreNames: string[] = [];
+        
+        let hasAdminItems = false;
+        items.forEach((item: any) => {
+          if (!item.storeId || item.storeId === "admin" || item.storeId === "0") {
+            hasAdminItems = true;
+          }
+        });
+
         if (storeIds.size > 0) {
           const stores = await Store.find({ _id: { $in: Array.from(storeIds) } }).lean();
-          
-          let maxDistance = 0;
-          let validStoresCount = 0;
-          let outOfRangeStoreIds: string[] = [];
-          let outOfRangeStoreNames: string[] = [];
           
           stores.forEach((store: any) => {
             if (store.latitude !== undefined && store.longitude !== undefined) {
               const dist = haversineDistance(userLat, userLng, store.latitude, store.longitude);
-              if (dist > (store.deliveryRadius || 5)) {
-                outOfRangeStoreIds.push(store._id.toString());
-                outOfRangeStoreNames.push(store.name);
-              } else {
-                if (dist > maxDistance) maxDistance = dist;
-                validStoresCount++;
+              if (!isNaN(dist)) {
+                if (dist > (store.deliveryRadius || 5)) {
+                  outOfRangeStoreIds.push(store._id.toString());
+                  outOfRangeStoreNames.push(store.name);
+                } else {
+                  if (dist > maxDistance) maxDistance = dist;
+                  validStoresCount++;
+                }
               }
             }
           });
+        }
 
-          if (outOfRangeStoreIds.length > 0) {
-            return NextResponse.json({ 
-              status: false, 
-              message: "Your address is out of delivery range for one or more items.", 
-              outOfRangeStoreIds,
-              outOfRangeStoreNames
-            }, { status: 400 });
+        if (hasAdminItems) {
+          if (adminLat !== undefined && adminLng !== undefined && !isNaN(adminLat) && !isNaN(adminLng)) {
+            const dist = haversineDistance(userLat, userLng, adminLat, adminLng);
+            if (!isNaN(dist)) {
+              if (dist > maxDistance) maxDistance = dist;
+              validStoresCount++;
+            }
+          } else {
+            // Admin doesn't have coordinates set, assume 0 extra distance but it counts as a store location
+            validStoresCount++;
           }
+        }
 
+        if (outOfRangeStoreIds.length > 0) {
+          return NextResponse.json({ 
+            status: false, 
+            message: "Your address is out of delivery range for one or more items.", 
+            outOfRangeStoreIds,
+            outOfRangeStoreNames
+          }, { status: 400 });
+        }
+
+        if (validStoresCount > 0) {
           deliveryCharge = baseFee + (maxDistance * feePerKm);
-          
           if (validStoresCount > 1) {
             deliveryCharge += (validStoresCount - 1) * multiStoreExtraFee;
           }
         } else {
-          deliveryCharge = baseFee; // Default if only admin items
+          deliveryCharge = baseFee; // Fallback
         }
       }
     }
