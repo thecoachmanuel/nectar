@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCartStore } from "@/store/useCartStore";
 import { useAuthStore } from "@/store/useAuthStore";
-import { Home, UtensilsCrossed, ShoppingBag, User, Tag } from "lucide-react";
+import { Home, ShoppingBasket, ShoppingBag, User, Tag } from "lucide-react";
 
 interface MobileBottomNavProps {
   onCartOpen: () => void;
@@ -21,7 +21,7 @@ export default function MobileBottomNav({ onCartOpen }: MobileBottomNavProps) {
 
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
-    { href: "/menu", icon: UtensilsCrossed, label: "Menu" },
+    { href: "/menu", icon: ShoppingBasket, label: "Groceries" },
     { href: null, icon: ShoppingBag, label: "Cart", isCart: true },
     { href: "/offers", icon: Tag, label: "Offers" },
     { href: isLoggedIn ? "/account/profile" : "/auth/login", icon: User, label: isLoggedIn ? "Account" : "Login" },

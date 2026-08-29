@@ -9,8 +9,9 @@ import { useSettingStore } from "@/store/useSettingStore";
 import {
   Search, ShoppingBag, User, LogOut, MapPin, MessageCircle,
   Lock, ClipboardList, Menu, X, ChevronDown, Leaf, Drumstick,
-  LayoutGrid, List, Globe, Wallet
+  ShoppingBasket, Download, Smartphone, Wallet
 } from "lucide-react";
+import PwaInstallModal from "./PwaInstallModal";
 import { toast } from "sonner";
 
 interface NavbarProps { onCartOpen?: () => void; }
@@ -24,6 +25,17 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [pwaModalOpen, setPwaModalOpen] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams?.get("search") || "");
   const profileRef = useRef<HTMLDivElement>(null);
@@ -94,7 +106,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
                 Home
               </Link>
               <Link href="/menu" className={`capitalize text-sm font-medium transition-colors ${isActive("/menu") ? "text-primary" : "text-[#14142b] hover:text-primary"}`}>
-                Menu
+                Groceries
               </Link>
               <Link href="/offers" className={`capitalize text-sm font-medium transition-colors ${isActive("/offers") ? "text-primary" : "text-[#14142b] hover:text-primary"}`}>
                 Offers
@@ -209,6 +221,16 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
                           <MapPin className="w-4 h-4" />
                           <span>Addresses</span>
                         </Link>
+                         <button 
+                          onClick={() => { setProfileOpen(false); setPwaModalOpen(true); }}
+                          className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-primary hover:bg-[#fff5f9] transition-all border-b border-[#eff0f6] font-semibold"
+                        >
+                          <div className="flex items-center gap-3">
+                            <Smartphone className="w-4 h-4 text-primary" />
+                            <span>Download App</span>
+                          </div>
+                          <span className="text-[9px] uppercase font-bold bg-primary text-white px-1.5 py-0.5 rounded-md">PWA</span>
+                        </button>
                         <Link href="/account/profile?tab=security" onClick={() => setProfileOpen(false)}
                           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#14142b] hover:text-primary hover:bg-[#fff5f9] transition-all border-b border-[#eff0f6] capitalize">
                           <Lock className="w-4 h-4" />
@@ -243,12 +265,23 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
 
 
             <nav className="flex flex-col gap-1">
-              {[{ href: "/", label: "Home" }, { href: "/menu", label: "Menu" }, { href: "/offers", label: "Offers" }].map(({ href, label }) => (
+              {[{ href: "/", label: "Home" }, { href: "/menu", label: "Groceries" }, { href: "/offers", label: "Offers" }].map(({ href, label }) => (
                 <Link key={href} href={href} onClick={() => setMobileMenuOpen(false)}
                   className={`px-3 py-2.5 rounded-lg text-sm font-medium capitalize transition-all ${isActive(href) ? "text-primary bg-[#fff5f9]" : "text-[#14142b] hover:bg-[#f7f7fc]"}`}>
                   {label}
                 </Link>
               ))}
+              {/* PWA Download App Option in Mobile Hamburger Menu */}
+              <button
+                onClick={() => { setMobileMenuOpen(false); setPwaModalOpen(true); }}
+                className="mt-1 flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-primary to-rose-600 shadow-md shadow-primary/20 transition-all"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Smartphone className="w-4.5 h-4.5 text-white" />
+                  <span>Download Nectar App</span>
+                </div>
+                <span className="text-[10px] uppercase font-extrabold bg-white text-primary px-2 py-0.5 rounded-full shadow-2xs">PWA</span>
+              </button>
             </nav>
 
             {!user ? (
@@ -279,6 +312,12 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
             )}
           </div>
         )}
+        {/* PWA Installer Modal */}
+        <PwaInstallModal
+          isOpen={pwaModalOpen}
+          onClose={() => setPwaModalOpen(false)}
+          deferredPrompt={deferredPrompt}
+        />
       </header>
     </>
   );

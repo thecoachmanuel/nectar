@@ -158,7 +158,8 @@ export default function OrderDetailsModal({
           </style>
         </head>
         <body>
-          <div class="text-center bold" style="font-size: 16px;">FOODAPPI</div>
+          <div class="text-center bold" style="font-size: 18px; letter-spacing: 2px;">NECTAR</div>
+          <div class="text-center" style="font-size: 10px; color: #555;">GROCERY DELIVERY</div>
           <div class="text-center">Order #${order.orderSerialNo}</div>
           <div class="text-center">${new Date(order.createdAt).toLocaleString()}</div>
           ${order.deliveryPin ? `<div class="pin-box">DELIVERY PIN: ${order.deliveryPin}</div>` : ""}
@@ -195,6 +196,7 @@ export default function OrderDetailsModal({
       isOpen={isOpen}
       onClose={onClose}
       title={order ? `Order Details - #${order.orderSerialNo}` : "Order Details"}
+      maxWidth="max-w-5xl"
     >
       {loading || !order ? (
         <div className="p-12 text-center text-[#6E7191]">
