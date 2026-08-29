@@ -9,6 +9,15 @@ export default function DynamicPage() {
   const [page, setPage] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<any>({});
+  
+  // Contact Form State
+  const [contactData, setContactData] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetchPage();
@@ -35,6 +44,33 @@ export default function DynamicPage() {
         setSettings(data.data || {});
       }
     } catch {}
+  };
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!contactData.name || !contactData.email || !contactData.subject || !contactData.message) {
+      alert("Please fill in all fields.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/frontend/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(contactData),
+      });
+      const data = await res.json();
+      if (data.status) {
+        alert("Message sent successfully!");
+        setContactData({ name: "", email: "", subject: "", message: "" });
+      } else {
+        alert(data.message || "Failed to send message.");
+      }
+    } catch (error) {
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -85,23 +121,59 @@ export default function DynamicPage() {
           {page.template_id === 1 && (
             <div className="bg-[#f7f7fc] p-6 rounded-2xl border border-[#eff0f6]">
               <h3 className="text-xl font-semibold mb-4 text-[#14142b]">Contact Us</h3>
-              <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+              <form className="space-y-4" onSubmit={handleContactSubmit}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-[#14142b] mb-1">Name</label>
-                    <input type="text" className="w-full px-4 py-2.5 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-primary transition-colors" placeholder="Your Name" />
+                    <input 
+                      type="text" 
+                      required
+                      value={contactData.name}
+                      onChange={(e) => setContactData({ ...contactData, name: e.target.value })}
+                      className="w-full px-4 py-2.5 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-primary transition-colors" 
+                      placeholder="Your Name" 
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[#14142b] mb-1">Email</label>
-                    <input type="email" className="w-full px-4 py-2.5 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-primary transition-colors" placeholder="Your Email" />
+                    <input 
+                      type="email" 
+                      required
+                      value={contactData.email}
+                      onChange={(e) => setContactData({ ...contactData, email: e.target.value })}
+                      className="w-full px-4 py-2.5 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-primary transition-colors" 
+                      placeholder="Your Email" 
+                    />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#14142b] mb-1">Message</label>
-                  <textarea rows={4} className="w-full px-4 py-2.5 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-primary transition-colors resize-none" placeholder="Your Message"></textarea>
+                  <label className="block text-sm font-medium text-[#14142b] mb-1">Subject</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={contactData.subject}
+                    onChange={(e) => setContactData({ ...contactData, subject: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-primary transition-colors" 
+                    placeholder="Subject" 
+                  />
                 </div>
-                <button type="button" className="w-full py-3 bg-primary text-white rounded-xl font-medium hover:bg-rose-600 transition-colors">
-                  Send Message
+                <div>
+                  <label className="block text-sm font-medium text-[#14142b] mb-1">Message</label>
+                  <textarea 
+                    rows={4} 
+                    required
+                    value={contactData.message}
+                    onChange={(e) => setContactData({ ...contactData, message: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-primary transition-colors resize-none" 
+                    placeholder="Your Message"
+                  ></textarea>
+                </div>
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  className="w-full py-3 bg-primary text-white rounded-xl font-medium hover:bg-rose-600 transition-colors disabled:opacity-70"
+                >
+                  {isSubmitting ? "Sending..." : "Send Message"}
                 </button>
               </form>
             </div>

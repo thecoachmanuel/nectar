@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Search, 
   Trash2,
@@ -10,11 +10,51 @@ import {
 
 export default function MessagesPage() {
 
-  // Mock data
-  const messages = [
-    { id: 1, name: "Customer Service", subject: "Refund Request", email: "john@example.com", date: "Oct 12, 2026", status: "Unread" },
-    { id: 2, name: "Partnership", subject: "Vendor Inquiry", email: "vendor@example.com", date: "Oct 10, 2026", status: "Read" },
-  ];
+  const [messages, setMessages] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchMessages();
+  }, []);
+
+  const fetchMessages = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/messages");
+      const data = await res.json();
+      if (data.status) {
+        setMessages(data.data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMarkRead = async (id: string) => {
+    try {
+      await fetch(`/api/admin/messages/${id}`, { method: "PATCH" });
+      fetchMessages();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this message?")) return;
+    try {
+      const res = await fetch(`/api/admin/messages/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.status) {
+        fetchMessages();
+      } else {
+        alert(data.message || "Failed to delete");
+      }
+    } catch (err) {
+      alert("Something went wrong");
+    }
+  };
 
   return (
     <div className="pb-16">
@@ -56,36 +96,53 @@ export default function MessagesPage() {
             </thead>
             <tbody className="divide-y divide-[#EFF0F6]">
               {messages.map((message) => (
-                <tr key={message.id} className={`hover:bg-[#FAFAFC] transition-colors ${message.status === 'Unread' ? 'bg-[#fff5f9]/30' : ''}`}>
+                <tr key={message._id} className={`hover:bg-[#FAFAFC] transition-colors ${!message.isRead ? 'bg-[#fff5f9]/30' : ''}`}>
                   <td className="px-6 py-4">
-                    <span className={`text-sm ${message.status === 'Unread' ? 'font-bold text-[#14142B]' : 'font-medium text-[#4E4B66]'}`}>{message.name}</span>
+                    <span className={`text-sm ${!message.isRead ? 'font-bold text-[#14142B]' : 'font-medium text-[#4E4B66]'}`}>{message.name}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-sm text-[#4E4B66]">{message.email}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`text-sm ${message.status === 'Unread' ? 'font-bold text-[#14142B]' : 'font-medium text-[#4E4B66]'}`}>{message.subject}</span>
+                    <span className={`text-sm ${!message.isRead ? 'font-bold text-[#14142B]' : 'font-medium text-[#4E4B66]'}`}>{message.subject}</span>
+                    <p className="text-xs text-[#6E7191] truncate max-w-xs">{message.message}</p>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm text-[#4E4B66]">{message.date}</span>
+                    <span className="text-sm text-[#4E4B66]">{new Date(message.createdAt).toLocaleString()}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${message.status === 'Unread' ? 'bg-[#FFF4E5] text-[#FF9F43]' : 'bg-[#E0FFED] text-[#1AB759]'}`}>
-                      {message.status}
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${!message.isRead ? 'bg-[#FFF4E5] text-[#FF9F43]' : 'bg-[#E0FFED] text-[#1AB759]'}`}>
+                      {!message.isRead ? 'Unread' : 'Read'}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#567DFF] inline-flex items-center justify-center hover:bg-[#e5ebff] transition-colors">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#FB4E4E] inline-flex items-center justify-center hover:bg-[#FFEAEA] transition-colors">
+                      {!message.isRead && (
+                        <button 
+                          onClick={() => handleMarkRead(message._id)}
+                          className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#567DFF] inline-flex items-center justify-center hover:bg-[#e5ebff] transition-colors"
+                          title="Mark as Read"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => handleDelete(message._id)}
+                        className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#FB4E4E] inline-flex items-center justify-center hover:bg-[#FFEAEA] transition-colors"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
                 </tr>
               ))}
+              {messages.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-[#6E7191]">
+                    {loading ? "Loading..." : "No messages found."}
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

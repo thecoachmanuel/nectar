@@ -11,11 +11,27 @@ import {
 export default function TransactionsPage() {
   const [showFilter, setShowFilter] = useState(false);
 
-  // Mock data
-  const transactions = [
-    { id: "TXN10045", orderId: "#10045", date: "Oct 12, 2026", method: "Paystack", amount: "₦5,500", status: "Successful" },
-    { id: "TXN10046", orderId: "#10046", date: "Oct 11, 2026", method: "Cash on Delivery", amount: "₦2,000", status: "Pending" },
-  ];
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    fetchTransactions();
+  }, []);
+
+  const fetchTransactions = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/orders");
+      const data = await res.json();
+      if (data.status) {
+        setTransactions(data.data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="pb-16">
@@ -91,34 +107,41 @@ export default function TransactionsPage() {
             </thead>
             <tbody className="divide-y divide-[#EFF0F6]">
               {transactions.map((txn) => (
-                <tr key={txn.id} className="hover:bg-[#FAFAFC] transition-colors">
+                <tr key={txn._id} className="hover:bg-[#FAFAFC] transition-colors">
                   <td className="px-6 py-4">
-                    <span className="text-sm font-bold text-primary">{txn.id}</span>
+                    <span className="text-sm font-bold text-primary">{txn._id.slice(-8).toUpperCase()}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-sm font-medium text-[#14142B]">{txn.orderId}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm text-[#4E4B66]">{txn.date}</span>
+                    <span className="text-sm text-[#4E4B66]">{new Date(txn.createdAt).toLocaleString()}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm text-[#4E4B66]">{txn.method}</span>
+                    <span className="text-sm text-[#4E4B66]">{txn.paymentType === 'cod' ? 'Cash on Delivery' : 'Digital Payment'}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm font-bold text-[#14142B]">{txn.amount}</span>
+                    <span className="text-sm font-bold text-[#14142B]">₦{txn.total}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${txn.status === 'Successful' ? 'bg-[#E0FFED] text-[#1AB759]' : 'bg-[#FFF4E5] text-[#FF9F43]'}`}>
-                      {txn.status}
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${txn.paymentStatus === 'paid' ? 'bg-[#E0FFED] text-[#1AB759]' : 'bg-[#FFF4E5] text-[#FF9F43]'}`}>
+                      {txn.paymentStatus === 'paid' ? 'Successful' : 'Pending'}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#567DFF] inline-flex items-center justify-center hover:bg-[#e5ebff] transition-colors">
+                    <a href={`/admin/orders/${txn._id}`} className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#567DFF] inline-flex items-center justify-center hover:bg-[#e5ebff] transition-colors">
                       <Eye className="w-4 h-4" />
-                    </button>
+                    </a>
                   </td>
                 </tr>
               ))}
+              {transactions.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-[#6E7191]">
+                    {loading ? "Loading..." : "No transactions found."}
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Search, 
   Filter, 
@@ -10,11 +10,61 @@ import {
 export default function CreditBalanceReportPage() {
   const [showFilter, setShowFilter] = useState(false);
 
-  // Mock data
-  const reports = [
-    { id: 1, customer: "John Doe", email: "john@example.com", phone: "+234 800 000 0000", creditLimit: "₦50,000", balance: "₦15,000", status: "Active" },
-    { id: 2, customer: "Jane Smith", email: "jane@example.com", phone: "+234 811 111 1111", creditLimit: "₦20,000", balance: "₦0", status: "Inactive" },
-  ];
+  const [reports, setReports] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Filters
+  const [balanceStatus, setBalanceStatus] = useState("all");
+
+  useEffect(() => {
+    fetchReports();
+  }, [balanceStatus]);
+
+  const fetchReports = async () => {
+    setLoading(true);
+    try {
+      let url = "/api/admin/credit-balance-report";
+      if (balanceStatus !== "all") {
+        url += `?balanceStatus=${balanceStatus}`;
+      }
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.status) {
+        setReports(data.data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateCredit = async (id: string, action: "add" | "deduct") => {
+    const amountStr = prompt(`Enter amount to ${action}:`);
+    if (!amountStr) return;
+    const amount = Number(amountStr);
+    if (isNaN(amount) || amount <= 0) {
+      alert("Please enter a valid positive number.");
+      return;
+    }
+
+    try {
+      const payload = { amount: action === "add" ? amount : -amount };
+      const res = await fetch(`/api/admin/credit-balance-report/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.status) {
+        fetchReports();
+      } else {
+        alert(data.message || "Failed to update credit");
+      }
+    } catch (err) {
+      alert("Something went wrong");
+    }
+  };
 
   return (
     <div className="pb-16">
@@ -61,15 +111,19 @@ export default function CreditBalanceReportPage() {
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Balance Status</label>
-              <select className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary">
-                <option>All</option>
-                <option>Has Balance</option>
-                <option>Zero Balance</option>
+              <select 
+                value={balanceStatus}
+                onChange={(e) => setBalanceStatus(e.target.value)}
+                className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary"
+              >
+                <option value="all">All</option>
+                <option value="has_balance">Has Balance</option>
+                <option value="zero_balance">Zero Balance</option>
               </select>
             </div>
             <div className="flex items-center gap-3 pt-6">
-              <button className="h-10 px-6 rounded-xl bg-primary text-white text-sm font-medium hover:bg-[#e60060] transition-colors flex-1">Filter</button>
-              <button className="h-10 px-6 rounded-xl bg-gray-600 text-white text-sm font-medium hover:bg-gray-700 transition-colors flex-1">Clear</button>
+              <button onClick={fetchReports} className="h-10 px-6 rounded-xl bg-primary text-white text-sm font-medium hover:bg-[#e60060] transition-colors flex-1">Filter</button>
+              <button onClick={() => setBalanceStatus("all")} className="h-10 px-6 rounded-xl bg-gray-600 text-white text-sm font-medium hover:bg-gray-700 transition-colors flex-1">Clear</button>
             </div>
           </div>
         )}
@@ -82,15 +136,15 @@ export default function CreditBalanceReportPage() {
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Customer</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Email</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Phone</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Credit Limit</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider text-right">Balance</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EFF0F6]">
               {reports.map((report) => (
-                <tr key={report.id} className="hover:bg-[#FAFAFC] transition-colors">
+                <tr key={report._id} className="hover:bg-[#FAFAFC] transition-colors">
                   <td className="px-6 py-4">
-                    <span className="text-sm font-medium text-[#14142B]">{report.customer}</span>
+                    <span className="text-sm font-medium text-[#14142B]">{report.name}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-sm text-[#4E4B66]">{report.email}</span>
@@ -98,14 +152,36 @@ export default function CreditBalanceReportPage() {
                   <td className="px-6 py-4">
                     <span className="text-sm text-[#4E4B66]">{report.phone}</span>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-semibold text-[#14142B]">{report.creditLimit}</span>
+                  <td className="px-6 py-4 text-right">
+                    <span className={`text-sm font-bold ${report.walletBalance > 0 ? 'text-[#1AB759]' : 'text-[#6E7191]'}`}>
+                      ₦{report.walletBalance || 0}
+                    </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <span className="text-sm font-bold text-primary">{report.balance}</span>
+                    <div className="flex items-center justify-end gap-2">
+                      <button 
+                        onClick={() => handleUpdateCredit(report._id, "add")}
+                        className="px-3 py-1.5 rounded-lg bg-[#E0FFED] text-[#1AB759] text-xs font-medium hover:bg-[#c9fce0] transition-colors"
+                      >
+                        + Add
+                      </button>
+                      <button 
+                        onClick={() => handleUpdateCredit(report._id, "deduct")}
+                        className="px-3 py-1.5 rounded-lg bg-[#FFF4E5] text-[#FF9F43] text-xs font-medium hover:bg-[#ffead1] transition-colors"
+                      >
+                        - Deduct
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
+              {reports.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center text-[#6E7191]">
+                    {loading ? "Loading..." : "No customers found."}
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

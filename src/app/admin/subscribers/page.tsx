@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Search, 
   Filter, 
@@ -11,12 +11,42 @@ import {
 export default function SubscribersPage() {
   const [showFilter, setShowFilter] = useState(false);
 
-  // Mock data
-  const subscribers = [
-    { id: 1, email: "john@example.com", date: "Oct 12, 2026, 14:30" },
-    { id: 2, email: "jane.smith@example.com", date: "Oct 11, 2026, 09:15" },
-    { id: 3, email: "marketing@agency.com", date: "Oct 10, 2026, 11:00" },
-  ];
+  const [subscribers, setSubscribers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchSubscribers();
+  }, []);
+
+  const fetchSubscribers = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/subscribers");
+      const data = await res.json();
+      if (data.status) {
+        setSubscribers(data.data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this subscriber?")) return;
+    try {
+      const res = await fetch(`/api/admin/subscribers/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.status) {
+        fetchSubscribers();
+      } else {
+        alert(data.message || "Failed to delete");
+      }
+    } catch (err) {
+      alert("Something went wrong");
+    }
+  };
 
   return (
     <div className="pb-16">
@@ -84,20 +114,30 @@ export default function SubscribersPage() {
             </thead>
             <tbody className="divide-y divide-[#EFF0F6]">
               {subscribers.map((sub) => (
-                <tr key={sub.id} className="hover:bg-[#FAFAFC] transition-colors">
+                <tr key={sub._id} className="hover:bg-[#FAFAFC] transition-colors">
                   <td className="px-6 py-4">
                     <span className="text-sm font-medium text-[#14142B]">{sub.email}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm text-[#4E4B66]">{sub.date}</span>
+                    <span className="text-sm text-[#4E4B66]">{new Date(sub.createdAt).toLocaleString()}</span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#FB4E4E] inline-flex items-center justify-center hover:bg-[#FFEAEA] transition-colors">
+                    <button 
+                      onClick={() => handleDelete(sub._id)}
+                      className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#FB4E4E] inline-flex items-center justify-center hover:bg-[#FFEAEA] transition-colors"
+                    >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </td>
                 </tr>
               ))}
+              {subscribers.length === 0 && (
+                <tr>
+                  <td colSpan={3} className="px-6 py-12 text-center text-[#6E7191]">
+                    {loading ? "Loading..." : "No subscribers found."}
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

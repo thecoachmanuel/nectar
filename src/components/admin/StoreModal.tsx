@@ -87,7 +87,11 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
     }
     setFetchingCoords(true);
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.address)}`);
+      // Combine address components to improve search accuracy on Nominatim
+      const queryParts = [formData.address, formData.city, formData.state, formData.zipCode].filter(Boolean);
+      const searchQuery = queryParts.join(", ");
+
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=1`);
       const data = await res.json();
       if (data && data.length > 0) {
         setFormData(prev => ({

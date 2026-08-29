@@ -81,17 +81,21 @@ export async function POST(req: Request) {
       // Calculate group subtotal
       const groupSubtotal = groupItems.reduce((acc, item) => acc + (item.itemTotal || (item.price * item.quantity)), 0);
       
-      // Fetch store to get commission rate
       let commissionRate = 0;
       let actualStoreId: any = sId;
       
-      if (sId !== "admin") {
-        const store = await Store.findById(sId);
-        if (store) {
-          commissionRate = store.commissionRate || 0;
-        }
+      if (sId === "admin" || sId === "0" || !sId) {
+        actualStoreId = "0";
       } else {
-        actualStoreId = null;
+        try {
+          const store = await Store.findById(sId);
+          if (store) {
+            commissionRate = store.commissionRate || 0;
+          }
+        } catch (e) {
+          // invalid ObjectId, fallback to global
+          actualStoreId = "0";
+        }
       }
 
       const calculatedCommission = (groupSubtotal * commissionRate) / 100;

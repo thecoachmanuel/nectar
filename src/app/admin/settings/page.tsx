@@ -367,13 +367,13 @@ export default function SettingsPage() {
                 <div className="flex gap-2 items-center">
                   <input 
                     type="color" 
-                    value={formData.theme_primary_color || "var(--primary-hex)"} 
+                    value={formData.theme_primary_color || "#ff006b"} 
                     onChange={(e) => handleChange("theme_primary_color", e.target.value)}
                     className="h-12 w-12 rounded-xl border border-[#EFF0F6] cursor-pointer" 
                   />
                   <input 
                     type="text" 
-                    value={formData.theme_primary_color || "var(--primary-hex)"} 
+                    value={formData.theme_primary_color || "#ff006b"} 
                     onChange={(e) => handleChange("theme_primary_color", e.target.value)}
                     className="flex-1 h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                   />

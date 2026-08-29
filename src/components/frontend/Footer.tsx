@@ -36,8 +36,22 @@ export default function Footer() {
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) { toast.error("Please enter your email."); return; }
-    toast.success("Subscribed successfully!");
-    setEmail("");
+    try {
+      const res = await fetch("/api/frontend/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (data.status) {
+        toast.success("Subscribed successfully!");
+        setEmail("");
+      } else {
+        toast.error(data.message || "Subscription failed");
+      }
+    } catch (err) {
+      toast.error("Something went wrong");
+    }
   };
 
   const pages = [

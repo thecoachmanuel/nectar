@@ -245,6 +245,36 @@ export async function GET() {
       });
     }
 
+    // 7. Seed Offers
+    const { default: Offer } = await import("@/models/Offer");
+    const offersData = [
+      {
+        title: "Buy 1 Get 1 Free on all Burgers",
+        slug: "buy-1-get-1-free-burgers",
+        image: "/images/seeder/offer/bogo-burger.png",
+        status: true
+      },
+      {
+        title: "20% Off your First Order",
+        slug: "20-percent-off-first-order",
+        image: "/images/seeder/offer/20-off.png",
+        status: true
+      },
+      {
+        title: "Free Delivery on Orders over ₦15,000",
+        slug: "free-delivery-over-15000",
+        image: "/images/seeder/offer/free-delivery.png",
+        status: true
+      }
+    ];
+
+    for (const off of offersData) {
+      const existingOffer = await Offer.findOne({ slug: off.slug });
+      if (!existingOffer) {
+        await Offer.create(off);
+      }
+    }
+
     return NextResponse.json({
       status: true,
       message: "Database seeded successfully with default Admin, Customer, Categories, Items, and Paystack Gateway!",

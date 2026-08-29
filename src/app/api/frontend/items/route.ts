@@ -39,10 +39,10 @@ export async function GET(req: Request) {
       .populate("addonIds", "name price")
       .lean();
 
+    const Store = (await import("@/models/Store")).default;
+    const stores = await Store.find({ status: true }).lean();
+
     if (lat && lng) {
-      const Store = (await import("@/models/Store")).default;
-      const stores = await Store.find({ status: true }).lean();
-      
       const latitude = parseFloat(lat);
       const longitude = parseFloat(lng);
       
@@ -56,7 +56,7 @@ export async function GET(req: Request) {
       };
 
       const storeDistances: Record<string, number> = {};
-      stores.forEach(s => {
+      stores.forEach((s: any) => {
         if (s.latitude !== undefined && s.longitude !== undefined) {
           storeDistances[s._id.toString()] = haversine(latitude, longitude, s.latitude, s.longitude);
         } else {
@@ -76,6 +76,16 @@ export async function GET(req: Request) {
     } else {
       items = items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
+
+    // Map store name
+    items = items.map(item => {
+      let storeName = "Nectar Online Groceries"; // Default for unassigned / global
+      if (item.storeId && item.storeId !== "0" && item.storeId !== "admin") {
+        const store = stores.find((s: any) => s._id.toString() === item.storeId.toString());
+        if (store) storeName = store.name;
+      }
+      return { ...item, storeName };
+    });
 
     return NextResponse.json({ status: true, data: items });
   } catch (error: any) {

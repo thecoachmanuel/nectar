@@ -296,9 +296,9 @@ export default function HomePage() {
                     className="w-24 h-full object-cover rounded-l-lg flex-shrink-0"
                     onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
                   <div className="p-3 flex-1">
-                    <div className="flex items-start gap-2 mb-1">
+                    <div className="flex flex-col gap-0.5 mb-1">
                       <h4 className="text-sm font-semibold text-[#14142b] flex-1 capitalize">{item.name}</h4>
-
+                      <span className="text-[10px] text-primary font-medium truncate">{item.storeName}</span>
                     </div>
                     <p className="text-xs text-[#6e7191] line-clamp-1 mb-2">{item.description}</p>
                     <div className="flex items-center justify-between">
@@ -346,9 +346,9 @@ export default function HomePage() {
                     className="w-24 sm:w-28 h-full object-cover rounded-l-lg flex-shrink-0"
                     onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
                   <div className="p-3 flex-1">
-                    <div className="flex items-start gap-2 mb-1">
+                    <div className="flex flex-col gap-0.5 mb-1">
                       <h4 className="text-sm font-semibold text-[#14142b] flex-1 capitalize">{item.name}</h4>
-
+                      <span className="text-[10px] text-primary font-medium truncate">{item.storeName}</span>
                     </div>
                     <p className="text-xs text-[#6e7191] line-clamp-1 mb-2">{item.description}</p>
                     <div className="flex items-center justify-between">
@@ -387,7 +387,8 @@ function ItemCard({ item, onOpen }: { item: any; onOpen: (item: any) => void }) 
         )}
       </div>
       <div className="p-2.5 flex-1 flex flex-col">
-        <h4 className="text-xs font-semibold text-[#14142b] truncate mb-1">{item.name}</h4>
+        <h4 className="text-xs font-semibold text-[#14142b] truncate mb-0.5">{item.name}</h4>
+        <span className="text-[9px] text-primary font-medium mb-1 truncate">{item.storeName}</span>
         <p className="text-[10px] text-[#6e7191] line-clamp-2 mb-2 flex-1">{item.description}</p>
         <div className="flex items-center justify-between">
           <span className="text-sm font-bold text-[#14142b]">₦{item.price?.toFixed(2)}</span>

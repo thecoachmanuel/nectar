@@ -12,11 +12,13 @@ interface ItemModalProps {
 export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModalProps) {
   const { execute, loading } = useApi();
   const { execute: fetchCategories, data: categories } = useApi();
+  const { execute: fetchStores, data: stores } = useApi();
   
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
     categoryId: "",
+    storeId: "0",
     price: 0,
 
     isFeatured: false,
@@ -29,6 +31,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
   useEffect(() => {
     if (isOpen) {
       fetchCategories("/api/admin/item-categories");
+      fetchStores("/api/admin/stores");
     }
   }, [isOpen]);
 
@@ -38,6 +41,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
         name: item.name || "",
         slug: item.slug || "",
         categoryId: item.categoryId?._id || item.categoryId || "",
+        storeId: item.storeId || "0",
         price: item.price || 0,
 
         isFeatured: item.isFeatured ?? false,
@@ -49,6 +53,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
         name: "",
         slug: "",
         categoryId: "",
+        storeId: "0",
         price: 0,
 
         isFeatured: false,
@@ -110,6 +115,20 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
             <option value="">Select Category</option>
             {categories?.map((cat: any) => (
               <option key={cat._id} value={cat._id}>{cat.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-[#14142B] mb-1">Store</label>
+          <select 
+            value={formData.storeId}
+            onChange={(e) => setFormData({...formData, storeId: e.target.value})}
+            className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors bg-white"
+          >
+            <option value="0">Global (All Stores)</option>
+            {stores?.map((store: any) => (
+              <option key={store._id} value={store._id}>{store.name}</option>
             ))}
           </select>
         </div>

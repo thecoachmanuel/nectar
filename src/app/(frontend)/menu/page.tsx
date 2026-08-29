@@ -134,8 +134,9 @@ function MenuContent() {
                   <div key={item._id} className="relative flex flex-col rounded-2xl border transition border-[#EFF0F6] bg-white hover:shadow-xl cursor-pointer" onClick={() => { setSelectedItem(item); setIsModalOpen(true); }}>
                     <img className="w-full rounded-t-2xl object-cover h-32 sm:h-40" src={item.image || "/images/item/thumb.png"} alt={item.name} />
                     <div className="p-2 sm:py-4 sm:px-3 rounded-b-2xl h-full flex flex-col">
-                      <div className="flex items-start gap-2 mb-2">
+                      <div className="flex flex-col gap-0.5 mb-2">
                         <h3 className="text-xs sm:text-sm font-semibold capitalize text-ellipsis whitespace-nowrap overflow-hidden w-fit max-w-[200px]">{item.name}</h3>
+                        <span className="text-[9px] sm:text-[10px] text-primary font-medium">{item.storeName}</span>
                       </div>
                       <p className="text-[10px] leading-4 sm:text-xs sm:leading-5 text-ellipsis mb-4 flex-auto text-[#6e7191] line-clamp-2">{item.description}</p>
                       <div className="flex items-center justify-between gap-2">
@@ -156,8 +157,9 @@ function MenuContent() {
                   <div key={item._id} className="relative flex items-center rounded-lg border border-[#eff0f6] bg-white transition hover:shadow-xl cursor-pointer" onClick={() => { setSelectedItem(item); setIsModalOpen(true); }}>
                     <img className="w-24 sm:w-32 h-24 sm:h-32 object-cover rounded-l-lg" src={item.image || "/images/item/thumb.png"} alt={item.name} />
                     <div className="p-3 sm:p-4 flex-1">
-                      <div className="flex items-start justify-between mb-1">
+                      <div className="flex flex-col justify-between mb-1">
                         <h3 className="text-sm font-semibold capitalize text-[#14142b] line-clamp-1">{item.name}</h3>
+                        <span className="text-[10px] text-primary font-medium">{item.storeName}</span>
                       </div>
                       <p className="text-[10px] sm:text-xs text-[#6e7191] line-clamp-2 mb-2 sm:mb-3">{item.description}</p>
                       <div className="flex items-center justify-between">
