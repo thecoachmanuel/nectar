@@ -6,6 +6,51 @@ import Store from "@/models/Store";
 import { sendSMS } from "@/lib/sms";
 import { sendPushNotification } from "@/lib/push";
 
+export async function GET(
+  req: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  const { id } = await context.params;
+  try {
+    await dbConnect();
+    let order = await Order.findById(id).lean();
+    if (!order) {
+      order = await Order.findOne({ orderSerialNo: id }).lean();
+    }
+
+    if (!order) {
+      return NextResponse.json({ status: false, message: "Order not found" }, { status: 404 });
+    }
+
+    // Populate Store info if applicable
+    let storeInfo = null;
+    if (order.storeId && String(order.storeId) !== "0" && String(order.storeId) !== "admin") {
+      try {
+        storeInfo = await Store.findById(order.storeId).select("name email phone address latitude longitude profileImage").lean();
+      } catch (e) {}
+    }
+
+    // Populate Delivery Agent info if applicable
+    let deliveryAgent = null;
+    if (order.deliveryBoyId) {
+      try {
+        deliveryAgent = await User.findById(order.deliveryBoyId).select("name phone email image role").lean();
+      } catch (e) {}
+    }
+
+    return NextResponse.json({
+      status: true,
+      data: {
+        ...order,
+        storeInfo,
+        deliveryAgent,
+      },
+    });
+  } catch (error: any) {
+    return NextResponse.json({ status: false, message: error.message }, { status: 500 });
+  }
+}
+
 export async function PUT(
   req: Request,
   context: { params: Promise<{ id: string }> }

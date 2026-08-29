@@ -157,7 +157,7 @@ export default function OrderDetailsPage() {
                         {order.deliveryPin}
                       </div>
                       <p className="text-xs text-indigo-600/80 mt-3 text-center max-w-xs">
-                        Please provide this 4-digit PIN to the delivery boy to confirm you've received your order.
+                        Please provide this 4-digit PIN to the delivery agent to confirm you&apos;ve received your order.
                       </p>
                     </div>
                   )}

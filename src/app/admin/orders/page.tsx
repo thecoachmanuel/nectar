@@ -11,8 +11,11 @@ import {
 import { toast } from "sonner";
 import { useApi } from "@/hooks/useApi";
 
+import OrderDetailsModal from "@/components/admin/OrderDetailsModal";
+
 export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState("All");
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   const tabs = ["All", "pending", "accepted", "preparing", "ready", "out_for_delivery", "delivered", "canceled"];
 
@@ -165,7 +168,7 @@ export default function OrdersPage() {
                         <button onClick={() => window.open(`/order/${order._id}?print=true`, '_blank')} className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#14142B] flex items-center justify-center hover:bg-[#e2e2ec] transition-colors" title="Print Invoice">
                           <Printer className="w-4 h-4" />
                         </button>
-                        <button onClick={() => window.location.href = `/order/${order._id}`} className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#567DFF] flex items-center justify-center hover:bg-[#e5ebff] transition-colors" title="View Order">
+                        <button onClick={() => setSelectedOrderId(order._id)} className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#567DFF] flex items-center justify-center hover:bg-[#e5ebff] transition-colors" title="View Order Details">
                           <Eye className="w-4 h-4" />
                         </button>
                       </div>
@@ -183,6 +186,13 @@ export default function OrdersPage() {
         </div>
 
       </div>
+
+      <OrderDetailsModal
+        isOpen={!!selectedOrderId}
+        onClose={() => setSelectedOrderId(null)}
+        orderId={selectedOrderId}
+        onOrderUpdated={fetchOrders}
+      />
 
     </div>
   );

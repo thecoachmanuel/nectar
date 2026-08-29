@@ -11,11 +11,14 @@ import {
 import { toast } from "sonner";
 import Link from "next/link";
 
+import OrderDetailsModal from "@/components/admin/OrderDetailsModal";
+
 export default function OnlineOrdersPage() {
   const [showFilter, setShowFilter] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   const fetchOrders = async () => {
     try {
@@ -182,10 +185,10 @@ export default function OnlineOrdersPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Link href={`/admin/orders/${order._id}`} className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#567DFF] flex items-center justify-center hover:bg-[#e5ebff] transition-colors">
+                        <button onClick={() => setSelectedOrderId(order._id)} className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#567DFF] flex items-center justify-center hover:bg-[#e5ebff] transition-colors" title="View Order Details">
                           <Eye className="w-4 h-4" />
-                        </Link>
-                        <button className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#14142B] flex items-center justify-center hover:bg-gray-200 transition-colors">
+                        </button>
+                        <button onClick={() => setSelectedOrderId(order._id)} className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#14142B] flex items-center justify-center hover:bg-gray-200 transition-colors" title="Print Invoice">
                           <Printer className="w-4 h-4" />
                         </button>
                       </div>
@@ -208,6 +211,13 @@ export default function OnlineOrdersPage() {
         </div>
 
       </div>
+
+      <OrderDetailsModal
+        isOpen={!!selectedOrderId}
+        onClose={() => setSelectedOrderId(null)}
+        orderId={selectedOrderId}
+        onOrderUpdated={fetchOrders}
+      />
 
     </div>
   );
