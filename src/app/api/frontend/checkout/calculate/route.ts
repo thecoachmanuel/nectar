@@ -43,7 +43,17 @@ export async function POST(req: Request) {
       const userLat = parseFloat(deliveryAddress.latitude);
       const userLng = parseFloat(deliveryAddress.longitude);
       
-      const settings = await Setting.find({ key: { $in: ["baseDeliveryFee", "feePerKm", "multiStoreExtraFee", "freeDeliveryThreshold", "company_latitude", "company_longitude"] } }).lean();
+      const settings = await Setting.find({ key: { $in: [
+        "baseDeliveryFee", 
+        "feePerKm", 
+        "multiStoreExtraFee", 
+        "freeDeliveryThreshold", 
+        "company_latitude", 
+        "company_longitude",
+        "orderValueFeePercent",
+        "largeOrderThreshold",
+        "largeOrderFeePercent"
+      ] } }).lean();
       
       let baseFee = 1500;
       let feePerKm = 100;
@@ -51,6 +61,9 @@ export async function POST(req: Request) {
       let freeThreshold: number | undefined;
       let adminLat: number | undefined;
       let adminLng: number | undefined;
+      let orderValueFeePercent = 2; // Default 2% handling based on order magnitude
+      let largeOrderThreshold = 20000; // Default ₦20,000 threshold
+      let largeOrderFeePercent = 3; // Default 3% extra for large bulk orders
 
       settings.forEach((s: any) => {
         if (s.key === "baseDeliveryFee") baseFee = parseFloat(s.payload) || 1500;
@@ -59,6 +72,9 @@ export async function POST(req: Request) {
         if (s.key === "freeDeliveryThreshold") freeThreshold = parseFloat(s.payload) || undefined;
         if (s.key === "company_latitude" && s.payload) adminLat = parseFloat(s.payload);
         if (s.key === "company_longitude" && s.payload) adminLng = parseFloat(s.payload);
+        if (s.key === "orderValueFeePercent") orderValueFeePercent = parseFloat(s.payload) ?? 2;
+        if (s.key === "largeOrderThreshold") largeOrderThreshold = parseFloat(s.payload) ?? 20000;
+        if (s.key === "largeOrderFeePercent") largeOrderFeePercent = parseFloat(s.payload) ?? 3;
       });
 
       if (freeThreshold !== undefined && subtotal >= freeThreshold) {
@@ -117,14 +133,25 @@ export async function POST(req: Request) {
           }, { status: 400 });
         }
 
+        let rawDeliveryFee = baseFee;
         if (validStoresCount > 0) {
-          deliveryCharge = baseFee + (maxDistance * feePerKm);
+          rawDeliveryFee = baseFee + (maxDistance * feePerKm);
           if (validStoresCount > 1) {
-            deliveryCharge += (validStoresCount - 1) * multiStoreExtraFee;
+            rawDeliveryFee += (validStoresCount - 1) * multiStoreExtraFee;
           }
-        } else {
-          deliveryCharge = baseFee; // Fallback
         }
+
+        // Auto-scale delivery fee based on order magnitude:
+        // 1. Order Value Handling Fee (% of order subtotal)
+        const orderValueFee = (subtotal * orderValueFeePercent) / 100;
+
+        // 2. Large Order Surcharge (Applied when subtotal exceeds largeOrderThreshold)
+        let largeOrderSurcharge = 0;
+        if (largeOrderThreshold > 0 && subtotal >= largeOrderThreshold) {
+          largeOrderSurcharge = (subtotal * largeOrderFeePercent) / 100;
+        }
+
+        deliveryCharge = rawDeliveryFee + orderValueFee + largeOrderSurcharge;
       }
     }
 

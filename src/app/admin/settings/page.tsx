@@ -54,7 +54,7 @@ export default function SettingsPage() {
         if (key.startsWith("sms_")) group = "SMS Gateway";
         if (key.startsWith("push_")) group = "Push Notification";
         if (key.startsWith("theme_")) group = "Theme";
-        if (["baseDeliveryFee", "feePerKm", "multiStoreExtraFee", "freeDeliveryThreshold"].includes(key)) group = "Delivery";
+        if (["baseDeliveryFee", "feePerKm", "multiStoreExtraFee", "freeDeliveryThreshold", "orderValueFeePercent", "largeOrderThreshold", "largeOrderFeePercent", "takeaway_enabled"].includes(key)) group = "Delivery";
         
         return {
           key,
@@ -388,6 +388,41 @@ export default function SettingsPage() {
                   onChange={(e) => handleChange("freeDeliveryThreshold", e.target.value ? Number(e.target.value) : undefined)}
                   className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Order Value Fee Rate (%)</label>
+                <input 
+                  type="number" 
+                  step="0.1"
+                  value={formData.orderValueFeePercent ?? 2} 
+                  onChange={(e) => handleChange("orderValueFeePercent", Number(e.target.value))}
+                  placeholder="e.g. 2"
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                />
+                <p className="text-xs text-[#6E7191] mt-1">Percentage of order subtotal added to handle order magnitude/packaging.</p>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Large Order Threshold (₦)</label>
+                <input 
+                  type="number" 
+                  value={formData.largeOrderThreshold ?? 20000} 
+                  onChange={(e) => handleChange("largeOrderThreshold", Number(e.target.value))}
+                  placeholder="e.g. 20000"
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                />
+                <p className="text-xs text-[#6E7191] mt-1">Orders at or above this value are categorized as large/bulk orders.</p>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Large Order Extra Surcharge (%)</label>
+                <input 
+                  type="number" 
+                  step="0.1"
+                  value={formData.largeOrderFeePercent ?? 3} 
+                  onChange={(e) => handleChange("largeOrderFeePercent", Number(e.target.value))}
+                  placeholder="e.g. 3"
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                />
+                <p className="text-xs text-[#6E7191] mt-1">Extra percentage added for large/bulk orders (special handling/bags).</p>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Enable Takeaway Option</label>
