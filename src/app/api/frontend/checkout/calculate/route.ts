@@ -51,10 +51,10 @@ export async function POST(req: Request) {
       let freeThreshold: number | undefined;
 
       settings.forEach((s: any) => {
-        if (s.key === "baseDeliveryFee") baseFee = s.payload;
-        if (s.key === "feePerKm") feePerKm = s.payload;
-        if (s.key === "multiStoreExtraFee") multiStoreExtraFee = s.payload;
-        if (s.key === "freeDeliveryThreshold") freeThreshold = s.payload;
+        if (s.key === "baseDeliveryFee") baseFee = parseFloat(s.payload) || 1500;
+        if (s.key === "feePerKm") feePerKm = parseFloat(s.payload) || 100;
+        if (s.key === "multiStoreExtraFee") multiStoreExtraFee = parseFloat(s.payload) || 0;
+        if (s.key === "freeDeliveryThreshold") freeThreshold = parseFloat(s.payload) || undefined;
       });
 
       if (freeThreshold !== undefined && subtotal >= freeThreshold) {

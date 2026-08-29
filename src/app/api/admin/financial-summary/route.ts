@@ -10,10 +10,13 @@ export async function GET() {
     await dbConnect();
 
     // 1. Gross Revenue (Delivered Orders)
-    const orders = await Order.find({ orderStatus: "delivered" });
-    const grossRevenue = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
-    const totalCommissions = orders.reduce((sum, o) => sum + (o.commissionAmount || 0), 0);
-    const totalDeliveryCharges = orders.reduce((sum, o) => sum + (o.deliveryCharge || 0), 0);
+    const allOrders = await Order.find({ 
+      orderStatus: { $in: ["delivered", "completed"] }
+    });
+    
+    const grossRevenue = allOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    const totalCommissions = allOrders.reduce((sum, o) => sum + (o.commissionAmount || 0), 0);
+    const totalDeliveryCharges = allOrders.reduce((sum, o) => sum + (o.deliveryCharge || 0), 0);
 
     // 2. Fetch Payouts
     const allPayouts = await PayoutRequest.find({ status: "approved" });
