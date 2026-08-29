@@ -154,7 +154,7 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
                         </div>
                         <ChevronDown className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                       </button>
-                      <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-40 mt-1' : 'max-h-0'}`}>
+                      <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[500px] mt-1' : 'max-h-0'}`}>
                         <ul className="pl-9 space-y-1">
                           {item.children.map(child => (
                             <li key={child.name}>
