@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Wallet, Plus, CreditCard, Loader2 } from "lucide-react";
+import { Undo2, Wallet, Plus, CreditCard, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 export default function WalletPage() {
   const { user, token, updateUser } = useAuthStore();
@@ -85,13 +86,19 @@ export default function WalletPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between border-b border-[#EFF0F6] pb-4">
-        <h1 className="text-xl font-bold text-[#14142B] flex items-center gap-2">
-          <Wallet className="w-6 h-6 text-primary" />
-          My Wallet
-        </h1>
-      </div>
+  return (
+    <section className="pt-7 pb-16 bg-[#f7f7fc] min-h-screen">
+      <div className="container mx-auto px-4 max-w-[800px]">
+        <Link href="/" className="mb-3 inline-flex items-center gap-2 text-primary hover:text-rose-600 transition-colors">
+          <Undo2 className="w-4 h-4" />
+          <span className="text-xs font-medium leading-6">Back to home</span>
+        </Link>
+        
+        <div className="py-6 px-4 sm:px-6 shadow-sm rounded-2xl bg-white border border-[#eff0f6]">
+          <h2 className="capitalize mb-6 text-left text-[22px] font-semibold leading-[34px] text-[#14142b] flex items-center gap-2">
+            <Wallet className="w-6 h-6 text-primary" />
+            My Wallet
+          </h2>
 
       {isVerifying && (
         <div className="bg-[#BDEFFF] border border-[#008BBA] text-[#00749B] px-4 py-3 rounded-xl flex items-center gap-3">
@@ -155,6 +162,9 @@ export default function WalletPage() {
           </form>
         </div>
       </div>
-    </div>
+      
+      </div>
+      </div>
+    </section>
   );
 }

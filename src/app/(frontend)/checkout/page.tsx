@@ -13,7 +13,7 @@ import { toast } from "sonner";
 export default function CheckoutPage() {
   const router = useRouter();
   const { user, isGuest, guestInfo, token } = useAuthStore();
-  const { items, orderType, setOrderType, getSubtotal, getTotalAmount, clearCart } = useCartStore();
+  const { items, orderType, setOrderType, getSubtotal, getTotalAmount, clearCart, removeItem } = useCartStore();
   const { settings } = useSettingsStore();
   const [loading, setLoading] = useState(true);
   const [schedule, setSchedule] = useState<"NOW" | "LATER">("NOW");
@@ -58,8 +58,20 @@ export default function CheckoutPage() {
         if (data.status) {
           setDeliveryCharge(data.data.deliveryCharge);
         } else {
-          setDeliveryCharge(-1);
-          toast.error(data.message || "Failed to calculate delivery fee");
+          if (data.outOfRangeStoreIds && data.outOfRangeStoreIds.length > 0) {
+            const names = data.outOfRangeStoreNames.join(", ");
+            toast.error(`Items from ${names} removed (outside delivery radius).`, { duration: 5000 });
+            
+            items.forEach(item => {
+              const itemStoreId = item.storeId || "admin";
+              if (data.outOfRangeStoreIds.includes(itemStoreId)) {
+                removeItem(item.id);
+              }
+            });
+          } else {
+            setDeliveryCharge(-1);
+            toast.error(data.message || "Failed to calculate delivery fee");
+          }
         }
       } catch (err) {
         console.error("Failed to calculate delivery fee", err);

@@ -64,21 +64,29 @@ export async function POST(req: Request) {
           
           let maxDistance = 0;
           let validStoresCount = 0;
-          let isOutOfRange = false;
+          let outOfRangeStoreIds: string[] = [];
+          let outOfRangeStoreNames: string[] = [];
           
           stores.forEach((store: any) => {
             if (store.latitude !== undefined && store.longitude !== undefined) {
               const dist = haversineDistance(userLat, userLng, store.latitude, store.longitude);
               if (dist > (store.deliveryRadius || 5)) {
-                isOutOfRange = true;
+                outOfRangeStoreIds.push(store._id.toString());
+                outOfRangeStoreNames.push(store.name);
+              } else {
+                if (dist > maxDistance) maxDistance = dist;
+                validStoresCount++;
               }
-              if (dist > maxDistance) maxDistance = dist;
-              validStoresCount++;
             }
           });
 
-          if (isOutOfRange) {
-            return NextResponse.json({ status: false, message: "Your address is out of delivery range for one or more items." }, { status: 400 });
+          if (outOfRangeStoreIds.length > 0) {
+            return NextResponse.json({ 
+              status: false, 
+              message: "Your address is out of delivery range for one or more items.", 
+              outOfRangeStoreIds,
+              outOfRangeStoreNames
+            }, { status: 400 });
           }
 
           deliveryCharge = baseFee + (maxDistance * feePerKm);
