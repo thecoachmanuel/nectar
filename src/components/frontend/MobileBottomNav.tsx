@@ -38,7 +38,7 @@ export default function MobileBottomNav({ onCartOpen }: MobileBottomNavProps) {
             <button key={i} onClick={onCartOpen} className="flex flex-col items-center gap-0.5 relative">
               <div className="relative">
                 <div className="w-11 h-11 rounded-full flex items-center justify-center -mt-5 shadow-lg text-white"
-                  style={{ backgroundColor: "#ff006b" }}>
+                  style={{ backgroundColor: "var(--primary-hex)" }}>
                   <Icon className="w-5 h-5" />
                 </div>
                 {cartCount > 0 && (
@@ -47,17 +47,17 @@ export default function MobileBottomNav({ onCartOpen }: MobileBottomNavProps) {
                   </span>
                 )}
               </div>
-              <span className="text-[10px] font-medium text-[#ff006b]">Cart</span>
+              <span className="text-[10px] font-medium text-primary">Cart</span>
             </button>
           );
         }
 
         return (
           <Link key={i} href={item.href!}
-            className={`flex flex-col items-center gap-0.5 transition-colors ${isActive ? "text-[#ff006b]" : "text-[#a0a3bd] hover:text-[#6e7191]"}`}>
+            className={`flex flex-col items-center gap-0.5 transition-colors ${isActive ? "text-primary" : "text-[#a0a3bd] hover:text-[#6e7191]"}`}>
             <Icon className={`w-5 h-5 ${isActive ? "stroke-[#ff006b]" : ""}`} />
             <span className="text-[10px] font-medium">{item.label}</span>
-            {isActive && <span className="w-1 h-1 rounded-full" style={{ backgroundColor: "#ff006b" }} />}
+            {isActive && <span className="w-1 h-1 rounded-full" style={{ backgroundColor: "var(--primary-hex)" }} />}
           </Link>
         );
       })}

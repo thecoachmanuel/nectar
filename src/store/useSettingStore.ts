@@ -63,7 +63,7 @@ export const useSettingStore = create<SettingState>()(
       },
     }),
     {
-      name: "foodappi_settings_storage",
+      name: "nectar_settings_storage",
     }
   )
 );

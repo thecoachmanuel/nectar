@@ -32,7 +32,7 @@ export default function AdminLayout({
 
     let storedUser = localStorage.getItem("user");
     if (!storedUser) {
-      const authStorage = localStorage.getItem("foodappi_auth_storage");
+      const authStorage = localStorage.getItem("nectar_auth_storage");
       if (authStorage) {
         try {
           const parsed = JSON.parse(authStorage);

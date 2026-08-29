@@ -5,7 +5,7 @@ import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "foodappi_secret_key_default_2026"
+  process.env.JWT_SECRET || "nectar_secret_key_default_2026"
 );
 
 export async function GET(req: Request) {

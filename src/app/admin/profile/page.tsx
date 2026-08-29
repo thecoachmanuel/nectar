@@ -128,12 +128,12 @@ export default function AdminProfilePage() {
             <div className="relative w-32 h-32 mx-auto mb-4">
               <div className="w-full h-full rounded-full bg-[#F7F7FC] border-4 border-white shadow-md overflow-hidden flex items-center justify-center">
                 {uploadingAvatar ? (
-                   <span className="w-8 h-8 border-4 border-[#ff006b]/40 border-t-[#ff006b] rounded-full animate-spin"></span>
+                   <span className="w-8 h-8 border-4 border-primary/40 border-t-[#ff006b] rounded-full animate-spin"></span>
                 ) : (
                    <img src={user?.image || "/images/default/user.png"} alt="Profile" className="w-full h-full object-cover" />
                 )}
               </div>
-              <label className="absolute bottom-0 right-0 w-10 h-10 bg-[#ff006b] rounded-full text-white flex items-center justify-center border-2 border-white shadow-md hover:bg-[#e60060] transition-colors cursor-pointer">
+              <label className="absolute bottom-0 right-0 w-10 h-10 bg-primary rounded-full text-white flex items-center justify-center border-2 border-white shadow-md hover:bg-[#e60060] transition-colors cursor-pointer">
                 <Camera className="w-5 h-5" />
                 <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} />
               </label>
@@ -159,27 +159,27 @@ export default function AdminProfilePage() {
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-semibold text-[#14142B] mb-2">Full Name</label>
                   <div className="relative">
-                    <input type="text" name="name" value={formData.name} onChange={handleChange} required className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b]" />
+                    <input type="text" name="name" value={formData.name} onChange={handleChange} required className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-primary" />
                     <User className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-[#14142B] mb-2">Email Address</label>
                   <div className="relative">
-                    <input type="email" name="email" value={formData.email} onChange={handleChange} required className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b]" />
+                    <input type="email" name="email" value={formData.email} onChange={handleChange} required className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-primary" />
                     <Mail className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-[#14142B] mb-2">Phone Number</label>
                   <div className="relative">
-                    <input type="text" name="phone" value={formData.phone} onChange={handleChange} className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b]" />
+                    <input type="text" name="phone" value={formData.phone} onChange={handleChange} className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-primary" />
                     <Phone className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
                   </div>
                 </div>
               </div>
               <div className="flex justify-end pt-2">
-                <button type="submit" disabled={isSaving} className="h-11 px-6 rounded-xl bg-[#ff006b] text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-[#ff006b]/20 disabled:opacity-50">
+                <button type="submit" disabled={isSaving} className="h-11 px-6 rounded-xl bg-primary text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20 disabled:opacity-50">
                   {isSaving ? <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
                   <span className="text-sm font-medium">Update Profile</span>
                 </button>
@@ -196,7 +196,7 @@ export default function AdminProfilePage() {
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Current Password</label>
                 <div className="relative">
-                  <input type="password" name="currentPassword" value={formData.currentPassword} onChange={handleChange} className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b]" />
+                  <input type="password" name="currentPassword" value={formData.currentPassword} onChange={handleChange} className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-primary" />
                   <Lock className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
                 </div>
               </div>
@@ -204,14 +204,14 @@ export default function AdminProfilePage() {
                 <div>
                   <label className="block text-sm font-semibold text-[#14142B] mb-2">New Password</label>
                   <div className="relative">
-                    <input type="password" name="newPassword" value={formData.newPassword} onChange={handleChange} required className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b]" />
+                    <input type="password" name="newPassword" value={formData.newPassword} onChange={handleChange} required className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-primary" />
                     <Lock className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-[#14142B] mb-2">Confirm New Password</label>
                   <div className="relative">
-                    <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} required className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b]" />
+                    <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} required className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-primary" />
                     <Lock className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
                   </div>
                 </div>

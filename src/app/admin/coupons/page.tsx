@@ -69,7 +69,7 @@ export default function CouponsPage() {
               <input 
                 type="text" 
                 placeholder="Search..." 
-                className="h-10 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-sm focus:outline-none focus:border-[#ff006b] w-full sm:w-48 transition-colors"
+                className="h-10 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-sm focus:outline-none focus:border-primary w-full sm:w-48 transition-colors"
               />
               <Search className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
             </div>
@@ -83,7 +83,7 @@ export default function CouponsPage() {
 
             <button 
               onClick={handleAdd}
-              className="h-10 px-4 rounded-xl bg-[#ff006b] text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-[#ff006b]/20"
+              className="h-10 px-4 rounded-xl bg-primary text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20"
             >
               <Plus className="w-4 h-4" />
               <span className="text-sm font-medium">Add Coupon</span>
@@ -96,22 +96,22 @@ export default function CouponsPage() {
           <div className="p-4 sm:p-6 border-b border-[#EFF0F6] bg-[#FAFAFC] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Name</label>
-              <input type="text" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
+              <input type="text" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Code</label>
-              <input type="text" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
+              <input type="text" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Status</label>
-              <select className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]">
+              <select className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary">
                 <option>-- Select --</option>
                 <option>Active</option>
                 <option>Expired</option>
               </select>
             </div>
             <div className="lg:col-span-1 flex items-center gap-3 pt-2">
-              <button className="h-10 px-6 rounded-xl bg-[#ff006b] text-white text-sm font-medium hover:bg-[#e60060] transition-colors">Search</button>
+              <button className="h-10 px-6 rounded-xl bg-primary text-white text-sm font-medium hover:bg-[#e60060] transition-colors">Search</button>
               <button className="h-10 px-6 rounded-xl bg-gray-600 text-white text-sm font-medium hover:bg-gray-700 transition-colors">Clear</button>
             </div>
           </div>
@@ -143,7 +143,7 @@ export default function CouponsPage() {
                       <span className="text-sm font-medium text-[#14142B]">{coupon.name}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-[#ff006b]">{coupon.code}</span>
+                      <span className="text-sm font-bold text-primary">{coupon.code}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm font-semibold text-[#14142B]">{coupon.discountType === 'percentage' ? `${coupon.discount}%` : `₦${coupon.discount}`}</span>

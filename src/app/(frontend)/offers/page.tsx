@@ -37,14 +37,14 @@ export default function OffersPage() {
     <>
       {loading && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/80 backdrop-blur-sm">
-          <div className="foodappi-loader"></div>
+          <div className="nectar-loader"></div>
         </div>
       )}
       
       <section className="mb-24 sm:mb-16 mt-4 sm:mt-8">
         <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-[#fff5f9] text-[#ff006b] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-[#fff5f9] text-primary flex items-center justify-center">
               <Tag className="w-5 h-5" />
             </div>
             <div>
@@ -109,11 +109,11 @@ export default function OffersPage() {
                     <div className="flex items-center justify-between bg-[#F7F7FC] border border-dashed border-[#D9DBE9] rounded-xl p-2.5">
                       <div className="px-2">
                         <span className="text-[10px] text-[#6E7191] uppercase tracking-wider block font-semibold">Code</span>
-                        <span className="font-mono font-bold text-sm text-[#ff006b] uppercase">{offer.code}</span>
+                        <span className="font-mono font-bold text-sm text-primary uppercase">{offer.code}</span>
                       </div>
                       <button
                         onClick={() => handleCopy(offer.code)}
-                        className="h-9 px-4 rounded-lg bg-[#ff006b] text-white text-xs font-semibold hover:bg-[#e60060] transition-colors flex items-center gap-1.5 shadow-sm"
+                        className="h-9 px-4 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-[#e60060] transition-colors flex items-center gap-1.5 shadow-sm"
                       >
                         {copiedCode === offer.code ? (
                           <><Check className="w-3.5 h-3.5" /> Copied</>

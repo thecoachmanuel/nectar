@@ -7,7 +7,7 @@ export default function CookiesConsent() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const accepted = localStorage.getItem("foodappi_cookies_accepted");
+    const accepted = localStorage.getItem("nectar_cookies_accepted");
     if (!accepted) {
       const timer = setTimeout(() => setVisible(true), 2000);
       return () => clearTimeout(timer);
@@ -15,7 +15,7 @@ export default function CookiesConsent() {
   }, []);
 
   const accept = () => {
-    localStorage.setItem("foodappi_cookies_accepted", "true");
+    localStorage.setItem("nectar_cookies_accepted", "true");
     setVisible(false);
   };
 
@@ -28,7 +28,7 @@ export default function CookiesConsent() {
       <div className="bg-white rounded-2xl shadow-xl border border-[#eff0f6] p-4">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#fff0f6" }}>
-            <Cookie className="w-5 h-5" style={{ color: "#ff006b" }} />
+            <Cookie className="w-5 h-5" style={{ color: "var(--primary-hex)" }} />
           </div>
           <div className="flex-1">
             <h4 className="text-sm font-semibold text-[#14142b] mb-1">We Use Cookies 🍪</h4>
@@ -38,7 +38,7 @@ export default function CookiesConsent() {
             <div className="flex items-center gap-2 mt-3">
               <button onClick={accept}
                 className="flex-1 h-9 rounded-xl text-xs font-semibold text-white transition-all"
-                style={{ backgroundColor: "#ff006b" }}>
+                style={{ backgroundColor: "var(--primary-hex)" }}>
                 Accept All
               </button>
               <button onClick={decline}
@@ -48,7 +48,7 @@ export default function CookiesConsent() {
             </div>
           </div>
           <button onClick={decline}
-            className="w-6 h-6 rounded-full bg-[#f7f7fc] flex items-center justify-center text-[#a0a3bd] hover:text-[#ff006b] transition-all flex-shrink-0">
+            className="w-6 h-6 rounded-full bg-[#f7f7fc] flex items-center justify-center text-[#a0a3bd] hover:text-primary transition-all flex-shrink-0">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>

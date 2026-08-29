@@ -89,11 +89,11 @@ export default function DeliveryDashboard() {
     }
   };
 
-  if (loading) return <div className="flex justify-center p-10"><Loader2 className="w-8 h-8 animate-spin text-[#ff006b]" /></div>;
+  if (loading) return <div className="flex justify-center p-10"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="bg-[#ff006b] text-white p-6 rounded-2xl flex items-center justify-between shadow-lg">
+      <div className="bg-primary text-white p-6 rounded-2xl flex items-center justify-between shadow-lg">
         <div>
           <h1 className="text-2xl font-bold">Delivery Dashboard</h1>
           <p className="opacity-90 mt-1">Hello, {user?.name}</p>
@@ -108,7 +108,7 @@ export default function DeliveryDashboard() {
         {/* Active Deliveries */}
         <div className="bg-white border border-[#EFF0F6] rounded-2xl p-5 shadow-sm">
           <h2 className="text-lg font-bold text-[#14142B] mb-4 flex items-center gap-2">
-            <Navigation className="w-5 h-5 text-[#ff006b]" /> My Active Deliveries
+            <Navigation className="w-5 h-5 text-primary" /> My Active Deliveries
           </h2>
           <div className="space-y-4">
             {myOrders.length === 0 && <p className="text-sm text-[#6E7191]">No active deliveries. Claim an order below!</p>}
@@ -147,7 +147,7 @@ export default function DeliveryDashboard() {
                 ) : (
                   <button 
                     onClick={() => setVerifyingOrder(order._id)}
-                    className="w-full py-2 bg-[#ff006b] text-white rounded-lg font-semibold flex items-center justify-center gap-2 text-sm hover:bg-[#e60060]"
+                    className="w-full py-2 bg-primary text-white rounded-lg font-semibold flex items-center justify-center gap-2 text-sm hover:bg-[#e60060]"
                   >
                     <ShieldCheck className="w-4 h-4" /> Enter Completion PIN
                   </button>

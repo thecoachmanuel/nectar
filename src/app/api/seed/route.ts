@@ -67,7 +67,7 @@ export async function GET() {
     if (!store) {
       store = await Store.create({
         name: "Main Store",
-        email: "mainstore@foodappi.com",
+        email: "mainstore@nectar.com",
         phone: "+1800123456",
         address: "Downtown City Center, 5th Avenue",
         latitude: 23.8069,

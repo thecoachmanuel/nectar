@@ -127,7 +127,7 @@ export default function HomePage() {
                   <h2 className="text-xl md:text-3xl font-black leading-tight mb-2">{slide.title}</h2>
                   <p className="text-xs md:text-sm opacity-90 mb-4">{slide.subtitle}</p>
                   <Link href="/menu" className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold text-white transition-all"
-                    style={{ backgroundColor: "#ff006b" }}>
+                    style={{ backgroundColor: "var(--primary-hex)" }}>
                     Order Now <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
@@ -135,11 +135,11 @@ export default function HomePage() {
             ))}
             {/* Prev/Next */}
             <button onClick={() => setCurrentSlide(p => (p - 1 + sliders.length) % sliders.length)}
-              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center text-[#14142b] hover:bg-[#ff006b] hover:text-white transition-all opacity-0 hover:opacity-100 group-hover:opacity-100">
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center text-[#14142b] hover:bg-primary hover:text-white transition-all opacity-0 hover:opacity-100 group-hover:opacity-100">
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button onClick={() => setCurrentSlide(p => (p + 1) % sliders.length)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center text-[#14142b] hover:bg-[#ff006b] hover:text-white transition-all">
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center text-[#14142b] hover:bg-primary hover:text-white transition-all">
               <ChevronRight className="w-4 h-4" />
             </button>
             {/* Dots */}
@@ -147,7 +147,7 @@ export default function HomePage() {
               {sliders.map((_, i) => (
                 <button key={i} onClick={() => setCurrentSlide(i)}
                   className={`rounded-full transition-all duration-300 ${i === currentSlide ? "w-4 h-1.5 opacity-100" : "w-3 h-1.5 opacity-30"}`}
-                  style={{ backgroundColor: "#ff006b" }} />
+                  style={{ backgroundColor: "var(--primary-hex)" }} />
               ))}
             </div>
           </div>
@@ -160,13 +160,13 @@ export default function HomePage() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between gap-2 mb-4">
               <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b]">Our Menu</h2>
-              <Link href="/menu" className="text-xs font-medium" style={{ color: "#ff006b" }}>
+              <Link href="/menu" className="text-xs font-medium" style={{ color: "var(--primary-hex)" }}>
                 View All
               </Link>
             </div>
             <div className="relative">
               <button onClick={() => scrollCats("left")}
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center text-[#14142b] hover:text-[#ff006b] transition-all">
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center text-[#14142b] hover:text-primary transition-all">
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <div ref={catScrollRef}
@@ -188,7 +188,7 @@ export default function HomePage() {
                 ))}
               </div>
               <button onClick={() => scrollCats("right")}
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center text-[#14142b] hover:text-[#ff006b] transition-all">
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center text-[#14142b] hover:text-primary transition-all">
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -202,13 +202,13 @@ export default function HomePage() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between gap-2 mb-4">
               <div className="flex items-center gap-2">
-                <MapPin className="w-5 h-5" style={{ color: "#ff006b" }} />
+                <MapPin className="w-5 h-5" style={{ color: "var(--primary-hex)" }} />
                 <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b]">Shop By Store</h2>
               </div>
             </div>
             <div className="relative">
               <button onClick={() => scrollStores("left")}
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center text-[#14142b] hover:text-[#ff006b] transition-all">
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center text-[#14142b] hover:text-primary transition-all">
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <div ref={storeScrollRef}
@@ -227,7 +227,7 @@ export default function HomePage() {
                 ))}
               </div>
               <button onClick={() => scrollStores("right")}
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center text-[#14142b] hover:text-[#ff006b] transition-all">
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center text-[#14142b] hover:text-primary transition-all">
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -241,10 +241,10 @@ export default function HomePage() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between gap-2 mb-4">
               <div className="flex items-center gap-2">
-                <Star className="w-5 h-5 fill-[#ff006b] text-[#ff006b]" />
+                <Star className="w-5 h-5 fill-primary text-primary" />
                 <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b]">Featured Items</h2>
               </div>
-              <Link href="/menu?featured=true" className="text-xs font-medium" style={{ color: "#ff006b" }}>View All</Link>
+              <Link href="/menu?featured=true" className="text-xs font-medium" style={{ color: "var(--primary-hex)" }}>View All</Link>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {featuredItems.map((item) => (
@@ -261,10 +261,10 @@ export default function HomePage() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between gap-2 mb-4">
               <div className="flex items-center gap-2">
-                <Tag className="w-5 h-5" style={{ color: "#ff006b" }} />
+                <Tag className="w-5 h-5" style={{ color: "var(--primary-hex)" }} />
                 <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b]">Current Offers</h2>
               </div>
-              <Link href="/offers" className="text-xs font-medium" style={{ color: "#ff006b" }}>View All</Link>
+              <Link href="/offers" className="text-xs font-medium" style={{ color: "var(--primary-hex)" }}>View All</Link>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {offers.map((offer) => (
@@ -286,7 +286,7 @@ export default function HomePage() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between gap-2 mb-4">
               <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b]">Popular Items</h2>
-              <Link href="/menu" className="text-xs font-medium" style={{ color: "#ff006b" }}>View All</Link>
+              <Link href="/menu" className="text-xs font-medium" style={{ color: "var(--primary-hex)" }}>View All</Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {popularItems.map((item) => (
@@ -305,7 +305,7 @@ export default function HomePage() {
                       <span className="text-sm font-bold text-[#14142b]">₦{item.price?.toFixed(2)}</span>
                       <button onClick={(e) => { e.stopPropagation(); openModal(item); }}
                         className="product-card-list-cart-btn flex items-center gap-1.5 text-xs font-semibold text-white px-3 py-1.5 rounded-3xl"
-                        style={{ backgroundColor: "#ff006b" }}>
+                        style={{ backgroundColor: "var(--primary-hex)" }}>
                         <Plus className="w-3.5 h-3.5" />Add
                       </button>
                     </div>
@@ -326,7 +326,7 @@ export default function HomePage() {
 
           {loading ? (
             <div className="flex justify-center py-16">
-              <Loader2 className="w-8 h-8 animate-spin" style={{ color: "#ff006b" }} />
+              <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--primary-hex)" }} />
             </div>
           ) : allItems.length === 0 ? (
             <div className="bg-white rounded-2xl p-12 text-center border border-[#eff0f6]">
@@ -354,7 +354,7 @@ export default function HomePage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-bold text-[#14142b]">₦{item.price?.toFixed(2)}</span>
                       <button className="product-card-list-cart-btn flex items-center gap-1.5 text-xs font-semibold text-white px-3 py-1.5 rounded-3xl"
-                        style={{ backgroundColor: "#ff006b" }}>
+                        style={{ backgroundColor: "var(--primary-hex)" }}>
                         <Plus className="w-3.5 h-3.5" />Add
                       </button>
                     </div>
@@ -381,7 +381,7 @@ function ItemCard({ item, onOpen }: { item: any; onOpen: (item: any) => void }) 
           onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
 
         {item.isFeatured && (
-          <div className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: "#ff006b" }}>
+          <div className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: "var(--primary-hex)" }}>
             <Star className="w-3 h-3 fill-white text-white" />
           </div>
         )}
@@ -392,7 +392,7 @@ function ItemCard({ item, onOpen }: { item: any; onOpen: (item: any) => void }) 
         <div className="flex items-center justify-between">
           <span className="text-sm font-bold text-[#14142b]">₦{item.price?.toFixed(2)}</span>
           <button onClick={(e) => { e.stopPropagation(); onOpen(item); }}
-            className="product-card-grid-cart-btn text-[#ff006b] hover:bg-[#ff006b] hover:text-white">
+            className="product-card-grid-cart-btn text-primary hover:bg-primary hover:text-white">
             <Plus className="w-3.5 h-3.5" />
             <span className="text-[10px]">Add</span>
           </button>

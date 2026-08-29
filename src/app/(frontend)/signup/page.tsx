@@ -44,7 +44,7 @@ export default function SignupPage() {
               type="text" 
               value={form.name}
               onChange={handleChange}
-              className="w-full h-12 rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-[#ff006b] transition-colors bg-white" 
+              className="w-full h-12 rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-primary transition-colors bg-white" 
             />
           </div>
 
@@ -56,7 +56,7 @@ export default function SignupPage() {
               type="email" 
               value={form.email}
               onChange={handleChange}
-              className="w-full h-12 rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-[#ff006b] transition-colors bg-white" 
+              className="w-full h-12 rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-primary transition-colors bg-white" 
             />
           </div>
 
@@ -68,7 +68,7 @@ export default function SignupPage() {
               type="tel" 
               value={form.phone}
               onChange={handleChange}
-              className="w-full h-12 rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-[#ff006b] transition-colors bg-white" 
+              className="w-full h-12 rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-primary transition-colors bg-white" 
             />
           </div>
           
@@ -80,7 +80,7 @@ export default function SignupPage() {
               type="password" 
               value={form.password}
               onChange={handleChange}
-              className="w-full h-12 rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-[#ff006b] transition-colors bg-white" 
+              className="w-full h-12 rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-primary transition-colors bg-white" 
             />
           </div>
 
@@ -92,20 +92,20 @@ export default function SignupPage() {
               type="password" 
               value={form.password_confirmation}
               onChange={handleChange}
-              className="w-full h-12 rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-[#ff006b] transition-colors bg-white" 
+              className="w-full h-12 rounded-xl border border-[#eff0f6] px-4 text-[#14142b] focus:outline-none focus:border-primary transition-colors bg-white" 
             />
           </div>
           
           <button 
             type="submit"
-            className="w-full h-12 text-center capitalize font-bold text-base rounded-2xl mb-6 text-white bg-[#ff006b] hover:bg-rose-600 transition-colors shadow-md shadow-[#ff006b]/20"
+            className="w-full h-12 text-center capitalize font-bold text-base rounded-2xl mb-6 text-white bg-primary hover:bg-rose-600 transition-colors shadow-md shadow-primary/20"
           >
             Sign Up
           </button>
           
           <div className="flex items-center justify-center gap-2">
             <span className="text-xs text-[#6E7191]">Already have an account?</span>
-            <Link href="/login" className="text-xs font-medium text-[#ff006b] hover:text-rose-600 transition-colors">
+            <Link href="/login" className="text-xs font-medium text-primary hover:text-rose-600 transition-colors">
               Login
             </Link>
           </div>

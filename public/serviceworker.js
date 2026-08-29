@@ -1,4 +1,4 @@
-var staticCacheName = "foodappi-pwa-v" + new Date().getTime();
+var staticCacheName = "nectar-pwa-v" + new Date().getTime();
 var filesToCache = [
     '/',
     '/offline.html',
@@ -26,7 +26,7 @@ self.addEventListener('activate', event => {
         caches.keys().then(cacheNames => {
             return Promise.all(
                 cacheNames
-                    .filter(cacheName => cacheName.startsWith("foodappi-pwa-"))
+                    .filter(cacheName => cacheName.startsWith("nectar-pwa-"))
                     .filter(cacheName => cacheName !== staticCacheName)
                     .map(cacheName => caches.delete(cacheName))
             );
@@ -72,7 +72,7 @@ self.addEventListener("fetch", event => {
 self.addEventListener('push', event => {
     if (!event.data) return;
     const data = event.data.json();
-    const title = data.notification?.title || 'FoodAppi';
+    const title = data.notification?.title || 'Nectar';
     const options = {
         body: data.notification?.body || '',
         icon: '/images/theme/theme-favicon-logo.png',

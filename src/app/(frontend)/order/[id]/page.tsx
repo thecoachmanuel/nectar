@@ -50,13 +50,13 @@ export default function OrderDetailsPage() {
     <>
       {loading && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/80 backdrop-blur-sm">
-          <div className="foodappi-loader"></div>
+          <div className="nectar-loader"></div>
         </div>
       )}
       
       <section className="pt-6 pb-24 sm:pt-8 sm:pb-16 bg-[#f7f7fc] min-h-screen">
         <div className="container mx-auto px-4 sm:px-6 max-w-3xl">
-          <Link href="/account/my-orders" className="mb-3 inline-flex items-center gap-2 text-[#ff006b] hover:text-rose-600 transition-colors">
+          <Link href="/account/my-orders" className="mb-3 inline-flex items-center gap-2 text-primary hover:text-rose-600 transition-colors">
             <Undo2 className="w-4 h-4" />
             <span className="text-xs font-medium leading-6">Back to orders</span>
           </Link>
@@ -96,9 +96,9 @@ export default function OrderDetailsPage() {
                   <h5 className="text-xs font-normal text-center mb-8 text-[#6e7191]">The chef is preparing your food</h5>
 
                   <div className="px-4">
-                    <ul className="flex items-center justify-between mx-2 mb-[70px] relative before:absolute before:top-2 before:left-0 before:w-full before:h-1 before:bg-[#ff006b]/20">
+                    <ul className="flex items-center justify-between mx-2 mb-[70px] relative before:absolute before:top-2 before:left-0 before:w-full before:h-1 before:bg-primary/20">
                       <div 
-                        className="absolute top-2 left-0 h-1 bg-[#ff006b] transition-all duration-500" 
+                        className="absolute top-2 left-0 h-1 bg-primary transition-all duration-500" 
                         style={{ width: `${(currentStatusIndex / (statuses.length - 1)) * 100}%` }}
                       ></div>
                       
@@ -106,8 +106,8 @@ export default function OrderDetailsPage() {
                         const isCompleted = index <= currentStatusIndex;
                         return (
                           <li key={status.key} className="relative z-10 flex flex-col items-center">
-                            <div className={`w-5 h-5 rounded-full border-[3px] bg-white transition-colors duration-300 ${isCompleted ? 'border-[#ff006b]' : 'border-[#eff0f6]'}`}>
-                              {isCompleted && <div className="w-full h-full rounded-full bg-[#ff006b] scale-50"></div>}
+                            <div className={`w-5 h-5 rounded-full border-[3px] bg-white transition-colors duration-300 ${isCompleted ? 'border-primary' : 'border-[#eff0f6]'}`}>
+                              {isCompleted && <div className="w-full h-full rounded-full bg-primary scale-50"></div>}
                             </div>
                             <span className="absolute top-8 w-16 text-center text-[10px] leading-3 text-[#14142b] font-medium">
                               {status.label}
@@ -210,7 +210,7 @@ export default function OrderDetailsPage() {
                       </ul>
                       <div className="flex items-center justify-between p-3 sm:p-4 bg-[#fff5f9]/30">
                         <h4 className="text-sm leading-6 font-semibold capitalize text-[#14142b]">Total</h4>
-                        <h5 className="text-sm leading-6 font-semibold capitalize text-[#ff006b]">₦{order.totalAmount.toFixed(2)}</h5>
+                        <h5 className="text-sm leading-6 font-semibold capitalize text-primary">₦{order.totalAmount.toFixed(2)}</h5>
                       </div>
                     </div>
                   </div>

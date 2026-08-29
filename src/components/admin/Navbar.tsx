@@ -42,7 +42,7 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
       <div className="flex items-center gap-4">
         <button 
           onClick={toggleSidebar}
-          className="w-10 h-10 rounded-xl bg-[#F7F7FC] text-[#ff006b] flex items-center justify-center hover:bg-[#fff5f9] transition-colors lg:hidden"
+          className="w-10 h-10 rounded-xl bg-[#F7F7FC] text-primary flex items-center justify-center hover:bg-[#fff5f9] transition-colors lg:hidden"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -53,7 +53,7 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
             onClick={() => { setStoreOpen(!storeOpen); setProfileOpen(false); setLangOpen(false); }}
             className="flex items-center gap-3"
           >
-            <div className="w-10 h-10 rounded-xl bg-[#fff5f9] text-[#ff006b] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-[#fff5f9] text-primary flex items-center justify-center">
               <Store className="w-5 h-5" />
             </div>
             <div className="text-left">
@@ -88,7 +88,7 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
         <div className="relative">
           <button 
             onClick={() => { setLangOpen(!langOpen); setProfileOpen(false); setStoreOpen(false); }}
-            className="flex items-center gap-2 h-10 px-3 rounded-xl bg-[#fff5f9] text-[#ff006b] hover:bg-rose-100 transition-colors"
+            className="flex items-center gap-2 h-10 px-3 rounded-xl bg-[#fff5f9] text-primary hover:bg-rose-100 transition-colors"
           >
             <Globe className="w-4 h-4" />
             <span className="text-xs font-semibold uppercase">EN</span>
@@ -117,7 +117,7 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
                 </div>
                 <h3 className="font-bold text-[#14142B] text-base">{user?.name || "Admin"}</h3>
                 <p className="text-[#6E7191] text-xs">{user?.email || "admin@example.com"}</p>
-                <p className="text-[#ff006b] font-semibold text-[10px] uppercase mt-1 tracking-wider">{user?.role || "Administrator"}</p>
+                <p className="text-primary font-semibold text-[10px] uppercase mt-1 tracking-wider">{user?.role || "Administrator"}</p>
               </div>
               <div className="pt-2">
                 <Link href="/admin/profile" className="flex items-center gap-3 px-6 py-3 text-sm text-[#14142B] hover:bg-[#F7F7FC] transition-colors">

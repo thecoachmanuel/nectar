@@ -96,7 +96,7 @@ export default function CouponModal({ isOpen, onClose, coupon, onSuccess }: Coup
               required
               value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
-              className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-[#ff006b] transition-colors"
+              className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors"
             />
           </div>
           <div>
@@ -106,7 +106,7 @@ export default function CouponModal({ isOpen, onClose, coupon, onSuccess }: Coup
               required
               value={formData.code}
               onChange={(e) => setFormData({...formData, code: e.target.value.toUpperCase()})}
-              className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-[#ff006b] transition-colors uppercase"
+              className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors uppercase"
             />
           </div>
         </div>
@@ -117,7 +117,7 @@ export default function CouponModal({ isOpen, onClose, coupon, onSuccess }: Coup
             <select 
               value={formData.discountType}
               onChange={(e) => setFormData({...formData, discountType: e.target.value})}
-              className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-[#ff006b] transition-colors bg-white"
+              className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors bg-white"
             >
               <option value="percentage">Percentage (%)</option>
               <option value="fixed">Fixed Amount (₦)</option>
@@ -132,7 +132,7 @@ export default function CouponModal({ isOpen, onClose, coupon, onSuccess }: Coup
               step="0.01"
               value={formData.discount}
               onChange={(e) => setFormData({...formData, discount: Number(e.target.value)})}
-              className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-[#ff006b] transition-colors"
+              className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors"
             />
           </div>
         </div>
@@ -145,7 +145,7 @@ export default function CouponModal({ isOpen, onClose, coupon, onSuccess }: Coup
               min="0"
               value={formData.minimumOrderAmount}
               onChange={(e) => setFormData({...formData, minimumOrderAmount: Number(e.target.value)})}
-              className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-[#ff006b] transition-colors"
+              className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors"
             />
           </div>
           <div>
@@ -155,7 +155,7 @@ export default function CouponModal({ isOpen, onClose, coupon, onSuccess }: Coup
               min="0"
               value={formData.maximumDiscount}
               onChange={(e) => setFormData({...formData, maximumDiscount: Number(e.target.value)})}
-              className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-[#ff006b] transition-colors"
+              className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors"
             />
           </div>
         </div>
@@ -168,7 +168,7 @@ export default function CouponModal({ isOpen, onClose, coupon, onSuccess }: Coup
               required
               value={formData.startDate}
               onChange={(e) => setFormData({...formData, startDate: e.target.value})}
-              className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-[#ff006b] transition-colors"
+              className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors"
             />
           </div>
           <div>
@@ -178,7 +178,7 @@ export default function CouponModal({ isOpen, onClose, coupon, onSuccess }: Coup
               required
               value={formData.endDate}
               onChange={(e) => setFormData({...formData, endDate: e.target.value})}
-              className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-[#ff006b] transition-colors"
+              className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors"
             />
           </div>
         </div>
@@ -189,7 +189,7 @@ export default function CouponModal({ isOpen, onClose, coupon, onSuccess }: Coup
             id="status" 
             checked={formData.status}
             onChange={(e) => setFormData({...formData, status: e.target.checked})}
-            className="w-4 h-4 text-[#ff006b] rounded focus:ring-[#ff006b]"
+            className="w-4 h-4 text-primary rounded focus:ring-[#ff006b]"
           />
           <label htmlFor="status" className="text-sm font-medium text-[#14142B] cursor-pointer">
             Active Status
@@ -207,7 +207,7 @@ export default function CouponModal({ isOpen, onClose, coupon, onSuccess }: Coup
           <button 
             type="submit"
             disabled={loading}
-            className="px-6 h-11 rounded-xl bg-[#ff006b] text-white font-medium hover:bg-[#e60060] transition-colors shadow-md shadow-[#ff006b]/20 flex items-center justify-center min-w-[120px] disabled:opacity-70"
+            className="px-6 h-11 rounded-xl bg-primary text-white font-medium hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20 flex items-center justify-center min-w-[120px] disabled:opacity-70"
           >
             {loading ? <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : "Save"}
           </button>

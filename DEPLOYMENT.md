@@ -1,6 +1,6 @@
-# Deploying FoodAppi to Vercel
+# Deploying Nectar to Vercel
 
-Follow these simple steps to deploy your fullstack **FoodAppi** Next.js 16 + MongoDB application to **Vercel**:
+Follow these simple steps to deploy your fullstack **Nectar** Next.js 16 + MongoDB application to **Vercel**:
 
 ---
 
@@ -26,7 +26,7 @@ Follow these simple steps to deploy your fullstack **FoodAppi** Next.js 16 + Mon
 | `JWT_SECRET` | `your_secret_jwt_key_here_minimum_32_chars` |
 | `PAYSTACK_SECRET_KEY` | `sk_live_xxxx...` |
 | `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` | `pk_live_xxxx...` |
-| `NEXT_PUBLIC_APP_URL` | `https://your-foodappi.vercel.app` |
+| `NEXT_PUBLIC_APP_URL` | `https://your-nectar.vercel.app` |
 
 6. Click **Deploy**. Vercel will automatically build and publish your application.
 

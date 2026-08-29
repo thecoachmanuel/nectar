@@ -59,7 +59,7 @@ export default function AdminLoginPage() {
         
         {/* Header */}
         <div className="px-8 pt-8 pb-6 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#fff5f9] text-[#ff006b] rounded-2xl mb-4 shadow-sm shadow-[#ff006b]/10">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#fff5f9] text-primary rounded-2xl mb-4 shadow-sm shadow-primary/10">
             <Lock className="w-8 h-8" />
           </div>
           <h2 className="text-2xl font-bold text-[#14142B] mb-2">Admin Login</h2>
@@ -77,8 +77,8 @@ export default function AdminLoginPage() {
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
-                placeholder="admin@foodappi.com"
-                className="w-full h-12 pl-12 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b] transition-colors"
+                placeholder="admin@nectar.com"
+                className="w-full h-12 pl-12 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-primary transition-colors"
               />
               <Mail className="w-5 h-5 text-[#A0A3BD] absolute left-4 top-1/2 -translate-y-1/2" />
             </div>
@@ -87,7 +87,7 @@ export default function AdminLoginPage() {
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-sm font-semibold text-[#14142B]">Password</label>
-              <a href="#" className="text-xs font-semibold text-[#ff006b] hover:underline">Forgot Password?</a>
+              <a href="#" className="text-xs font-semibold text-primary hover:underline">Forgot Password?</a>
             </div>
             <div className="relative">
               <input 
@@ -96,7 +96,7 @@ export default function AdminLoginPage() {
                 value={formData.password}
                 onChange={(e) => setFormData({...formData, password: e.target.value})}
                 placeholder="••••••••"
-                className="w-full h-12 pl-12 pr-12 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b] transition-colors"
+                className="w-full h-12 pl-12 pr-12 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-primary transition-colors"
               />
               <Lock className="w-5 h-5 text-[#A0A3BD] absolute left-4 top-1/2 -translate-y-1/2" />
               <button 
@@ -112,7 +112,7 @@ export default function AdminLoginPage() {
           <button 
             type="submit" 
             disabled={isLoading}
-            className="w-full h-12 mt-2 rounded-xl bg-[#ff006b] text-white font-semibold text-sm hover:bg-[#e60060] transition-colors shadow-md shadow-[#ff006b]/20 flex items-center justify-center disabled:opacity-70"
+            className="w-full h-12 mt-2 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20 flex items-center justify-center disabled:opacity-70"
           >
             {isLoading ? (
               <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

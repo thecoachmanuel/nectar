@@ -15,7 +15,7 @@ export async function POST(req: Request) {
 
     const result = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: "foodappi" },
+        { folder: "nectar" },
         (error, result) => {
           if (error) reject(error);
           else resolve(result);

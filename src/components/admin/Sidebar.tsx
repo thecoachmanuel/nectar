@@ -112,7 +112,14 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
       >
         <div className="flex items-center justify-between h-[70px] px-5 border-b border-[#EFF0F6]">
           <Link href="/admin/dashboard" className="flex items-center gap-2">
-            <img src="/images/default/logo.png" alt="Nectar" className="h-8" />
+            <img 
+              src="/images/theme/theme-logo.png?v=2" 
+              alt="Nectar" 
+              className="h-8 w-auto object-contain" 
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
           </Link>
           <button 
             onClick={() => setIsOpen(false)}
@@ -134,7 +141,7 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
                     <div>
                       <button 
                         onClick={() => handleMenuClick(item.name, true)}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${isActive ? 'bg-[#ff006b] text-white shadow-md' : 'text-[#6E7191] hover:bg-[#F7F7FC] hover:text-[#ff006b]'}`}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${isActive ? 'bg-primary text-white shadow-md' : 'text-[#6E7191] hover:bg-[#F7F7FC] hover:text-primary'}`}
                       >
                         <div className="flex items-center gap-3">
                           {item.icon}
@@ -148,7 +155,7 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
                             <li key={child.name}>
                               <Link 
                                 href={child.path}
-                                className={`block px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${pathname === child.path ? 'text-[#ff006b] bg-[#fff5f9]' : 'text-[#6E7191] hover:text-[#ff006b] hover:bg-[#F7F7FC]'}`}
+                                className={`block px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${pathname === child.path ? 'text-primary bg-[#fff5f9]' : 'text-[#6E7191] hover:text-primary hover:bg-[#F7F7FC]'}`}
                               >
                                 {child.name}
                               </Link>
@@ -160,7 +167,7 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
                   ) : (
                     <Link 
                       href={item.path}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${isActive ? 'bg-[#ff006b] text-white shadow-md' : 'text-[#6E7191] hover:bg-[#F7F7FC] hover:text-[#ff006b]'}`}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${isActive ? 'bg-primary text-white shadow-md' : 'text-[#6E7191] hover:bg-[#F7F7FC] hover:text-primary'}`}
                     >
                       {item.icon}
                       <span className="text-[13px] font-medium">{item.name}</span>

@@ -41,7 +41,7 @@ export default function DynamicPage() {
     <>
       {loading && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/80 backdrop-blur-sm">
-          <div className="foodappi-loader"></div>
+          <div className="nectar-loader"></div>
         </div>
       )}
       
@@ -89,18 +89,18 @@ export default function DynamicPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-[#14142b] mb-1">Name</label>
-                    <input type="text" className="w-full px-4 py-2.5 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-[#ff006b] transition-colors" placeholder="Your Name" />
+                    <input type="text" className="w-full px-4 py-2.5 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-primary transition-colors" placeholder="Your Name" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[#14142b] mb-1">Email</label>
-                    <input type="email" className="w-full px-4 py-2.5 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-[#ff006b] transition-colors" placeholder="Your Email" />
+                    <input type="email" className="w-full px-4 py-2.5 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-primary transition-colors" placeholder="Your Email" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[#14142b] mb-1">Message</label>
-                  <textarea rows={4} className="w-full px-4 py-2.5 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-[#ff006b] transition-colors resize-none" placeholder="Your Message"></textarea>
+                  <textarea rows={4} className="w-full px-4 py-2.5 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-primary transition-colors resize-none" placeholder="Your Message"></textarea>
                 </div>
-                <button type="button" className="w-full py-3 bg-[#ff006b] text-white rounded-xl font-medium hover:bg-rose-600 transition-colors">
+                <button type="button" className="w-full py-3 bg-primary text-white rounded-xl font-medium hover:bg-rose-600 transition-colors">
                   Send Message
                 </button>
               </form>

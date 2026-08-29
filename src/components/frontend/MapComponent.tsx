@@ -136,7 +136,7 @@ export default function MapComponent({ initialLat, initialLng, onLocationSelect 
         <button
           type="button"
           onClick={(e) => { e.preventDefault(); getUserLocation(); }}
-          className="h-[40px] w-[40px] bg-white text-[#ff006b] rounded-xl shadow-md flex items-center justify-center hover:bg-[#fff5f9] transition-colors"
+          className="h-[40px] w-[40px] bg-white text-primary rounded-xl shadow-md flex items-center justify-center hover:bg-[#fff5f9] transition-colors"
           title="Use my location"
         >
           <LocateFixed className="w-5 h-5" />

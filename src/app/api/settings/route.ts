@@ -22,7 +22,7 @@ export async function PUT(request: Request) {
     await dbConnect();
     const body = await request.json();
     
-    // Expects an array of settings: [{ key: 'company_name', group: 'Company', payload: 'FoodAppi' }]
+    // Expects an array of settings: [{ key: 'company_name', group: 'Company', payload: 'Nectar' }]
     const { settings } = body;
 
     if (!Array.isArray(settings)) {

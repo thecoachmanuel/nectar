@@ -37,10 +37,10 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-[#eff0f6]">
           <div className="flex items-center gap-2.5">
-            <ShoppingBag className="w-5 h-5 text-[#ff006b]" />
+            <ShoppingBag className="w-5 h-5 text-primary" />
             <h3 className="text-lg font-semibold capitalize text-[#14142b]">Your Cart</h3>
             {items.length > 0 && (
-              <span className="w-6 h-6 rounded-full bg-[#ff006b] text-white text-xs flex items-center justify-center font-bold">
+              <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-bold">
                 {items.reduce((s, i) => s + i.quantity, 0)}
               </span>
             )}
@@ -53,7 +53,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               </button>
             )}
             <button onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-full bg-[#f7f7fc] text-[#6e7191] hover:bg-red-100 hover:text-[#ff006b] transition-all">
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-[#f7f7fc] text-[#6e7191] hover:bg-red-100 hover:text-primary transition-all">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -78,13 +78,13 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <div className="w-20 h-20 rounded-full bg-[#fff0f6] flex items-center justify-center mb-4">
-                <ShoppingBag className="w-10 h-10 text-[#ff006b] opacity-40" />
+                <ShoppingBag className="w-10 h-10 text-primary opacity-40" />
               </div>
               <h4 className="text-base font-semibold text-[#14142b] mb-1">Your cart is empty</h4>
               <p className="text-sm text-[#a0a3bd]">Add items from our menu to get started.</p>
               <button onClick={onClose}
                 className="mt-6 px-6 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
-                style={{ backgroundColor: "#ff006b" }}>
+                style={{ backgroundColor: "var(--primary-hex)" }}>
                 Browse Menu
               </button>
             </div>
@@ -110,13 +110,13 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     <span className="text-sm font-bold text-[#14142b]">₦{item.itemTotal.toFixed(2)}</span>
                     <div className="flex items-center gap-1.5">
                       <button onClick={() => updateQuantity(item.id, -1)}
-                        className="w-6 h-6 rounded-full border border-[#e2e8f0] flex items-center justify-center hover:border-[#ff006b] hover:text-[#ff006b] transition-all text-[#6e7191]">
+                        className="w-6 h-6 rounded-full border border-[#e2e8f0] flex items-center justify-center hover:border-primary hover:text-primary transition-all text-[#6e7191]">
                         <Minus className="w-3 h-3" />
                       </button>
                       <span className="text-sm font-semibold text-[#14142b] w-5 text-center">{item.quantity}</span>
                       <button onClick={() => updateQuantity(item.id, 1)}
                         className="w-6 h-6 rounded-full flex items-center justify-center text-white transition-all"
-                        style={{ backgroundColor: "#ff006b" }}>
+                        style={{ backgroundColor: "var(--primary-hex)" }}>
                         <Plus className="w-3 h-3" />
                       </button>
                       <button onClick={() => removeItem(item.id)}
@@ -142,7 +142,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             </div>
             <button onClick={handleCheckout}
               className="w-full h-12 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 transition-all hover:opacity-90"
-              style={{ backgroundColor: "#ff006b" }}>
+              style={{ backgroundColor: "var(--primary-hex)" }}>
               Process to Checkout
               <ChevronRight className="w-4 h-4" />
             </button>

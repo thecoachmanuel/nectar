@@ -167,7 +167,7 @@ export default function POSPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search items..." 
-                className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b] transition-colors"
+                className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-primary transition-colors"
               />
             <Search className="w-4 h-4 text-[#A0A3BD] absolute left-4 top-1/2 -translate-y-1/2" />
           </div>
@@ -175,7 +175,7 @@ export default function POSPage() {
 
         <button 
           onClick={() => setCartOpen(!cartOpen)}
-          className="lg:hidden w-11 h-11 rounded-xl bg-[#ff006b] text-white flex items-center justify-center relative shadow-md shadow-[#ff006b]/20"
+          className="lg:hidden w-11 h-11 rounded-xl bg-primary text-white flex items-center justify-center relative shadow-md shadow-primary/20"
         >
           <ShoppingCart className="w-5 h-5" />
           <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#14142B] text-white text-[10px] font-bold flex items-center justify-center border-2 border-white">
@@ -196,7 +196,7 @@ export default function POSPage() {
                 onClick={() => setActiveCategory("All")}
                 className={`px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
                   activeCategory === "All" 
-                    ? "bg-[#ff006b] text-white shadow-md shadow-[#ff006b]/20" 
+                    ? "bg-primary text-white shadow-md shadow-primary/20" 
                     : "bg-[#FAFAFC] text-[#6E7191] hover:bg-[#EFF0F6]"
                 }`}
               >
@@ -208,7 +208,7 @@ export default function POSPage() {
                   onClick={() => setActiveCategory(cat._id)}
                   className={`px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
                     activeCategory === cat._id 
-                      ? "bg-[#ff006b] text-white shadow-md shadow-[#ff006b]/20" 
+                      ? "bg-primary text-white shadow-md shadow-primary/20" 
                       : "bg-[#FAFAFC] text-[#6E7191] hover:bg-[#EFF0F6]"
                   }`}
                 >
@@ -222,15 +222,15 @@ export default function POSPage() {
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
               {loading ? (
-                <div className="col-span-full py-12 flex justify-center"><Loader2 className="w-8 h-8 text-[#ff006b] animate-spin" /></div>
+                <div className="col-span-full py-12 flex justify-center"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>
               ) : filteredProducts.map(product => (
-                <div key={product._id} onClick={() => addToCart(product)} className="bg-white rounded-2xl border border-[#EFF0F6] overflow-hidden shadow-sm hover:shadow-md hover:border-[#ff006b]/30 transition-all cursor-pointer group">
+                <div key={product._id} onClick={() => addToCart(product)} className="bg-white rounded-2xl border border-[#EFF0F6] overflow-hidden shadow-sm hover:shadow-md hover:border-primary/30 transition-all cursor-pointer group">
                   <div className="aspect-square bg-[#F7F7FC] relative overflow-hidden">
                     <img src={product.image || "/images/default/item.png"} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                   </div>
                   <div className="p-3 text-center">
                     <h3 className="font-semibold text-sm text-[#14142B] mb-1 truncate">{product.name}</h3>
-                    <p className="font-bold text-[#ff006b] text-sm">₦{product.price.toLocaleString()}</p>
+                    <p className="font-bold text-primary text-sm">₦{product.price.toLocaleString()}</p>
                   </div>
                 </div>
               ))}
@@ -251,7 +251,7 @@ export default function POSPage() {
                 <select 
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  className="w-full h-11 pl-3 pr-8 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b] appearance-none font-medium text-[#14142B]"
+                  className="w-full h-11 pl-3 pr-8 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-primary appearance-none font-medium text-[#14142B]"
                 >
                   <option value="Walk-in Customer">Walk-in Customer</option>
                   <option value="Phone Order">Phone Order</option>
@@ -262,7 +262,7 @@ export default function POSPage() {
                 <select 
                   value={selectedBranch}
                   onChange={(e) => setSelectedBranch(e.target.value)}
-                  className="w-full h-11 pl-3 pr-8 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-[#ff006b] appearance-none font-medium text-[#14142B]"
+                  className="w-full h-11 pl-3 pr-8 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-primary appearance-none font-medium text-[#14142B]"
                 >
                   <option value="">Select Store</option>
                   {branches.map(b => <option key={b._id} value={b._id}>{b.name}</option>)}
@@ -289,7 +289,7 @@ export default function POSPage() {
             <input 
               type="text" 
               placeholder="Token No. (Optional)" 
-              className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]"
+              className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary"
             />
           </div>
 
@@ -308,11 +308,11 @@ export default function POSPage() {
                       <Trash2 className="w-4 h-4" />
                     </button>
                     <div className="flex items-center gap-2 bg-[#F7F7FC] rounded-lg p-1 border border-[#EFF0F6]">
-                      <button onClick={() => updateQty(item.itemId, -1)} className="w-6 h-6 rounded bg-white shadow-sm flex items-center justify-center text-[#ff006b] hover:bg-[#fff5f9]">
+                      <button onClick={() => updateQty(item.itemId, -1)} className="w-6 h-6 rounded bg-white shadow-sm flex items-center justify-center text-primary hover:bg-[#fff5f9]">
                         <Minus className="w-3 h-3" />
                       </button>
                       <span className="text-xs font-bold w-4 text-center">{item.quantity}</span>
-                      <button onClick={() => updateQty(item.itemId, 1)} className="w-6 h-6 rounded bg-white shadow-sm flex items-center justify-center text-[#ff006b] hover:bg-[#fff5f9]">
+                      <button onClick={() => updateQty(item.itemId, 1)} className="w-6 h-6 rounded bg-white shadow-sm flex items-center justify-center text-primary hover:bg-[#fff5f9]">
                         <Plus className="w-3 h-3" />
                       </button>
                     </div>
@@ -325,7 +325,7 @@ export default function POSPage() {
           {/* Cart Summary & Checkout */}
           <div className="p-4 border-t border-[#EFF0F6] bg-[#FAFAFC] shrink-0">
             <div className="flex gap-2 mb-4">
-              <input type="text" placeholder="Add Discount" className="flex-1 h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
+              <input type="text" placeholder="Add Discount" className="flex-1 h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" />
               <button className="px-4 h-10 rounded-xl bg-[#008BBA] text-white text-sm font-semibold hover:bg-[#00749b] transition-colors">Apply</button>
             </div>
             
@@ -344,7 +344,7 @@ export default function POSPage() {
               </li>
               <li className="flex justify-between text-base pt-2 border-t border-dashed border-[#EFF0F6] mt-2">
                 <span className="font-bold text-[#14142B]">Total</span>
-                <span className="font-bold text-[#ff006b]">₦{total.toLocaleString()}</span>
+                <span className="font-bold text-primary">₦{total.toLocaleString()}</span>
               </li>
             </ul>
 

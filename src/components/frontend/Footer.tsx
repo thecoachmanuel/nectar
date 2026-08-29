@@ -48,7 +48,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="footer-part pt-12 mb-14 lg:mb-0 hidden sm:block" style={{ backgroundColor: "#ff006b" }}>
+    <footer className="footer-part pt-12 mb-14 lg:mb-0 hidden sm:block" style={{ backgroundColor: "var(--primary-hex)" }}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 md:gap-6">
           {/* Brand Column */}
@@ -56,7 +56,7 @@ export default function Footer() {
             <Link href="/">
               <img
                 src="/images/theme/theme-footer-logo.png"
-                alt="FoodAppi"
+                alt="Nectar"
                 className="mb-8 w-36 h-auto"
                 onError={(e) => {
                   const el = e.target as HTMLImageElement;
@@ -79,7 +79,7 @@ export default function Footer() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full h-full pl-2 text-sm text-[#14142b] bg-transparent outline-none placeholder:text-[#a0a3bd]"
               />
-              <button type="submit" className="capitalize text-xs font-medium rounded-md flex-shrink-0 p-2.5 text-white flex items-center gap-1.5" style={{ backgroundColor: "#ff006b" }}>
+              <button type="submit" className="capitalize text-xs font-medium rounded-md flex-shrink-0 p-2.5 text-white flex items-center gap-1.5" style={{ backgroundColor: "var(--primary-hex)" }}>
                 <Send className="w-3.5 h-3.5" />
                 Subscribe
               </button>
@@ -93,7 +93,7 @@ export default function Footer() {
                 { icon: <InstagramIcon />, href: "#" },
                 { icon: <YoutubeIcon />, href: "#" },
               ].map(({ icon, href }, i) => (
-                <a key={i} href={href} className="w-7 h-7 rounded-full shadow-lg bg-white flex items-center justify-center text-[#ff006b] hover:scale-110 transition-transform">
+                <a key={i} href={href} className="w-7 h-7 rounded-full shadow-lg bg-white flex items-center justify-center text-primary hover:scale-110 transition-transform">
                   {icon}
                 </a>
               ))}
@@ -124,7 +124,7 @@ export default function Footer() {
             <ul className="flex flex-col gap-4">
               <li className="flex items-center gap-2.5 text-white">
                 <Mail className="w-5 h-5 flex-shrink-0 opacity-80" />
-                <span className="text-sm">info@foodappi.com</span>
+                <span className="text-sm">info@nectar.com</span>
               </li>
               <li className="flex items-center gap-2.5 text-white">
                 <Phone className="w-5 h-5 flex-shrink-0 opacity-80" />

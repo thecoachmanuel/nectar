@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Offer from "@/models/Offer";
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await dbConnect();
-    const id = params.id;
+    const { id } = await params;
     const body = await req.json();
 
     // Create a slug if not provided
@@ -40,10 +40,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await dbConnect();
-    const id = params.id;
+    const { id } = await params;
     const offer = await Offer.findByIdAndDelete(id);
     if (!offer) {
       return NextResponse.json(

@@ -41,7 +41,7 @@ function SearchContent() {
     <>
       {loading && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/80 backdrop-blur-sm">
-          <div className="foodappi-loader"></div>
+          <div className="nectar-loader"></div>
         </div>
       )}
       
@@ -50,15 +50,15 @@ function SearchContent() {
           
           {/* HEADER & TOGGLE */}
           <div className="flex gap-2 sm:gap-4 items-start justify-between mb-4 sm:mb-6">
-            <h2 className="capitalize text-lg sm:text-2xl font-semibold text-[#ff006b]">
+            <h2 className="capitalize text-lg sm:text-2xl font-semibold text-primary">
               {query ? `Search: ${query}` : "Search"}
             </h2>
             {query && (
               <div className="flex items-center gap-3">
-                <button onClick={() => setMenuViewMode("list")} className={`text-xl transition-colors ${menuViewMode === "list" ? "text-[#ff006b]" : "text-[#A0A3BD]"}`}>
+                <button onClick={() => setMenuViewMode("list")} className={`text-xl transition-colors ${menuViewMode === "list" ? "text-primary" : "text-[#A0A3BD]"}`}>
                   <List className="w-6 h-6" />
                 </button>
-                <button onClick={() => setMenuViewMode("grid")} className={`text-xl transition-colors ${menuViewMode === "grid" ? "text-[#ff006b]" : "text-[#A0A3BD]"}`}>
+                <button onClick={() => setMenuViewMode("grid")} className={`text-xl transition-colors ${menuViewMode === "grid" ? "text-primary" : "text-[#A0A3BD]"}`}>
                   <Grid className="w-6 h-6" />
                 </button>
               </div>
@@ -81,7 +81,7 @@ function SearchContent() {
                         <div className="flex flex-wrap items-center gap-x-2">
                           <h4 className="text-xs sm:text-lg font-medium text-[#14142b]">₦{item.price?.toFixed(2)}</h4>
                         </div>
-                        <button className="flex items-center gap-1 sm:gap-1.5 rounded-3xl capitalize text-sm font-medium h-5 sm:h-6 px-2 shadow-md transition bg-white text-[#14142b] hover:bg-[#ff006b] hover:text-white">
+                        <button className="flex items-center gap-1 sm:gap-1.5 rounded-3xl capitalize text-sm font-medium h-5 sm:h-6 px-2 shadow-md transition bg-white text-[#14142b] hover:bg-primary hover:text-white">
                           <span className="text-[10px] sm:text-xs">Add</span>
                         </button>
                       </div>
@@ -101,7 +101,7 @@ function SearchContent() {
                       <p className="text-[10px] sm:text-xs text-[#6e7191] line-clamp-2 mb-2 sm:mb-3">{item.description}</p>
                       <div className="flex items-center justify-between">
                         <h4 className="text-sm sm:text-base font-bold text-[#14142b]">₦{item.price?.toFixed(2)}</h4>
-                        <button className="flex items-center gap-1.5 rounded-3xl capitalize text-sm font-medium h-6 sm:h-7 px-3 shadow-md transition bg-white text-[#14142b] hover:bg-[#ff006b] hover:text-white">
+                        <button className="flex items-center gap-1.5 rounded-3xl capitalize text-sm font-medium h-6 sm:h-7 px-3 shadow-md transition bg-white text-[#14142b] hover:bg-primary hover:text-white">
                           <span className="text-[10px] sm:text-xs">Add</span>
                         </button>
                       </div>
@@ -116,7 +116,7 @@ function SearchContent() {
                 <img className="w-full mb-8 opacity-60" src="/images/item/item-not-found.png" alt="Not found" />
               </div>
               <span className="block w-full mb-4 text-center text-[#14142b]">No items found</span>
-              <Link href="/" className="block w-full mx-auto max-w-[250px] py-3 rounded-3xl capitalize text-base font-medium leading-6 text-center bg-[#ff006b] text-white hover:bg-rose-600 transition-colors">
+              <Link href="/" className="block w-full mx-auto max-w-[250px] py-3 rounded-3xl capitalize text-base font-medium leading-6 text-center bg-primary text-white hover:bg-rose-600 transition-colors">
                 Go to Home
               </Link>
             </div>
@@ -131,7 +131,7 @@ function SearchContent() {
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={<div className="flex justify-center p-8"><div className="foodappi-loader"></div></div>}>
+    <Suspense fallback={<div className="flex justify-center p-8"><div className="nectar-loader"></div></div>}>
       <SearchContent />
     </Suspense>
   );

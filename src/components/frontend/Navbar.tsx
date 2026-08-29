@@ -19,7 +19,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
   const pathname = usePathname();
   const { user, token, logout } = useAuthStore();
   const { items: cartItems } = useCartStore();
-  const { activeFoodType, setActiveFoodType, menuViewMode, setMenuViewMode } = useSettingStore();
+  const { menuViewMode, setMenuViewMode } = useSettingStore();
 
   const [scrolled, setScrolled] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -76,33 +76,33 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
             <Link href="/" className="flex-shrink-0">
               <img
                 src="/images/theme/theme-logo.png?v=2"
-                alt="FoodAppi"
+                alt="Nectar"
                 className="w-24 sm:w-32 h-auto"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = "none";
                   (e.target as HTMLImageElement).nextElementSibling?.removeAttribute("style");
                 }}
               />
-              <span className="hidden text-2xl font-black" style={{ color: "#ff006b" }}>
+              <span className="hidden text-2xl font-black" style={{ color: "var(--primary-hex)" }}>
                 Nectar
               </span>
             </Link>
 
             {/* Desktop Nav Links */}
             <nav className="hidden lg:flex items-center gap-6">
-              <Link href="/" className={`capitalize text-sm font-medium transition-colors ${isActive("/") ? "text-[#ff006b]" : "text-[#14142b] hover:text-[#ff006b]"}`}>
+              <Link href="/" className={`capitalize text-sm font-medium transition-colors ${isActive("/") ? "text-primary" : "text-[#14142b] hover:text-primary"}`}>
                 Home
               </Link>
-              <Link href="/menu" className={`capitalize text-sm font-medium transition-colors ${isActive("/menu") ? "text-[#ff006b]" : "text-[#14142b] hover:text-[#ff006b]"}`}>
+              <Link href="/menu" className={`capitalize text-sm font-medium transition-colors ${isActive("/menu") ? "text-primary" : "text-[#14142b] hover:text-primary"}`}>
                 Menu
               </Link>
-              <Link href="/offers" className={`capitalize text-sm font-medium transition-colors ${isActive("/offers") ? "text-[#ff006b]" : "text-[#14142b] hover:text-[#ff006b]"}`}>
+              <Link href="/offers" className={`capitalize text-sm font-medium transition-colors ${isActive("/offers") ? "text-primary" : "text-[#14142b] hover:text-primary"}`}>
                 Offers
               </Link>
             </nav>
 
             {/* Search Bar (Visible on both desktop and mobile in PHP app) */}
-            <form onSubmit={handleSearch} className="flex flex-1 lg:flex-none items-center border rounded-3xl px-3 gap-2 h-9 lg:w-52 border-[#eff0f6] bg-[#eff0f6] focus-within:bg-white focus-within:border-[#ff006b] transition-all">
+            <form onSubmit={handleSearch} className="flex flex-1 lg:flex-none items-center border rounded-3xl px-3 gap-2 h-9 lg:w-52 border-[#eff0f6] bg-[#eff0f6] focus-within:bg-white focus-within:border-primary transition-all">
               <button type="submit">
                 <Search className="w-4 h-4 text-[#6e7191]" />
               </button>
@@ -128,12 +128,12 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
               {/* Cart Button */}
               <button
                 onClick={onCartOpen}
-                className="hidden lg:flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white bg-[#14142b] hover:bg-[#ff006b] transition-all"
+                className="hidden lg:flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white bg-[#14142b] hover:bg-primary transition-all"
               >
                 <ShoppingBag className="w-4 h-4" />
                 <span className="whitespace-nowrap">₦{cartTotal.toFixed(2)}</span>
                 {cartCount > 0 && (
-                  <span className="w-5 h-5 rounded-full bg-[#ff006b] text-white text-[10px] flex items-center justify-center font-bold ml-1">
+                  <span className="w-5 h-5 rounded-full bg-primary text-white text-[10px] flex items-center justify-center font-bold ml-1">
                     {cartCount}
                   </span>
                 )}
@@ -143,7 +143,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
               {!user ? (
                 <Link
                   href="/auth/login"
-                  className="hidden lg:flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white bg-[#ff006b] hover:bg-[#ff3b8e] transition-all"
+                  className="hidden lg:flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white bg-primary hover:bg-[#ff3b8e] transition-all"
                 >
                   <User className="w-4 h-4" />
                   <span>Login</span>
@@ -152,7 +152,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
                 <div ref={profileRef} className="relative hidden lg:block">
                   <button
                     onClick={() => setProfileOpen(!profileOpen)}
-                    className="flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white bg-[#ff006b] hover:bg-[#ff3b8e] transition-all"
+                    className="flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white bg-primary hover:bg-[#ff3b8e] transition-all"
                   >
                     <User className="w-4 h-4" />
                     <span className="capitalize">{user.name?.split(" ")[0] || "Account"}</span>
@@ -164,14 +164,14 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
                     <div className="absolute top-12 right-0 z-50 w-72 rounded-xl shadow-xl bg-white border border-[#eff0f6] overflow-hidden">
                       {/* Profile Header */}
                       <div className="flex items-center gap-3 p-4 bg-[#fff5f9] border-b border-[#eff0f6]">
-                        <div className="w-12 h-12 rounded-full bg-[#ff006b] flex items-center justify-center text-white font-bold text-lg">
+                        <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg">
                           {user.name?.[0]?.toUpperCase() || "U"}
                         </div>
                         <div>
                           <p className="text-sm font-semibold text-[#14142b] capitalize">{user.name}</p>
                           <p className="text-xs text-[#6e7191]">{user.email}</p>
                           {(user.role === "admin" || user.role === "chef" || user.role === "waiter") && (
-                            <span className="text-[10px] font-bold text-[#ff006b] uppercase tracking-wide">{user.role}</span>
+                            <span className="text-[10px] font-bold text-primary uppercase tracking-wide">{user.role}</span>
                           )}
                         </div>
                       </div>
@@ -179,33 +179,33 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
                       <nav className="px-2 py-2">
                         {(user.role === "admin" || user.role === "chef" || user.role === "waiter") && (
                           <Link href="/admin/dashboard" onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#14142b] hover:text-[#ff006b] hover:bg-[#fff5f9] transition-all capitalize">
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#14142b] hover:text-primary hover:bg-[#fff5f9] transition-all capitalize">
                             <LayoutGrid className="w-4 h-4" />
                             <span>Admin Dashboard</span>
                           </Link>
                         )}
                         <Link href="/account/orders" onClick={() => setProfileOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#14142b] hover:text-[#ff006b] hover:bg-[#fff5f9] transition-all border-b border-[#eff0f6] capitalize">
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#14142b] hover:text-primary hover:bg-[#fff5f9] transition-all border-b border-[#eff0f6] capitalize">
                           <ClipboardList className="w-4 h-4" />
                           <span>My Orders</span>
                         </Link>
                         <Link href="/account/profile" onClick={() => setProfileOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#14142b] hover:text-[#ff006b] hover:bg-[#fff5f9] transition-all border-b border-[#eff0f6] capitalize">
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#14142b] hover:text-primary hover:bg-[#fff5f9] transition-all border-b border-[#eff0f6] capitalize">
                           <User className="w-4 h-4" />
                           <span>Edit Profile</span>
                         </Link>
                         <Link href="/account/chat" onClick={() => setProfileOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#14142b] hover:text-[#ff006b] hover:bg-[#fff5f9] transition-all border-b border-[#eff0f6] capitalize">
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#14142b] hover:text-primary hover:bg-[#fff5f9] transition-all border-b border-[#eff0f6] capitalize">
                           <MessageCircle className="w-4 h-4" />
                           <span>Chat</span>
                         </Link>
                         <Link href="/account/addresses" onClick={() => setProfileOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#14142b] hover:text-[#ff006b] hover:bg-[#fff5f9] transition-all border-b border-[#eff0f6] capitalize">
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#14142b] hover:text-primary hover:bg-[#fff5f9] transition-all border-b border-[#eff0f6] capitalize">
                           <MapPin className="w-4 h-4" />
                           <span>Addresses</span>
                         </Link>
                         <Link href="/account/profile?tab=security" onClick={() => setProfileOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#14142b] hover:text-[#ff006b] hover:bg-[#fff5f9] transition-all border-b border-[#eff0f6] capitalize">
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#14142b] hover:text-primary hover:bg-[#fff5f9] transition-all border-b border-[#eff0f6] capitalize">
                           <Lock className="w-4 h-4" />
                           <span>Change Password</span>
                         </Link>
@@ -240,7 +240,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
             <nav className="flex flex-col gap-1">
               {[{ href: "/", label: "Home" }, { href: "/menu", label: "Menu" }, { href: "/offers", label: "Offers" }].map(({ href, label }) => (
                 <Link key={href} href={href} onClick={() => setMobileMenuOpen(false)}
-                  className={`px-3 py-2.5 rounded-lg text-sm font-medium capitalize transition-all ${isActive(href) ? "text-[#ff006b] bg-[#fff5f9]" : "text-[#14142b] hover:bg-[#f7f7fc]"}`}>
+                  className={`px-3 py-2.5 rounded-lg text-sm font-medium capitalize transition-all ${isActive(href) ? "text-primary bg-[#fff5f9]" : "text-[#14142b] hover:bg-[#f7f7fc]"}`}>
                   {label}
                 </Link>
               ))}
@@ -248,7 +248,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
 
             {!user ? (
               <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-center gap-2 w-full h-10 rounded-xl text-sm font-medium text-white bg-[#ff006b]">
+                className="flex items-center justify-center gap-2 w-full h-10 rounded-xl text-sm font-medium text-white bg-primary">
                 <User className="w-4 h-4" />
                 Login / Sign Up
               </Link>
@@ -262,7 +262,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
                   { href: "/account/chat", label: "Chat", icon: <MessageCircle className="w-4 h-4" /> },
                 ].map(({ href, label, icon }) => (
                   <Link key={href} href={href} onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[#14142b] hover:bg-[#fff5f9] hover:text-[#ff006b] transition-all">
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[#14142b] hover:bg-[#fff5f9] hover:text-primary transition-all">
                     {icon}<span>{label}</span>
                   </Link>
                 ))}

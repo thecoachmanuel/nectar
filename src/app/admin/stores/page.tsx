@@ -54,7 +54,7 @@ export default function StoresPage() {
         </div>
         <button
           onClick={() => { setStoreToEdit(null); setIsModalOpen(true); }}
-          className="bg-[#ff006b] hover:bg-[#e60060] text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm transition-colors"
+          className="bg-primary hover:bg-[#e60060] text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm transition-colors"
         >
           <Plus className="w-5 h-5" />
           Add Store
@@ -88,7 +88,7 @@ export default function StoresPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm flex items-start gap-1 text-[#4E4B66]">
-                        <MapPin className="w-4 h-4 text-[#ff006b] shrink-0 mt-0.5" />
+                        <MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                         <span className="line-clamp-2">{store.address}, {store.city}</span>
                       </div>
                     </td>

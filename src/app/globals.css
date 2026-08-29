@@ -276,7 +276,7 @@ body {
 /* =====================
    MODAL
    ===================== */
-.foodappi-modal {
+.nectar-modal {
   position: fixed;
   inset: 0;
   z-index: 60;
@@ -285,7 +285,7 @@ body {
   justify-content: center;
   background: rgba(0,0,0,0.6);
 }
-.foodappi-modal-dialog {
+.nectar-modal-dialog {
   background: #fff;
   border-radius: 0.75rem;
   width: 100%;
@@ -373,7 +373,7 @@ body {
 /* =====================
    LOADER
    ===================== */
-.foodappi-loader {
+.nectar-loader {
   width: 40px; height: 40px;
   border: 3px solid var(--primary-light);
   border-top-color: var(--primary-hex);

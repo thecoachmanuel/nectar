@@ -21,7 +21,7 @@ export default function AccountLayout({
   if (!mounted) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center bg-[#f7f7fc]">
-        <div className="w-8 h-8 rounded-full border-4 border-[#ff006b] border-t-transparent animate-spin"></div>
+        <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
       </div>
     );
   }
@@ -32,8 +32,8 @@ export default function AccountLayout({
       <section className="min-h-[70vh] bg-[#f7f7fc] flex items-center justify-center px-4 py-16">
         <div className="w-full max-w-[480px] bg-white rounded-3xl shadow-sm border border-[#eff0f6] overflow-hidden text-center p-8 sm:p-12">
           
-          <div className="mx-auto w-20 h-20 bg-[#fff5f9] rounded-full flex items-center justify-center mb-6 shadow-sm shadow-[#ff006b]/10">
-            <Lock className="w-10 h-10 text-[#ff006b]" />
+          <div className="mx-auto w-20 h-20 bg-[#fff5f9] rounded-full flex items-center justify-center mb-6 shadow-sm shadow-primary/10">
+            <Lock className="w-10 h-10 text-primary" />
           </div>
 
           <h2 className="text-[28px] font-bold text-[#14142b] mb-3 leading-tight">
@@ -46,7 +46,7 @@ export default function AccountLayout({
           <div className="space-y-4">
             <Link 
               href="/auth/login" 
-              className="w-full h-[52px] rounded-2xl bg-[#ff006b] text-white flex items-center justify-center gap-2 font-semibold hover:bg-rose-600 transition-colors shadow-md shadow-[#ff006b]/20"
+              className="w-full h-[52px] rounded-2xl bg-primary text-white flex items-center justify-center gap-2 font-semibold hover:bg-rose-600 transition-colors shadow-md shadow-primary/20"
             >
               <LogIn className="w-5 h-5" />
               <span>Login to your account</span>

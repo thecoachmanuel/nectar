@@ -12,7 +12,7 @@ import { toast } from "sonner";
 export default function CheckoutPage() {
   const router = useRouter();
   const { user, isGuest, guestInfo, token } = useAuthStore();
-  const { items, orderType, setOrderType, getSubtotal, getTotalAmount, storeId, setStoreId, clearCart } = useCartStore();
+  const { items, orderType, setOrderType, getSubtotal, getTotalAmount, clearCart } = useCartStore();
   const [loading, setLoading] = useState(true);
   const [schedule, setSchedule] = useState<"NOW" | "LATER">("NOW");
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
@@ -134,13 +134,13 @@ export default function CheckoutPage() {
     <>
       {loading && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/80 backdrop-blur-sm">
-          <div className="foodappi-loader"></div>
+          <div className="nectar-loader"></div>
         </div>
       )}
       
       <section className="pt-6 pb-24 sm:pt-8 sm:pb-16 bg-[#f7f7fc] min-h-screen">
         <div className="container mx-auto px-4 sm:px-6 max-w-[965px]">
-          <Link href="/" className="text-xs font-medium inline-flex mb-3 items-center gap-2 text-[#ff006b] hover:text-rose-600 transition-colors">
+          <Link href="/" className="text-xs font-medium inline-flex mb-3 items-center gap-2 text-primary hover:text-rose-600 transition-colors">
             <Undo2 className="w-4 h-4" />
             <span>Back to Home</span>
           </Link>
@@ -165,22 +165,22 @@ export default function CheckoutPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {addresses.length === 0 ? (
                         <div className="col-span-full p-4 border border-dashed border-[#eff0f6] rounded-xl text-center text-sm text-[#6e7191]">
-                          No addresses found. <Link href="/account/addresses" className="text-[#ff006b] font-medium hover:underline">Add one now</Link>.
+                          No addresses found. <Link href="/account/addresses" className="text-primary font-medium hover:underline">Add one now</Link>.
                         </div>
                       ) : (
                         addresses.map((addr) => (
                           <label 
                             key={addr._id} 
                             onClick={() => setSelectedAddress(addr._id || null)}
-                            className={`p-3 rounded-xl w-full border cursor-pointer transition-colors ${selectedAddress === addr._id ? 'border-[#ff006b] bg-[#fff5f9]' : 'border-[#F7F7FC] bg-[#F7F7FC] hover:border-[#ff006b]/30'}`}
+                            className={`p-3 rounded-xl w-full border cursor-pointer transition-colors ${selectedAddress === addr._id ? 'border-primary bg-[#fff5f9]' : 'border-[#F7F7FC] bg-[#F7F7FC] hover:border-primary/30'}`}
                           >
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-2 text-xs text-[#008BBA]">
                                 <HomeIcon className="w-3.5 h-3.5" />
                                 <span className="font-medium">{addr.label || "Address"}</span>
                               </div>
-                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${selectedAddress === addr._id ? 'border-[#ff006b]' : 'border-[#a0a3bd]'}`}>
-                                {selectedAddress === addr._id && <div className="w-2 h-2 rounded-full bg-[#ff006b]" />}
+                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${selectedAddress === addr._id ? 'border-primary' : 'border-[#a0a3bd]'}`}>
+                                {selectedAddress === addr._id && <div className="w-2 h-2 rounded-full bg-primary" />}
                               </div>
                             </div>
                             <div className="text-xs flex gap-2 text-[#14142b]">
@@ -204,14 +204,14 @@ export default function CheckoutPage() {
                     
                     <label 
                       onClick={() => setSchedule("NOW")}
-                      className={`w-fit py-2.5 px-4 rounded-xl flex items-start gap-5 cursor-pointer border transition-all duration-300 ${schedule === "NOW" ? 'bg-[#fff5f9] border-[#ff006b]' : 'bg-white border-[#eff0f6]'}`}
+                      className={`w-fit py-2.5 px-4 rounded-xl flex items-start gap-5 cursor-pointer border transition-all duration-300 ${schedule === "NOW" ? 'bg-[#fff5f9] border-primary' : 'bg-white border-[#eff0f6]'}`}
                     >
                       <dl className="flex-auto">
                         <dt className="text-sm font-medium whitespace-nowrap mb-1 text-[#14142b]">Now</dt>
                         <dd className="text-xs whitespace-nowrap text-[#6e7191]">30 minutes</dd>
                       </dl>
-                      <div className={`mt-1 w-4 h-4 rounded-full border-2 flex items-center justify-center ${schedule === "NOW" ? 'border-[#ff006b]' : 'border-[#a0a3bd]'}`}>
-                        {schedule === "NOW" && <div className="w-2 h-2 rounded-full bg-[#ff006b]" />}
+                      <div className={`mt-1 w-4 h-4 rounded-full border-2 flex items-center justify-center ${schedule === "NOW" ? 'border-primary' : 'border-[#a0a3bd]'}`}>
+                        {schedule === "NOW" && <div className="w-2 h-2 rounded-full bg-primary" />}
                       </div>
                     </label>
 
@@ -220,14 +220,14 @@ export default function CheckoutPage() {
                         setSchedule("LATER");
                         setIsTimeModalOpen(true);
                       }}
-                      className={`w-fit py-2.5 px-4 rounded-xl flex items-start gap-5 cursor-pointer border transition-all duration-300 ${schedule === "LATER" ? 'bg-[#fff5f9] border-[#ff006b]' : 'bg-white border-[#eff0f6]'}`}
+                      className={`w-fit py-2.5 px-4 rounded-xl flex items-start gap-5 cursor-pointer border transition-all duration-300 ${schedule === "LATER" ? 'bg-[#fff5f9] border-primary' : 'bg-white border-[#eff0f6]'}`}
                     >
                       <dl className="flex-auto">
                         <dt className="text-sm font-medium whitespace-nowrap mb-1 text-[#14142b]">Schedule for later</dt>
                         <dd className="text-xs whitespace-nowrap text-[#6e7191]">{selectedTime || "Choose a time"}</dd>
                       </dl>
-                      <div className={`mt-1 w-4 h-4 rounded-full border-2 flex items-center justify-center ${schedule === "LATER" ? 'border-[#ff006b]' : 'border-[#a0a3bd]'}`}>
-                        {schedule === "LATER" && <div className="w-2 h-2 rounded-full bg-[#ff006b]" />}
+                      <div className={`mt-1 w-4 h-4 rounded-full border-2 flex items-center justify-center ${schedule === "LATER" ? 'border-primary' : 'border-[#a0a3bd]'}`}>
+                        {schedule === "LATER" && <div className="w-2 h-2 rounded-full bg-primary" />}
                       </div>
                     </label>
                     
@@ -288,7 +288,7 @@ export default function CheckoutPage() {
                 <div className="p-4 sm:p-5 bg-gray-50/50 rounded-b-2xl">
                   {/* Coupon input mock */}
                   <div className="flex gap-2 mb-6">
-                    <input type="text" placeholder="Coupon code" className="flex-1 px-4 py-2 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-[#ff006b]" />
+                    <input type="text" placeholder="Coupon code" className="flex-1 px-4 py-2 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-primary" />
                     <button className="px-4 py-2 bg-[#14142b] text-white text-sm font-medium rounded-xl hover:bg-gray-800 transition-colors">Apply</button>
                   </div>
 
@@ -311,13 +311,13 @@ export default function CheckoutPage() {
                     </ul>
                     <div className="flex items-center justify-between p-3 sm:p-4 bg-[#fff5f9]/30">
                       <h4 className="text-base font-bold capitalize text-[#14142b]">Total</h4>
-                      <h5 className="text-lg font-bold text-[#ff006b]">₦{total.toFixed(2)}</h5>
+                      <h5 className="text-lg font-bold text-primary">₦{total.toFixed(2)}</h5>
                     </div>
                   </div>
                   
                   <button 
                     onClick={handlePlaceOrder}
-                    className="w-full rounded-2xl capitalize font-bold text-base py-3.5 text-white bg-[#ff006b] hover:bg-rose-600 transition-colors shadow-md shadow-[#ff006b]/20"
+                    className="w-full rounded-2xl capitalize font-bold text-base py-3.5 text-white bg-primary hover:bg-rose-600 transition-colors shadow-md shadow-primary/20"
                   >
                     Place Order
                   </button>
@@ -335,7 +335,7 @@ export default function CheckoutPage() {
           <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
             <div className="flex items-center justify-between p-4 border-b border-[#eff0f6]">
               <h3 className="text-lg font-semibold capitalize text-[#14142b]">Select Time Schedule</h3>
-              <button onClick={() => setIsTimeModalOpen(false)} className="text-[#a0a3bd] hover:text-[#ff006b] transition-colors">
+              <button onClick={() => setIsTimeModalOpen(false)} className="text-[#a0a3bd] hover:text-primary transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -344,13 +344,13 @@ export default function CheckoutPage() {
               <nav className="w-fit flex items-center rounded-full bg-[#f7f7fc] p-1 border border-[#eff0f6]">
                 <button 
                   onClick={() => setScheduleTab("TODAY")}
-                  className={`text-sm font-medium capitalize h-9 px-6 rounded-full transition-colors ${scheduleTab === "TODAY" ? 'text-white bg-[#ff006b] shadow-sm' : 'text-[#6e7191] hover:text-[#14142b]'}`}
+                  className={`text-sm font-medium capitalize h-9 px-6 rounded-full transition-colors ${scheduleTab === "TODAY" ? 'text-white bg-primary shadow-sm' : 'text-[#6e7191] hover:text-[#14142b]'}`}
                 >
                   Today
                 </button>
                 <button 
                   onClick={() => setScheduleTab("TOMORROW")}
-                  className={`text-sm font-medium capitalize h-9 px-6 rounded-full transition-colors ${scheduleTab === "TOMORROW" ? 'text-white bg-[#ff006b] shadow-sm' : 'text-[#6e7191] hover:text-[#14142b]'}`}
+                  className={`text-sm font-medium capitalize h-9 px-6 rounded-full transition-colors ${scheduleTab === "TOMORROW" ? 'text-white bg-primary shadow-sm' : 'text-[#6e7191] hover:text-[#14142b]'}`}
                 >
                   Tomorrow
                 </button>
@@ -366,7 +366,7 @@ export default function CheckoutPage() {
                       setSelectedTime(`${scheduleTab === 'TODAY' ? 'Today' : 'Tomorrow'} - ${time}`);
                       setIsTimeModalOpen(false);
                     }}
-                    className={`w-full py-2.5 rounded-xl text-center text-sm cursor-pointer border transition-colors ${selectedTime?.includes(time) ? 'bg-[#fff5f9] border-[#ff006b] font-medium text-[#ff006b]' : 'border-[#eff0f6] bg-white text-[#14142b] hover:border-[#ff006b]/40'}`}
+                    className={`w-full py-2.5 rounded-xl text-center text-sm cursor-pointer border transition-colors ${selectedTime?.includes(time) ? 'bg-[#fff5f9] border-primary font-medium text-primary' : 'border-[#eff0f6] bg-white text-[#14142b] hover:border-primary/40'}`}
                   >
                     {time}
                   </li>

@@ -31,7 +31,7 @@ export default function PosOrdersPage() {
               <input 
                 type="text" 
                 placeholder="Search Order ID..." 
-                className="h-10 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-sm focus:outline-none focus:border-[#ff006b] w-full sm:w-48 transition-colors"
+                className="h-10 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-sm focus:outline-none focus:border-primary w-full sm:w-48 transition-colors"
               />
               <Search className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
             </div>
@@ -55,18 +55,18 @@ export default function PosOrdersPage() {
           <div className="p-4 sm:p-6 border-b border-[#EFF0F6] bg-[#FAFAFC] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Waiter Name</label>
-              <input type="text" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
+              <input type="text" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">From Date</label>
-              <input type="date" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
+              <input type="date" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">To Date</label>
-              <input type="date" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
+              <input type="date" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" />
             </div>
             <div className="flex items-center gap-3 pt-6">
-              <button className="h-10 px-6 rounded-xl bg-[#ff006b] text-white text-sm font-medium hover:bg-[#e60060] transition-colors flex-1">Search</button>
+              <button className="h-10 px-6 rounded-xl bg-primary text-white text-sm font-medium hover:bg-[#e60060] transition-colors flex-1">Search</button>
               <button className="h-10 px-6 rounded-xl bg-gray-600 text-white text-sm font-medium hover:bg-gray-700 transition-colors flex-1">Clear</button>
             </div>
           </div>
@@ -90,7 +90,7 @@ export default function PosOrdersPage() {
               {orders.map((order) => (
                 <tr key={order.id} className="hover:bg-[#FAFAFC] transition-colors">
                   <td className="px-6 py-4">
-                    <span className="text-sm font-bold text-[#ff006b]">{order.id}</span>
+                    <span className="text-sm font-bold text-primary">{order.id}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-sm font-medium text-[#14142B]">{order.waiter}</span>
@@ -130,7 +130,7 @@ export default function PosOrdersPage() {
           <span className="text-sm text-[#6E7191]">Showing 1 to 2 of 2 entries</span>
           <div className="flex items-center gap-1">
             <button className="w-8 h-8 rounded-lg border border-[#EFF0F6] flex items-center justify-center text-[#6E7191] hover:bg-[#F7F7FC] disabled:opacity-50">«</button>
-            <button className="w-8 h-8 rounded-lg bg-[#ff006b] text-white flex items-center justify-center text-sm font-medium shadow-md shadow-[#ff006b]/20">1</button>
+            <button className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center text-sm font-medium shadow-md shadow-primary/20">1</button>
             <button className="w-8 h-8 rounded-lg border border-[#EFF0F6] flex items-center justify-center text-[#6E7191] hover:bg-[#F7F7FC] disabled:opacity-50">»</button>
           </div>
         </div>

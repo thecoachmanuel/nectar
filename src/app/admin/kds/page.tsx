@@ -128,7 +128,7 @@ export default function KDSPage() {
                       <p className="text-xs text-[#6E7191]">Extras: {item.extras.join(", ")}</p>
                     )}
                     {item.instruction && (
-                      <p className="text-xs text-[#ff006b] font-medium mt-1">Note: {item.instruction}</p>
+                      <p className="text-xs text-primary font-medium mt-1">Note: {item.instruction}</p>
                     )}
                   </div>
                   <div className="w-8 h-8 rounded-full bg-[#14142B] text-white flex items-center justify-center font-bold text-sm shrink-0">
@@ -150,7 +150,7 @@ export default function KDSPage() {
                 <button 
                   key={filter}
                   onClick={() => setOrderFilter(filter)}
-                  className={`px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap capitalize transition-colors ${orderFilter === filter ? "bg-[#fff5f9] text-[#ff006b]" : "bg-white border border-[#EFF0F6] text-[#14142B] hover:bg-[#F7F7FC]"}`}
+                  className={`px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap capitalize transition-colors ${orderFilter === filter ? "bg-[#fff5f9] text-primary" : "bg-white border border-[#EFF0F6] text-[#14142B] hover:bg-[#F7F7FC]"}`}
                 >
                   {filter.replace("_", " ")}
                 </button>
@@ -160,7 +160,7 @@ export default function KDSPage() {
               <input 
                 type="text" 
                 placeholder="Search Order..." 
-                className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]"
+                className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary"
               />
               <Search className="w-4 h-4 text-[#A0A3BD] absolute left-4 top-1/2 -translate-y-1/2" />
             </div>
@@ -185,10 +185,10 @@ export default function KDSPage() {
                     {/* Card Header */}
                     <div className={`px-4 py-3 flex items-center justify-between ${['pending', 'accepted'].includes(order.orderStatus) ? 'bg-[#fff5f9]' : 'bg-[#e5ebff]'}`}>
                       <div className="flex items-center gap-2">
-                        <Clock className={`w-4 h-4 ${['pending', 'accepted'].includes(order.orderStatus) ? 'text-[#ff006b]' : 'text-[#567DFF]'}`} />
+                        <Clock className={`w-4 h-4 ${['pending', 'accepted'].includes(order.orderStatus) ? 'text-primary' : 'text-[#567DFF]'}`} />
                         <span className="font-bold text-[#14142B]">#{order.orderSerialNo}</span>
                       </div>
-                      <span className={`px-2 py-1 rounded-md text-[10px] font-bold text-white uppercase tracking-wide ${['pending', 'accepted'].includes(order.orderStatus) ? 'bg-[#ff006b]' : 'bg-[#567DFF]'}`}>
+                      <span className={`px-2 py-1 rounded-md text-[10px] font-bold text-white uppercase tracking-wide ${['pending', 'accepted'].includes(order.orderStatus) ? 'bg-primary' : 'bg-[#567DFF]'}`}>
                         {order.orderStatus.replace("_", " ")}
                       </span>
                     </div>
@@ -221,7 +221,7 @@ export default function KDSPage() {
                       {['pending', 'accepted'].includes(order.orderStatus) ? (
                         <button 
                           onClick={() => handleStatusChange(order._id, 'preparing')}
-                          className="w-full h-10 rounded-xl text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors mt-auto bg-[#ff006b] hover:bg-[#e60060]">
+                          className="w-full h-10 rounded-xl text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors mt-auto bg-primary hover:bg-[#e60060]">
                           Start Preparing
                         </button>
                       ) : (

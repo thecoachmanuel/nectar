@@ -66,7 +66,7 @@ export default function OrdersPage() {
               <input 
                 type="text" 
                 placeholder="Search by Order ID..." 
-                className="h-10 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-sm focus:outline-none focus:border-[#ff006b] w-full sm:w-64 transition-colors"
+                className="h-10 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-sm focus:outline-none focus:border-primary w-full sm:w-64 transition-colors"
               />
               <Search className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
             </div>
@@ -89,7 +89,7 @@ export default function OrdersPage() {
                 onClick={() => setActiveTab(tab)}
                 className={`whitespace-nowrap px-4 py-4 text-sm font-medium border-b-2 transition-colors capitalize ${
                   activeTab === tab 
-                    ? "border-[#ff006b] text-[#ff006b]" 
+                    ? "border-primary text-primary" 
                     : "border-transparent text-[#6E7191] hover:text-[#14142B]"
                 }`}
               >
@@ -122,7 +122,7 @@ export default function OrdersPage() {
                 filteredOrders?.map((order: any) => (
                   <tr key={order._id} className="hover:bg-[#FAFAFC] transition-colors">
                     <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-[#ff006b]">{order.orderSerialNo}</span>
+                      <span className="text-sm font-bold text-primary">{order.orderSerialNo}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm font-medium text-[#14142B]">{order.customerName}</span>

@@ -94,7 +94,7 @@ export default function SignupPage() {
                 type="text" 
                 value={form.first_name}
                 onChange={(e) => setForm({ ...form, first_name: e.target.value })}
-                className={`w-full h-12 rounded-lg border px-4 focus:outline-none focus:border-[#ff006b] transition-all ${errors.first_name ? 'border-red-500' : 'border-[#D9DBE9]'}`}
+                className={`w-full h-12 rounded-lg border px-4 focus:outline-none focus:border-primary transition-all ${errors.first_name ? 'border-red-500' : 'border-[#D9DBE9]'}`}
               />
               {errors.first_name && <small className="text-red-500 text-xs mt-1 block">{errors.first_name[0]}</small>}
             </div>
@@ -106,7 +106,7 @@ export default function SignupPage() {
                 type="text" 
                 value={form.last_name}
                 onChange={(e) => setForm({ ...form, last_name: e.target.value })}
-                className={`w-full h-12 rounded-lg border px-4 focus:outline-none focus:border-[#ff006b] transition-all ${errors.last_name ? 'border-red-500' : 'border-[#D9DBE9]'}`}
+                className={`w-full h-12 rounded-lg border px-4 focus:outline-none focus:border-primary transition-all ${errors.last_name ? 'border-red-500' : 'border-[#D9DBE9]'}`}
               />
               {errors.last_name && <small className="text-red-500 text-xs mt-1 block">{errors.last_name[0]}</small>}
             </div>
@@ -118,7 +118,7 @@ export default function SignupPage() {
                 type="email" 
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className={`w-full h-12 rounded-lg border px-4 focus:outline-none focus:border-[#ff006b] transition-all ${errors.email ? 'border-red-500' : 'border-[#D9DBE9]'}`}
+                className={`w-full h-12 rounded-lg border px-4 focus:outline-none focus:border-primary transition-all ${errors.email ? 'border-red-500' : 'border-[#D9DBE9]'}`}
               />
               {errors.email && <small className="text-red-500 text-xs mt-1 block">{errors.email[0]}</small>}
             </div>
@@ -130,7 +130,7 @@ export default function SignupPage() {
                 type="password" 
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
-                className={`w-full h-12 rounded-lg border px-4 focus:outline-none focus:border-[#ff006b] transition-all ${errors.password ? 'border-red-500' : 'border-[#D9DBE9]'}`}
+                className={`w-full h-12 rounded-lg border px-4 focus:outline-none focus:border-primary transition-all ${errors.password ? 'border-red-500' : 'border-[#D9DBE9]'}`}
               />
               {errors.password && <small className="text-red-500 text-xs mt-1 block">{errors.password[0]}</small>}
             </div>
@@ -168,7 +168,7 @@ export default function SignupPage() {
               <button 
                 type="submit"
                 disabled={loading}
-                className="w-full h-12 flex items-center justify-center text-center capitalize font-medium rounded-3xl text-white bg-[#ff006b] disabled:opacity-70 transition-opacity"
+                className="w-full h-12 flex items-center justify-center text-center capitalize font-medium rounded-3xl text-white bg-primary disabled:opacity-70 transition-opacity"
               >
                 {loading ? <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : "Sign Up"}
               </button>
@@ -176,7 +176,7 @@ export default function SignupPage() {
             
             <div className="sm:col-span-2 text-center mt-2">
                <span className="text-xs text-[#6E7191]">Already have an account? </span>
-               <Link href="/auth/login" className="text-xs font-medium text-[#ff006b] hover:underline">
+               <Link href="/auth/login" className="text-xs font-medium text-primary hover:underline">
                   Login
                </Link>
             </div>

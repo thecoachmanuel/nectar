@@ -56,14 +56,15 @@ export const revalidate = 0;
 
 import dbConnect from "@/lib/dbConnect";
 import Setting from "@/models/Setting";
+import ClientThemeSetter from "@/components/ClientThemeSetter";
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   let themeColor = "#ff006b";
   try {
     await dbConnect();
-    const setting = await Setting.findOne();
-    if (setting && setting.themeColor) {
-      themeColor = setting.themeColor;
+    const setting = await Setting.findOne({ key: "theme_primary_color" });
+    if (setting && setting.payload) {
+      themeColor = setting.payload;
     }
   } catch (err) {
     console.error("Failed to load theme setting", err);
@@ -86,16 +87,18 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <meta httpEquiv="Expires" content="0" />
         <style dangerouslySetInnerHTML={{ __html: `
           :root {
-            --primary-color: ${themeColor};
+            --primary-hex: ${themeColor};
+            --primary-slate: ${themeColor}e6;
+            --primary-light: ${themeColor}1a;
           }
-          /* Apply dynamic color to specific utility classes if needed, 
-             or rely on Tailwind arbitrary values via inline styles elsewhere */
-          .bg-primary { background-color: var(--primary-color) !important; }
-          .text-primary { color: var(--primary-color) !important; }
-          .border-primary { border-color: var(--primary-color) !important; }
+          .bg-primary { background-color: var(--primary-hex) !important; }
+          .text-primary { color: var(--primary-hex) !important; }
+          .border-primary { border-color: var(--primary-hex) !important; }
+          .fill-primary { fill: var(--primary-hex) !important; }
         `}} />
       </head>
       <body className="antialiased bg-white text-[#14142b]" style={{ fontFamily: "'Rubik', sans-serif" }}>
+        <ClientThemeSetter />
         <Toaster position="top-right" richColors />
         {children}
 

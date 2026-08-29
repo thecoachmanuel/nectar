@@ -57,7 +57,7 @@ export const useAuthStore = create<AuthState>()(
       logout: () => set({ token: null, user: null, isGuest: false, guestInfo: null }),
     }),
     {
-      name: "foodappi_auth_storage",
+      name: "nectar_auth_storage",
     }
   )
 );

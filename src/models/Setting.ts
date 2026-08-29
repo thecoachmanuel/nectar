@@ -34,7 +34,7 @@ const SettingSchema = new mongoose.Schema<ISetting>(
     feePerKm: { type: Number, default: 100 },
     multiStoreExtraFee: { type: Number, default: 0 },
     freeDeliveryThreshold: { type: Number },
-    themeColor: { type: String, default: "#ff006b" },
+    themeColor: { type: String, default: "var(--primary-hex)" },
   },
   {
     timestamps: true,

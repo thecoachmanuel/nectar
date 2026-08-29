@@ -76,7 +76,7 @@ export default function CategoryModal({ isOpen, onClose, category, onSuccess }: 
             required
             value={formData.name}
             onChange={(e) => setFormData({...formData, name: e.target.value})}
-            className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-[#ff006b] transition-colors"
+            className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors"
           />
         </div>
         
@@ -87,7 +87,7 @@ export default function CategoryModal({ isOpen, onClose, category, onSuccess }: 
             value={formData.slug}
             onChange={(e) => setFormData({...formData, slug: e.target.value})}
             placeholder="Auto-generated if left empty"
-            className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-[#ff006b] transition-colors"
+            className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors"
           />
         </div>
 
@@ -116,9 +116,9 @@ export default function CategoryModal({ isOpen, onClose, category, onSuccess }: 
                   setUploadingImage(false);
                 }
               }}
-              className="w-full h-11 px-4 py-2 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-[#ff006b] transition-colors bg-white file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#ff006b]/10 file:text-[#ff006b] hover:file:bg-[#ff006b]/20"
+              className="w-full h-11 px-4 py-2 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors bg-white file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
             />
-            {uploadingImage && <span className="w-5 h-5 border-2 border-[#ff006b]/40 border-t-[#ff006b] rounded-full animate-spin"></span>}
+            {uploadingImage && <span className="w-5 h-5 border-2 border-primary/40 border-t-[#ff006b] rounded-full animate-spin"></span>}
           </div>
         </div>
 
@@ -128,7 +128,7 @@ export default function CategoryModal({ isOpen, onClose, category, onSuccess }: 
             id="status" 
             checked={formData.status}
             onChange={(e) => setFormData({...formData, status: e.target.checked})}
-            className="w-4 h-4 text-[#ff006b] rounded focus:ring-[#ff006b]"
+            className="w-4 h-4 text-primary rounded focus:ring-[#ff006b]"
           />
           <label htmlFor="status" className="text-sm font-medium text-[#14142B] cursor-pointer">
             Active Status
@@ -146,7 +146,7 @@ export default function CategoryModal({ isOpen, onClose, category, onSuccess }: 
           <button 
             type="submit"
             disabled={loading}
-            className="px-6 h-11 rounded-xl bg-[#ff006b] text-white font-medium hover:bg-[#e60060] transition-colors shadow-md shadow-[#ff006b]/20 flex items-center justify-center min-w-[120px] disabled:opacity-70"
+            className="px-6 h-11 rounded-xl bg-primary text-white font-medium hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20 flex items-center justify-center min-w-[120px] disabled:opacity-70"
           >
             {(loading || uploadingImage) ? <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : "Save"}
           </button>

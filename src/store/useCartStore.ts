@@ -136,7 +136,7 @@ export const useCartStore = create<CartState>()(
       },
     }),
     {
-      name: "foodappi_cart_storage",
+      name: "nectar_cart_storage",
     }
   )
 );

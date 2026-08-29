@@ -66,13 +66,13 @@ export default function AdminDashboardPage() {
     <div className="pb-16 relative">
       {loading && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/80 backdrop-blur-sm">
-          <div className="foodappi-loader"></div>
+          <div className="nectar-loader"></div>
         </div>
       )}
 
       {/* Greeting */}
       <div className="mb-8">
-        <h3 className="font-semibold text-[26px] leading-10 capitalize text-[#ff006b]">{getGreeting()}</h3>
+        <h3 className="font-semibold text-[26px] leading-10 capitalize text-primary">{getGreeting()}</h3>
         <h4 className="font-medium text-[22px] leading-[34px] capitalize text-[#14142B]">Admin</h4>
       </div>
 
@@ -128,17 +128,17 @@ export default function AdminDashboardPage() {
       <div className="mb-9">
         <div className="flex items-center justify-between mb-4">
           <h4 className="font-semibold text-[22px] leading-[34px] capitalize text-[#14142B]">Order Statistics</h4>
-          <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#EFF0F6] bg-white text-sm text-[#14142B] hover:border-[#ff006b] transition-colors">
-            <Calendar className="w-4 h-4 text-[#ff006b]" />
+          <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#EFF0F6] bg-white text-sm text-[#14142B] hover:border-primary transition-colors">
+            <Calendar className="w-4 h-4 text-primary" />
             All Time
           </button>
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4 mb-3">
           
-          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-[#ff006b]/30 transition-colors">
+          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-primary/30 transition-colors">
             <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#fff5f9] shrink-0">
-              <ShoppingCart className="w-6 h-6 text-[#ff006b]" />
+              <ShoppingCart className="w-6 h-6 text-primary" />
             </div>
             <div>
               <h3 className="font-normal text-sm leading-6 capitalize text-[#6E7191]">Total Orders</h3>
@@ -146,7 +146,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-[#ff006b]/30 transition-colors">
+          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-primary/30 transition-colors">
             <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#FFF6E6] shrink-0">
               <Clock className="w-6 h-6 text-[#FFB020]" />
             </div>
@@ -156,7 +156,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-[#ff006b]/30 transition-colors">
+          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-primary/30 transition-colors">
             <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#E7FFF0] shrink-0">
               <CheckCircle className="w-6 h-6 text-[#1AB759]" />
             </div>
@@ -166,7 +166,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-[#ff006b]/30 transition-colors">
+          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-primary/30 transition-colors">
             <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#e5ebff] shrink-0">
               <Utensils className="w-6 h-6 text-[#567DFF]" />
             </div>
@@ -176,7 +176,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-[#ff006b]/30 transition-colors">
+          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-primary/30 transition-colors">
             <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#F5EAFF] shrink-0">
               <PackageCheck className="w-6 h-6 text-[#A953FF]" />
             </div>
@@ -186,7 +186,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-[#ff006b]/30 transition-colors">
+          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-primary/30 transition-colors">
             <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#E9F9FF] shrink-0">
               <Truck className="w-6 h-6 text-[#008BBA]" />
             </div>
@@ -196,7 +196,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-[#ff006b]/30 transition-colors">
+          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-primary/30 transition-colors">
             <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#EBE7FF] shrink-0">
               <CheckCircle className="w-6 h-6 text-[#8262FE]" />
             </div>
@@ -206,7 +206,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-[#ff006b]/30 transition-colors">
+          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-primary/30 transition-colors">
             <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#FFEAEA] shrink-0">
               <XCircle className="w-6 h-6 text-[#FB4E4E]" />
             </div>
@@ -216,7 +216,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-[#ff006b]/30 transition-colors">
+          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-primary/30 transition-colors">
             <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#E9EEFF] shrink-0">
               <RotateCcw className="w-6 h-6 text-[#567DFF]" />
             </div>
@@ -226,7 +226,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-[#ff006b]/30 transition-colors">
+          <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-primary/30 transition-colors">
             <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#FFEAEA] shrink-0">
               <Ban className="w-6 h-6 text-[#FB4E4E]" />
             </div>
@@ -311,7 +311,7 @@ export default function AdminDashboardPage() {
               {dashboardData?.topCustomersData?.map((c: any, i: number) => (
                 <li key={i} className="flex items-center justify-between p-3 rounded-xl border border-[#EFF0F6] hover:bg-[#F7F7FC] transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#f7f7fc] text-[#ff006b] flex items-center justify-center font-bold">
+                    <div className="w-10 h-10 rounded-full bg-[#f7f7fc] text-primary flex items-center justify-center font-bold">
                       C{i + 1}
                     </div>
                     <div>

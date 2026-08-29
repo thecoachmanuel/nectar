@@ -76,7 +76,7 @@ function MenuContent() {
     <>
       {loading && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/80 backdrop-blur-sm">
-          <div className="foodappi-loader"></div>
+          <div className="nectar-loader"></div>
         </div>
       )}
       
@@ -113,14 +113,14 @@ function MenuContent() {
 
           {/* HEADER & TOGGLE */}
           <div className="flex gap-2 sm:gap-4 items-start justify-between mb-4 sm:mb-6">
-            <h2 className="capitalize text-lg sm:text-2xl font-semibold text-[#ff006b]">
+            <h2 className="capitalize text-lg sm:text-2xl font-semibold text-primary">
               {selectedCategory ? selectedCategory.name : "All Items"}
             </h2>
             <div className="flex items-center gap-3">
-              <button onClick={() => setMenuViewMode("list")} className={`text-xl transition-colors ${menuViewMode === "list" ? "text-[#ff006b]" : "text-[#A0A3BD]"}`}>
+              <button onClick={() => setMenuViewMode("list")} className={`text-xl transition-colors ${menuViewMode === "list" ? "text-primary" : "text-[#A0A3BD]"}`}>
                 <List className="w-6 h-6" />
               </button>
-              <button onClick={() => setMenuViewMode("grid")} className={`text-xl transition-colors ${menuViewMode === "grid" ? "text-[#ff006b]" : "text-[#A0A3BD]"}`}>
+              <button onClick={() => setMenuViewMode("grid")} className={`text-xl transition-colors ${menuViewMode === "grid" ? "text-primary" : "text-[#A0A3BD]"}`}>
                 <Grid className="w-6 h-6" />
               </button>
             </div>
@@ -142,7 +142,7 @@ function MenuContent() {
                         <div className="flex flex-wrap items-center gap-x-2">
                           <h4 className="text-xs sm:text-lg font-medium text-[#14142b]">₦{item.price?.toFixed(2)}</h4>
                         </div>
-                        <button className="flex items-center gap-1 sm:gap-1.5 rounded-3xl capitalize text-sm font-medium h-5 sm:h-6 px-2 shadow-md transition bg-white text-[#14142b] hover:bg-[#ff006b] hover:text-white">
+                        <button className="flex items-center gap-1 sm:gap-1.5 rounded-3xl capitalize text-sm font-medium h-5 sm:h-6 px-2 shadow-md transition bg-white text-[#14142b] hover:bg-primary hover:text-white">
                           <span className="text-[10px] sm:text-xs">Add</span>
                         </button>
                       </div>
@@ -162,7 +162,7 @@ function MenuContent() {
                       <p className="text-[10px] sm:text-xs text-[#6e7191] line-clamp-2 mb-2 sm:mb-3">{item.description}</p>
                       <div className="flex items-center justify-between">
                         <h4 className="text-sm sm:text-base font-bold text-[#14142b]">₦{item.price?.toFixed(2)}</h4>
-                        <button className="flex items-center gap-1.5 rounded-3xl capitalize text-sm font-medium h-6 sm:h-7 px-3 shadow-md transition bg-white text-[#14142b] hover:bg-[#ff006b] hover:text-white">
+                        <button className="flex items-center gap-1.5 rounded-3xl capitalize text-sm font-medium h-6 sm:h-7 px-3 shadow-md transition bg-white text-[#14142b] hover:bg-primary hover:text-white">
                           <span className="text-[10px] sm:text-xs">Add</span>
                         </button>
                       </div>
@@ -191,7 +191,7 @@ export default function MenuPage() {
   return (
     <React.Suspense fallback={
       <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="foodappi-loader"></div>
+        <div className="nectar-loader"></div>
       </div>
     }>
       <MenuContent />

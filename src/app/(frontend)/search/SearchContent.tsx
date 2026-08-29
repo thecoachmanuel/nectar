@@ -46,16 +46,16 @@ export default function SearchContent() {
           <Search className="w-4 h-4 text-[#a0a3bd] absolute left-4 top-1/2 -translate-y-1/2" />
           <input type="search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search for food, category..."
-            className="w-full pl-11 pr-12 py-3 bg-white border border-[#eff0f6] rounded-2xl text-sm text-[#14142b] placeholder:text-[#a0a3bd] focus:outline-none focus:border-[#ff006b] transition-all shadow-sm" />
+            className="w-full pl-11 pr-12 py-3 bg-white border border-[#eff0f6] rounded-2xl text-sm text-[#14142b] placeholder:text-[#a0a3bd] focus:outline-none focus:border-primary transition-all shadow-sm" />
           {searchQuery && (
             <button type="button" onClick={() => setSearchQuery("")}
-              className="absolute right-12 top-1/2 -translate-y-1/2 text-[#a0a3bd] hover:text-[#ff006b]">
+              className="absolute right-12 top-1/2 -translate-y-1/2 text-[#a0a3bd] hover:text-primary">
               <X className="w-4 h-4" />
             </button>
           )}
           <button type="submit"
             className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl text-white flex items-center justify-center"
-            style={{ backgroundColor: "#ff006b" }}>
+            style={{ backgroundColor: "var(--primary-hex)" }}>
             <Search className="w-4 h-4" />
           </button>
         </form>
@@ -70,7 +70,7 @@ export default function SearchContent() {
 
       {loading ? (
         <div className="flex justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin" style={{ color: "#ff006b" }} />
+          <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--primary-hex)" }} />
         </div>
       ) : !query ? (
         <div className="text-center py-20 bg-white rounded-2xl border border-[#eff0f6]">
@@ -101,7 +101,7 @@ export default function SearchContent() {
                 <p className="text-[10px] text-[#6e7191] line-clamp-1 mb-2">{item.description}</p>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-bold text-[#14142b]">₦{item.price?.toFixed(2)}</span>
-                  <button className="product-card-grid-cart-btn text-[#ff006b] hover:bg-[#ff006b] hover:text-white">
+                  <button className="product-card-grid-cart-btn text-primary hover:bg-primary hover:text-white">
                     <Plus className="w-3.5 h-3.5" />
                   </button>
                 </div>

@@ -52,7 +52,7 @@ export default function LoginPage() {
   };
 
   const handleGuestLogin = () => {
-    setGuest({ name: "Guest", email: "guest@foodappi.com", phone: "" });
+    setGuest({ name: "Guest", email: "guest@nectar.com", phone: "" });
     toast.success("Continuing as guest.");
     router.push("/");
   };
@@ -82,7 +82,7 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full h-12 rounded-lg border px-4 border-[#D9DBE9] focus:outline-none focus:border-[#ff006b] transition-all"
+              className="w-full h-12 rounded-lg border px-4 border-[#D9DBE9] focus:outline-none focus:border-primary transition-all"
             />
           </div>
           <div className="mb-4">
@@ -93,7 +93,7 @@ export default function LoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full h-12 rounded-lg border px-4 border-[#D9DBE9] focus:outline-none focus:border-[#ff006b] transition-all" 
+              className="w-full h-12 rounded-lg border px-4 border-[#D9DBE9] focus:outline-none focus:border-primary transition-all" 
             />
           </div>
           
@@ -101,13 +101,13 @@ export default function LoginPage() {
             <div className="flex items-center gap-2 cursor-pointer">
               <div className="relative w-3 h-3 flex items-center justify-center border border-[#6E7191] rounded-[3px]">
                 <input type="checkbox" id="rememberMe" className="opacity-0 absolute inset-0 cursor-pointer peer" />
-                <Check className="w-2.5 h-2.5 text-[#ff006b] opacity-0 peer-checked:opacity-100 transition-opacity" strokeWidth={4} />
+                <Check className="w-2.5 h-2.5 text-primary opacity-0 peer-checked:opacity-100 transition-opacity" strokeWidth={4} />
               </div>
               <label htmlFor="rememberMe" className="text-xs text-[#14142b] cursor-pointer select-none">
                 Remember Me
               </label>
             </div>
-            <Link href="/auth/forgot-password" className="capitalize text-xs font-medium transition text-[#ff006b] hover:underline">
+            <Link href="/auth/forgot-password" className="capitalize text-xs font-medium transition text-primary hover:underline">
               Forget Password
             </Link>
           </div>
@@ -115,14 +115,14 @@ export default function LoginPage() {
           <button 
             type="submit"
             disabled={loading}
-            className="w-full h-12 flex items-center justify-center text-center capitalize font-medium rounded-3xl mb-6 text-white bg-[#ff006b] disabled:opacity-70 transition-opacity"
+            className="w-full h-12 flex items-center justify-center text-center capitalize font-medium rounded-3xl mb-6 text-white bg-primary disabled:opacity-70 transition-opacity"
           >
             {loading ? <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : "Login"}
           </button>
 
           <div className="flex items-center justify-center gap-2 mb-4">
             <span className="text-xs text-[#6E7191]">Don't have an account?</span>
-            <Link href="/auth/signup" className="text-xs font-medium text-[#ff006b] hover:underline">
+            <Link href="/auth/signup" className="text-xs font-medium text-primary hover:underline">
               Sign Up
             </Link>
           </div>
@@ -157,7 +157,7 @@ export default function LoginPage() {
           <button 
             type="button"
             onClick={handleGuestLogin}
-            className="w-full h-12 leading-[46px] text-center capitalize font-medium rounded-3xl border text-[#ff006b] border-[#ff006b] bg-white hover:bg-[#fff5f9] transition-colors"
+            className="w-full h-12 leading-[46px] text-center capitalize font-medium rounded-3xl border text-primary border-primary bg-white hover:bg-[#fff5f9] transition-colors"
           >
             Login As Guest
           </button>

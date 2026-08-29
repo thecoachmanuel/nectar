@@ -96,7 +96,7 @@ export default function ItemsReportPage() {
               <input 
                 type="text" 
                 placeholder="Search Item..." 
-                className="h-10 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-sm focus:outline-none focus:border-[#ff006b] w-full sm:w-48 transition-colors"
+                className="h-10 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-sm focus:outline-none focus:border-primary w-full sm:w-48 transition-colors"
               />
               <Search className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
             </div>
@@ -124,18 +124,18 @@ export default function ItemsReportPage() {
             <div>
               <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">From Date</label>
               <div className="relative">
-                <input type="date" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
+                <input type="date" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" />
               </div>
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">To Date</label>
               <div className="relative">
-                <input type="date" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" />
+                <input type="date" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" />
               </div>
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#6E7191] mb-1.5">Category</label>
-              <select className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]">
+              <select className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary">
                 <option>All Categories</option>
                 <option>Main Course</option>
                 <option>Fast Food</option>
@@ -143,7 +143,7 @@ export default function ItemsReportPage() {
               </select>
             </div>
             <div className="flex items-center gap-3 pt-6">
-              <button className="h-10 px-6 rounded-xl bg-[#ff006b] text-white text-sm font-medium hover:bg-[#e60060] transition-colors flex-1">Filter</button>
+              <button className="h-10 px-6 rounded-xl bg-primary text-white text-sm font-medium hover:bg-[#e60060] transition-colors flex-1">Filter</button>
               <button className="h-10 px-6 rounded-xl bg-gray-600 text-white text-sm font-medium hover:bg-gray-700 transition-colors flex-1">Clear</button>
             </div>
           </div>

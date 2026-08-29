@@ -198,11 +198,11 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Store Name *</label>
-                <input required type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
+                <input required type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Phone *</label>
-                <input required type="text" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
+                <input required type="text" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary" />
               </div>
             </div>
             
@@ -210,18 +210,18 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Manager Email (Login ID) *</label>
-                <input required type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
+                <input required type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Manager Password {storeToEdit && '(Leave blank to keep)'}</label>
-                <input type="password" required={!storeToEdit} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
+                <input type="password" required={!storeToEdit} value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary" />
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Address *</label>
               <div className="flex gap-2">
-                <input required type="text" placeholder="Enter address..." value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="flex-1 px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
+                <input required type="text" placeholder="Enter address..." value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="flex-1 px-3 py-2 border rounded-xl outline-none focus:border-primary" />
                 <button type="button" onClick={fetchCoordinates} disabled={fetchingCoords} className="px-4 py-2 bg-[#F7F7FC] border border-[#EFF0F6] text-[#6E7191] rounded-xl hover:bg-[#EFF0F6] transition-colors flex items-center gap-2 font-medium text-sm whitespace-nowrap">
                   {fetchingCoords ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
                   Fetch
@@ -232,15 +232,15 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">City *</label>
-                <input required type="text" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
+                <input required type="text" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Latitude *</label>
-                <input required type="number" step="any" value={formData.latitude} onChange={(e) => setFormData({ ...formData, latitude: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
+                <input required type="number" step="any" value={formData.latitude} onChange={(e) => setFormData({ ...formData, latitude: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Longitude *</label>
-                <input required type="number" step="any" value={formData.longitude} onChange={(e) => setFormData({ ...formData, longitude: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
+                <input required type="number" step="any" value={formData.longitude} onChange={(e) => setFormData({ ...formData, longitude: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary" />
               </div>
             </div>
 
@@ -248,15 +248,15 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Delivery Radius (km)</label>
-                <input type="number" value={formData.deliveryRadius} onChange={(e) => setFormData({ ...formData, deliveryRadius: Number(e.target.value) })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
+                <input type="number" value={formData.deliveryRadius} onChange={(e) => setFormData({ ...formData, deliveryRadius: Number(e.target.value) })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Admin Commission (%)</label>
-                <input type="number" value={formData.commissionRate} onChange={(e) => setFormData({ ...formData, commissionRate: Number(e.target.value) })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]" />
+                <input type="number" value={formData.commissionRate} onChange={(e) => setFormData({ ...formData, commissionRate: Number(e.target.value) })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Status *</label>
-                <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-[#ff006b]">
+                <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary">
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                 </select>

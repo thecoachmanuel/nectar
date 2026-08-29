@@ -51,7 +51,7 @@ export default function PayoutsPage() {
     }
   };
 
-  if (loading) return <div className="flex justify-center p-10"><Loader2 className="w-8 h-8 animate-spin text-[#ff006b]" /></div>;
+  if (loading) return <div className="flex justify-center p-10"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
 
   const isAdmin = user?.role === "admin";
 
@@ -65,7 +65,7 @@ export default function PayoutsPage() {
         {!isAdmin && (
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#ff006b] text-white rounded-xl hover:bg-[#e60060] transition-colors font-medium text-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl hover:bg-[#e60060] transition-colors font-medium text-sm"
           >
             <Plus className="w-4 h-4" /> Request Payout
           </button>
@@ -134,7 +134,7 @@ export default function PayoutsPage() {
               </div>
               <div className="flex justify-end gap-3 mt-4">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-100 rounded-xl font-semibold">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-[#ff006b] text-white rounded-xl font-semibold">Submit Request</button>
+                <button type="submit" className="px-4 py-2 bg-primary text-white rounded-xl font-semibold">Submit Request</button>
               </div>
             </form>
           </div>

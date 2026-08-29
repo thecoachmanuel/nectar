@@ -66,7 +66,7 @@ export default function OffersPage() {
         </div>
         <button
           onClick={openAddModal}
-          className="flex items-center gap-2 bg-[#ff006b] hover:bg-[#e60060] text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm shadow-[#ff006b]/20"
+          className="flex items-center gap-2 bg-primary hover:bg-[#e60060] text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm shadow-primary/20"
         >
           <Plus className="w-5 h-5" />
           <span>Add Offer</span>
@@ -111,7 +111,7 @@ export default function OffersPage() {
                     <div className="flex items-center justify-end gap-3">
                       <button 
                         onClick={() => openEditModal(offer)}
-                        className="p-2 text-[#6E7191] hover:text-[#ff006b] hover:bg-[#ff006b]/10 rounded-lg transition-colors"
+                        className="p-2 text-[#6E7191] hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
                         title="Edit"
                       >
                         <Edit2 className="w-4 h-4" />

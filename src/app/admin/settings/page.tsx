@@ -103,7 +103,7 @@ export default function SettingsPage() {
                     onClick={() => setActiveTab(item.name)}
                     className={`w-full flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-colors ${
                       isActive 
-                        ? "bg-[#fff5f9] text-[#ff006b] border-r-2 border-[#ff006b]" 
+                        ? "bg-[#fff5f9] text-primary border-r-2 border-primary" 
                         : "text-[#6E7191] hover:bg-[#FAFAFC] hover:text-[#14142B] border-r-2 border-transparent"
                     }`}
                   >
@@ -123,7 +123,7 @@ export default function SettingsPage() {
           
           {isLoading && (
             <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-2xl">
-              <Loader2 className="w-8 h-8 text-[#ff006b] animate-spin" />
+              <Loader2 className="w-8 h-8 text-primary animate-spin" />
             </div>
           )}
 
@@ -136,7 +136,7 @@ export default function SettingsPage() {
             <button 
               onClick={handleSave}
               disabled={isLoading}
-              className="h-11 px-6 rounded-xl bg-[#ff006b] text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-[#ff006b]/20 disabled:opacity-50"
+              className="h-11 px-6 rounded-xl bg-primary text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20 disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
               <span className="text-sm font-medium">Save Changes</span>
@@ -152,7 +152,7 @@ export default function SettingsPage() {
                   type="text" 
                   value={formData.company_name || ""} 
                   onChange={(e) => handleChange("company_name", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
               <div>
@@ -161,7 +161,7 @@ export default function SettingsPage() {
                   type="email" 
                   value={formData.company_email || ""} 
                   onChange={(e) => handleChange("company_email", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
               <div>
@@ -170,7 +170,7 @@ export default function SettingsPage() {
                   type="text" 
                   value={formData.company_phone || ""} 
                   onChange={(e) => handleChange("company_phone", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
               <div className="md:col-span-2">
@@ -179,7 +179,7 @@ export default function SettingsPage() {
                   rows={3} 
                   value={formData.company_address || ""} 
                   onChange={(e) => handleChange("company_address", e.target.value)}
-                  className="w-full p-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b] resize-none"
+                  className="w-full p-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary resize-none"
                 ></textarea>
               </div>
             </div>
@@ -194,7 +194,7 @@ export default function SettingsPage() {
                   type="text" 
                   value={formData.site_title || ""} 
                   onChange={(e) => handleChange("site_title", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
               <div>
@@ -203,7 +203,7 @@ export default function SettingsPage() {
                   type="text" 
                   value={formData.site_copyright || ""} 
                   onChange={(e) => handleChange("site_copyright", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
               <div>
@@ -212,7 +212,7 @@ export default function SettingsPage() {
                   type="text" 
                   value={formData.site_currency || ""} 
                   onChange={(e) => handleChange("site_currency", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
               <div>
@@ -220,7 +220,7 @@ export default function SettingsPage() {
                 <select 
                   value={formData.site_timezone || "Africa/Lagos"}
                   onChange={(e) => handleChange("site_timezone", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]"
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary"
                 >
                   <option value="Africa/Lagos">Africa/Lagos</option>
                   <option value="UTC">UTC</option>
@@ -239,7 +239,7 @@ export default function SettingsPage() {
                   value={formData.mail_host || ""} 
                   onChange={(e) => handleChange("mail_host", e.target.value)}
                   placeholder="smtp.mailtrap.io"
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
               <div>
@@ -249,7 +249,7 @@ export default function SettingsPage() {
                   value={formData.mail_port || ""} 
                   onChange={(e) => handleChange("mail_port", e.target.value)}
                   placeholder="2525"
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
               <div>
@@ -258,7 +258,7 @@ export default function SettingsPage() {
                   type="text" 
                   value={formData.mail_username || ""} 
                   onChange={(e) => handleChange("mail_username", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
               <div>
@@ -267,7 +267,7 @@ export default function SettingsPage() {
                   type="password" 
                   value={formData.mail_password || ""} 
                   onChange={(e) => handleChange("mail_password", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
               <div>
@@ -276,7 +276,7 @@ export default function SettingsPage() {
                   type="email" 
                   value={formData.mail_from_address || ""} 
                   onChange={(e) => handleChange("mail_from_address", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
             </div>
@@ -291,7 +291,7 @@ export default function SettingsPage() {
                   type="number" 
                   value={formData.baseDeliveryFee || 0} 
                   onChange={(e) => handleChange("baseDeliveryFee", Number(e.target.value))}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
               <div>
@@ -300,7 +300,7 @@ export default function SettingsPage() {
                   type="number" 
                   value={formData.feePerKm || 0} 
                   onChange={(e) => handleChange("feePerKm", Number(e.target.value))}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
               <div>
@@ -309,7 +309,7 @@ export default function SettingsPage() {
                   type="number" 
                   value={formData.multiStoreExtraFee || 0} 
                   onChange={(e) => handleChange("multiStoreExtraFee", Number(e.target.value))}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
               <div>
@@ -318,7 +318,7 @@ export default function SettingsPage() {
                   type="number" 
                   value={formData.freeDeliveryThreshold || ""} 
                   onChange={(e) => handleChange("freeDeliveryThreshold", e.target.value ? Number(e.target.value) : undefined)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
             </div>
@@ -333,7 +333,7 @@ export default function SettingsPage() {
                   type="text" 
                   value={formData.pay_paystack_public || ""} 
                   onChange={(e) => handleChange("pay_paystack_public", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
               <div>
@@ -342,7 +342,7 @@ export default function SettingsPage() {
                   type="password" 
                   value={formData.pay_paystack_secret || ""} 
                   onChange={(e) => handleChange("pay_paystack_secret", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
               <div>
@@ -350,7 +350,7 @@ export default function SettingsPage() {
                 <select 
                   value={formData.pay_paystack_enabled || "No"}
                   onChange={(e) => handleChange("pay_paystack_enabled", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]"
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary"
                 >
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
@@ -367,15 +367,15 @@ export default function SettingsPage() {
                 <div className="flex gap-2 items-center">
                   <input 
                     type="color" 
-                    value={formData.theme_primary_color || "#ff006b"} 
+                    value={formData.theme_primary_color || "var(--primary-hex)"} 
                     onChange={(e) => handleChange("theme_primary_color", e.target.value)}
                     className="h-12 w-12 rounded-xl border border-[#EFF0F6] cursor-pointer" 
                   />
                   <input 
                     type="text" 
-                    value={formData.theme_primary_color || "#ff006b"} 
+                    value={formData.theme_primary_color || "var(--primary-hex)"} 
                     onChange={(e) => handleChange("theme_primary_color", e.target.value)}
-                    className="flex-1 h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                    className="flex-1 h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                   />
                 </div>
               </div>
@@ -404,9 +404,9 @@ export default function SettingsPage() {
                         setUploadingLogo(false);
                       }
                     }}
-                    className="flex-1 h-12 px-4 py-2.5 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b] file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#ff006b]/10 file:text-[#ff006b] hover:file:bg-[#ff006b]/20" 
+                    className="flex-1 h-12 px-4 py-2.5 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" 
                   />
-                  {uploadingLogo && <span className="w-5 h-5 border-2 border-[#ff006b]/40 border-t-[#ff006b] rounded-full animate-spin"></span>}
+                  {uploadingLogo && <span className="w-5 h-5 border-2 border-primary/40 border-t-[#ff006b] rounded-full animate-spin"></span>}
                 </div>
               </div>
             </div>
@@ -421,7 +421,7 @@ export default function SettingsPage() {
                   type="text" 
                   value={formData.sms_twilio_sid || ""} 
                   onChange={(e) => handleChange("sms_twilio_sid", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
               <div>
@@ -430,7 +430,7 @@ export default function SettingsPage() {
                   type="password" 
                   value={formData.sms_twilio_token || ""} 
                   onChange={(e) => handleChange("sms_twilio_token", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
               <div>
@@ -439,7 +439,7 @@ export default function SettingsPage() {
                   type="text" 
                   value={formData.sms_twilio_from || ""} 
                   onChange={(e) => handleChange("sms_twilio_from", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
               <div>
@@ -447,7 +447,7 @@ export default function SettingsPage() {
                 <select 
                   value={formData.sms_enabled || "No"}
                   onChange={(e) => handleChange("sms_enabled", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]"
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary"
                 >
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
@@ -465,7 +465,7 @@ export default function SettingsPage() {
                   type="password" 
                   value={formData.push_firebase_key || ""} 
                   onChange={(e) => handleChange("push_firebase_key", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
               <div>
@@ -474,7 +474,7 @@ export default function SettingsPage() {
                   type="text" 
                   value={formData.push_firebase_sender || ""} 
                   onChange={(e) => handleChange("push_firebase_sender", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]" 
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
               <div>
@@ -482,7 +482,7 @@ export default function SettingsPage() {
                 <select 
                   value={formData.push_enabled || "No"}
                   onChange={(e) => handleChange("push_enabled", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]"
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary"
                 >
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
@@ -499,7 +499,7 @@ export default function SettingsPage() {
                 <select 
                   value={formData.role_default_customer || "Customer"}
                   onChange={(e) => handleChange("role_default_customer", e.target.value)}
-                  className="w-full md:w-1/2 h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]"
+                  className="w-full md:w-1/2 h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary"
                 >
                   <option value="Customer">Customer</option>
                   <option value="Guest">Guest</option>
@@ -510,7 +510,7 @@ export default function SettingsPage() {
                 <select 
                   value={formData.role_public_registration || "Yes"}
                   onChange={(e) => handleChange("role_public_registration", e.target.value)}
-                  className="w-full md:w-1/2 h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-[#ff006b]"
+                  className="w-full md:w-1/2 h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary"
                 >
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>

@@ -37,7 +37,7 @@ export default function ChatPage() {
       <div className="container mx-auto max-w-3xl px-0 sm:px-4 flex-1 flex flex-col h-[calc(100vh-100px)]">
         
         <div className="px-4 sm:px-0 mb-3">
-          <Link href="/" className="inline-flex items-center gap-2 text-[#ff006b] hover:text-rose-600 transition-colors">
+          <Link href="/" className="inline-flex items-center gap-2 text-primary hover:text-rose-600 transition-colors">
             <Undo2 className="w-4 h-4" />
             <span className="text-xs font-medium leading-6">Back to home</span>
           </Link>
@@ -52,7 +52,7 @@ export default function ChatPage() {
                 <button 
                   key={branch.id}
                   onClick={() => setActiveBranch(branch.id)}
-                  className={`py-2 px-4 rounded-xl text-center text-sm whitespace-nowrap transition-colors ${activeBranch === branch.id ? 'bg-[#ff006b] text-white shadow-md' : 'bg-[#f7f7fc] text-[#14142b] hover:bg-[#fff5f9] hover:text-[#ff006b]'}`}
+                  className={`py-2 px-4 rounded-xl text-center text-sm whitespace-nowrap transition-colors ${activeBranch === branch.id ? 'bg-primary text-white shadow-md' : 'bg-[#f7f7fc] text-[#14142b] hover:bg-[#fff5f9] hover:text-primary'}`}
                 >
                   {branch.name}
                 </button>
@@ -71,7 +71,7 @@ export default function ChatPage() {
                 )}
                 
                 <div className={`max-w-[75%] flex flex-col ${msg.isUser ? 'items-end' : 'items-start'}`}>
-                  <div className={`px-4 py-2.5 rounded-2xl ${msg.isUser ? 'bg-[#ff006b] text-white rounded-tr-sm' : 'bg-white border border-[#eff0f6] text-[#14142b] rounded-tl-sm'}`}>
+                  <div className={`px-4 py-2.5 rounded-2xl ${msg.isUser ? 'bg-primary text-white rounded-tr-sm' : 'bg-white border border-[#eff0f6] text-[#14142b] rounded-tl-sm'}`}>
                     <p className="text-sm leading-relaxed">{msg.text}</p>
                   </div>
                   <div className="flex items-center gap-2 mt-1">
@@ -83,7 +83,7 @@ export default function ChatPage() {
                 </div>
 
                 {msg.isUser && (
-                  <div className="w-8 h-8 rounded-full bg-[#fff5f9] border border-[#ff006b]/20 flex-shrink-0 ml-3 flex items-center justify-center text-[#ff006b] font-bold text-xs">
+                  <div className="w-8 h-8 rounded-full bg-[#fff5f9] border border-primary/20 flex-shrink-0 ml-3 flex items-center justify-center text-primary font-bold text-xs">
                     U
                   </div>
                 )}
@@ -93,7 +93,7 @@ export default function ChatPage() {
 
           {/* Chat Input */}
           <form onSubmit={handleSend} className="p-4 border-t border-[#eff0f6] bg-white flex items-center gap-3">
-            <button type="button" className="text-[#a0a3bd] hover:text-[#ff006b] transition-colors p-2 bg-[#f7f7fc] rounded-full">
+            <button type="button" className="text-[#a0a3bd] hover:text-primary transition-colors p-2 bg-[#f7f7fc] rounded-full">
               <ImageIcon className="w-5 h-5" />
             </button>
             <input 
@@ -101,9 +101,9 @@ export default function ChatPage() {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="Type a message..."
-              className="flex-1 h-12 bg-[#f7f7fc] border border-[#eff0f6] rounded-full px-5 text-sm focus:outline-none focus:border-[#ff006b] transition-colors text-[#14142b]"
+              className="flex-1 h-12 bg-[#f7f7fc] border border-[#eff0f6] rounded-full px-5 text-sm focus:outline-none focus:border-primary transition-colors text-[#14142b]"
             />
-            <button type="submit" disabled={!inputText.trim()} className="w-12 h-12 rounded-full bg-[#ff006b] flex items-center justify-center text-white hover:bg-rose-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-[#ff006b]/20">
+            <button type="submit" disabled={!inputText.trim()} className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white hover:bg-rose-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-primary/20">
               <Send className="w-5 h-5 ml-0.5" />
             </button>
           </form>

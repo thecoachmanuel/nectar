@@ -4,7 +4,7 @@ import Order from "@/models/Order";
 import { jwtVerify } from "jose";
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "foodappi_secret_key_default_2026"
+  process.env.JWT_SECRET || "nectar_secret_key_default_2026"
 );
 
 async function getUserFromToken(req: Request) {
