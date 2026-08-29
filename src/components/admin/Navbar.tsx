@@ -148,7 +148,7 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
             onClick={() => { setProfileOpen(!profileOpen); setStoreOpen(false); setLangOpen(false); }}
             className="flex items-center gap-2"
           >
-            <img src={user?.image || "/images/default/admin.png"} alt="User" className="w-10 h-10 rounded-xl object-cover bg-gray-100" />
+            <img src={user?.image || "/images/default/user.png"} alt="User" className="w-10 h-10 rounded-xl object-cover bg-gray-100" />
             <div className="text-left hidden md:block">
               <span className="block text-[10px] text-[#6E7191] font-medium">Hello,</span>
               <span className="block text-xs font-bold text-[#14142B] -mt-0.5">{user?.name?.split(" ")[0] || "User"}</span>
@@ -160,7 +160,7 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
             <div className="absolute top-14 right-0 w-72 bg-white border border-[#EFF0F6] rounded-2xl shadow-xl py-4 z-50">
               <div className="px-6 pb-4 border-b border-[#EFF0F6] text-center">
                 <div className="w-20 h-20 mx-auto rounded-full p-1 bg-gradient-to-tr from-[#ff006b] to-orange-400 mb-3">
-                  <img src={user?.image || "/images/default/admin.png"} alt="Admin" className="w-full h-full rounded-full border-2 border-white object-cover bg-white" />
+                  <img src={user?.image || "/images/default/user.png"} alt="Admin" className="w-full h-full rounded-full border-2 border-white object-cover bg-white" />
                 </div>
                 <h3 className="font-bold text-[#14142B] text-base">{user?.name || "Admin"}</h3>
                 <p className="text-[#6E7191] text-xs">{user?.email || "admin@example.com"}</p>

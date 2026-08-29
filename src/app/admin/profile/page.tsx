@@ -137,7 +137,7 @@ export default function AdminProfilePage() {
                 {uploadingAvatar ? (
                    <span className="w-8 h-8 border-4 border-primary/40 border-t-[#ff006b] rounded-full animate-spin"></span>
                 ) : (
-                   <img src={user?.image || "/images/default/admin.png"} alt="Profile" className="w-full h-full object-cover" />
+                   <img src={user?.image || "/images/default/user.png"} alt="Profile" className="w-full h-full object-cover" />
                 )}
               </div>
               <label className="absolute bottom-0 right-0 w-10 h-10 bg-primary rounded-full text-white flex items-center justify-center border-2 border-white shadow-md hover:bg-[#e60060] transition-colors cursor-pointer">
