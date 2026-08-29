@@ -9,7 +9,7 @@ import { useSettingStore } from "@/store/useSettingStore";
 import {
   Search, ShoppingBag, User, LogOut, MapPin, MessageCircle,
   Lock, ClipboardList, Menu, X, ChevronDown, Leaf, Drumstick,
-  ShoppingBasket, Download, Smartphone, Wallet
+  ShoppingBasket, Download, Smartphone, Wallet, LayoutGrid
 } from "lucide-react";
 import PwaInstallModal from "./PwaInstallModal";
 import { toast } from "sonner";
