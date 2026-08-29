@@ -42,17 +42,15 @@ export async function POST(req: Request) {
       const userLat = parseFloat(deliveryAddress.lat);
       const userLng = parseFloat(deliveryAddress.lng);
       
-      const settings = await Setting.find({ key: { $in: ["baseDeliveryFee", "baseDeliveryCoverage", "feePerKm", "multiStoreExtraFee", "freeDeliveryThreshold"] } }).lean();
+      const settings = await Setting.find({ key: { $in: ["baseDeliveryFee", "feePerKm", "multiStoreExtraFee", "freeDeliveryThreshold"] } }).lean();
       
       let baseFee = 1500;
-      let baseCoverage = 3;
       let feePerKm = 100;
       let multiStoreExtraFee = 0;
       let freeThreshold: number | undefined;
 
       settings.forEach((s: any) => {
         if (s.key === "baseDeliveryFee") baseFee = s.payload;
-        if (s.key === "baseDeliveryCoverage") baseCoverage = s.payload;
         if (s.key === "feePerKm") feePerKm = s.payload;
         if (s.key === "multiStoreExtraFee") multiStoreExtraFee = s.payload;
         if (s.key === "freeDeliveryThreshold") freeThreshold = s.payload;
@@ -75,10 +73,7 @@ export async function POST(req: Request) {
             }
           });
 
-          deliveryCharge = baseFee;
-          if (maxDistance > baseCoverage) {
-            deliveryCharge += (maxDistance - baseCoverage) * feePerKm;
-          }
+          deliveryCharge = baseFee + (maxDistance * feePerKm);
           
           if (validStoresCount > 1) {
             deliveryCharge += (validStoresCount - 1) * multiStoreExtraFee;

@@ -352,15 +352,6 @@ export default function SettingsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-[#14142B] mb-2">Base Fee Coverage (Km)</label>
-                <input 
-                  type="number" 
-                  value={formData.baseDeliveryCoverage || 3} 
-                  onChange={(e) => handleChange("baseDeliveryCoverage", Number(e.target.value))}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
-                />
-              </div>
-              <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Multi-Store Extra Pickup Fee (₦)</label>
                 <input 
                   type="number" 
