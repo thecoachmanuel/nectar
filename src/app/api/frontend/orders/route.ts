@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 import Order from "@/models/Order";
+import Coupon from "@/models/Coupon";
 import { jwtVerify } from "jose";
 
 const JWT_SECRET = new TextEncoder().encode(
@@ -188,14 +189,20 @@ export async function POST(req: Request) {
         isPos: !!isPos
       });
 
-      await newOrder.save();
-      createdOrders.push(newOrder);
+      const savedOrder = await newOrder.save();
+      createdOrders.push(savedOrder);
     }
     
-    // Deduct wallet balance if wallet payment
-    if (paymentMethod === "wallet" && userDoc) {
-      userDoc.walletBalance = (userDoc.walletBalance || 0) - totalAmount;
+    if (userId && paymentMethod === "wallet") {
+      userDoc.walletBalance -= totalAmount;
       await userDoc.save();
+    }
+
+    if (couponCode) {
+      await Coupon.findOneAndUpdate(
+        { code: couponCode },
+        { $inc: { usedCount: 1 } }
+      );
     }
 
     return NextResponse.json({ 

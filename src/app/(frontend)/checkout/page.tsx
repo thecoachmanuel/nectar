@@ -28,8 +28,13 @@ export default function CheckoutPage() {
   const [selectedAddress, setSelectedAddress] = useState<string | null>(addresses.length > 0 ? addresses[0]._id || null : null);
   const [deliveryCharge, setDeliveryCharge] = useState(0);
 
+  const [couponCodeInput, setCouponCodeInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+
   const subtotal = getSubtotal();
-  const total = getTotalAmount(0, deliveryCharge);
+  const total = Math.max(0, subtotal + (deliveryCharge > 0 ? deliveryCharge : 0) - discountAmount);
 
   useEffect(() => {
     // Simulate initial loading
@@ -52,11 +57,13 @@ export default function CheckoutPage() {
         const res = await fetch("/api/frontend/checkout/calculate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ items, orderType, deliveryAddress: deliveryAddressObj })
+          body: JSON.stringify({ items, orderType, deliveryAddress: deliveryAddressObj, couponCode: appliedCoupon })
         });
         const data = await res.json();
         if (data.status) {
           setDeliveryCharge(data.data.deliveryCharge);
+          setDiscountAmount(data.data.discountAmount || 0);
+          if (data.data.couponCode) setAppliedCoupon(data.data.couponCode);
         } else {
           if (data.outOfRangeStoreIds && data.outOfRangeStoreIds.length > 0) {
             const names = data.outOfRangeStoreNames.join(", ");
@@ -79,7 +86,7 @@ export default function CheckoutPage() {
     };
     
     fetchDeliveryCharge();
-  }, [items, orderType, selectedAddress, addresses]);
+  }, [items, orderType, selectedAddress, addresses, appliedCoupon]);
 
   const handlePlaceOrder = async () => {
     if (items.length === 0) {
@@ -128,9 +135,11 @@ export default function CheckoutPage() {
           items,
           subtotal,
           taxAmount: 0,
-          discountAmount: 0,
+          discountAmount: discountAmount,
           deliveryCharge,
           totalAmount: total,
+          couponCode: appliedCoupon,
+          couponDiscount: discountAmount,
           deliveryAddress: deliveryAddressObj,
           deliveryTimeSlot: schedule === "NOW" ? "As soon as possible" : selectedTime,
           paymentMethod: paymentMethod,
@@ -150,6 +159,42 @@ export default function CheckoutPage() {
       toast.error("An error occurred");
       setLoading(false);
     }
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCodeInput) return;
+    setIsApplyingCoupon(true);
+    try {
+      const res = await fetch("/api/frontend/checkout/calculate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          items, 
+          orderType, 
+          deliveryAddress: orderType === "delivery" && selectedAddress ? addresses.find(a => a._id === selectedAddress) : undefined, 
+          couponCode: couponCodeInput 
+        })
+      });
+      const data = await res.json();
+      if (data.status) {
+        setAppliedCoupon(data.data.couponCode);
+        setDiscountAmount(data.data.discountAmount);
+        toast.success("Coupon applied successfully!");
+      } else {
+        toast.error(data.message || "Invalid coupon code");
+      }
+    } catch (e) {
+      toast.error("Failed to apply coupon");
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setDiscountAmount(0);
+    setCouponCodeInput("");
+    toast.success("Coupon removed");
   };
 
   return (
@@ -342,11 +387,34 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="p-4 sm:p-5 bg-gray-50/50 rounded-b-2xl">
-                  {/* Coupon input mock */}
-                  <div className="flex gap-2 mb-6">
-                    <input type="text" placeholder="Coupon code" className="flex-1 px-4 py-2 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-primary" />
-                    <button className="px-4 py-2 bg-[#14142b] text-white text-sm font-medium rounded-xl hover:bg-gray-800 transition-colors">Apply</button>
-                  </div>
+                  {/* Coupon UI */}
+                  {!appliedCoupon ? (
+                    <div className="flex gap-2 mb-6">
+                      <input 
+                        type="text" 
+                        placeholder="Coupon code" 
+                        value={couponCodeInput}
+                        onChange={(e) => setCouponCodeInput(e.target.value)}
+                        disabled={isApplyingCoupon}
+                        className="flex-1 px-4 py-2 bg-white border border-[#eff0f6] rounded-xl text-sm uppercase focus:outline-none focus:border-primary disabled:opacity-50" 
+                      />
+                      <button 
+                        onClick={handleApplyCoupon}
+                        disabled={isApplyingCoupon || !couponCodeInput}
+                        className="px-4 py-2 bg-[#14142b] text-white text-sm font-medium rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50"
+                      >
+                        {isApplyingCoupon ? "Applying..." : "Apply"}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between mb-6 p-3 bg-green-50 border border-green-200 rounded-xl">
+                      <div className="flex items-center gap-2 text-green-700">
+                        <span className="text-sm font-bold uppercase">{appliedCoupon}</span>
+                        <span className="text-xs font-medium bg-green-100 px-2 py-0.5 rounded-full">Applied</span>
+                      </div>
+                      <button onClick={handleRemoveCoupon} className="text-xs font-medium text-red-500 hover:text-red-700 underline">Remove</button>
+                    </div>
+                  )}
 
                   <div className="rounded-xl mb-6 border border-[#EFF0F6] bg-white overflow-hidden">
                     <ul className="flex flex-col gap-2 p-3 sm:p-4 border-b border-dashed border-[#EFF0F6]">
@@ -356,7 +424,9 @@ export default function CheckoutPage() {
                       </li>
                       <li className="flex items-center justify-between text-[#6e7191]">
                         <span className="text-sm capitalize">Discount</span>
-                        <span className="text-sm">₦0.00</span>
+                        <span className={`text-sm ${discountAmount > 0 ? "text-green-600 font-medium" : ""}`}>
+                          {discountAmount > 0 ? "-" : ""}₦{discountAmount.toFixed(2)}
+                        </span>
                       </li>
                       {orderType === "delivery" && (
                         <li className="flex items-center justify-between text-[#6e7191]">

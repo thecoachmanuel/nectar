@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 import Store from "@/models/Store";
 import Setting from "@/models/Setting";
+import Coupon from "@/models/Coupon";
 
 function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371; // Earth's radius in km
@@ -20,7 +21,7 @@ export async function POST(req: Request) {
     await connectToDatabase();
     
     const body = await req.json();
-    const { items, deliveryAddress, orderType } = body;
+    const { items, deliveryAddress, orderType, couponCode } = body;
 
     if (!items || items.length === 0) {
       return NextResponse.json({ status: false, message: "Cart is empty" }, { status: 400 });
@@ -100,11 +101,48 @@ export async function POST(req: Request) {
       }
     }
 
+    let discountAmount = 0;
+    let appliedCoupon = null;
+
+    if (couponCode) {
+      const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), status: true });
+      
+      if (!coupon) {
+        return NextResponse.json({ status: false, message: "Invalid or inactive coupon code" }, { status: 400 });
+      }
+
+      const now = new Date();
+      if (now < new Date(coupon.startDate) || now > new Date(coupon.endDate)) {
+        return NextResponse.json({ status: false, message: "Coupon has expired or is not yet active" }, { status: 400 });
+      }
+
+      if (coupon.usedCount >= coupon.totalLimit) {
+        return NextResponse.json({ status: false, message: "Coupon usage limit reached" }, { status: 400 });
+      }
+
+      if (subtotal < coupon.minimumOrderAmount) {
+        return NextResponse.json({ status: false, message: `Minimum order amount for this coupon is ₦${coupon.minimumOrderAmount}` }, { status: 400 });
+      }
+
+      if (coupon.discountType === "percentage") {
+        discountAmount = (subtotal * coupon.discount) / 100;
+        if (coupon.maximumDiscount && discountAmount > coupon.maximumDiscount) {
+          discountAmount = coupon.maximumDiscount;
+        }
+      } else {
+        discountAmount = coupon.discount;
+      }
+      
+      appliedCoupon = couponCode.toUpperCase();
+    }
+
     return NextResponse.json({ 
       status: true, 
       data: {
         subtotal,
-        deliveryCharge: Math.round(deliveryCharge * 100) / 100
+        deliveryCharge: Math.round(deliveryCharge * 100) / 100,
+        discountAmount,
+        couponCode: appliedCoupon
       }
     });
 
