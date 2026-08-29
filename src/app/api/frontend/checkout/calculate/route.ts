@@ -38,9 +38,9 @@ export async function POST(req: Request) {
 
     let deliveryCharge = 0;
 
-    if (orderType === "delivery" && deliveryAddress && deliveryAddress.lat && deliveryAddress.lng) {
-      const userLat = parseFloat(deliveryAddress.lat);
-      const userLng = parseFloat(deliveryAddress.lng);
+    if (orderType === "delivery" && deliveryAddress && deliveryAddress.latitude !== undefined && deliveryAddress.longitude !== undefined) {
+      const userLat = parseFloat(deliveryAddress.latitude);
+      const userLng = parseFloat(deliveryAddress.longitude);
       
       const settings = await Setting.find({ key: { $in: ["baseDeliveryFee", "feePerKm", "multiStoreExtraFee", "freeDeliveryThreshold"] } }).lean();
       
