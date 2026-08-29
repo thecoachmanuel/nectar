@@ -8,6 +8,14 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const id = (await params).id;
     const body = await req.json();
 
+    // Ensure valid GeoJSON Polygon for zone
+    if (!body.zone || !body.zone.coordinates || body.zone.coordinates.length === 0) {
+      body.zone = {
+        type: "Polygon",
+        coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
+      };
+    }
+
     const updatedStore = await Store.findByIdAndUpdate(id, body, { new: true, runValidators: true });
     if (!updatedStore) return NextResponse.json({ status: false, message: "Store not found" }, { status: 404 });
 

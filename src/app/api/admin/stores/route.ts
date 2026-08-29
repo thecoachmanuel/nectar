@@ -25,6 +25,14 @@ export async function POST(req: Request) {
       hashedPassword = await bcrypt.hash(body.password, 10);
     }
 
+    // Ensure valid GeoJSON Polygon for zone
+    if (!body.zone || !body.zone.coordinates || body.zone.coordinates.length === 0) {
+      body.zone = {
+        type: "Polygon",
+        coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
+      };
+    }
+
     const newStore = await Store.create(body);
 
     // Auto-create Store Manager User
