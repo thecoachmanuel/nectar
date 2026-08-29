@@ -37,8 +37,8 @@ export async function POST(req: Request) {
       readable.push(null);
 
       const uploadStream = bucket.openUploadStream(safeName, {
-        contentType: file.type,
         metadata: {
+          contentType: file.type,
           originalName: file.name,
           uploadedAt: new Date().toISOString(),
         },

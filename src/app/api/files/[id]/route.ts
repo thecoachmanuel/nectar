@@ -26,7 +26,7 @@ export async function GET(
     }
 
     const file = files[0];
-    const contentType = file.contentType || "image/jpeg";
+    const contentType = (file.metadata?.contentType as string) || "image/jpeg";
 
     // Stream file from GridFS
     const downloadStream = bucket.openDownloadStream(objectId);
