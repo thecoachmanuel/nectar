@@ -44,16 +44,18 @@ export default function AddressModal({ isOpen, onClose, onSave, initialData }: A
     setLatitude(lat);
     setLongitude(lng);
     if (addr) {
-      if (isFromAutocomplete || (!addressTouched && !initialData)) {
-        setAddress(addr);
-      }
+      setAddress(addr);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!address) {
-      toast.error("Please enter a street address");
+      toast.error("Please search and select a valid address");
+      return;
+    }
+    if (!latitude || !longitude) {
+      toast.error("Please select a valid address from the map suggestions");
       return;
     }
 
@@ -104,23 +106,7 @@ export default function AddressModal({ isOpen, onClose, onSave, initialData }: A
             </div>
           </div>
 
-          {/* Street Address */}
-          <div>
-            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider block mb-1.5">
-              Street Address
-            </label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. 123 Main Street, Suite 4B"
-              value={address}
-              onChange={(e) => {
-                setAddress(e.target.value);
-                setAddressTouched(true);
-              }}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
-            />
-          </div>
+          {/* Street Address has been moved to MapComponent Search */}
 
           {/* Apartment / Building */}
           <div>
@@ -136,14 +122,14 @@ export default function AddressModal({ isOpen, onClose, onSave, initialData }: A
             />
           </div>
 
-          {/* Interactive Map Component */}
           <div className="mt-2">
             <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider block mb-1.5">
-              Pin your location
+              Search & Pin Your Location
             </label>
             <MapComponent 
               initialLat={latitude} 
               initialLng={longitude} 
+              addressText={address}
               onLocationSelect={handleLocationSelect} 
             />
           </div>

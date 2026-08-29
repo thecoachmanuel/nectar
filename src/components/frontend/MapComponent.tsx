@@ -12,10 +12,11 @@ const defaultCenter = { lat: 40.7128, lng: -74.0060 }; // New York fallback
 interface MapComponentProps {
   initialLat?: number;
   initialLng?: number;
+  addressText?: string;
   onLocationSelect: (lat: number, lng: number, address: string, isFromAutocomplete?: boolean) => void;
 }
 
-export default function MapComponent({ initialLat, initialLng, onLocationSelect }: MapComponentProps) {
+export default function MapComponent({ initialLat, initialLng, addressText, onLocationSelect }: MapComponentProps) {
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
     libraries,
@@ -25,6 +26,12 @@ export default function MapComponent({ initialLat, initialLng, onLocationSelect 
   const [marker, setMarker] = useState<{ lat: number; lng: number } | null>(
     initialLat && initialLng ? { lat: initialLat, lng: initialLng } : null
   );
+
+  const [inputValue, setInputValue] = useState(addressText || "");
+
+  useEffect(() => {
+    setInputValue(addressText || "");
+  }, [addressText]);
 
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -129,6 +136,8 @@ export default function MapComponent({ initialLat, initialLng, onLocationSelect 
             <input
               type="text"
               placeholder="Search places..."
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-white border-0 shadow-md rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#ff006b]"
             />
           </Autocomplete>
