@@ -151,12 +151,32 @@ export default function OrderDetailsPage() {
                   )}
 
                   {order.orderType === "delivery" && order.deliveryPin && order.orderStatus !== "canceled" && (
-                    <div className="mt-8 p-5 bg-indigo-50 border border-indigo-100 rounded-2xl flex flex-col items-center">
-                      <p className="text-xs font-semibold text-indigo-800 uppercase tracking-wider mb-2">Your Delivery PIN</p>
-                      <div className="bg-white px-8 py-3 rounded-xl shadow-sm text-2xl font-bold tracking-[0.25em] text-indigo-600 border border-indigo-200">
+                    <div 
+                      className="mt-8 p-6 rounded-2xl flex flex-col items-center border shadow-sm transition-all"
+                      style={{ 
+                        backgroundColor: "var(--primary-light)", 
+                        borderColor: "var(--primary-hex)" 
+                      }}
+                    >
+                      <p 
+                        className="text-xs font-bold uppercase tracking-wider mb-2"
+                        style={{ color: "var(--primary-hex)" }}
+                      >
+                        Your Delivery PIN
+                      </p>
+                      <div 
+                        className="bg-white px-8 py-3 rounded-xl shadow-sm text-2xl font-black tracking-[0.25em] border"
+                        style={{ 
+                          color: "var(--primary-hex)", 
+                          borderColor: "var(--primary-hex)" 
+                        }}
+                      >
                         {order.deliveryPin}
                       </div>
-                      <p className="text-xs text-indigo-600/80 mt-3 text-center max-w-xs">
+                      <p 
+                        className="text-xs mt-3 text-center max-w-xs font-medium opacity-90"
+                        style={{ color: "var(--primary-hex)" }}
+                      >
                         Please provide this 4-digit PIN to the delivery agent to confirm you&apos;ve received your order.
                       </p>
                     </div>

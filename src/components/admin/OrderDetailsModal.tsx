@@ -244,17 +244,23 @@ export default function OrderDetailsModal({
 
           {/* Delivery PIN Highlight Card */}
           {order.orderType === "delivery" && order.deliveryPin && (
-            <div className="p-4 bg-gradient-to-r from-indigo-900 to-indigo-700 text-white rounded-2xl shadow-md flex items-center justify-between gap-4">
+            <div 
+              className="p-5 rounded-2xl shadow-md flex items-center justify-between gap-4 text-white"
+              style={{ backgroundColor: "var(--primary-hex)" }}
+            >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
-                  <KeyRound className="w-5 h-5 text-indigo-200" />
+                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                  <KeyRound className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-indigo-200 uppercase tracking-wider">Customer Delivery Verification PIN</p>
-                  <p className="text-xs text-indigo-100/80">Require this 4-digit code from the customer before completing delivery</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-white/90">Customer Delivery Verification PIN</p>
+                  <p className="text-xs text-white/80">Require this 4-digit code from the customer before completing delivery</p>
                 </div>
               </div>
-              <div className="bg-white text-indigo-950 px-5 py-2 rounded-xl font-mono text-2xl font-black tracking-widest shadow-inner shrink-0">
+              <div 
+                className="bg-white px-5 py-2 rounded-xl font-mono text-2xl font-black tracking-widest shadow-inner shrink-0"
+                style={{ color: "var(--primary-hex)" }}
+              >
                 {order.deliveryPin}
               </div>
             </div>
