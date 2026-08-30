@@ -106,9 +106,9 @@ async function connectToWhatsApp() {
     logger,
     syncFullHistory: false,
     markOnlineOnConnect: true,
-    keepAliveIntervalMs: 25000,
+    keepAliveIntervalMs: 30000,
     connectTimeoutMs: 60000,
-    defaultQueryTimeoutMs: 0,
+    defaultQueryTimeoutMs: 60000, // Standard 60s timeout so queries don't fail immediately
     generateHighQualityLinkPreview: false,
     getMessage: async (key) => {
       if (key?.id && messageStore.has(key.id)) {
@@ -181,34 +181,19 @@ async function sendWhatsAppMessage(phone, message) {
   }
   let jid = formatPhone(phone);
   console.log(`📱 Formatting phone: "${phone}" -> "${jid}"`);
-  
-  try {
-    const [result] = await sock.onWhatsApp(jid);
-    if (result && result.exists && result.jid) {
-      jid = result.jid;
-      console.log(`🔍 Verified WhatsApp JID: ${jid}`);
-    }
-  } catch (checkErr) {
-    console.warn(`⚠️  onWhatsApp check skipped:`, checkErr.message);
-  }
 
-  // 1. Presence subscription & composing simulation
-  try {
-    await sock.presenceSubscribe(jid);
-    await sock.sendPresenceUpdate("available");
-    await sock.sendPresenceUpdate("composing", jid);
-    await new Promise((resolve) => setTimeout(resolve, 800 + Math.random() * 400));
-    await sock.sendPresenceUpdate("paused", jid);
-  } catch (presenceErr) {
-    // Non-fatal
-  }
+  // Optional presence / typing indicator (runs asynchronously without blocking delivery)
+  sock.sendPresenceUpdate("composing", jid).catch(() => {});
 
-  // 2. Send message and cache in memory for instant Signal retry resolution
+  // Send message directly
   const sentMsg = await sock.sendMessage(jid, { text: message });
   if (sentMsg?.key?.id && sentMsg?.message) {
     messageStore.set(sentMsg.key.id, sentMsg.message);
   }
   console.log(`📤 Message successfully delivered to ${jid} (ID: ${sentMsg?.key?.id})`);
+  
+  // Reset presence to paused
+  sock.sendPresenceUpdate("paused", jid).catch(() => {});
 }
 
 // ─── Express HTTP Server ───────────────────────────────────────────────────
