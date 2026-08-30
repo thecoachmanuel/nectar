@@ -81,8 +81,12 @@ function buildStatusMessage(orderSerialNo, status, customerName, totalAmount) {
 }
 
 // ─── Format phone for WhatsApp ─────────────────────────────────────────────
+// ─── Format phone for WhatsApp ─────────────────────────────────────────────
 function formatPhone(phoneOrJid) {
-  const str = String(phoneOrJid || "").trim();
+  let str = String(phoneOrJid || "").trim();
+  // Strip any multi-device suffix e.g. 2348012345678:4@s.whatsapp.net -> 2348012345678@s.whatsapp.net
+  str = str.replace(/:.+@/, "@");
+
   if (str.endsWith("@s.whatsapp.net") || str.endsWith("@lid")) {
     return str;
   }
@@ -99,21 +103,35 @@ function formatPhone(phoneOrJid) {
 
 // ─── Extract Message Text Helper ───────────────────────────────────────────
 function extractMessageText(msg) {
-  if (!msg || !msg.message) return "";
-  let m = msg.message;
-  if (m.ephemeralMessage?.message) m = m.ephemeralMessage.message;
-  if (m.viewOnceMessage?.message) m = m.viewOnceMessage.message;
-  if (m.viewOnceMessageV2?.message) m = m.viewOnceMessageV2.message;
-  if (m.documentWithCaptionMessage?.message) m = m.documentWithCaptionMessage.message;
+  if (!msg) return "";
+  let m = msg.message || msg;
+
+  // Unpack nested message wrappers
+  while (m) {
+    if (m.ephemeralMessage?.message) m = m.ephemeralMessage.message;
+    else if (m.viewOnceMessage?.message) m = m.viewOnceMessage.message;
+    else if (m.viewOnceMessageV2?.message) m = m.viewOnceMessageV2.message;
+    else if (m.documentWithCaptionMessage?.message) m = m.documentWithCaptionMessage.message;
+    else if (m.editedMessage?.message?.protocolMessage?.editedMessage) m = m.editedMessage.message.protocolMessage.editedMessage;
+    else if (m.deviceSentMessage?.message) m = m.deviceSentMessage.message;
+    else break;
+  }
+
+  if (!m) return "";
 
   return (
     m.conversation ||
     m.extendedTextMessage?.text ||
     m.buttonsResponseMessage?.selectedButtonId ||
+    m.buttonsResponseMessage?.selectedDisplayText ||
     m.listResponseMessage?.singleSelectReply?.selectedRowId ||
+    m.listResponseMessage?.title ||
     m.templateButtonReplyMessage?.selectedId ||
+    m.templateButtonReplyMessage?.selectedDisplayText ||
+    m.interactiveResponseMessage?.nativeFlowResponseMessage?.paramsJson ||
     m.imageMessage?.caption ||
     m.videoMessage?.caption ||
+    m.documentMessage?.caption ||
     ""
   );
 }
@@ -172,38 +190,37 @@ async function connectToWhatsApp() {
 
     // Store messages in memory for retry resolution and process customer ordering
     sock.ev.on("messages.upsert", async (m) => {
-      // Only process new incoming messages (not history sync)
-      if (m.type !== "notify") return;
+      const messages = m.messages || [];
 
-      for (const msg of m.messages) {
+      for (const msg of messages) {
         // Cache for Signal retry resolution
         if (msg.key?.id && msg.message) {
           messageStore.set(msg.key.id, msg.message);
         }
 
-        // Skip messages from self, broadcast, or group chats
-        const remoteJid = msg.key?.remoteJid || "";
-        if (
-          msg.key?.fromMe ||
-          !remoteJid ||
-          remoteJid.includes("status@broadcast") ||
-          remoteJid.endsWith("@g.us") ||
-          remoteJid.endsWith("@newsletter") ||
-          remoteJid.endsWith("@lid")
-        ) {
+        const rawJid = msg.key?.remoteJid || "";
+        if (!rawJid || rawJid.includes("status@broadcast") || rawJid.endsWith("@g.us") || rawJid.endsWith("@newsletter")) {
           continue;
         }
 
-        // Extract text from all supported message types
+        const cleanJid = rawJid.replace(/:.+@/, "@");
+        const myJid = (sock.user?.id || "").replace(/:.+@/, "@");
+        const isSelfChat = msg.key?.fromMe && myJid && (cleanJid === myJid || cleanJid.includes(myJid.replace(/@.+/, "")));
+
+        // Skip outgoing messages unless it's a message to self for testing
+        if (msg.key?.fromMe && !isSelfChat) {
+          continue;
+        }
+
+        // Extract message text
         const messageText = extractMessageText(msg);
-
         if (!messageText || !messageText.trim()) {
-          console.log(`⏭️  Non-text message from ${remoteJid}, ignoring.`);
           continue;
         }
 
-        const senderPhone = remoteJid.replace(/@.+$/, "");
-        console.log(`💬 Incoming from ${senderPhone}: "${messageText.trim()}"`);
+        const text = messageText.trim();
+        const senderPhone = cleanJid.replace(/@.+$/, "");
+        console.log(`💬 Processing WhatsApp message from ${cleanJid} (${senderPhone}): "${text}"`);
 
         // Send read receipt
         try {
@@ -216,20 +233,13 @@ async function connectToWhatsApp() {
             db,
             APP_URL,
             senderPhone,
-            messageText.trim(),
-            // Reply back to the same JID (not via formatPhone, use remoteJid directly)
-            async (_, text) => {
-              await sock.sendMessage(remoteJid, { text });
+            text,
+            async (dest, replyText) => {
+              await sendWhatsAppMessage(cleanJid, replyText);
             }
           );
         } catch (handlerErr) {
-          console.error("❌ Error handling incoming message:", handlerErr.message);
-          // Attempt to notify the user something went wrong
-          try {
-            await sock.sendMessage(remoteJid, {
-              text: "⚠️ Sorry, something went wrong. Please type *MENU* to try again.",
-            });
-          } catch (_) {}
+          console.error("❌ Error handling incoming message:", handlerErr);
         }
       }
     });

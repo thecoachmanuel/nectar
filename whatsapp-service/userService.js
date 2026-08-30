@@ -24,15 +24,16 @@ async function findUserByPhone(db, phone) {
   try {
     const usersCollection = db.collection("users");
     const variants = normalizePhoneVariants(phone);
-    const lastDigits = String(phone).replace(/\D/g, "").slice(-9); // last 9 digits for regex fallback
+    const rawDigits = String(phone).replace(/\D/g, "");
+    
+    const query = [{ phone: { $in: variants } }];
+    if (rawDigits.length >= 7) {
+      const lastDigits = rawDigits.slice(-9);
+      query.push({ phone: { $regex: lastDigits + "$", $options: "i" } });
+    }
 
     // 1. Try exact match on variants
-    let user = await usersCollection.findOne({
-      $or: [
-        { phone: { $in: variants } },
-        { phone: { $regex: lastDigits + "$", $options: "i" } },
-      ],
-    });
+    let user = await usersCollection.findOne({ $or: query });
 
     if (user) {
       return {
