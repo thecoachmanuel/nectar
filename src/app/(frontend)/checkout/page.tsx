@@ -26,7 +26,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (settings.pay_paystack_enabled !== "No") {
       setPaymentMethod("paystack");
-    } else if (settings.whatsapp_checkout_enabled === "Yes") {
+    } else if (settings.pay_whatsapp_enabled === "Yes") {
       setPaymentMethod("whatsapp");
     } else {
       setPaymentMethod("wallet");
@@ -198,7 +198,7 @@ export default function CheckoutPage() {
             router.push(`/order/${data.orderId}`);
           }
         } else if (paymentMethod === "whatsapp") {
-          const phone = settings.whatsapp_phone_number || "";
+          const phone = settings.pay_whatsapp_phone_number || "";
           let text = `*New Order Placed*\n`;
           text += `****************************************************\n`;
           text += `*Order ID#* : ${data.orderId}\n`;
@@ -401,7 +401,7 @@ export default function CheckoutPage() {
                       </label>
                     )}
 
-                    {settings.whatsapp_checkout_enabled === "Yes" && (
+                    {settings.pay_whatsapp_enabled === "Yes" && (
                       <label 
                         onClick={() => setPaymentMethod("whatsapp")}
                         className={`w-full py-3 px-4 rounded-xl flex items-center justify-between cursor-pointer border transition-all duration-300 ${paymentMethod === "whatsapp" ? 'bg-[#fff5f9] border-primary' : 'bg-white border-[#eff0f6]'}`}

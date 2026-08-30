@@ -479,7 +479,7 @@ export default function SettingsPage() {
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Enable Paystack</label>
                 <select 
-                  value={formData.pay_paystack_enabled || "No"}
+                  value={formData.pay_paystack_enabled || "Yes"}
                   onChange={(e) => handleChange("pay_paystack_enabled", e.target.value)}
                   className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary"
                 >
@@ -490,8 +490,8 @@ export default function SettingsPage() {
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Enable WhatsApp Checkout</label>
                 <select 
-                  value={formData.whatsapp_checkout_enabled || "No"}
-                  onChange={(e) => handleChange("whatsapp_checkout_enabled", e.target.value)}
+                  value={formData.pay_whatsapp_enabled || "No"}
+                  onChange={(e) => handleChange("pay_whatsapp_enabled", e.target.value)}
                   className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary"
                 >
                   <option value="Yes">Yes</option>
@@ -502,8 +502,8 @@ export default function SettingsPage() {
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">WhatsApp Phone Number</label>
                 <input 
                   type="text" 
-                  value={formData.whatsapp_phone_number || ""} 
-                  onChange={(e) => handleChange("whatsapp_phone_number", e.target.value)}
+                  value={formData.pay_whatsapp_phone_number || ""} 
+                  onChange={(e) => handleChange("pay_whatsapp_phone_number", e.target.value)}
                   placeholder="e.g. 2348000000000"
                   className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
