@@ -21,7 +21,17 @@ export default function CheckoutPage() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [scheduleTab, setScheduleTab] = useState<"TODAY" | "TOMORROW">("TODAY");
   
-  const [paymentMethod, setPaymentMethod] = useState<"paystack" | "wallet">("paystack");
+  const [paymentMethod, setPaymentMethod] = useState<string>("paystack");
+  
+  useEffect(() => {
+    if (settings.pay_paystack_enabled !== "No") {
+      setPaymentMethod("paystack");
+    } else if (settings.whatsapp_checkout_enabled === "Yes") {
+      setPaymentMethod("whatsapp");
+    } else {
+      setPaymentMethod("wallet");
+    }
+  }, [settings]);
   const walletBalance = (user as any)?.walletBalance || 0;
   
   const addresses = user?.addresses || [];
@@ -187,6 +197,40 @@ export default function CheckoutPage() {
             toast.error("Payment initialization error");
             router.push(`/order/${data.orderId}`);
           }
+        } else if (paymentMethod === "whatsapp") {
+          const phone = settings.whatsapp_phone_number || "";
+          let text = `*New Order Placed*\n`;
+          text += `****************************************************\n`;
+          text += `*Order ID#* : ${data.orderId}\n`;
+          text += `*Order Type* : ${orderType}\n`;
+          text += `*Delivery Time* : ${schedule === "NOW" ? "As soon as possible" : selectedTime}\n`;
+          text += `--------------------------\n`;
+          text += `*Order Details*\n`;
+          text += `--------------------------\n`;
+          items.forEach((item, idx) => {
+            text += `${idx + 1}) ${item.name}\n`;
+            text += `  Price: ₦${item.price.toFixed(2)}\n`;
+            text += `  Quantity: ${item.quantity}\n`;
+            text += `  Total: ₦${item.itemTotal.toFixed(2)}\n`;
+            text += `  --------------------------\n`;
+          });
+          text += `*Subtotal* : ₦${subtotal.toFixed(2)}\n`;
+          text += `*Discount* : ₦${discountAmount.toFixed(2)}\n`;
+          text += `*Delivery* : ₦${deliveryCharge.toFixed(2)}\n`;
+          text += `*Total*    : ₦${total.toFixed(2)}\n`;
+          text += `--------------------------\n`;
+          text += `*Customer Info*\n`;
+          text += `Name: ${customerName}\n`;
+          text += `Phone: ${customerPhone}\n`;
+          if (deliveryAddressObj) {
+            text += `Address: ${deliveryAddressObj.address}\n`;
+          }
+          
+          const encoded = encodeURIComponent(text);
+          window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encoded}`, "_blank");
+          
+          toast.success("Order placed! Opening WhatsApp...");
+          router.push(`/order/${data.orderId}`);
         } else {
           toast.success("Order placed successfully!");
           router.push(`/order/${data.orderId}`);
@@ -344,16 +388,33 @@ export default function CheckoutPage() {
                 {/* Payment Method */}
                 <div className="mt-6 border-t border-[#eff0f6] pt-6">
                   <h4 className="font-medium mb-3 text-[#14142b]">Payment Method</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <label 
-                      onClick={() => setPaymentMethod("paystack")}
-                      className={`w-full py-3 px-4 rounded-xl flex items-center justify-between cursor-pointer border transition-all duration-300 ${paymentMethod === "paystack" ? 'bg-[#fff5f9] border-primary' : 'bg-white border-[#eff0f6]'}`}
-                    >
-                      <span className="text-sm font-medium text-[#14142b]">Pay Online (Paystack)</span>
-                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === "paystack" ? 'border-primary' : 'border-[#a0a3bd]'}`}>
-                        {paymentMethod === "paystack" && <div className="w-2 h-2 rounded-full bg-primary" />}
-                      </div>
-                    </label>
+                  <div className="space-y-3">
+                    {settings.pay_paystack_enabled !== "No" && (
+                      <label 
+                        onClick={() => setPaymentMethod("paystack")}
+                        className={`w-full py-3 px-4 rounded-xl flex items-center justify-between cursor-pointer border transition-all duration-300 ${paymentMethod === "paystack" ? 'bg-[#fff5f9] border-primary' : 'bg-white border-[#eff0f6]'}`}
+                      >
+                        <span className="text-sm font-medium text-[#14142b]">Pay Online (Paystack)</span>
+                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === "paystack" ? 'border-primary' : 'border-[#a0a3bd]'}`}>
+                          {paymentMethod === "paystack" && <div className="w-2 h-2 rounded-full bg-primary" />}
+                        </div>
+                      </label>
+                    )}
+
+                    {settings.whatsapp_checkout_enabled === "Yes" && (
+                      <label 
+                        onClick={() => setPaymentMethod("whatsapp")}
+                        className={`w-full py-3 px-4 rounded-xl flex items-center justify-between cursor-pointer border transition-all duration-300 ${paymentMethod === "whatsapp" ? 'bg-[#fff5f9] border-primary' : 'bg-white border-[#eff0f6]'}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-[#14142b]">WhatsApp Checkout</span>
+                          <span className="text-[10px] font-bold bg-[#1AB759] text-white px-2 py-0.5 rounded-full">NEW</span>
+                        </div>
+                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === "whatsapp" ? 'border-primary' : 'border-[#a0a3bd]'}`}>
+                          {paymentMethod === "whatsapp" && <div className="w-2 h-2 rounded-full bg-primary" />}
+                        </div>
+                      </label>
+                    )}
 
                     <label 
                       onClick={() => setPaymentMethod("wallet")}
@@ -486,9 +547,9 @@ export default function CheckoutPage() {
                   <button 
                     onClick={handlePlaceOrder}
                     disabled={loading || (paymentMethod === "wallet" && walletBalance < total) || (orderType === "delivery" && deliveryCharge === -1)}
-                    className="w-full flex justify-center items-center gap-2 rounded-2xl capitalize font-bold text-base py-3.5 text-white bg-primary hover:bg-rose-600 transition-colors shadow-md shadow-primary/20 disabled:opacity-50"
+                    className={`w-full flex justify-center items-center gap-2 rounded-2xl capitalize font-bold text-base py-3.5 text-white transition-colors shadow-md disabled:opacity-50 ${paymentMethod === "whatsapp" ? 'bg-[#1AB759] hover:bg-[#159a4a] shadow-[#1AB759]/20' : 'bg-primary hover:bg-rose-600 shadow-primary/20'}`}
                   >
-                    {paymentMethod === "paystack" ? "Proceed to Payment" : "Place Order"}
+                    {paymentMethod === "paystack" ? "Proceed to Payment" : paymentMethod === "whatsapp" ? "Proceed To WhatsApp" : "Place Order"}
                   </button>
                 </div>
               </div>

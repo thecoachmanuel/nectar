@@ -487,6 +487,27 @@ export default function SettingsPage() {
                   <option value="No">No</option>
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Enable WhatsApp Checkout</label>
+                <select 
+                  value={formData.whatsapp_checkout_enabled || "No"}
+                  onChange={(e) => handleChange("whatsapp_checkout_enabled", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary"
+                >
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">WhatsApp Phone Number</label>
+                <input 
+                  type="text" 
+                  value={formData.whatsapp_phone_number || ""} 
+                  onChange={(e) => handleChange("whatsapp_phone_number", e.target.value)}
+                  placeholder="e.g. 2348000000000"
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                />
+              </div>
             </div>
           )}
 
