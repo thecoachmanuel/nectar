@@ -2,9 +2,10 @@ require("dotenv").config();
 const {
   default: makeWASocket,
   DisconnectReason,
-  useMultiFileAuthState,
   fetchLatestBaileysVersion,
 } = require("@whiskeysockets/baileys");
+const { MongoClient } = require("mongodb");
+const { useMongoDBAuthState } = require("./mongoAuthState");
 const { Boom } = require("@hapi/boom");
 const express = require("express");
 const qrcode = require("qrcode");
@@ -13,6 +14,7 @@ const pino = require("pino");
 // ─── Config ────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3001;
 const API_SECRET = process.env.API_SECRET || "wa_secret_change_me";
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/foodappi";
 const logger = pino({ level: "silent" }); // Keep logs quiet in production
 
 // ─── State ─────────────────────────────────────────────────────────────────
@@ -58,7 +60,12 @@ async function connectToWhatsApp() {
   connectionStatus = "connecting";
   qrDataUrl = null;
 
-  const { state, saveCreds } = await useMultiFileAuthState("./auth_info");
+  console.log("🗄️  Connecting to MongoDB for WhatsApp auth state...");
+  const mongoClient = new MongoClient(MONGODB_URI);
+  await mongoClient.connect();
+  const collection = mongoClient.db().collection("whatsapp_auth");
+  
+  const { state, saveCreds } = await useMongoDBAuthState(collection);
   const { version } = await fetchLatestBaileysVersion();
 
   console.log(`🔌 Connecting to WhatsApp (Baileys v${version.join(".")})...`);
