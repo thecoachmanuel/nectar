@@ -152,6 +152,8 @@ async function calculateDeliveryFee(db, { cart, subtotal, latitude, longitude, a
 
   const totalDelivery = rawDeliveryFee + orderValueFee + largeOrderSurcharge;
 
+  console.log(`🚚 [Live DB Delivery Calculation] Base: ₦${baseFee}, PerKm: ₦${feePerKm}, Distance: ${distanceKm || 0}km (Fee: ₦${Math.round(maxDistance * feePerKm)}), Handling: ₦${orderValueFee}, LargeOrderSurcharge: ₦${largeOrderSurcharge} ➔ Total Delivery: ₦${totalDelivery}`);
+
   return {
     deliveryCharge: totalDelivery,
     isFree: false,
