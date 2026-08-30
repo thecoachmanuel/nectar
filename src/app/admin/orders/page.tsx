@@ -126,6 +126,7 @@ export default function OrdersPage() {
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Type</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Date</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Status</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Payment</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider text-right">Action</th>
               </tr>
             </thead>
@@ -162,6 +163,16 @@ export default function OrdersPage() {
                           <option key={statusOption} value={statusOption}>{statusOption.replace("_", " ")}</option>
                         ))}
                       </select>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                        order.paymentStatus === "paid" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                      }`}>
+                        {order.paymentStatus === "paid" ? "✓ Paid" : "⏳ Unpaid"}
+                        {order.paymentMethod === "whatsapp" && (
+                          <span className="ml-1 text-[9px] bg-[#1AB759] text-white px-1 py-0.5 rounded font-black">WA</span>
+                        )}
+                      </span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">

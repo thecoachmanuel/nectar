@@ -38,6 +38,7 @@ export default function OrderDetailsModal({
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [updatingStatus, setUpdatingStatus] = useState<boolean>(false);
+  const [markingPaid, setMarkingPaid] = useState<boolean>(false);
   const [deliveryBoys, setDeliveryBoys] = useState<any[]>([]);
   const [assigningDriver, setAssigningDriver] = useState<boolean>(false);
   const [selectedDriverId, setSelectedDriverId] = useState<string>("");
@@ -112,6 +113,32 @@ export default function OrderDetailsModal({
       toast.error("An error occurred while updating status");
     } finally {
       setUpdatingStatus(false);
+    }
+  };
+
+  const handleMarkAsPaid = async () => {
+    if (!order) return;
+    const confirm = window.confirm(`Confirm that payment of ₦${order.totalAmount?.toLocaleString()} has been received from ${order.customerName} via WhatsApp/Manual payment?`);
+    if (!confirm) return;
+    setMarkingPaid(true);
+    try {
+      const res = await fetch(`/api/admin/orders/${order._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentStatus: "paid" }),
+      });
+      const data = await res.json();
+      if (data.status) {
+        toast.success("Payment confirmed! Order marked as Paid.");
+        fetchOrderDetails(order._id);
+        if (onOrderUpdated) onOrderUpdated();
+      } else {
+        toast.error(data.message || "Failed to update payment status");
+      }
+    } catch (err) {
+      toast.error("An error occurred while confirming payment");
+    } finally {
+      setMarkingPaid(false);
     }
   };
 
@@ -436,7 +463,12 @@ export default function OrderDetailsModal({
               </h5>
               <div className="flex items-center justify-between">
                 <span className="text-[#6E7191]">Payment Method:</span>
-                <span className="font-semibold text-[#14142B] uppercase">{order.paymentMethod || "Paystack"}</span>
+                <span className={`font-semibold text-[#14142B] uppercase flex items-center gap-1.5`}>
+                  {order.paymentMethod === "whatsapp" && (
+                    <span className="text-[10px] font-bold bg-[#1AB759] text-white px-1.5 py-0.5 rounded">WA</span>
+                  )}
+                  {order.paymentMethod || "Paystack"}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[#6E7191]">Payment Status:</span>
@@ -446,6 +478,24 @@ export default function OrderDetailsModal({
                   {order.paymentStatus || "unpaid"}
                 </span>
               </div>
+              {/* Mark as Paid button — shown for unpaid WhatsApp / manual orders */}
+              {order.paymentStatus !== "paid" && (order.paymentMethod === "whatsapp" || order.paymentMethod === "cash_on_delivery") && (
+                <div className="pt-2 border-t border-[#EFF0F6]">
+                  <button
+                    type="button"
+                    onClick={handleMarkAsPaid}
+                    disabled={markingPaid}
+                    className="w-full h-9 rounded-xl bg-[#1AB759] hover:bg-[#159a4a] text-white text-xs font-bold transition-colors flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm"
+                  >
+                    {markingPaid ? (
+                      <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                    )}
+                    {markingPaid ? "Confirming..." : "✓ Confirm & Mark as Paid"}
+                  </button>
+                </div>
+              )}
               {order.paymentReference && (
                 <div className="flex items-center justify-between">
                   <span className="text-[#6E7191]">Ref Code:</span>

@@ -14,24 +14,37 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { user, isGuest, guestInfo, token } = useAuthStore();
   const { items, orderType, setOrderType, getSubtotal, getTotalAmount, clearCart, removeItem } = useCartStore();
-  const { settings } = useSettingsStore();
+  const { settings, fetchSettings } = useSettingsStore();
   const [loading, setLoading] = useState(true);
   const [schedule, setSchedule] = useState<"NOW" | "LATER">("NOW");
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [scheduleTab, setScheduleTab] = useState<"TODAY" | "TOMORROW">("TODAY");
   
-  const [paymentMethod, setPaymentMethod] = useState<string>("paystack");
+  const [paymentMethod, setPaymentMethod] = useState<string>(""); // empty until settings loaded
+  const [paymentMethodInitialized, setPaymentMethodInitialized] = useState(false);
   
+  // Fetch fresh settings on checkout page mount to avoid stale cache
   useEffect(() => {
-    if (settings.pay_paystack_enabled !== "No") {
+    fetchSettings();
+  }, []);
+
+  // Set default payment method ONCE after fresh settings are loaded
+  useEffect(() => {
+    if (paymentMethodInitialized) return; // Don't override user's choice
+    const hasPaystack = settings.pay_paystack_enabled !== "No";
+    const hasWhatsapp = settings.pay_whatsapp_enabled === "Yes";
+    if (hasPaystack) {
       setPaymentMethod("paystack");
-    } else if (settings.pay_whatsapp_enabled === "Yes") {
+      setPaymentMethodInitialized(true);
+    } else if (hasWhatsapp) {
       setPaymentMethod("whatsapp");
+      setPaymentMethodInitialized(true);
     } else {
       setPaymentMethod("wallet");
+      setPaymentMethodInitialized(true);
     }
-  }, [settings]);
+  }, [settings, paymentMethodInitialized]);
   const walletBalance = (user as any)?.walletBalance || 0;
   
   const addresses = user?.addresses || [];

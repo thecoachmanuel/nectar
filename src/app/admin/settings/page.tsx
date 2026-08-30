@@ -44,9 +44,8 @@ export default function SettingsPage() {
 
   const handleSave = async () => {
     try {
-      // Map formData to SettingItem array format based on the active tab
-      const settingsToUpdate: SettingItem[] = Object.keys(formData).map(key => {
-        // Simple heuristic to assign group based on key prefix or name
+      // Map all keys in formData to settings with correct groups
+      const allSettings: SettingItem[] = Object.keys(formData).map(key => {
         let group = "Company";
         if (key.startsWith("site_")) group = "Site";
         if (key.startsWith("mail_")) group = "Mail";
@@ -55,28 +54,29 @@ export default function SettingsPage() {
         if (key.startsWith("push_")) group = "Push Notification";
         if (key.startsWith("theme_")) group = "Theme";
         if (["baseDeliveryFee", "feePerKm", "multiStoreExtraFee", "freeDeliveryThreshold", "orderValueFeePercent", "largeOrderThreshold", "largeOrderFeePercent", "takeaway_enabled"].includes(key)) group = "Delivery";
-        
-        return {
-          key,
-          group,
-          payload: formData[key]
-        };
+        return { key, group, payload: formData[key] };
       });
 
-      // Filter to only send settings that belong to the currently active tab (optional, but cleaner)
-      const tabSettings = settingsToUpdate.filter(s => s.group === activeTab || (activeTab === 'Company' && !s.key.includes('_')));
+      // Only send settings relevant to the currently active tab
+      let tabSettings = allSettings.filter(s => s.group === activeTab);
       
-      // If we are modifying everything at once, we just send settingsToUpdate.
-      // Let's send the specific ones that changed. For now, sending all mapped.
-      // Also sync alias keys contactEmail and contactPhone if company_email / company_phone are present
-      if (formData.company_email) {
-        settingsToUpdate.push({ key: "contactEmail", group: "Company", payload: formData.company_email });
-      }
-      if (formData.company_phone) {
-        settingsToUpdate.push({ key: "contactPhone", group: "Company", payload: formData.company_phone });
+      // For Company tab, also include non-prefixed keys
+      if (activeTab === "Company") {
+        tabSettings = allSettings.filter(s => s.group === "Company" || (!s.key.startsWith("site_") && !s.key.startsWith("mail_") && !s.key.startsWith("pay_") && !s.key.startsWith("sms_") && !s.key.startsWith("push_") && !s.key.startsWith("theme_")));
       }
 
-      await updateSettings(settingsToUpdate);
+      // Also sync alias keys for company info
+      if (activeTab === "Company") {
+        if (formData.company_email) tabSettings.push({ key: "contactEmail", group: "Company", payload: formData.company_email });
+        if (formData.company_phone) tabSettings.push({ key: "contactPhone", group: "Company", payload: formData.company_phone });
+      }
+
+      if (tabSettings.length === 0) {
+        toast.info("No settings to save for this tab.");
+        return;
+      }
+
+      await updateSettings(tabSettings);
       toast.success(`${activeTab} Settings saved successfully!`);
     } catch (error: any) {
       toast.error(`Failed to save: ${error.message}`);
