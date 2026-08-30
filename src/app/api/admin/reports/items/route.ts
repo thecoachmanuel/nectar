@@ -5,78 +5,91 @@ import Item from "@/models/Item";
 import Store from "@/models/Store";
 import ItemCategory from "@/models/ItemCategory";
 
-export async function GET() {
+export const dynamic = "force-dynamic";
+
+export async function GET(req: Request) {
   try {
     await dbConnect();
 
-    // Find all completed/delivered orders
-    const orders = await Order.find({ orderStatus: "delivered" });
+    // 1. Fetch all non-canceled orders
+    const orders = await Order.find({
+      orderStatus: { $nin: ["canceled", "rejected"] },
+    });
 
-    const itemStats: Record<string, any> = {};
+    const itemSales: Record<string, { quantitySold: number; revenue: number; name: string }> = {};
 
-    // Aggregate sold items
+    // Aggregate sold items from all valid orders
     orders.forEach((order) => {
       if (order.items && Array.isArray(order.items)) {
-        order.items.forEach((item) => {
-          if (!itemStats[item.itemId]) {
-            itemStats[item.itemId] = {
-              id: item.itemId,
+        order.items.forEach((item: any) => {
+          const key = String(item.itemId || item._id || item.name);
+          if (!itemSales[key]) {
+            itemSales[key] = {
               name: item.name,
               quantitySold: 0,
               revenue: 0,
             };
           }
-          itemStats[item.itemId].quantitySold += item.quantity || 1;
-          itemStats[item.itemId].revenue += item.itemTotal || (item.price * (item.quantity || 1));
+          const qty = Number(item.quantity) || 1;
+          const total = Number(item.itemTotal) || (Number(item.price) || 0) * qty;
+          itemSales[key].quantitySold += qty;
+          itemSales[key].revenue += total;
         });
       }
     });
 
-    const reportData = [];
+    // 2. Fetch all catalog items with categories and stores
+    const catalogItems = await Item.find()
+      .populate("categoryId", "name")
+      .populate("storeId", "name");
 
-    // For each aggregated item, fetch its category and store from the Item collection
-    for (const itemId of Object.keys(itemStats)) {
-      const stat = itemStats[itemId];
-      let categoryName = "-";
-      let storeName = "-";
+    const categories = await ItemCategory.find({ status: true }).select("name");
 
-      try {
-        const itemRecord = await Item.findById(itemId).populate("categoryId").populate("storeId");
-        if (itemRecord) {
-          if (itemRecord.categoryId && typeof itemRecord.categoryId === 'object') {
-             // populate doesn't always guarantee an object if ref is broken, so we check
-             categoryName = (itemRecord.categoryId as any).name || "-";
-          } else if (itemRecord.categoryId) {
-             const cat = await ItemCategory.findById(itemRecord.categoryId);
-             if (cat) categoryName = cat.name;
-          }
+    const reportMap = new Map<string, any>();
 
-          if (itemRecord.storeId && typeof itemRecord.storeId === 'object' && String(itemRecord.storeId) !== "0") {
-             storeName = (itemRecord.storeId as any).name || "-";
-          } else if (String(itemRecord.storeId) === "0") {
-             storeName = "Global";
-          } else if (itemRecord.storeId) {
-             const store = await Store.findById(itemRecord.storeId);
-             if (store) storeName = store.name;
-          }
-        }
-      } catch (e) {
-        console.error("Error populating item", itemId, e);
-      }
+    // Seed report with all catalog items
+    catalogItems.forEach((catItem: any) => {
+      const idStr = String(catItem._id);
+      const sales = itemSales[idStr] || itemSales[catItem.name] || { quantitySold: 0, revenue: 0 };
+      
+      const categoryName = catItem.categoryId?.name || "Uncategorized";
+      const storeName = catItem.storeId?.name || (String(catItem.storeId) === "0" ? "Main Store" : "Global");
 
-      reportData.push({
-        ...stat,
+      reportMap.set(idStr, {
+        id: idStr,
+        name: catItem.name,
         category: categoryName,
         store: storeName,
+        price: Number(catItem.price) || 0,
+        quantitySold: sales.quantitySold,
+        revenue: sales.revenue,
       });
+    });
+
+    // Also include any items sold in orders that might not be in the catalog list
+    for (const [key, sales] of Object.entries(itemSales)) {
+      if (!reportMap.has(key)) {
+        reportMap.set(key, {
+          id: key,
+          name: sales.name,
+          category: "General",
+          store: "Main Store",
+          price: sales.quantitySold > 0 ? Math.round(sales.revenue / sales.quantitySold) : 0,
+          quantitySold: sales.quantitySold,
+          revenue: sales.revenue,
+        });
+      }
     }
 
-    // Sort by quantity sold descending
-    reportData.sort((a, b) => b.quantitySold - a.quantitySold);
+    const reportData = Array.from(reportMap.values());
+
+    // Sort by quantity sold descending, then by revenue descending
+    reportData.sort((a, b) => b.quantitySold - a.quantitySold || b.revenue - a.revenue);
 
     return NextResponse.json({
       status: true,
       data: reportData,
+      categories: categories.map((c) => c.name),
     });
   } catch (error: any) {
     return NextResponse.json(

@@ -79,57 +79,69 @@ export default function FinancialSummaryPage() {
       </div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#EFF0F6] flex flex-col justify-between">
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-4 mb-3">
             <div className="w-12 h-12 rounded-full bg-[#E7FFF0] text-[#1AB759] flex items-center justify-center">
               <TrendingUp className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-sm text-[#6E7191] font-medium">Gross Revenue</p>
-              <h3 className="text-2xl font-bold text-[#14142B]">{formatMoney(overview.grossRevenue)}</h3>
+              <p className="text-xs text-[#6E7191] font-semibold uppercase tracking-wider">Total Paid Revenue</p>
+              <h3 className="text-2xl font-extrabold text-[#14142B]">{formatMoney(overview.grossRevenue)}</h3>
             </div>
           </div>
-          <p className="text-xs text-[#6E7191]">Total value of all delivered orders</p>
+          <div className="flex items-center justify-between text-xs text-[#6E7191] pt-2 border-t border-[#EFF0F6]">
+            <span>{overview.paidOrdersCount || 0} Paid Orders</span>
+            <span className="font-semibold text-green-600">✓ Collected</span>
+          </div>
         </div>
 
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#EFF0F6] flex flex-col justify-between">
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-4 mb-3">
             <div className="w-12 h-12 rounded-full bg-[#E9EEFF] text-[#567DFF] flex items-center justify-center">
+              <CheckCircle className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-xs text-[#6E7191] font-semibold uppercase tracking-wider">Delivered Orders</p>
+              <h3 className="text-2xl font-extrabold text-[#14142B]">{formatMoney(overview.deliveredOrdersTotal)}</h3>
+            </div>
+          </div>
+          <div className="flex items-center justify-between text-xs text-[#6E7191] pt-2 border-t border-[#EFF0F6]">
+            <span>{overview.deliveredOrdersCount || 0} Completed</span>
+            <span className="font-semibold text-[#567DFF]">Fulfilled</span>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#EFF0F6] flex flex-col justify-between">
+          <div className="flex items-center gap-4 mb-3">
+            <div className="w-12 h-12 rounded-full bg-[#FFF6E6] text-[#FFB020] flex items-center justify-center">
               <DollarSign className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-sm text-[#6E7191] font-medium">Platform Commissions</p>
-              <h3 className="text-2xl font-bold text-[#14142B]">{formatMoney(overview.totalCommissions)}</h3>
+              <p className="text-xs text-[#6E7191] font-semibold uppercase tracking-wider">Pending Orders Value</p>
+              <h3 className="text-2xl font-extrabold text-[#14142B]">{formatMoney(overview.pendingRevenue)}</h3>
             </div>
           </div>
-          <p className="text-xs text-[#6E7191]">Total commissions earned by admin</p>
+          <div className="flex items-center justify-between text-xs text-[#6E7191] pt-2 border-t border-[#EFF0F6]">
+            <span>{overview.pendingOrdersCount || 0} In Progress</span>
+            <span className="font-semibold text-amber-600">⏳ Awaiting Delivery</span>
+          </div>
         </div>
 
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#EFF0F6] flex flex-col justify-between">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 rounded-full bg-[#FFF6E6] text-[#FFB020] flex items-center justify-center">
-              <StoreIcon className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-sm text-[#6E7191] font-medium">Total Paid to Stores</p>
-              <h3 className="text-2xl font-bold text-[#14142B]">{formatMoney(overview.storePayoutsTotal)}</h3>
-            </div>
-          </div>
-          <p className="text-xs text-[#6E7191]">Total approved payouts to store managers</p>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#EFF0F6] flex flex-col justify-between">
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-4 mb-3">
             <div className="w-12 h-12 rounded-full bg-[#F3E8FF] text-[#A855F7] flex items-center justify-center">
               <Bike className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-sm text-[#6E7191] font-medium">Total Paid to Riders</p>
-              <h3 className="text-2xl font-bold text-[#14142B]">{formatMoney(overview.deliveryPayoutsTotal)}</h3>
+              <p className="text-xs text-[#6E7191] font-semibold uppercase tracking-wider">Delivery Charges</p>
+              <h3 className="text-2xl font-extrabold text-[#14142B]">{formatMoney(overview.totalDeliveryCharges)}</h3>
             </div>
           </div>
-          <p className="text-xs text-[#6E7191]">Total approved payouts to delivery boys</p>
+          <div className="flex items-center justify-between text-xs text-[#6E7191] pt-2 border-t border-[#EFF0F6]">
+            <span>Rider Pool Total</span>
+            <span className="font-semibold text-purple-600">₦ Payouts Fund</span>
+          </div>
         </div>
       </div>
 

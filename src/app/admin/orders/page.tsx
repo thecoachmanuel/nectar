@@ -7,6 +7,7 @@ import {
   Download, 
   Eye,
   Printer,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useApi } from "@/hooks/useApi";
@@ -53,6 +54,39 @@ export default function OrdersPage() {
     } catch (e) {}
   };
 
+  const [clearingOrders, setClearingOrders] = useState(false);
+
+  const handleClearAllOrders = async () => {
+    const confirmation = window.prompt(
+      "⚠️ DANGER: This will permanently delete ALL orders and order history across the entire site!\n\nTo confirm, please type 'CLEAR' below:"
+    );
+
+    if (confirmation !== "CLEAR") {
+      if (confirmation !== null) {
+        toast.error("Operation cancelled. You must type 'CLEAR' exactly to proceed.");
+      }
+      return;
+    }
+
+    setClearingOrders(true);
+    try {
+      const res = await fetch("/api/admin/orders/clear-all", {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.status) {
+        toast.success(data.message || "All orders cleared successfully!");
+        fetchOrders();
+      } else {
+        toast.error(data.message || "Failed to clear orders.");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "An error occurred while clearing orders.");
+    } finally {
+      setClearingOrders(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending": return "bg-[#FFF6E6] text-[#FFB020]";
@@ -92,6 +126,22 @@ export default function OrdersPage() {
             </button>
             <button className="h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-[#6E7191] flex items-center justify-center hover:bg-[#F7F7FC] transition-colors">
               <Download className="w-4 h-4" />
+            </button>
+
+            {/* Clear All Orders Button */}
+            <button
+              type="button"
+              onClick={handleClearAllOrders}
+              disabled={clearingOrders}
+              className="h-10 px-3.5 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm disabled:opacity-50"
+              title="Clear all orders database and start fresh"
+            >
+              {clearingOrders ? (
+                <span className="w-3.5 h-3.5 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Trash2 className="w-3.5 h-3.5" />
+              )}
+              <span>{clearingOrders ? "Clearing..." : "Clear All Orders"}</span>
             </button>
           </div>
         </div>

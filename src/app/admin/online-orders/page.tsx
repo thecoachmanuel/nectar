@@ -6,7 +6,8 @@ import {
   Filter, 
   Download,
   Eye,
-  Printer
+  Printer,
+  Trash2
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -17,6 +18,7 @@ export default function OnlineOrdersPage() {
   const [showFilter, setShowFilter] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [clearingOrders, setClearingOrders] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
@@ -37,6 +39,37 @@ export default function OnlineOrdersPage() {
   useEffect(() => {
     fetchOrders();
   }, []);
+
+  const handleClearAllOrders = async () => {
+    const confirmation = window.prompt(
+      "⚠️ DANGER: This will permanently delete ALL orders and order history across the entire site!\n\nTo confirm, please type 'CLEAR' below:"
+    );
+
+    if (confirmation !== "CLEAR") {
+      if (confirmation !== null) {
+        toast.error("Operation cancelled. You must type 'CLEAR' exactly to proceed.");
+      }
+      return;
+    }
+
+    setClearingOrders(true);
+    try {
+      const res = await fetch("/api/admin/orders/clear-all", {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.status) {
+        toast.success(data.message || "All orders cleared successfully!");
+        fetchOrders();
+      } else {
+        toast.error(data.message || "Failed to clear orders.");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "An error occurred while clearing orders.");
+    } finally {
+      setClearingOrders(false);
+    }
+  };
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
     try {
@@ -92,6 +125,22 @@ export default function OnlineOrdersPage() {
             <button className="h-10 px-4 rounded-xl bg-[#008BBA] text-white flex items-center gap-2 hover:bg-[#00749b] transition-colors shadow-md shadow-[#008BBA]/20">
               <Download className="w-4 h-4" />
               <span className="text-sm font-medium">Export</span>
+            </button>
+
+            {/* Clear All Orders Button */}
+            <button
+              type="button"
+              onClick={handleClearAllOrders}
+              disabled={clearingOrders}
+              className="h-10 px-3.5 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm disabled:opacity-50"
+              title="Clear all orders database and start fresh"
+            >
+              {clearingOrders ? (
+                <span className="w-3.5 h-3.5 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Trash2 className="w-3.5 h-3.5" />
+              )}
+              <span>{clearingOrders ? "Clearing..." : "Clear All Orders"}</span>
             </button>
           </div>
         </div>
