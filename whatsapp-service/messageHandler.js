@@ -1,5 +1,5 @@
 // ─── Message Handler ───────────────────────────────────────────────────────
-// Conversational ordering bot state machine for Nectar Groceries with GPS location & phone recognition
+// Conversational ordering bot state machine for Nectar Groceries with Product Variations & GPS Location
 
 const sessionManager = require("./sessionManager");
 const userService = require("./userService");
@@ -43,6 +43,59 @@ function buildWelcomeMenu(session) {
     `2️⃣ *Search for an item*\n\n` +
     `_Reply *1* or *2* to start_\n` +
     `_Type *CART* to view cart | *HELP* for commands_`
+  );
+}
+
+function handleItemSelection(session, selectedItem, sendFn, phone) {
+  session.selectedItem = selectedItem;
+
+  // Flatten all variation options if available
+  const variationsList = [];
+  if (Array.isArray(selectedItem.variations) && selectedItem.variations.length > 0) {
+    for (const group of selectedItem.variations) {
+      if (Array.isArray(group.options) && group.options.length > 0) {
+        for (const opt of group.options) {
+          if (opt.name && opt.name.trim()) {
+            variationsList.push({
+              groupName: group.name || "Option",
+              name: opt.name.trim(),
+              price: Number(opt.price) > 0 ? Number(opt.price) : Number(selectedItem.price),
+            });
+          }
+        }
+      }
+    }
+  }
+
+  // If item has variations available, ask customer to choose
+  if (variationsList.length > 0) {
+    session.availableVariations = variationsList;
+    session.selectedVariation = null;
+    session.step = "VARIATION_CHOICE";
+
+    const optionsText = variationsList
+      .map((v, i) => `${i + 1}️⃣ ${v.name} — ₦${formatPrice(v.price)}`)
+      .join("\n");
+
+    return sendFn(
+      phone,
+      `🛒 *${selectedItem.name}*\n\nPlease choose your preferred variation / size:\n\n` +
+        `${optionsText}\n\n` +
+        `_Reply with a number (1 to ${variationsList.length}) to pick_\n` +
+        `_Type *MENU* to go back_`
+    );
+  }
+
+  // No variations: proceed directly to quantity
+  session.selectedVariation = null;
+  session.availableVariations = [];
+  session.step = "QTY";
+
+  return sendFn(
+    phone,
+    `🛒 You selected: *${selectedItem.name}* (₦${formatPrice(selectedItem.price)})\n\n` +
+      `How many would you like?\n` +
+      `_Reply with a quantity (e.g. 1, 2, 3...)_`
   );
 }
 
@@ -244,15 +297,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
       }
 
       const selectedItem = session.browseItems[idx];
-      session.selectedItem = selectedItem;
-      session.step = "QTY";
-
-      return sendFn(
-        phone,
-        `🛒 You selected: *${selectedItem.name}* (₦${formatPrice(selectedItem.price)})\n\n` +
-          `How many would you like?\n` +
-          `_Reply with a quantity (e.g. 1, 2, 3...)_`
-      );
+      return handleItemSelection(session, selectedItem, sendFn, phone);
     }
 
     // ── SEARCH QUERY ───────────────────────────────────────────────────────
@@ -293,12 +338,26 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
       }
 
       const selectedItem = session.searchResults[idx];
-      session.selectedItem = selectedItem;
+      return handleItemSelection(session, selectedItem, sendFn, phone);
+    }
+
+    // ── VARIATION CHOICE ───────────────────────────────────────────────────
+    case "VARIATION_CHOICE": {
+      const idx = parseInt(text, 10) - 1;
+      if (isNaN(idx) || idx < 0 || idx >= (session.availableVariations || []).length) {
+        return sendFn(
+          phone,
+          `Please reply with a valid number (1 to ${session.availableVariations.length}), or type *MENU* to go back.`
+        );
+      }
+
+      const pickedVar = session.availableVariations[idx];
+      session.selectedVariation = pickedVar;
       session.step = "QTY";
 
       return sendFn(
         phone,
-        `🛒 You selected: *${selectedItem.name}* (₦${formatPrice(selectedItem.price)})\n\n` +
+        `🛒 You selected: *${session.selectedItem.name} (${pickedVar.name})* — ₦${formatPrice(pickedVar.price)}\n\n` +
           `How many would you like?\n` +
           `_Reply with a quantity (e.g. 1, 2, 3...)_`
       );
@@ -320,9 +379,17 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
         return sendFn(phone, `Session expired. ${buildWelcomeMenu(session)}`);
       }
 
+      const effectivePrice = session.selectedVariation ? session.selectedVariation.price : item.price;
+      const itemName = session.selectedVariation
+        ? `${item.name} (${session.selectedVariation.name})`
+        : item.name;
+      const cartKey = session.selectedVariation
+        ? `${item.id}_${session.selectedVariation.name}`
+        : item.id;
+
       // Add to cart
       const existingIdx = session.cart.findIndex(
-        (i) => i.itemId === item.id || i.id === item.id
+        (i) => i.cartKey === cartKey || (!session.selectedVariation && (i.itemId === item.id || i.id === item.id))
       );
 
       if (existingIdx >= 0) {
@@ -331,20 +398,24 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
           session.cart[existingIdx].quantity * session.cart[existingIdx].price;
       } else {
         session.cart.push({
+          cartKey,
           itemId: item.id,
-          name: item.name,
-          price: item.price,
+          name: itemName,
+          variationName: session.selectedVariation ? session.selectedVariation.name : undefined,
+          price: effectivePrice,
           quantity: qty,
-          itemTotal: qty * item.price,
+          itemTotal: qty * effectivePrice,
         });
       }
 
       session.selectedItem = null;
+      session.selectedVariation = null;
+      session.availableVariations = [];
       session.step = "CART";
 
       return sendFn(
         phone,
-        `✅ Added *${qty}x ${item.name}* to your cart!\n\n` +
+        `✅ Added *${qty}x ${itemName}* to your cart!\n\n` +
           `${buildCartSummary(session.cart)}\n\n` +
           `Reply:\n` +
           `• *CHECKOUT* — Place your order now 🛒\n` +
@@ -563,9 +634,11 @@ async function showPaymentOptions(db, session, phone, sendFn) {
 
   // Dynamic delivery fee calculation
   const deliveryCalc = await orderService.calculateDeliveryFee(db, {
+    cart: session.cart,
     subtotal,
     latitude: session.latitude,
     longitude: session.longitude,
+    address: session.deliveryAddress,
   });
 
   const deliveryFee = deliveryCalc.deliveryCharge;

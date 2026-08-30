@@ -64,6 +64,7 @@ async function getItemsByCategory(db, categoryId) {
       name: item.name,
       price: Number(item.price) || 0,
       description: item.description || "",
+      variations: Array.isArray(item.variations) ? item.variations : [],
     }));
 
     catalogCache.set(cacheKey, formatted);
@@ -91,7 +92,7 @@ async function searchItems(db, searchTerm) {
         $or: [{ name: { $regex: regex } }, { description: { $regex: regex } }],
       })
       .limit(10)
-      .project({ _id: 1, name: 1, price: 1, description: 1 })
+      .project({ _id: 1, name: 1, price: 1, description: 1, variations: 1 })
       .toArray();
 
     const formatted = items.map((item) => ({
@@ -99,6 +100,7 @@ async function searchItems(db, searchTerm) {
       name: item.name,
       price: Number(item.price) || 0,
       description: item.description || "",
+      variations: Array.isArray(item.variations) ? item.variations : [],
     }));
 
     catalogCache.set(cacheKey, formatted);

@@ -10,6 +10,8 @@ function createInitialSession(phone) {
     step: "MAIN_MENU",
     cart: [],
     selectedItem: null,
+    selectedVariation: null,
+    availableVariations: [],
     browseCategories: [],
     browseCategory: null,
     browseItems: [],
@@ -17,8 +19,12 @@ function createInitialSession(phone) {
     userId: null,
     customerName: null,
     customerEmail: null,
+    customerPhone: null,
     savedAddresses: [],
     deliveryAddress: null,
+    latitude: undefined,
+    longitude: undefined,
+    deliveryCharge: 0,
     isKnownUser: false,
     userIdentified: false,
     lastActivity: Date.now(),
@@ -47,6 +53,8 @@ function resetToMenu(phone) {
   const session = getSession(phone);
   session.step = "MAIN_MENU";
   session.selectedItem = null;
+  session.selectedVariation = null;
+  session.availableVariations = [];
   session.browseItems = [];
   session.searchResults = [];
   session.lastActivity = Date.now();
@@ -58,15 +66,13 @@ function clearCart(phone) {
   session.cart = [];
   session.step = "MAIN_MENU";
   session.selectedItem = null;
+  session.selectedVariation = null;
+  session.availableVariations = [];
   session.lastActivity = Date.now();
   return session;
 }
 
-function deleteSession(phone) {
-  sessions.delete(phone);
-}
-
-// Cleanup stale sessions every 5 minutes
+// Garbage collect expired sessions every 5 minutes
 setInterval(() => {
   const now = Date.now();
   for (const [phone, session] of sessions.entries()) {
@@ -81,5 +87,4 @@ module.exports = {
   updateSession,
   resetToMenu,
   clearCart,
-  deleteSession,
 };
