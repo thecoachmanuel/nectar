@@ -3,6 +3,9 @@ const {
   default: makeWASocket,
   DisconnectReason,
   fetchLatestBaileysVersion,
+  makeCacheableSignalKeyStore,
+  Browsers,
+  proto,
 } = require("@whiskeysockets/baileys");
 const { MongoClient } = require("mongodb");
 const { useMongoDBAuthState } = require("./mongoAuthState");
@@ -10,12 +13,17 @@ const { Boom } = require("@hapi/boom");
 const express = require("express");
 const qrcode = require("qrcode");
 const pino = require("pino");
+const NodeCache = require("node-cache");
 
 // ─── Config ────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3001;
 const API_SECRET = process.env.API_SECRET || "wa_secret_change_me";
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/foodappi";
 const logger = pino({ level: "silent" }); // Keep logs quiet in production
+
+// ─── Retry & Message Cache (Fixes "Waiting for this message") ───────────────
+const msgRetryCounterCache = new NodeCache({ stdTTL: 3600, checkperiod: 120 });
+const messageStore = new NodeCache({ stdTTL: 3600, checkperiod: 120 });
 
 // ─── State ─────────────────────────────────────────────────────────────────
 let sock = null;
@@ -82,15 +90,35 @@ async function connectToWhatsApp() {
 
   sock = makeWASocket({
     version,
-    auth: state,
-    printQRInTerminal: true, // QR shown in terminal too
+    auth: {
+      creds: state.creds,
+      keys: makeCacheableSignalKeyStore(state.keys, logger),
+    },
+    msgRetryCounterCache,
+    browser: Browsers.macOS("Chrome"), // Standard desktop browser signature
+    printQRInTerminal: false,
     logger,
-    browser: ["Nectar Bot", "Chrome", "120.0"],
-    getMessage: async () => undefined,
+    syncFullHistory: false,
+    generateHighQualityLinkPreview: true,
+    getMessage: async (key) => {
+      if (key?.id && messageStore.has(key.id)) {
+        return messageStore.get(key.id);
+      }
+      return proto.Message.fromObject({});
+    },
   });
 
   // Save credentials on every update
   sock.ev.on("creds.update", saveCreds);
+
+  // Store messages in memory for retry resolution
+  sock.ev.on("messages.upsert", async (m) => {
+    for (const msg of m.messages) {
+      if (msg.key?.id && msg.message) {
+        messageStore.set(msg.key.id, msg.message);
+      }
+    }
+  });
 
   // Handle connection state changes
   sock.ev.on("connection.update", async (update) => {
@@ -145,8 +173,22 @@ async function sendWhatsAppMessage(phone, message) {
     console.warn(`⚠️  onWhatsApp check skipped:`, checkErr.message);
   }
 
-  await sock.sendMessage(jid, { text: message });
-  console.log(`📤 Message successfully sent to ${jid}`);
+  // 1. Mask human behavior: presence & realistic typing indicator
+  try {
+    await sock.presenceSubscribe(jid);
+    await sock.sendPresenceUpdate("composing", jid);
+    await new Promise((resolve) => setTimeout(resolve, 800 + Math.random() * 400));
+    await sock.sendPresenceUpdate("paused", jid);
+  } catch (presenceErr) {
+    // Non-fatal if presence update fails
+  }
+
+  // 2. Send message and cache in memory for instant Signal retry resolution
+  const sentMsg = await sock.sendMessage(jid, { text: message });
+  if (sentMsg?.key?.id && sentMsg?.message) {
+    messageStore.set(sentMsg.key.id, sentMsg.message);
+  }
+  console.log(`📤 Message successfully delivered to ${jid} (ID: ${sentMsg?.key?.id})`);
 }
 
 // ─── Express HTTP Server ───────────────────────────────────────────────────
