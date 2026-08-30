@@ -29,6 +29,19 @@ const messageStore = new NodeCache({ stdTTL: 3600, checkperiod: 120 });
 let sock = null;
 let qrDataUrl = null;          // base64 QR image served to admin UI
 let connectionStatus = "disconnected"; // 'connecting' | 'open' | 'disconnected'
+let isConnecting = false;
+let reconnectTimer = null;
+let mongoDbCollection = null;
+
+// ─── Database Initialization ────────────────────────────────────────────────
+async function getAuthCollection() {
+  if (mongoDbCollection) return mongoDbCollection;
+  const mongoClient = new MongoClient(MONGODB_URI);
+  await mongoClient.connect();
+  console.log("🗄️  Connected to MongoDB for WhatsApp auth state.");
+  mongoDbCollection = mongoClient.db().collection("whatsapp_auth");
+  return mongoDbCollection;
+}
 
 // ─── Message Templates ─────────────────────────────────────────────────────
 function buildStatusMessage(orderSerialNo, status, customerName, totalAmount) {
@@ -81,97 +94,116 @@ function formatPhone(phone) {
 
 // ─── WhatsApp Connection ───────────────────────────────────────────────────
 async function connectToWhatsApp() {
+  if (isConnecting) {
+    console.log("⏳ Connection attempt already in progress, skipping duplicate call...");
+    return;
+  }
+  isConnecting = true;
   connectionStatus = "connecting";
-  qrDataUrl = null;
 
-  console.log("🗄️  Connecting to MongoDB for WhatsApp auth state...");
-  const mongoClient = new MongoClient(MONGODB_URI);
-  await mongoClient.connect();
-  const collection = mongoClient.db().collection("whatsapp_auth");
-  
-  const { state, saveCreds } = await useMongoDBAuthState(collection);
-  const { version } = await fetchLatestBaileysVersion();
+  // Clean up any stale socket listeners before reconnecting
+  if (sock) {
+    try {
+      sock.ev.removeAllListeners();
+      sock.end(undefined);
+    } catch (e) {}
+    sock = null;
+  }
 
-  console.log(`🔌 Connecting to WhatsApp (Baileys v${version.join(".")})...`);
+  try {
+    const collection = await getAuthCollection();
+    const { state, saveCreds } = await useMongoDBAuthState(collection);
+    const { version } = await fetchLatestBaileysVersion();
 
-  sock = makeWASocket({
-    version,
-    auth: {
-      creds: state.creds,
-      keys: makeCacheableSignalKeyStore(state.keys, logger),
-    },
-    msgRetryCounterCache,
-    browser: Browsers.macOS("Chrome"), // Standard desktop browser signature
-    printQRInTerminal: false,
-    logger,
-    syncFullHistory: false,
-    markOnlineOnConnect: true,
-    keepAliveIntervalMs: 30000,
-    connectTimeoutMs: 60000,
-    defaultQueryTimeoutMs: 60000, // Standard 60s timeout so queries don't fail immediately
-    generateHighQualityLinkPreview: false,
-    getMessage: async (key) => {
-      if (key?.id && messageStore.has(key.id)) {
-        return messageStore.get(key.id);
-      }
-      return proto.Message.fromObject({});
-    },
-  });
+    console.log(`🔌 Connecting to WhatsApp (Baileys v${version.join(".")})...`);
 
-  // Save credentials on every update
-  sock.ev.on("creds.update", saveCreds);
-
-  // Store messages in memory for retry resolution
-  sock.ev.on("messages.upsert", async (m) => {
-    for (const msg of m.messages) {
-      if (msg.key?.id && msg.message) {
-        messageStore.set(msg.key.id, msg.message);
-      }
-    }
-  });
-
-  // Handle connection state changes
-  sock.ev.on("connection.update", async (update) => {
-    const { connection, lastDisconnect, qr } = update;
-
-    // New QR code generated — convert to base64 PNG for admin UI
-    if (qr) {
-      console.log("📱 QR Code ready — scan with WhatsApp on your phone.");
-      console.log("   Or visit: http://localhost:" + PORT + "/qr to scan via the admin panel.");
-      qrDataUrl = await qrcode.toDataURL(qr);
-      connectionStatus = "qr_pending";
-    }
-
-    if (connection === "open") {
-      console.log("✅ WhatsApp connected successfully!");
-      connectionStatus = "open";
-      qrDataUrl = null; // Clear QR once connected
-    }
-
-    if (connection === "close") {
-      const reason = new Boom(lastDisconnect?.error)?.output?.statusCode;
-      console.log(`⚠️  Connection closed. Reason: ${reason} (loggedOut=${reason === DisconnectReason.loggedOut})`);
-      connectionStatus = "disconnected";
-      qrDataUrl = null;
-
-      // If logged out from phone or app, wipe the MongoDB session and spin up a fresh QR code
-      if (reason === DisconnectReason.loggedOut) {
-        console.log("🔴 Logged out. Clearing MongoDB auth and regenerating fresh QR code...");
-        try {
-          const mongoClient = new MongoClient(MONGODB_URI);
-          await mongoClient.connect();
-          await mongoClient.db().collection("whatsapp_auth").deleteMany({});
-          await mongoClient.close();
-        } catch (dbErr) {
-          console.error("Failed to clear auth collection on logout:", dbErr.message);
+    sock = makeWASocket({
+      version,
+      auth: {
+        creds: state.creds,
+        keys: makeCacheableSignalKeyStore(state.keys, logger),
+      },
+      msgRetryCounterCache,
+      browser: Browsers.macOS("Chrome"), // Standard desktop browser signature
+      printQRInTerminal: false,
+      logger,
+      syncFullHistory: false,
+      markOnlineOnConnect: true,
+      keepAliveIntervalMs: 30000,
+      connectTimeoutMs: 60000,
+      defaultQueryTimeoutMs: 60000,
+      generateHighQualityLinkPreview: false,
+      getMessage: async (key) => {
+        if (key?.id && messageStore.has(key.id)) {
+          return messageStore.get(key.id);
         }
-        setTimeout(connectToWhatsApp, 2000);
-      } else {
-        console.log("🔄 Reconnecting in 3 seconds...");
-        setTimeout(connectToWhatsApp, 3000);
+        return proto.Message.fromObject({});
+      },
+    });
+
+    // Save credentials on every update
+    sock.ev.on("creds.update", saveCreds);
+
+    // Store messages in memory for retry resolution
+    sock.ev.on("messages.upsert", async (m) => {
+      for (const msg of m.messages) {
+        if (msg.key?.id && msg.message) {
+          messageStore.set(msg.key.id, msg.message);
+        }
       }
-    }
-  });
+    });
+
+    // Handle connection state changes
+    sock.ev.on("connection.update", async (update) => {
+      const { connection, lastDisconnect, qr } = update;
+
+      // New QR code generated — convert to base64 PNG for admin UI
+      if (qr) {
+        console.log("📱 QR Code ready — scan with WhatsApp on your phone.");
+        qrDataUrl = await qrcode.toDataURL(qr);
+        connectionStatus = "qr_pending";
+        isConnecting = false;
+      }
+
+      if (connection === "open") {
+        console.log("✅ WhatsApp connected successfully!");
+        connectionStatus = "open";
+        qrDataUrl = null; // Clear QR once connected
+        isConnecting = false;
+      }
+
+      if (connection === "close") {
+        isConnecting = false;
+        const statusCode = new Boom(lastDisconnect?.error)?.output?.statusCode;
+        console.log(`⚠️  Connection closed. Status code: ${statusCode}`);
+        connectionStatus = "disconnected";
+
+        clearTimeout(reconnectTimer);
+
+        if (statusCode === DisconnectReason.restartRequired) {
+          console.log("🔄 Immediate restart required by WhatsApp server...");
+          reconnectTimer = setTimeout(connectToWhatsApp, 1000);
+        } else if (statusCode === DisconnectReason.loggedOut) {
+          console.log("🔴 Logged out explicitly. Clearing MongoDB auth and regenerating QR code...");
+          qrDataUrl = null;
+          try {
+            const coll = await getAuthCollection();
+            await coll.deleteMany({});
+          } catch (e) {}
+          reconnectTimer = setTimeout(connectToWhatsApp, 2000);
+        } else {
+          console.log("🔄 Reconnecting in 3 seconds...");
+          reconnectTimer = setTimeout(connectToWhatsApp, 3000);
+        }
+      }
+    });
+  } catch (err) {
+    isConnecting = false;
+    connectionStatus = "disconnected";
+    console.error("❌ Connection setup error:", err.message);
+    clearTimeout(reconnectTimer);
+    reconnectTimer = setTimeout(connectToWhatsApp, 5000);
+  }
 }
 
 // ─── Send Message Function ─────────────────────────────────────────────────
@@ -179,10 +211,10 @@ async function sendWhatsAppMessage(phone, message) {
   if (!sock || connectionStatus !== "open") {
     throw new Error(`WhatsApp not connected. Status: ${connectionStatus}`);
   }
-  let jid = formatPhone(phone);
-  console.log(`📱 Formatting phone: "${phone}" -> "${jid}"`);
+  const jid = formatPhone(phone);
+  console.log(`📱 Sending message to formatted phone: "${phone}" -> "${jid}"`);
 
-  // Optional presence / typing indicator (runs asynchronously without blocking delivery)
+  // Optional presence / typing indicator
   sock.sendPresenceUpdate("composing", jid).catch(() => {});
 
   // Send message directly
@@ -191,7 +223,7 @@ async function sendWhatsAppMessage(phone, message) {
     messageStore.set(sentMsg.key.id, sentMsg.message);
   }
   console.log(`📤 Message successfully delivered to ${jid} (ID: ${sentMsg?.key?.id})`);
-  
+
   // Reset presence to paused
   sock.sendPresenceUpdate("paused", jid).catch(() => {});
 }
@@ -209,14 +241,8 @@ function auth(req, res, next) {
   next();
 }
 
-// GET /status — Check connection status
+// GET /status — Check connection status (Read-only)
 app.get("/status", (req, res) => {
-  // If disconnected and not currently attempting connection, kick off a connection
-  if (connectionStatus === "disconnected" && !sock) {
-    console.log("🔄 Auto-triggering WhatsApp connection from /status check...");
-    connectToWhatsApp().catch(console.error);
-  }
-
   res.json({
     status: true,
     connection: connectionStatus,
@@ -228,10 +254,6 @@ app.get("/status", (req, res) => {
 // GET /qr — Get QR code as base64 image (for admin panel)
 app.get("/qr", (req, res) => {
   if (!qrDataUrl) {
-    // If disconnected and no QR, auto-trigger connect
-    if (connectionStatus === "disconnected" && !sock) {
-      connectToWhatsApp().catch(console.error);
-    }
     return res.status(404).json({
       status: false,
       message: connectionStatus === "open" ? "Already connected — no QR needed." : "QR code generating... Please refresh in a moment.",
@@ -277,10 +299,8 @@ app.post("/logout", auth, async (req, res) => {
 
     // Wipe MongoDB auth collection
     try {
-      const mongoClient = new MongoClient(MONGODB_URI);
-      await mongoClient.connect();
-      await mongoClient.db().collection("whatsapp_auth").deleteMany({});
-      await mongoClient.close();
+      const coll = await getAuthCollection();
+      await coll.deleteMany({});
       console.log("🧹 Auth collection cleared in MongoDB on logout");
     } catch (dbErr) {
       console.error("Failed to wipe auth on logout:", dbErr.message);
@@ -288,9 +308,11 @@ app.post("/logout", auth, async (req, res) => {
 
     connectionStatus = "disconnected";
     qrDataUrl = null;
+    isConnecting = false;
 
     // Immediately trigger a fresh connection to generate new QR
-    setTimeout(() => {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = setTimeout(() => {
       connectToWhatsApp().catch(console.error);
     }, 1500);
 
