@@ -150,16 +150,25 @@ async function connectToWhatsApp() {
 
     if (connection === "close") {
       const reason = new Boom(lastDisconnect?.error)?.output?.statusCode;
-      console.log(`⚠️  Connection closed. Reason: ${reason}`);
+      console.log(`⚠️  Connection closed. Reason: ${reason} (loggedOut=${reason === DisconnectReason.loggedOut})`);
       connectionStatus = "disconnected";
+      qrDataUrl = null;
 
-      // Auto-reconnect unless explicitly logged out
-      if (reason !== DisconnectReason.loggedOut) {
+      // If logged out from phone or app, wipe the MongoDB session and spin up a fresh QR code
+      if (reason === DisconnectReason.loggedOut) {
+        console.log("🔴 Logged out. Clearing MongoDB auth and regenerating fresh QR code...");
+        try {
+          const mongoClient = new MongoClient(MONGODB_URI);
+          await mongoClient.connect();
+          await mongoClient.db().collection("whatsapp_auth").deleteMany({});
+          await mongoClient.close();
+        } catch (dbErr) {
+          console.error("Failed to clear auth collection on logout:", dbErr.message);
+        }
+        setTimeout(connectToWhatsApp, 2000);
+      } else {
         console.log("🔄 Reconnecting in 3 seconds...");
         setTimeout(connectToWhatsApp, 3000);
-      } else {
-        console.log("🔴 Logged out. Delete the auth_info folder and restart to re-scan QR.");
-        qrDataUrl = null;
       }
     }
   });
@@ -183,14 +192,15 @@ async function sendWhatsAppMessage(phone, message) {
     console.warn(`⚠️  onWhatsApp check skipped:`, checkErr.message);
   }
 
-  // 1. Mask human behavior: presence & realistic typing indicator
+  // 1. Presence subscription & composing simulation
   try {
     await sock.presenceSubscribe(jid);
+    await sock.sendPresenceUpdate("available");
     await sock.sendPresenceUpdate("composing", jid);
     await new Promise((resolve) => setTimeout(resolve, 800 + Math.random() * 400));
     await sock.sendPresenceUpdate("paused", jid);
   } catch (presenceErr) {
-    // Non-fatal if presence update fails
+    // Non-fatal
   }
 
   // 2. Send message and cache in memory for instant Signal retry resolution
@@ -216,6 +226,12 @@ function auth(req, res, next) {
 
 // GET /status — Check connection status
 app.get("/status", (req, res) => {
+  // If disconnected and not currently attempting connection, kick off a connection
+  if (connectionStatus === "disconnected" && !sock) {
+    console.log("🔄 Auto-triggering WhatsApp connection from /status check...");
+    connectToWhatsApp().catch(console.error);
+  }
+
   res.json({
     status: true,
     connection: connectionStatus,
@@ -227,9 +243,13 @@ app.get("/status", (req, res) => {
 // GET /qr — Get QR code as base64 image (for admin panel)
 app.get("/qr", (req, res) => {
   if (!qrDataUrl) {
+    // If disconnected and no QR, auto-trigger connect
+    if (connectionStatus === "disconnected" && !sock) {
+      connectToWhatsApp().catch(console.error);
+    }
     return res.status(404).json({
       status: false,
-      message: connectionStatus === "open" ? "Already connected — no QR needed." : "QR not ready yet. Try again in a moment.",
+      message: connectionStatus === "open" ? "Already connected — no QR needed." : "QR code generating... Please refresh in a moment.",
       connection: connectionStatus,
     });
   }
@@ -260,14 +280,36 @@ app.post("/send", auth, async (req, res) => {
   }
 });
 
-// POST /logout — Disconnect and clear session
+// POST /logout — Disconnect, wipe session, and immediately generate a fresh QR code
 app.post("/logout", auth, async (req, res) => {
   try {
     if (sock) {
-      await sock.logout();
-      connectionStatus = "disconnected";
+      try {
+        await sock.logout();
+      } catch (e) {}
+      sock = null;
     }
-    res.json({ status: true, message: "Logged out successfully. Restart service to re-pair." });
+
+    // Wipe MongoDB auth collection
+    try {
+      const mongoClient = new MongoClient(MONGODB_URI);
+      await mongoClient.connect();
+      await mongoClient.db().collection("whatsapp_auth").deleteMany({});
+      await mongoClient.close();
+      console.log("🧹 Auth collection cleared in MongoDB on logout");
+    } catch (dbErr) {
+      console.error("Failed to wipe auth on logout:", dbErr.message);
+    }
+
+    connectionStatus = "disconnected";
+    qrDataUrl = null;
+
+    // Immediately trigger a fresh connection to generate new QR
+    setTimeout(() => {
+      connectToWhatsApp().catch(console.error);
+    }, 1500);
+
+    res.json({ status: true, message: "Logged out. Fresh QR code is being generated..." });
   } catch (err) {
     res.status(500).json({ status: false, message: err.message });
   }
