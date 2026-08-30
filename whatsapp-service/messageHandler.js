@@ -1,6 +1,7 @@
 // ─── Message Handler ───────────────────────────────────────────────────────
-// Conversational ordering bot state machine for Nectar Groceries with Product Variations & GPS Location
+// Conversational ordering bot state machine for Nectar Groceries with Product Variations, GPS Location, and Order Tracking
 
+const { ObjectId } = require("mongodb");
 const sessionManager = require("./sessionManager");
 const userService = require("./userService");
 const catalogService = require("./catalogService");
@@ -38,12 +39,35 @@ function buildWelcomeMenu(session) {
 
   return (
     `${greeting}\n\n` +
-    `How would you like to shop today?\n\n` +
+    `How would you like to proceed today?\n\n` +
     `1️⃣ *Browse by Category*\n` +
-    `2️⃣ *Search for an item*\n\n` +
-    `_Reply *1* or *2* to start_\n` +
+    `2️⃣ *Search for an item*\n` +
+    `3️⃣ *Track an Order* 🚚\n\n` +
+    `_Reply *1*, *2*, or *3* to start_\n` +
     `_Type *CART* to view cart | *HELP* for commands_`
   );
+}
+
+function formatOrderStatusProgress(status) {
+  const s = String(status || "").toLowerCase();
+  switch (s) {
+    case "pending":
+      return "🟡 *Order Received (Pending)*\n_We have received your order and are confirming item availability._";
+    case "confirmed":
+    case "processing":
+    case "preparing":
+      return "🍳 *Confirmed & Preparing*\n_Our store team is carefully packing your fresh groceries._";
+    case "out_for_delivery":
+    case "on_the_way":
+      return "🚚 *Out for Delivery*\n_Your rider is on the way to your delivery address!_";
+    case "delivered":
+      return "✅ *Delivered*\n_Your groceries have been safely delivered. Enjoy! 🥑_";
+    case "cancelled":
+    case "rejected":
+      return "❌ *Cancelled*\n_This order was cancelled. Please contact customer support for details._";
+    default:
+      return `📦 *Status:* ${status.toUpperCase()}`;
+  }
 }
 
 function handleItemSelection(session, selectedItem, sendFn, phone) {
@@ -99,6 +123,114 @@ function handleItemSelection(session, selectedItem, sendFn, phone) {
   );
 }
 
+async function startTrackOrderFlow(db, session, phone, directSerial, sendFn) {
+  if (directSerial) {
+    return showOrderTrackingCard(db, directSerial, phone, sendFn);
+  }
+
+  // Check if this phone/user has recent orders
+  const ordersCollection = db.collection("orders");
+  const query = [];
+  if (session.userId && ObjectId.isValid(session.userId)) {
+    query.push({ userId: new ObjectId(session.userId) });
+  }
+  const cleanPhone = userService.cleanDigits(phone);
+  if (cleanPhone.length >= 7) {
+    query.push({ customerPhone: { $regex: cleanPhone.slice(-9), $options: "i" } });
+  }
+
+  let recentOrders = [];
+  if (query.length > 0) {
+    try {
+      recentOrders = await ordersCollection
+        .find({ $or: query })
+        .sort({ createdAt: -1 })
+        .limit(3)
+        .toArray();
+    } catch (e) {}
+  }
+
+  session.step = "TRACK_ORDER";
+
+  if (recentOrders.length > 0) {
+    session.recentOrders = recentOrders;
+    const list = recentOrders
+      .map(
+        (o, idx) =>
+          `${idx + 1}️⃣ *#${o.orderSerialNo}* (₦${formatPrice(o.totalAmount)}) — ${o.orderStatus?.replace("_", " ")?.toUpperCase()}`
+      )
+      .join("\n");
+
+    return sendFn(
+      phone,
+      `🔍 *Track Your Order*\n\n` +
+        `Your recent orders:\n` +
+        `${list}\n\n` +
+        `_Reply with *1*, *2*, or *3* to view details,\n` +
+        `OR type any Order Number (e.g. ORD-7X9K2L):_\n\n` +
+        `_Type *MENU* to go back_`
+    );
+  }
+
+  session.recentOrders = [];
+  return sendFn(
+    phone,
+    `🔍 *Track Your Order*\n\n` +
+      `Please enter your *Order Number* (e.g. *ORD-7X9K2L*):\n\n` +
+      `_Type *MENU* to go back to store_`
+  );
+}
+
+async function showOrderTrackingCard(db, serialOrId, phone, sendFn) {
+  let serial = String(serialOrId || "").trim().toUpperCase().replace(/\s+/g, "");
+  if (!serial.startsWith("ORD-") && serial.length === 6) {
+    serial = "ORD-" + serial;
+  }
+
+  const ordersCollection = db.collection("orders");
+  let order = null;
+
+  try {
+    order = await ordersCollection.findOne({
+      $or: [
+        { orderSerialNo: serial },
+        { orderSerialNo: { $regex: new RegExp(`^${serial}$`, "i") } },
+      ],
+    });
+  } catch (e) {}
+
+  if (!order) {
+    return sendFn(
+      phone,
+      `❌ We couldn't find an order matching "*${serialOrId}*".\n\n` +
+        `Please verify the Order Number from your confirmation message (e.g. *ORD-7X9K2L*) and try again.\n\n` +
+        `_Type *MENU* to return to store_`
+    );
+  }
+
+  const frontendUrl = await paymentService.getFrontendAppUrl(db);
+  const itemsList = Array.isArray(order.items)
+    ? order.items.map((i) => `• ${i.name} x${i.quantity || 1}`).join("\n")
+    : "Fresh Groceries";
+
+  const orderDate = order.createdAt ? new Date(order.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "Recent";
+  const paymentBadge = order.paymentStatus === "paid" ? "✓ Paid" : "⏳ Pending Payment";
+
+  return sendFn(
+    phone,
+    `📦 *Order Tracking: #${order.orderSerialNo}*\n` +
+      `📅 Placed: ${orderDate}\n\n` +
+      `${formatOrderStatusProgress(order.orderStatus)}\n\n` +
+      `💳 *Payment:* ${paymentBadge} (${order.paymentMethod || "Bank Transfer"})\n` +
+      `🛍️ *Items:*\n${itemsList}\n\n` +
+      `💰 *Total Amount:* ₦${formatPrice(order.totalAmount)}\n` +
+      `📍 *Delivery Address:*\n${order.deliveryAddress?.address || "Address provided"}\n\n` +
+      `🌐 *Live Web Tracking & Receipt:*\n` +
+      `👉 ${frontendUrl}/order/${order._id}\n\n` +
+      `_Reply *TRACK* to check another order | *MENU* for store_`
+  );
+}
+
 async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
   // Check if input is a location object or text
   let text = "";
@@ -140,6 +272,13 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
     return sendFn(phone, buildWelcomeMenu(session));
   }
 
+  // Track command with optional serial e.g. "TRACK ORD-123456"
+  if (upper.startsWith("TRACK") || upper === "STATUS" || upper === "MY ORDER") {
+    const parts = text.split(/\s+/);
+    const directSerial = parts.length > 1 ? parts.slice(1).join(" ") : null;
+    return startTrackOrderFlow(db, session, phone, directSerial, sendFn);
+  }
+
   if (["CART", "VIEW CART", "BASKET"].includes(upper)) {
     if (session.cart.length === 0) {
       return sendFn(
@@ -171,6 +310,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
       `🌿 *Nectar WhatsApp Assistant*\n\n` +
         `Here are the commands you can use anytime:\n` +
         `• *MENU* — Main store menu\n` +
+        `• *TRACK* — Track your order status 🚚\n` +
         `• *CART* — View your shopping cart\n` +
         `• *CHECKOUT* — Place your order\n` +
         `• *CLEAR* — Empty your cart\n` +
@@ -232,6 +372,10 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
         );
       }
 
+      if (text === "3" || upper.includes("TRACK")) {
+        return startTrackOrderFlow(db, session, phone, null, sendFn);
+      }
+
       if (upper === "CHECKOUT") {
         if (session.cart.length === 0) {
           return sendFn(
@@ -244,9 +388,24 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
 
       return sendFn(
         phone,
-        `Please reply with *1* to browse categories or *2* to search for items.\n\n` +
+        `Please reply with *1* to browse, *2* to search, or *3* to track an order.\n\n` +
           buildWelcomeMenu(session)
       );
+    }
+
+    // ── TRACK ORDER INPUT ──────────────────────────────────────────────────
+    case "TRACK_ORDER": {
+      // Check if user selected from recent orders list (e.g. "1", "2", "3")
+      const numIdx = parseInt(text, 10) - 1;
+      if (!isNaN(numIdx) && numIdx >= 0 && numIdx < (session.recentOrders || []).length) {
+        const selectedOrder = session.recentOrders[numIdx];
+        session.step = "MAIN_MENU";
+        return showOrderTrackingCard(db, selectedOrder.orderSerialNo, phone, sendFn);
+      }
+
+      // Look up by typed order number
+      session.step = "MAIN_MENU";
+      return showOrderTrackingCard(db, text, phone, sendFn);
     }
 
     // ── BROWSE CATEGORIES ──────────────────────────────────────────────────

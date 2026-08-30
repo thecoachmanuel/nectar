@@ -16,6 +16,7 @@ function createInitialSession(phone) {
     browseCategory: null,
     browseItems: [],
     searchResults: [],
+    recentOrders: [],
     userId: null,
     customerName: null,
     customerEmail: null,
@@ -57,6 +58,7 @@ function resetToMenu(phone) {
   session.availableVariations = [];
   session.browseItems = [];
   session.searchResults = [];
+  session.recentOrders = [];
   session.lastActivity = Date.now();
   return session;
 }
@@ -68,6 +70,7 @@ function clearCart(phone) {
   session.selectedItem = null;
   session.selectedVariation = null;
   session.availableVariations = [];
+  session.recentOrders = [];
   session.lastActivity = Date.now();
   return session;
 }
