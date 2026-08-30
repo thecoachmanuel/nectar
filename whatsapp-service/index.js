@@ -19,6 +19,8 @@ const NodeCache = require("node-cache");
 const PORT = process.env.PORT || 3001;
 const API_SECRET = process.env.API_SECRET || "wa_secret_change_me";
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/foodappi";
+const APP_URL = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "";
+const { handleIncomingMessage } = require("./messageHandler");
 const logger = pino({ level: "silent" }); // Keep logs quiet in production
 
 // ─── Retry & Message Cache (Fixes "Waiting for this message") ───────────────
@@ -32,14 +34,22 @@ let connectionStatus = "disconnected"; // 'connecting' | 'open' | 'disconnected'
 let isConnecting = false;
 let reconnectTimer = null;
 let mongoDbCollection = null;
+let mongoDbInstance = null;
 
 // ─── Database Initialization ────────────────────────────────────────────────
-async function getAuthCollection() {
-  if (mongoDbCollection) return mongoDbCollection;
+async function getMongoDb() {
+  if (mongoDbInstance) return mongoDbInstance;
   const mongoClient = new MongoClient(MONGODB_URI);
   await mongoClient.connect();
-  console.log("🗄️  Connected to MongoDB for WhatsApp auth state.");
-  mongoDbCollection = mongoClient.db().collection("whatsapp_auth");
+  console.log("🗄️  Connected to MongoDB instance.");
+  mongoDbInstance = mongoClient.db();
+  return mongoDbInstance;
+}
+
+async function getAuthCollection() {
+  if (mongoDbCollection) return mongoDbCollection;
+  const db = await getMongoDb();
+  mongoDbCollection = db.collection("whatsapp_auth");
   return mongoDbCollection;
 }
 
@@ -144,11 +154,45 @@ async function connectToWhatsApp() {
     // Save credentials on every update
     sock.ev.on("creds.update", saveCreds);
 
-    // Store messages in memory for retry resolution
+    // Store messages in memory for retry resolution and process customer ordering
     sock.ev.on("messages.upsert", async (m) => {
       for (const msg of m.messages) {
         if (msg.key?.id && msg.message) {
           messageStore.set(msg.key.id, msg.message);
+        }
+
+        // Process incoming customer messages (from others, not from me, not broadcast, not groups)
+        const remoteJid = msg.key?.remoteJid || "";
+        if (
+          !msg.key?.fromMe &&
+          remoteJid &&
+          !remoteJid.includes("status@broadcast") &&
+          !remoteJid.endsWith("@g.us")
+        ) {
+          const messageText =
+            msg.message?.conversation ||
+            msg.message?.extendedTextMessage?.text ||
+            msg.message?.buttonsResponseMessage?.selectedButtonId ||
+            msg.message?.listResponseMessage?.singleSelectReply?.selectedRowId ||
+            "";
+
+          if (messageText && messageText.trim()) {
+            const senderPhone = remoteJid.replace(/@.+/, "");
+            console.log(`💬 Incoming WhatsApp message from ${senderPhone}: "${messageText.trim()}"`);
+
+            try {
+              const db = await getMongoDb();
+              await handleIncomingMessage(
+                db,
+                APP_URL,
+                senderPhone,
+                messageText.trim(),
+                sendWhatsAppMessage
+              );
+            } catch (handlerErr) {
+              console.error("❌ Error handling incoming message:", handlerErr.message);
+            }
+          }
         }
       }
     });

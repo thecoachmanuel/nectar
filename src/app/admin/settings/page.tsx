@@ -34,7 +34,14 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (Object.keys(settings).length > 0) {
-      setFormData(settings);
+      const initialForm = { ...settings };
+      if (settings.wa_bank_account) {
+        const bankObj = typeof settings.wa_bank_account === "string" ? JSON.parse(settings.wa_bank_account) : settings.wa_bank_account;
+        initialForm.wa_bank_name = bankObj.bankName || initialForm.wa_bank_name || "";
+        initialForm.wa_account_number = bankObj.accountNumber || initialForm.wa_account_number || "";
+        initialForm.wa_account_name = bankObj.accountName || initialForm.wa_account_name || "";
+      }
+      setFormData(initialForm);
     }
   }, [settings]);
 
@@ -52,6 +59,7 @@ export default function SettingsPage() {
         if (key.startsWith("pay_")) group = "Payment Gateway";
         if (key.startsWith("sms_")) group = "SMS Gateway";
         if (key.startsWith("push_")) group = "Push Notification";
+        if (key.startsWith("wa_")) group = "WhatsApp Bot";
         if (key.startsWith("theme_")) group = "Theme";
         if (["baseDeliveryFee", "feePerKm", "multiStoreExtraFee", "freeDeliveryThreshold", "orderValueFeePercent", "largeOrderThreshold", "largeOrderFeePercent", "takeaway_enabled"].includes(key)) group = "Delivery";
         return { key, group, payload: formData[key] };
@@ -62,13 +70,26 @@ export default function SettingsPage() {
       
       // For Company tab, also include non-prefixed keys
       if (activeTab === "Company") {
-        tabSettings = allSettings.filter(s => s.group === "Company" || (!s.key.startsWith("site_") && !s.key.startsWith("mail_") && !s.key.startsWith("pay_") && !s.key.startsWith("sms_") && !s.key.startsWith("push_") && !s.key.startsWith("theme_")));
+        tabSettings = allSettings.filter(s => s.group === "Company" || (!s.key.startsWith("site_") && !s.key.startsWith("mail_") && !s.key.startsWith("pay_") && !s.key.startsWith("sms_") && !s.key.startsWith("push_") && !s.key.startsWith("wa_") && !s.key.startsWith("theme_")));
       }
 
       // Also sync alias keys for company info
       if (activeTab === "Company") {
         if (formData.company_email) tabSettings.push({ key: "contactEmail", group: "Company", payload: formData.company_email });
         if (formData.company_phone) tabSettings.push({ key: "contactPhone", group: "Company", payload: formData.company_phone });
+      }
+
+      // Sync combined bank account payload for WhatsApp Bot
+      if (activeTab === "WhatsApp Bot") {
+        tabSettings.push({
+          key: "wa_bank_account",
+          group: "WhatsApp Bot",
+          payload: {
+            bankName: formData.wa_bank_name || "",
+            accountNumber: formData.wa_account_number || "",
+            accountName: formData.wa_account_name || "",
+          },
+        });
       }
 
       if (tabSettings.length === 0) {
@@ -89,6 +110,7 @@ export default function SettingsPage() {
     { name: "Mail", icon: Mail },
     { name: "Delivery", icon: Smartphone },
     { name: "Payment Gateway", icon: CreditCard },
+    { name: "WhatsApp Bot", icon: MessageSquare },
     { name: "SMS Gateway", icon: MessageSquare },
     { name: "Push Notification", icon: Smartphone },
     { name: "Roles & Permissions", icon: ShieldCheck },
@@ -657,6 +679,75 @@ export default function SettingsPage() {
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
                 </select>
+              </div>
+            </div>
+          )}
+
+          {/* WhatsApp Bot */}
+          {activeTab === "WhatsApp Bot" && (
+            <div className="space-y-6">
+              <div className="bg-[#FAFAFC] p-4 rounded-xl border border-[#EFF0F6] mb-4">
+                <h4 className="font-semibold text-sm text-[#14142B] mb-1">🏦 Bank Account for WhatsApp Orders</h4>
+                <p className="text-xs text-[#6E7191]">
+                  This bank account is automatically sent to customers on WhatsApp when they choose &quot;Pay via Bank Transfer&quot;.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-[#14142B] mb-2">Bank Name <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Guaranty Trust Bank (GTBank), Access Bank, Zenith Bank"
+                    value={formData.wa_bank_name || ""} 
+                    onChange={(e) => {
+                      const newBankName = e.target.value;
+                      handleChange("wa_bank_name", newBankName);
+                      handleChange("wa_bank_account", {
+                        bankName: newBankName,
+                        accountNumber: formData.wa_account_number || "",
+                        accountName: formData.wa_account_name || "",
+                      });
+                    }}
+                    className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-[#14142B] mb-2">Account Number <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. 0123456789"
+                    value={formData.wa_account_number || ""} 
+                    onChange={(e) => {
+                      const newAccNum = e.target.value;
+                      handleChange("wa_account_number", newAccNum);
+                      handleChange("wa_bank_account", {
+                        bankName: formData.wa_bank_name || "",
+                        accountNumber: newAccNum,
+                        accountName: formData.wa_account_name || "",
+                      });
+                    }}
+                    className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-[#14142B] mb-2">Account Name <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Nectar Groceries Ltd"
+                    value={formData.wa_account_name || ""} 
+                    onChange={(e) => {
+                      const newAccName = e.target.value;
+                      handleChange("wa_account_name", newAccName);
+                      handleChange("wa_bank_account", {
+                        bankName: formData.wa_bank_name || "",
+                        accountNumber: formData.wa_account_number || "",
+                        accountName: newAccName,
+                      });
+                    }}
+                    className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                  />
+                </div>
               </div>
             </div>
           )}
