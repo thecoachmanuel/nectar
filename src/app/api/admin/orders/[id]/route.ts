@@ -100,7 +100,7 @@ export async function PUT(
         const customerPhone = order.customerPhone || user?.phone;
 
         if (customerPhone && customerPhone !== "N/A") {
-          fetch(`${waServiceUrl}/send`, {
+          await fetch(`${waServiceUrl}/send`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

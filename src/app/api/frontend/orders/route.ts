@@ -244,32 +244,37 @@ export async function POST(req: Request) {
     try {
       const waServiceUrl = process.env.WHATSAPP_SERVICE_URL || "http://localhost:3001";
       const waSecret = process.env.WHATSAPP_API_SECRET || "wa_secret_change_me";
+      const whatsappPromises = [];
       
       for (const order of createdOrders) {
         const phone = order.customerPhone || userDoc?.phone;
         if (phone && phone !== "N/A") {
-          fetch(`${waServiceUrl}/send`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-api-secret": waSecret,
-            },
-            body: JSON.stringify({
-              phone: phone,
-              orderSerialNo: order.orderSerialNo,
-              orderStatus: "pending",
-              customerName: order.customerName || userDoc?.name,
-              totalAmount: order.totalAmount,
-            }),
-          })
-            .then((r) => r.json())
-            .then((d) => {
-              if (d.status) console.log(`✅ Initial WhatsApp sent to ${phone} for order ${order.orderSerialNo}`);
-              else console.warn(`⚠️  Initial WhatsApp not sent: ${d.message}`);
+          whatsappPromises.push(
+            fetch(`${waServiceUrl}/send`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-api-secret": waSecret,
+              },
+              body: JSON.stringify({
+                phone: phone,
+                orderSerialNo: order.orderSerialNo,
+                orderStatus: "pending",
+                customerName: order.customerName || userDoc?.name,
+                totalAmount: order.totalAmount,
+              }),
             })
-            .catch((e) => console.error(`❌ Initial WhatsApp error:`, e.message));
+              .then((r) => r.json())
+              .then((d) => {
+                if (d.status) console.log(`✅ Initial WhatsApp sent to ${phone} for order ${order.orderSerialNo}`);
+                else console.warn(`⚠️  Initial WhatsApp not sent: ${d.message}`);
+              })
+              .catch((e) => console.error(`❌ Initial WhatsApp error:`, e.message))
+          );
         }
       }
+      // Await all WhatsApp messages so Vercel Serverless doesn't kill the thread early
+      await Promise.all(whatsappPromises);
     } catch (waErr) {
       console.error("Failed to trigger WhatsApp on creation:", waErr);
     }
