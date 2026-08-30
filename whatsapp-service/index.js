@@ -517,5 +517,35 @@ app.listen(PORT, () => {
   console.log(`   POST /logout  → disconnect WhatsApp session\n`);
 });
 
+// ─── Self-Keepalive Ping (Prevents Render Free-Tier Sleep) ──────────────────
+const KEEP_ALIVE_URL = process.env.KEEP_ALIVE_URL || "https://nectar-58qj.onrender.com/status";
+const PING_INTERVAL_MS = 8 * 60 * 1000; // Ping every 8 minutes (Render sleep timeout is 15 mins)
+
+function startKeepAlive() {
+  if (!KEEP_ALIVE_URL || KEEP_ALIVE_URL.includes("localhost")) return;
+  console.log(`⏱️ Auto-Keepalive initialized: pinging ${KEEP_ALIVE_URL} every 8 mins`);
+  
+  // Initial ping after 30 seconds
+  setTimeout(pingServer, 30 * 1000);
+
+  // Recurring ping every 8 minutes
+  setInterval(pingServer, PING_INTERVAL_MS);
+}
+
+async function pingServer() {
+  try {
+    const res = await fetch(KEEP_ALIVE_URL);
+    if (res.ok) {
+      console.log(`💓 [Keepalive] Render instance kept awake at ${new Date().toLocaleTimeString()}`);
+    } else {
+      console.warn(`⚠️ [Keepalive] Ping returned status ${res.status}`);
+    }
+  } catch (err) {
+    console.warn(`⚠️ [Keepalive] Ping error:`, err.message);
+  }
+}
+
+startKeepAlive();
+
 // Start WhatsApp connection
 connectToWhatsApp().catch(console.error);
