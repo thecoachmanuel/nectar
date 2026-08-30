@@ -33,21 +33,27 @@ let connectionStatus = "disconnected"; // 'connecting' | 'open' | 'disconnected'
 // ─── Message Templates ─────────────────────────────────────────────────────
 function buildStatusMessage(orderSerialNo, status, customerName, totalAmount) {
   const name = customerName || "Customer";
-  const amount = totalAmount ? `₦${Number(totalAmount).toLocaleString()}` : "";
+  const amount = totalAmount ? ` (₦${Number(totalAmount).toLocaleString()})` : "";
 
   const templates = {
-    pending: `👋 Hi *${name}!*\n\nWe've received your order *#${orderSerialNo}*${amount ? ` (${amount})` : ""} and it's currently *pending confirmation*.\n\nWe'll notify you as soon as it's accepted! 🙏`,
-    accepted: `✅ Great news, *${name}!*\n\nYour order *#${orderSerialNo}* has been *accepted* and we're getting started on it right away! 🎉`,
-    preparing: `👨‍🍳 Hey *${name}!*\n\nYour order *#${orderSerialNo}* is now being *prepared*. Sit tight — it'll be ready soon! 🔥`,
-    ready: `🎁 *${name}*, your order *#${orderSerialNo}* is *READY!*\n\nOur delivery team is about to pick it up. Almost there! 🚀`,
-    out_for_delivery: `🚚 *${name}*, your order *#${orderSerialNo}* is *out for delivery!*\n\nOur rider is on their way to you. Please be available to receive it.\n\n_Remember your delivery PIN to verify receipt!_`,
-    delivered: `🎉 *${name}*, your order *#${orderSerialNo}* has been *delivered!*\n\nThank you for ordering with us! We hope you enjoy your meal 😋\n\nDon't forget to leave us a review! ⭐`,
-    canceled: `😔 *${name}*, unfortunately your order *#${orderSerialNo}* has been *canceled*.\n\nPlease contact us if you have any questions or to place a new order.\n\nSorry for the inconvenience! 🙏`,
+    pending: `🌿 *Nectar Groceries*\n\n👋 Hi *${name}*!\n\nWe've received your grocery order *#${orderSerialNo}*${amount} and it is currently *pending confirmation*.\n\nOur team is reviewing your items, and we'll update you the moment it is confirmed! 🛒✨\n\n_Thank you for choosing Nectar!_`,
+
+    accepted: `🌿 *Nectar Groceries*\n\n✅ Great news, *${name}*!\n\nYour grocery order *#${orderSerialNo}* has been *confirmed*! 🎉\n\nOur store team is now getting your fresh items ready for packing. 🥦🍎\n\n_— Team Nectar_`,
+
+    preparing: `🌿 *Nectar Groceries*\n\n🛍️ Hey *${name}*!\n\nYour order *#${orderSerialNo}* is now being carefully *picked & packed*. 🥑📦\n\nWe ensure only the freshest groceries are selected for your package. Sit tight — it'll be ready shortly! ✨`,
+
+    ready: `🌿 *Nectar Groceries*\n\n🎁 *${name}*, your grocery package *#${orderSerialNo}* is *all packed and ready!* 🛍️\n\nOur dispatch team is assigned and about to pick it up for delivery. 🚀`,
+
+    out_for_delivery: `🌿 *Nectar Groceries*\n\n🚚 Exciting news, *${name}*!\n\nYour grocery order *#${orderSerialNo}* is now *out for delivery!* 🛵💨\n\nOur rider is heading your way with your fresh package. Please be available to receive it.\n\n_— Team Nectar_`,
+
+    delivered: `🌿 *Nectar Groceries*\n\n🎉 *${name}*, your grocery order *#${orderSerialNo}* has been *successfully delivered!* 🏠📦\n\nThank you for shopping with Nectar! We hope you love your fresh groceries. 🍎🥑🥛\n\n_Enjoy your fresh items & see you on your next order!_ ⭐`,
+
+    canceled: `🌿 *Nectar Groceries*\n\n😔 *${name}*, your grocery order *#${orderSerialNo}* has been *canceled*.\n\nIf you have any questions or need assistance, simply reply directly to this chat or reach out to our customer care.\n\n_We apologize for any inconvenience! 🙏_`,
   };
 
   return (
     templates[status] ||
-    `Hi *${name}*, your order *#${orderSerialNo}* status has been updated to: *${status.replace("_", " ")}*.`
+    `🌿 *Nectar Groceries*\n\nHi *${name}*, your order *#${orderSerialNo}* status has been updated to: *${status.replace("_", " ")}*.\n\n_— Team Nectar_`
   );
 }
 
