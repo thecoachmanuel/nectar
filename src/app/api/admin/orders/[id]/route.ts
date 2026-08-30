@@ -95,11 +95,13 @@ export async function PUT(
         }
 
         // ── WhatsApp Notification via sidecar service ──────────────────────
-        const waServiceUrl = process.env.WHATSAPP_SERVICE_URL || "http://localhost:3001";
+        const rawUrl = process.env.WHATSAPP_SERVICE_URL || "http://localhost:3001";
+        const waServiceUrl = rawUrl.replace(/\/+$/, "");
         const waSecret = process.env.WHATSAPP_API_SECRET || "wa_secret_change_me";
         const customerPhone = order.customerPhone || user?.phone;
 
-        if (customerPhone && customerPhone !== "N/A") {
+        if (customerPhone && customerPhone !== "N/A" && customerPhone.trim() !== "") {
+          console.log(`[Admin WhatsApp Dispatch] Sending status (${body.orderStatus}) to ${customerPhone} via ${waServiceUrl}/send`);
           await fetch(`${waServiceUrl}/send`, {
             method: "POST",
             headers: {
@@ -117,11 +119,13 @@ export async function PUT(
             .then((r) => r.json())
             .then((d) => {
               if (d.status) console.log(`✅ WhatsApp sent to ${customerPhone} for order ${order.orderSerialNo}`);
-              else console.warn(`⚠️  WhatsApp not sent: ${d.message}`);
+              else console.warn(`⚠️  WhatsApp not sent: ${JSON.stringify(d)}`);
             })
             .catch((err) =>
               console.warn("⚠️  WhatsApp service unreachable (is it running?):", err.message)
             );
+        } else {
+          console.warn(`⚠️ Skipping WhatsApp status update: customer phone is missing or "N/A"`);
         }
         // ───────────────────────────────────────────────────────────────────
       } catch (err) {

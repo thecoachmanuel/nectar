@@ -47,10 +47,20 @@ function buildStatusMessage(orderSerialNo, status, customerName, totalAmount) {
 function formatPhone(phone) {
   // Remove all non-digit characters
   let digits = String(phone).replace(/\D/g, "");
-  // If starts with 0 (Nigerian local), convert to international
-  if (digits.startsWith("0")) {
+  
+  // If starts with 2340 (e.g. +234 080...), strip the extra 0 after 234
+  if (digits.startsWith("2340")) {
+    digits = "234" + digits.slice(4);
+  }
+  // If starts with 0 (Nigerian local, e.g. 080...), convert to international 234
+  else if (digits.startsWith("0")) {
     digits = "234" + digits.slice(1);
   }
+  // If it's a 10-digit number (e.g. 8012345678, 70..., 90...), prepend 234
+  else if (digits.length === 10 && (digits.startsWith("7") || digits.startsWith("8") || digits.startsWith("9"))) {
+    digits = "234" + digits;
+  }
+
   // Append WhatsApp suffix
   return `${digits}@s.whatsapp.net`;
 }
@@ -122,9 +132,21 @@ async function sendWhatsAppMessage(phone, message) {
   if (!sock || connectionStatus !== "open") {
     throw new Error(`WhatsApp not connected. Status: ${connectionStatus}`);
   }
-  const jid = formatPhone(phone);
+  let jid = formatPhone(phone);
+  console.log(`📱 Formatting phone: "${phone}" -> "${jid}"`);
+  
+  try {
+    const [result] = await sock.onWhatsApp(jid);
+    if (result && result.exists && result.jid) {
+      jid = result.jid;
+      console.log(`🔍 Verified WhatsApp JID: ${jid}`);
+    }
+  } catch (checkErr) {
+    console.warn(`⚠️  onWhatsApp check skipped:`, checkErr.message);
+  }
+
   await sock.sendMessage(jid, { text: message });
-  console.log(`📤 Message sent to ${jid}`);
+  console.log(`📤 Message successfully sent to ${jid}`);
 }
 
 // ─── Express HTTP Server ───────────────────────────────────────────────────

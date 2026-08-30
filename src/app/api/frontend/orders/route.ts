@@ -71,6 +71,9 @@ export async function POST(req: Request) {
     
     let userDoc = null;
     const User = (await import("@/models/User")).default;
+    if (userId) {
+      userDoc = await User.findById(userId);
+    }
     
     if (orderType === "delivery" && (deliveryCharge === undefined || deliveryCharge < 0)) {
       return NextResponse.json({ status: false, message: "Your address is out of delivery range." }, { status: 400 });
@@ -80,11 +83,16 @@ export async function POST(req: Request) {
       if (!userId) {
         return NextResponse.json({ status: false, message: "You must be logged in to use Wallet." }, { status: 400 });
       }
-      userDoc = await User.findById(userId);
       if (!userDoc || (userDoc.walletBalance || 0) < totalAmount) {
         return NextResponse.json({ status: false, message: "Insufficient wallet balance." }, { status: 400 });
       }
     }
+
+    const resolvedCustomerName = customerName || userDoc?.name || "Guest";
+    const resolvedCustomerEmail = customerEmail || userDoc?.email || "";
+    const resolvedCustomerPhone = (customerPhone && customerPhone !== "N/A" && customerPhone.trim() !== "") 
+      ? customerPhone 
+      : (userDoc?.phone || "N/A");
 
     const Store = (await import("@/models/Store")).default;
 
@@ -165,9 +173,9 @@ export async function POST(req: Request) {
       const newOrder = new Order({
         orderSerialNo: generateOrderSerial(),
         userId: userId || null,
-        customerName: customerName || "Guest",
-        customerEmail: customerEmail || "",
-        customerPhone: customerPhone || "N/A",
+        customerName: resolvedCustomerName,
+        customerEmail: resolvedCustomerEmail,
+        customerPhone: resolvedCustomerPhone,
         orderType,
         storeId: actualStoreId,
         items: groupItems,
@@ -196,7 +204,6 @@ export async function POST(req: Request) {
       createdOrders.push(savedOrder);
     }
     if (userId && paymentMethod === "wallet" && userDoc) {
-      const User = (await import("@/models/User")).default;
       await User.findByIdAndUpdate(userId, {
         $inc: { walletBalance: -totalAmount }
       });
@@ -213,7 +220,7 @@ export async function POST(req: Request) {
     try {
       const orderIdsString = createdOrders.map(o => o.orderSerialNo).join(", ");
       const notificationTitle = `New Order Placed: #${orderIdsString}`;
-      const notificationBody = `Customer ${customerName || "Guest"} has placed a new order for ${formatPrice(totalAmount)}.`;
+      const notificationBody = `Customer ${resolvedCustomerName} has placed a new order for ${formatPrice(totalAmount)}.`;
       
       // 1. Notify all Admins
       const admins = await User.find({ role: "admin", deviceToken: { $exists: true, $ne: "" } });
@@ -242,13 +249,15 @@ export async function POST(req: Request) {
     
     // --- WhatsApp Notification via sidecar service ---
     try {
-      const waServiceUrl = process.env.WHATSAPP_SERVICE_URL || "http://localhost:3001";
+      const rawUrl = process.env.WHATSAPP_SERVICE_URL || "http://localhost:3001";
+      const waServiceUrl = rawUrl.replace(/\/+$/, "");
       const waSecret = process.env.WHATSAPP_API_SECRET || "wa_secret_change_me";
       const whatsappPromises = [];
       
       for (const order of createdOrders) {
-        const phone = order.customerPhone || userDoc?.phone;
-        if (phone && phone !== "N/A") {
+        const phone = order.customerPhone || resolvedCustomerPhone;
+        if (phone && phone !== "N/A" && phone.trim() !== "") {
+          console.log(`[WhatsApp Dispatch] Sending initial receipt to ${phone} via ${waServiceUrl}/send`);
           whatsappPromises.push(
             fetch(`${waServiceUrl}/send`, {
               method: "POST",
@@ -260,17 +269,19 @@ export async function POST(req: Request) {
                 phone: phone,
                 orderSerialNo: order.orderSerialNo,
                 orderStatus: "pending",
-                customerName: order.customerName || userDoc?.name,
+                customerName: order.customerName || resolvedCustomerName,
                 totalAmount: order.totalAmount,
               }),
             })
               .then((r) => r.json())
               .then((d) => {
                 if (d.status) console.log(`✅ Initial WhatsApp sent to ${phone} for order ${order.orderSerialNo}`);
-                else console.warn(`⚠️  Initial WhatsApp not sent: ${d.message}`);
+                else console.warn(`⚠️  Initial WhatsApp response: ${JSON.stringify(d)}`);
               })
               .catch((e) => console.error(`❌ Initial WhatsApp error:`, e.message))
           );
+        } else {
+          console.warn(`⚠️ Skipping WhatsApp notification: customer phone is missing or "N/A" (order: ${order.orderSerialNo})`);
         }
       }
       // Await all WhatsApp messages so Vercel Serverless doesn't kill the thread early
