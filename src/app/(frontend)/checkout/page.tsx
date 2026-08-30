@@ -263,7 +263,7 @@ export default function CheckoutPage() {
                   <div className="mb-6">
                     <div className="flex flex-wrap items-center justify-between gap-4 mb-3">
                       <h4 className="capitalize font-medium text-[#14142b]">Delivery Address</h4>
-                      <Link href="/account/addresses" className="group text-xs capitalize font-medium flex items-center rounded-3xl py-1.5 px-3 gap-1 text-[#00749B] bg-[#D6F5FF] transition hover:text-white hover:bg-[#00749B]">
+                      <Link href="/account/addresses?from=checkout" className="group text-xs capitalize font-medium flex items-center rounded-3xl py-1.5 px-3 gap-1 text-[#00749B] bg-[#D6F5FF] transition hover:text-white hover:bg-[#00749B]">
                         <Edit2 className="w-3.5 h-3.5" />
                         <span>Add/Edit</span>
                       </Link>
@@ -272,7 +272,7 @@ export default function CheckoutPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {addresses.length === 0 ? (
                         <div className="col-span-full p-4 border border-dashed border-[#eff0f6] rounded-xl text-center text-sm text-[#6e7191]">
-                          No addresses found. <Link href="/account/addresses" className="text-primary font-medium hover:underline">Add one now</Link>.
+                          No addresses found. <Link href="/account/addresses?from=checkout" className="text-primary font-medium hover:underline">Add one now</Link>.
                         </div>
                       ) : (
                         addresses.map((addr) => (

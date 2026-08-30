@@ -13,9 +13,16 @@ export default function AddressesPage() {
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
   const { user, token, updateUser } = useAuthStore();
   const [addresses, setAddresses] = useState<any[]>(user?.addresses || []);
+  const [fromCheckout, setFromCheckout] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.get("from") === "checkout") {
+        setFromCheckout(true);
+      }
+    }
     if (!token) {
       router.push("/login");
       return;
@@ -101,9 +108,9 @@ export default function AddressesPage() {
   return (
     <section className="pt-6 pb-24 sm:pt-8 sm:pb-16 bg-[#f7f7fc] min-h-screen">
       <div className="container mx-auto px-4 sm:px-6 max-w-3xl">
-        <Link href="/" className="mb-4 inline-flex items-center gap-2 text-primary hover:text-rose-600 transition-colors">
+        <Link href={fromCheckout ? "/checkout" : "/"} className="mb-4 inline-flex items-center gap-2 text-primary hover:text-rose-600 transition-colors">
           <Undo2 className="w-4 h-4" />
-          <span className="text-xs font-medium leading-6">Back to home</span>
+          <span className="text-xs font-medium leading-6">{fromCheckout ? "Back to cart" : "Back to home"}</span>
         </Link>
 
         <div className="flex items-center justify-between mb-6">
