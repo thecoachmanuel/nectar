@@ -101,8 +101,8 @@ function formatPhone(phoneOrJid) {
   return `${digits}@s.whatsapp.net`;
 }
 
-// ─── Extract Message Text Helper ───────────────────────────────────────────
-function extractMessageText(msg) {
+// ─── Extract Message Content Helper ─────────────────────────────────────────
+function extractMessageContent(msg) {
   if (!msg) return "";
   let m = msg.message || msg;
 
@@ -118,6 +118,17 @@ function extractMessageText(msg) {
   }
 
   if (!m) return "";
+
+  // Check for GPS Location Message
+  if (m.locationMessage || m.liveLocationMessage) {
+    const loc = m.locationMessage || m.liveLocationMessage;
+    return {
+      type: "location",
+      latitude: loc.degreesLatitude,
+      longitude: loc.degreesLongitude,
+      address: loc.address || loc.name || `GPS Location (${loc.degreesLatitude?.toFixed(4)}, ${loc.degreesLongitude?.toFixed(4)})`,
+    };
+  }
 
   return (
     m.conversation ||
@@ -212,15 +223,14 @@ async function connectToWhatsApp() {
           continue;
         }
 
-        // Extract message text
-        const messageText = extractMessageText(msg);
-        if (!messageText || !messageText.trim()) {
+        // Extract message text or location object
+        const messageContent = extractMessageContent(msg);
+        if (!messageContent) {
           continue;
         }
 
-        const text = messageText.trim();
         const senderPhone = cleanJid.replace(/@.+$/, "");
-        console.log(`💬 Processing WhatsApp message from ${cleanJid} (${senderPhone}): "${text}"`);
+        console.log(`💬 Processing WhatsApp message from ${cleanJid} (${senderPhone})`);
 
         // Send read receipt
         try {
@@ -233,7 +243,7 @@ async function connectToWhatsApp() {
             db,
             APP_URL,
             senderPhone,
-            text,
+            messageContent,
             async (dest, replyText) => {
               await sendWhatsAppMessage(cleanJid, replyText);
             }
@@ -298,12 +308,12 @@ async function connectToWhatsApp() {
 }
 
 // ─── Send Message Function ─────────────────────────────────────────────────
-async function sendWhatsAppMessage(phone, message) {
+async function sendWhatsAppMessage(phoneOrJid, message) {
   if (!sock || connectionStatus !== "open") {
     throw new Error(`WhatsApp not connected. Status: ${connectionStatus}`);
   }
-  const jid = formatPhone(phone);
-  console.log(`📱 Sending message to formatted phone: "${phone}" -> "${jid}"`);
+  const jid = formatPhone(phoneOrJid);
+  console.log(`📱 Sending message to: "${phoneOrJid}" -> "${jid}"`);
 
   // Optional presence / typing indicator
   sock.sendPresenceUpdate("composing", jid).catch(() => {});
@@ -331,6 +341,19 @@ function auth(req, res, next) {
   }
   next();
 }
+
+// GET /order/:id — Redirect to Next.js frontend order tracking page (graceful redirect)
+app.get("/order/:id", async (req, res) => {
+  try {
+    const db = await getMongoDb();
+    const { getFrontendAppUrl } = require("./paymentService");
+    const frontendUrl = await getFrontendAppUrl(db);
+    const queryString = req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
+    return res.redirect(302, `${frontendUrl}/order/${req.params.id}${queryString}`);
+  } catch (err) {
+    res.status(500).send("Unable to redirect to order page.");
+  }
+});
 
 // GET /status — Check connection status (Read-only)
 app.get("/status", (req, res) => {

@@ -1,6 +1,36 @@
 // ─── Payment Service ────────────────────────────────────────────────────────
 // Handles Paystack link generation and Bank Transfer details from Admin settings
 
+async function getFrontendAppUrl(db) {
+  // 1. Check environment variables
+  if (process.env.NEXT_PUBLIC_APP_URL && !process.env.NEXT_PUBLIC_APP_URL.includes("onrender.com") && !process.env.NEXT_PUBLIC_APP_URL.includes("localhost")) {
+    return process.env.NEXT_PUBLIC_APP_URL.replace(/\/+$/, "");
+  }
+  if (process.env.APP_URL && !process.env.APP_URL.includes("onrender.com") && !process.env.APP_URL.includes("localhost")) {
+    return process.env.APP_URL.replace(/\/+$/, "");
+  }
+
+  // 2. Check MongoDB settings collection
+  try {
+    const settingsCollection = db.collection("settings");
+    const siteUrlSetting = await settingsCollection.findOne({
+      key: { $in: ["site_url", "app_url", "frontend_url", "wa_site_url"] }
+    });
+
+    if (siteUrlSetting && siteUrlSetting.payload) {
+      const url = typeof siteUrlSetting.payload === "string" ? siteUrlSetting.payload.trim() : "";
+      if (url.startsWith("http")) {
+        return url.replace(/\/+$/, "");
+      }
+    }
+  } catch (err) {
+    console.warn("⚠️ Could not read site_url setting from DB:", err.message);
+  }
+
+  // 3. Fallback to configured or typical Vercel app URL
+  return (process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://nectar-app.vercel.app").replace(/\/+$/, "");
+}
+
 async function getBankAccountDetails(db) {
   try {
     const settingsCollection = db.collection("settings");
@@ -40,30 +70,28 @@ async function getBankAccountDetails(db) {
   };
 }
 
-async function initializePaystackPayment(db, appUrl, order) {
+async function initializePaystackPayment(db, appUrlOverride, order) {
   const amountInKobo = Math.round(Number(order.totalAmount) * 100);
   const reference = `ps_wa_${order._id}_${Date.now()}`;
-  const baseUrl = (appUrl || "https://nectar-58qj.onrender.com").replace(/\/+$/, "");
+  const frontendUrl = await getFrontendAppUrl(db);
 
-  // Strategy 1: Call Next.js Paystack Initialize API
-  if (appUrl) {
-    try {
-      const apiRes = await fetch(`${baseUrl}/api/payments/paystack/initialize`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId: order._id.toString() }),
-      });
-      const data = await apiRes.json();
-      if (data.status && data.authorizationUrl) {
-        return {
-          status: true,
-          authorizationUrl: data.authorizationUrl,
-          reference: data.reference || reference,
-        };
-      }
-    } catch (apiErr) {
-      console.warn("⚠️ API Paystack init failed, falling back to direct Paystack API:", apiErr.message);
+  // Strategy 1: Call Next.js Paystack Initialize API if possible
+  try {
+    const apiRes = await fetch(`${frontendUrl}/api/payments/paystack/initialize`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId: order._id.toString() }),
+    });
+    const data = await apiRes.json();
+    if (data.status && data.authorizationUrl) {
+      return {
+        status: true,
+        authorizationUrl: data.authorizationUrl,
+        reference: data.reference || reference,
+      };
     }
+  } catch (apiErr) {
+    console.warn("⚠️ Next.js Paystack init endpoint unreachable, trying direct Paystack API:", apiErr.message);
   }
 
   // Strategy 2: Direct Paystack API call using Secret Key stored in MongoDB
@@ -85,7 +113,7 @@ async function initializePaystackPayment(db, appUrl, order) {
       amount: amountInKobo,
       email: order.customerEmail || "customer@nectargroceries.com",
       reference: reference,
-      callback_url: `${baseUrl}/order/${order._id}?payment=paystack&ref=${reference}`,
+      callback_url: `${frontendUrl}/order/${order._id}?payment=paystack&ref=${reference}`,
       metadata: {
         orderId: order._id.toString(),
         orderSerialNo: order.orderSerialNo,
@@ -131,4 +159,5 @@ async function initializePaystackPayment(db, appUrl, order) {
 module.exports = {
   getBankAccountDetails,
   initializePaystackPayment,
+  getFrontendAppUrl,
 };

@@ -1,5 +1,5 @@
 // ─── Message Handler ───────────────────────────────────────────────────────
-// Conversational ordering bot state machine for Nectar Groceries
+// Conversational ordering bot state machine for Nectar Groceries with GPS location & phone recognition
 
 const sessionManager = require("./sessionManager");
 const userService = require("./userService");
@@ -45,9 +45,19 @@ function buildWelcomeMenu(session) {
   );
 }
 
-async function handleIncomingMessage(db, appUrl, phone, rawText, sendFn) {
-  const text = String(rawText || "").trim();
-  if (!text) return;
+async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
+  // Check if input is a location object or text
+  let text = "";
+  let locationData = null;
+
+  if (typeof rawInput === "object" && rawInput !== null && rawInput.type === "location") {
+    locationData = rawInput;
+    text = locationData.address || "WhatsApp Location Pin";
+  } else {
+    text = String(rawInput || "").trim();
+  }
+
+  if (!text && !locationData) return;
 
   const session = sessionManager.getSession(phone);
   const upper = text.toUpperCase();
@@ -60,6 +70,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawText, sendFn) {
         session.userId = user._id ? user._id.toString() : null;
         session.customerName = user.name || null;
         session.customerEmail = user.email || null;
+        session.customerPhone = user.phone || userService.normalizeCustomerPhone(phone);
         session.savedAddresses = Array.isArray(user.addresses) ? user.addresses : [];
         session.isKnownUser = true;
       }
@@ -177,7 +188,6 @@ async function handleIncomingMessage(db, appUrl, phone, rawText, sendFn) {
         return startCheckoutFlow(session, phone, sendFn);
       }
 
-      // Default fallback for main menu
       return sendFn(
         phone,
         `Please reply with *1* to browse categories or *2* to search for items.\n\n` +
@@ -188,11 +198,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawText, sendFn) {
     // ── BROWSE CATEGORIES ──────────────────────────────────────────────────
     case "BROWSE_CATEGORIES": {
       const idx = parseInt(text, 10) - 1;
-      if (
-        isNaN(idx) ||
-        idx < 0 ||
-        idx >= (session.browseCategories || []).length
-      ) {
+      if (isNaN(idx) || idx < 0 || idx >= (session.browseCategories || []).length) {
         return sendFn(
           phone,
           `Please reply with a valid category number (1 to ${session.browseCategories.length}), or type *MENU* to go back.`
@@ -278,11 +284,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawText, sendFn) {
     // ── SEARCH RESULTS ─────────────────────────────────────────────────────
     case "SEARCH_RESULTS": {
       const idx = parseInt(text, 10) - 1;
-      if (
-        isNaN(idx) ||
-        idx < 0 ||
-        idx >= (session.searchResults || []).length
-      ) {
+      if (isNaN(idx) || idx < 0 || idx >= (session.searchResults || []).length) {
         return sendFn(
           phone,
           `Please reply with a valid number (1 to ${session.searchResults.length}), or type *MENU* to go back.`
@@ -379,79 +381,114 @@ async function handleIncomingMessage(db, appUrl, phone, rawText, sendFn) {
         return sendFn(phone, `Please enter your full name:`);
       }
       session.customerName = text;
-      session.step = "ADDRESS";
+      session.step = "PHONE";
+
       return sendFn(
         phone,
-        `📍 Thank you, *${text}*!\n\nPlease reply with your *full delivery address* (including street name and landmark/area):`
+        `📱 What is your phone number for order updates & delivery calls?\n(e.g. 08012345678)`
       );
     }
 
-    // ── ADDRESS INPUT ──────────────────────────────────────────────────────
-    case "ADDRESS": {
-      if (text.length < 5) {
+    // ── PHONE INPUT ────────────────────────────────────────────────────────
+    case "PHONE": {
+      const clean = userService.cleanDigits(text);
+      if (clean.length < 9 || clean.length > 15) {
         return sendFn(
           phone,
-          `Please provide a complete delivery address so our rider can find you:`
+          `Please provide a valid 11-digit Nigerian phone number (e.g. 08012345678):`
         );
       }
-      session.deliveryAddress = text;
-      return showPaymentOptions(session, phone, sendFn);
+
+      session.customerPhone = userService.normalizeCustomerPhone(text);
+
+      // Check if user has an account with this entered phone number!
+      try {
+        const foundUser = await userService.findUserByPhone(db, text);
+        if (foundUser) {
+          session.userId = foundUser._id ? foundUser._id.toString() : null;
+          session.customerName = foundUser.name || session.customerName;
+          session.customerEmail = foundUser.email || session.customerEmail;
+          session.savedAddresses = Array.isArray(foundUser.addresses) ? foundUser.addresses : [];
+          session.isKnownUser = true;
+          console.log(`🔗 Linked WhatsApp order to existing account: ${foundUser.name}`);
+        }
+      } catch (e) {}
+
+      session.step = "ADDRESS";
+
+      return sendFn(
+        phone,
+        `📍 Please reply with your *full delivery address* (Street, Area, Landmark),\n` +
+          `OR share your *WhatsApp Location Pin* (tap 📎 ➔ Location) for exact delivery distance calculation!`
+      );
+    }
+
+    // ── ADDRESS INPUT (Text or Location Pin) ───────────────────────────────
+    case "ADDRESS": {
+      if (locationData) {
+        session.latitude = locationData.latitude;
+        session.longitude = locationData.longitude;
+        session.deliveryAddress = locationData.address || `GPS Location (${locationData.latitude.toFixed(4)}, ${locationData.longitude.toFixed(4)})`;
+      } else {
+        if (text.length < 5) {
+          return sendFn(
+            phone,
+            `Please provide a complete delivery address or share your location pin:`
+          );
+        }
+        session.deliveryAddress = text;
+        session.latitude = undefined;
+        session.longitude = undefined;
+      }
+
+      return showPaymentOptions(db, session, phone, sendFn);
     }
 
     // ── USE SAVED ADDRESS CONFIRMATION ─────────────────────────────────────
     case "USE_SAVED_ADDRESS": {
       if (["YES", "1", "Y", "OK", "CONFIRM", "USE SAVED"].includes(upper)) {
-        // Keeps pre-filled session.deliveryAddress
-        return showPaymentOptions(session, phone, sendFn);
+        // Keeps pre-filled session.deliveryAddress and its coordinates if available
+        return showPaymentOptions(db, session, phone, sendFn);
       }
 
-      // If user typed a new address instead
+      // If user typed a new address or sent a location pin instead
+      if (locationData) {
+        session.latitude = locationData.latitude;
+        session.longitude = locationData.longitude;
+        session.deliveryAddress = locationData.address || `GPS Location (${locationData.latitude.toFixed(4)}, ${locationData.longitude.toFixed(4)})`;
+        return showPaymentOptions(db, session, phone, sendFn);
+      }
+
       if (text.length >= 5) {
         session.deliveryAddress = text;
-        return showPaymentOptions(session, phone, sendFn);
+        session.latitude = undefined;
+        session.longitude = undefined;
+        return showPaymentOptions(db, session, phone, sendFn);
       }
 
       return sendFn(
         phone,
         `Reply *YES* to use your saved address:\n` +
           `*${session.deliveryAddress}*\n\n` +
-          `Or type your new delivery address:`
+          `Or type a new delivery address / share a location pin:`
       );
     }
 
     // ── PAYMENT METHOD SELECTION ───────────────────────────────────────────
     case "PAYMENT_CHOICE": {
       if (text === "1" || upper.includes("PAYSTACK") || upper.includes("CARD")) {
-        return processOrderPlacement(
-          db,
-          appUrl,
-          session,
-          phone,
-          "paystack",
-          sendFn
-        );
+        return processOrderPlacement(db, appUrl, session, phone, "paystack", sendFn);
       }
 
-      if (
-        text === "2" ||
-        upper.includes("BANK") ||
-        upper.includes("TRANSFER")
-      ) {
-        return processOrderPlacement(
-          db,
-          appUrl,
-          session,
-          phone,
-          "bank_transfer",
-          sendFn
-        );
+      if (text === "2" || upper.includes("BANK") || upper.includes("TRANSFER")) {
+        return processOrderPlacement(db, appUrl, session, phone, "bank_transfer", sendFn);
       }
 
       return sendFn(
         phone,
         `Please reply with:\n` +
-          `*1* — Pay with Paystack (Instant secure link)\n` +
-          `*2* — Pay via Bank Transfer (Direct transfer)`
+          `*1* — Pay with Paystack (Instant secure online link)\n` +
+          `*2* — Pay via Bank Transfer (Direct account transfer)`
       );
     }
 
@@ -466,31 +503,32 @@ async function handleIncomingMessage(db, appUrl, phone, rawText, sendFn) {
 
 async function startCheckoutFlow(session, phone, sendFn) {
   // If known customer with saved address
-  if (
-    session.isKnownUser &&
-    session.savedAddresses &&
-    session.savedAddresses.length > 0
-  ) {
+  if (session.isKnownUser && session.savedAddresses && session.savedAddresses.length > 0) {
     const defaultAddr =
       session.savedAddresses.find((a) => a.isDefault) ||
       session.savedAddresses[0];
     session.deliveryAddress = defaultAddr.address;
+    session.latitude = defaultAddr.latitude;
+    session.longitude = defaultAddr.longitude;
+    session.customerPhone = session.customerPhone || userService.normalizeCustomerPhone(phone);
     session.step = "USE_SAVED_ADDRESS";
 
     return sendFn(
       phone,
       `📍 We found your saved delivery address:\n` +
         `*${session.deliveryAddress}*\n\n` +
-        `Reply *YES* to use this address, or type a new delivery address below:`
+        `Reply *YES* to use this address, or type a new delivery address / share a location pin:`
     );
   }
 
   // If known customer without saved address
   if (session.isKnownUser && session.customerName) {
+    session.customerPhone = session.customerPhone || userService.normalizeCustomerPhone(phone);
     session.step = "ADDRESS";
     return sendFn(
       phone,
-      `📍 Hi *${session.customerName}*, please reply with your *delivery address*:`
+      `📍 Hi *${session.customerName}*, please reply with your *delivery address*,\n` +
+        `OR share your *WhatsApp Location Pin* (tap 📎 ➔ Location) for exact distance calculation:`
     );
   }
 
@@ -502,23 +540,39 @@ async function startCheckoutFlow(session, phone, sendFn) {
   );
 }
 
-async function showPaymentOptions(session, phone, sendFn) {
+async function showPaymentOptions(db, session, phone, sendFn) {
   const subtotal = session.cart.reduce((sum, item) => sum + item.itemTotal, 0);
-  const deliveryFee = 500;
+
+  // Dynamic delivery fee calculation
+  const deliveryCalc = await orderService.calculateDeliveryFee(db, {
+    subtotal,
+    latitude: session.latitude,
+    longitude: session.longitude,
+  });
+
+  const deliveryFee = deliveryCalc.deliveryCharge;
+  session.deliveryCharge = deliveryFee;
   const total = subtotal + deliveryFee;
 
   const cartLines = session.cart
     .map((item) => `• ${item.name} x${item.quantity} — ₦${formatPrice(item.itemTotal)}`)
     .join("\n");
 
+  let deliveryNote = `• Delivery: ₦${formatPrice(deliveryFee)}`;
+  if (deliveryCalc.isFree) {
+    deliveryNote = `• Delivery: *FREE* (Order over threshold 🎉)`;
+  } else if (deliveryCalc.distanceKm) {
+    deliveryNote = `• Delivery: ₦${formatPrice(deliveryFee)} (${deliveryCalc.distanceKm} km)`;
+  }
+
   session.step = "PAYMENT_CHOICE";
 
   return sendFn(
     phone,
-    `📋 *Order Summary for ${session.customerName}*\n\n` +
+    `📋 *Order Summary for ${session.customerName || "Customer"}*\n\n` +
       `${cartLines}\n\n` +
       `• Subtotal: ₦${formatPrice(subtotal)}\n` +
-      `• Delivery: ₦${formatPrice(deliveryFee)}\n` +
+      `${deliveryNote}\n` +
       `• *Total: ₦${formatPrice(total)}*\n\n` +
       `📍 *Delivery Address:*\n${session.deliveryAddress}\n\n` +
       `💳 *How would you like to pay?*\n` +
@@ -528,32 +582,26 @@ async function showPaymentOptions(session, phone, sendFn) {
   );
 }
 
-async function processOrderPlacement(
-  db,
-  appUrl,
-  session,
-  phone,
-  paymentMethod,
-  sendFn
-) {
+async function processOrderPlacement(db, appUrl, session, phone, paymentMethod, sendFn) {
   try {
+    const finalPhone = session.customerPhone || userService.normalizeCustomerPhone(phone);
+
     const order = await orderService.createWhatsAppOrder(db, {
       cart: session.cart,
       customerName: session.customerName,
       customerEmail: session.customerEmail,
-      customerPhone: phone,
+      customerPhone: finalPhone,
       deliveryAddress: session.deliveryAddress,
+      latitude: session.latitude,
+      longitude: session.longitude,
+      deliveryCharge: session.deliveryCharge,
       paymentMethod,
       userId: session.userId,
     });
 
     // ── Paystack Option ──
     if (paymentMethod === "paystack") {
-      const psResult = await paymentService.initializePaystackPayment(
-        db,
-        appUrl,
-        order
-      );
+      const psResult = await paymentService.initializePaystackPayment(db, appUrl, order);
 
       if (psResult.status && psResult.authorizationUrl) {
         sessionManager.clearCart(phone);
