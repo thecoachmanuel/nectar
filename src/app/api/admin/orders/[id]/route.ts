@@ -70,7 +70,14 @@ export async function PUT(
       runValidators: true,
     });
 
-    if (order && body.orderStatus && oldOrder.orderStatus !== body.orderStatus) {
+    if (!order) {
+      return NextResponse.json(
+        { status: false, message: "Order not found" },
+        { status: 404 }
+      );
+    }
+
+    if (body.orderStatus && oldOrder.orderStatus !== body.orderStatus) {
       // Order status has changed! Dispatch notifications.
       try {
         const user = await User.findById(order.userId);
@@ -128,7 +135,7 @@ export async function PUT(
     }
 
     // ── Payment Status Change Notification ───────────────────────────────
-    if (order && body.paymentStatus && oldOrder.paymentStatus !== body.paymentStatus) {
+    if (body.paymentStatus && oldOrder.paymentStatus !== body.paymentStatus) {
       try {
         const rawUrl = process.env.WHATSAPP_SERVICE_URL || "http://localhost:3001";
         const waServiceUrl = rawUrl.replace(/\/+$/, "");
@@ -179,13 +186,6 @@ export async function PUT(
       } catch (walletErr) {
         console.error("Failed to update wallet balances", walletErr);
       }
-    }
-
-    if (!order) {
-      return NextResponse.json(
-        { status: false, message: "Order not found" },
-        { status: 404 }
-      );
     }
 
     return NextResponse.json({

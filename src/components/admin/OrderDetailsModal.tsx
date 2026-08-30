@@ -17,7 +17,8 @@ import {
   AlertCircle,
   FileText,
   KeyRound,
-  ExternalLink
+  ExternalLink,
+  RefreshCw
 } from "lucide-react";
 import { toast } from "sonner";
 import Modal from "./Modal";
