@@ -80,21 +80,50 @@ export async function PUT(
       // Order status has changed! Dispatch notifications.
       try {
         const user = await User.findById(order.userId);
-        if (user) {
-          const messageBody = `Hi ${user.name}, your order #${order.orderSerialNo} status is now: ${body.orderStatus.replace("_", " ")}.`;
-          
-          if (user.phone) {
-            sendSMS(user.phone, messageBody).catch(console.error);
-          }
-          if (user.deviceToken) {
-            sendPushNotification(
-              user.deviceToken,
-              "Order Status Updated",
-              messageBody,
-              { orderId: order.orderSerialNo }
-            ).catch(console.error);
-          }
+        const messageBody = `Hi ${user?.name || order.customerName}, your order #${order.orderSerialNo} status is now: ${body.orderStatus.replace("_", " ")}.`;
+
+        if (user?.phone) {
+          sendSMS(user.phone, messageBody).catch(console.error);
         }
+        if (user?.deviceToken) {
+          sendPushNotification(
+            user.deviceToken,
+            "Order Status Updated",
+            messageBody,
+            { orderId: order.orderSerialNo }
+          ).catch(console.error);
+        }
+
+        // ── WhatsApp Notification via sidecar service ──────────────────────
+        const waServiceUrl = process.env.WHATSAPP_SERVICE_URL || "http://localhost:3001";
+        const waSecret = process.env.WHATSAPP_API_SECRET || "wa_secret_change_me";
+        const customerPhone = order.customerPhone || user?.phone;
+
+        if (customerPhone && customerPhone !== "N/A") {
+          fetch(`${waServiceUrl}/send`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-api-secret": waSecret,
+            },
+            body: JSON.stringify({
+              phone: customerPhone,
+              orderSerialNo: order.orderSerialNo,
+              orderStatus: body.orderStatus,
+              customerName: order.customerName || user?.name,
+              totalAmount: order.totalAmount,
+            }),
+          })
+            .then((r) => r.json())
+            .then((d) => {
+              if (d.status) console.log(`✅ WhatsApp sent to ${customerPhone} for order ${order.orderSerialNo}`);
+              else console.warn(`⚠️  WhatsApp not sent: ${d.message}`);
+            })
+            .catch((err) =>
+              console.warn("⚠️  WhatsApp service unreachable (is it running?):", err.message)
+            );
+        }
+        // ───────────────────────────────────────────────────────────────────
       } catch (err) {
         console.error("Failed to send order notifications", err);
       }

@@ -89,6 +89,7 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
       children: [
         { name: "Stores", path: "/admin/stores" },
         { name: "General Settings", path: "/admin/settings" },
+        { name: "WhatsApp Bot 🤖", path: "/admin/whatsapp" },
       ]
     },
   ];
