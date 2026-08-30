@@ -42,7 +42,31 @@ export default function OrderDetailsPage() {
       setTimeout(() => window.print(), 1000);
     }
 
-    fetchOrder();
+    const payment = searchParams.get("payment");
+    const ref = searchParams.get("ref") || searchParams.get("reference") || searchParams.get("trxref");
+    
+    if (payment === "paystack" && ref) {
+      setLoading(true);
+      fetch("/api/payments/paystack/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reference: ref, orderId: id })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status) {
+          console.log("Paystack payment verified successfully.");
+        } else {
+          console.error("Paystack payment verification failed:", data.message);
+        }
+      })
+      .catch(console.error)
+      .finally(() => {
+        fetchOrder();
+      });
+    } else {
+      fetchOrder();
+    }
   }, [id]);
 
   const getStatusIndex = (status: string) => {

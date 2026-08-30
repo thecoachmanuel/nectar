@@ -166,8 +166,31 @@ export default function CheckoutPage() {
       const data = await res.json();
       if (data.status) {
         clearCart();
-        toast.success("Order placed successfully!");
-        router.push(`/order/${data.orderId}`);
+        
+        if (paymentMethod === "paystack") {
+          try {
+            const initRes = await fetch("/api/payments/paystack/initialize", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", ...(token && { Authorization: `Bearer ${token}` }) },
+              body: JSON.stringify({ orderId: data.orderId })
+            });
+            const initData = await initRes.json();
+            
+            if (initData.status && initData.authorizationUrl) {
+              window.location.href = initData.authorizationUrl;
+              return;
+            } else {
+              toast.error(initData.message || "Failed to initialize Paystack payment");
+              router.push(`/order/${data.orderId}`);
+            }
+          } catch (err) {
+            toast.error("Payment initialization error");
+            router.push(`/order/${data.orderId}`);
+          }
+        } else {
+          toast.success("Order placed successfully!");
+          router.push(`/order/${data.orderId}`);
+        }
       } else {
         toast.error(data.message || "Failed to place order");
         setLoading(false);
