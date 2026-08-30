@@ -6,6 +6,7 @@ const userService = require("./userService");
 const catalogService = require("./catalogService");
 const paymentService = require("./paymentService");
 const orderService = require("./orderService");
+const geocodingService = require("./geocodingService");
 
 function formatPrice(amount) {
   return Number(amount || 0).toLocaleString();
@@ -416,11 +417,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
 
       session.step = "ADDRESS";
 
-      return sendFn(
-        phone,
-        `📍 Please reply with your *full delivery address* (Street, Area, Landmark),\n` +
-          `OR share your *WhatsApp Location Pin* (tap 📎 ➔ Location) for exact delivery distance calculation!`
-      );
+      return sendAddressPrompt(session, phone, sendFn);
     }
 
     // ── ADDRESS INPUT (Text or Location Pin) ───────────────────────────────
@@ -429,17 +426,26 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
         session.latitude = locationData.latitude;
         session.longitude = locationData.longitude;
         session.deliveryAddress = locationData.address || `GPS Location (${locationData.latitude.toFixed(4)}, ${locationData.longitude.toFixed(4)})`;
-      } else {
-        if (text.length < 5) {
-          return sendFn(
-            phone,
-            `Please provide a complete delivery address or share your location pin:`
-          );
-        }
-        session.deliveryAddress = text;
-        session.latitude = undefined;
-        session.longitude = undefined;
+        return showPaymentOptions(db, session, phone, sendFn);
       }
+
+      // Validate & Geocode text address
+      const geoResult = await geocodingService.geocodeAddress(db, text);
+      if (!geoResult.success) {
+        return sendFn(
+          phone,
+          `⚠️ *Please provide more address detail!*\n\n` +
+            `To ensure our rider finds you and your delivery fee is accurate, please include:\n` +
+            `• House / Flat No & Street Name\n` +
+            `• Area or Estate Name\n` +
+            `• Nearest Landmark (e.g. Opposite Zenith Bank, yellow gate)\n\n` +
+            `🌟 *Or simply tap 📎 (or +) ➔ Location to share your GPS Pin!*`
+        );
+      }
+
+      session.deliveryAddress = geoResult.formattedAddress;
+      session.latitude = geoResult.latitude;
+      session.longitude = geoResult.longitude;
 
       return showPaymentOptions(db, session, phone, sendFn);
     }
@@ -451,7 +457,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
         return showPaymentOptions(db, session, phone, sendFn);
       }
 
-      // If user typed a new address or sent a location pin instead
+      // If user sent a location pin instead
       if (locationData) {
         session.latitude = locationData.latitude;
         session.longitude = locationData.longitude;
@@ -459,19 +465,22 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
         return showPaymentOptions(db, session, phone, sendFn);
       }
 
-      if (text.length >= 5) {
-        session.deliveryAddress = text;
-        session.latitude = undefined;
-        session.longitude = undefined;
-        return showPaymentOptions(db, session, phone, sendFn);
+      // Validate new text address
+      const geoResult = await geocodingService.geocodeAddress(db, text);
+      if (!geoResult.success) {
+        return sendFn(
+          phone,
+          `⚠️ *Please provide more address detail!*\n\n` +
+            `Include your House/Flat No, Street Name, Area, and Nearest Landmark:\n\n` +
+            `🌟 *Or tap 📎 ➔ Location to share your GPS Pin!*`
+        );
       }
 
-      return sendFn(
-        phone,
-        `Reply *YES* to use your saved address:\n` +
-          `*${session.deliveryAddress}*\n\n` +
-          `Or type a new delivery address / share a location pin:`
-      );
+      session.deliveryAddress = geoResult.formattedAddress;
+      session.latitude = geoResult.latitude;
+      session.longitude = geoResult.longitude;
+
+      return showPaymentOptions(db, session, phone, sendFn);
     }
 
     // ── PAYMENT METHOD SELECTION ───────────────────────────────────────────
@@ -501,6 +510,18 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
 
 // ─── Helper Functions ──────────────────────────────────────────────────────
 
+function sendAddressPrompt(session, phone, sendFn) {
+  return sendFn(
+    phone,
+    `📍 *Where should we deliver your order?*\n\n` +
+      `🌟 *Fastest & Most Accurate:* \n` +
+      `👉 Tap *📎* (or *+*) ➔ *Location* ➔ *Send Your Current Location*\n\n` +
+      `✍️ *Or reply with your full address:*\n` +
+      `House/Flat No, Street Name, Area & Nearest Landmark\n` +
+      `_(e.g. 14 Admiralty Way, Lekki Phase 1, Opposite Zenith Bank)_`
+  );
+}
+
 async function startCheckoutFlow(session, phone, sendFn) {
   // If known customer with saved address
   if (session.isKnownUser && session.savedAddresses && session.savedAddresses.length > 0) {
@@ -517,7 +538,8 @@ async function startCheckoutFlow(session, phone, sendFn) {
       phone,
       `📍 We found your saved delivery address:\n` +
         `*${session.deliveryAddress}*\n\n` +
-        `Reply *YES* to use this address, or type a new delivery address / share a location pin:`
+        `Reply *YES* to use this address,\n` +
+        `OR send a new address / tap *📎 ➔ Location* for a GPS pin:`
     );
   }
 
@@ -525,11 +547,7 @@ async function startCheckoutFlow(session, phone, sendFn) {
   if (session.isKnownUser && session.customerName) {
     session.customerPhone = session.customerPhone || userService.normalizeCustomerPhone(phone);
     session.step = "ADDRESS";
-    return sendFn(
-      phone,
-      `📍 Hi *${session.customerName}*, please reply with your *delivery address*,\n` +
-        `OR share your *WhatsApp Location Pin* (tap 📎 ➔ Location) for exact distance calculation:`
-    );
+    return sendAddressPrompt(session, phone, sendFn);
   }
 
   // If new guest customer
