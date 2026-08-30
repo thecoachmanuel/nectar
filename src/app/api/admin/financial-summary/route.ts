@@ -13,7 +13,7 @@ export async function GET() {
 
     // 1. Fetch all non-canceled orders
     const allOrders = await Order.find({
-      orderStatus: { $nin: ["canceled", "rejected"] },
+      orderStatus: { $ne: "canceled" },
     });
 
     // Paid orders (either paymentStatus === 'paid' or marked as delivered)

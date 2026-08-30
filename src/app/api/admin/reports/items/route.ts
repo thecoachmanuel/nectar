@@ -13,7 +13,7 @@ export async function GET(req: Request) {
 
     // 1. Fetch all non-canceled orders
     const orders = await Order.find({
-      orderStatus: { $nin: ["canceled", "rejected"] },
+      orderStatus: { $ne: "canceled" },
     });
 
     const itemSales: Record<string, { quantitySold: number; revenue: number; name: string }> = {};
