@@ -164,21 +164,20 @@ export async function PUT(
     }
 
     if (body.orderStatus === "delivered") {
-        try {
-          if (order.deliveryBoyId) {
-            await User.findByIdAndUpdate(order.deliveryBoyId, {
-              $inc: { walletBalance: order.deliveryCharge || 0 }
-            });
-          }
-          if (order.storeId && String(order.storeId) !== "0") {
-            const storeEarnings = (order.totalAmount || 0) - (order.commissionAmount || 0) - (order.deliveryCharge || 0);
-            await Store.findByIdAndUpdate(order.storeId, {
-              $inc: { walletBalance: storeEarnings }
-            });
-          }
-        } catch (walletErr) {
-          console.error("Failed to update wallet balances", walletErr);
+      try {
+        if (order.deliveryBoyId) {
+          await User.findByIdAndUpdate(order.deliveryBoyId, {
+            $inc: { walletBalance: order.deliveryCharge || 0 }
+          });
         }
+        if (order.storeId && String(order.storeId) !== "0") {
+          const storeEarnings = (order.totalAmount || 0) - (order.commissionAmount || 0) - (order.deliveryCharge || 0);
+          await Store.findByIdAndUpdate(order.storeId, {
+            $inc: { walletBalance: storeEarnings }
+          });
+        }
+      } catch (walletErr) {
+        console.error("Failed to update wallet balances", walletErr);
       }
     }
 
