@@ -125,8 +125,45 @@ export async function PUT(
       } catch (err) {
         console.error("Failed to send order notifications", err);
       }
+    }
 
-      if (body.orderStatus === "delivered") {
+    // ── Payment Status Change Notification ───────────────────────────────
+    if (order && body.paymentStatus && oldOrder.paymentStatus !== body.paymentStatus) {
+      try {
+        const rawUrl = process.env.WHATSAPP_SERVICE_URL || "http://localhost:3001";
+        const waServiceUrl = rawUrl.replace(/\/+$/, "");
+        const waSecret = process.env.WHATSAPP_API_SECRET || "wa_secret_change_me";
+        const user = await User.findById(order.userId);
+        const customerPhone = order.customerPhone || user?.phone;
+
+        if (customerPhone && customerPhone !== "N/A" && customerPhone.trim() !== "") {
+          let paymentMessage = "";
+          if (body.paymentStatus === "paid") {
+            paymentMessage = `✅ *Payment Confirmed!*\n\nHi ${order.customerName || "Customer"}, your payment of *₦${(order.totalAmount || 0).toLocaleString()}* for order *#${order.orderSerialNo}* has been verified by our team!\n\nWe are preparing your fresh groceries for delivery. 🥑📦`;
+          } else if (body.paymentStatus === "unpaid") {
+            paymentMessage = `⚠️ *Payment Status Update*\n\nHi ${order.customerName || "Customer"}, payment status for order *#${order.orderSerialNo}* has been updated to *Unpaid*. Please contact support if you need assistance.`;
+          }
+
+          if (paymentMessage) {
+            await fetch(`${waServiceUrl}/send`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-api-secret": waSecret,
+              },
+              body: JSON.stringify({
+                phone: customerPhone,
+                message: paymentMessage,
+              }),
+            }).catch(console.error);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to send payment status notification", err);
+      }
+    }
+
+    if (body.orderStatus === "delivered") {
         try {
           if (order.deliveryBoyId) {
             await User.findByIdAndUpdate(order.deliveryBoyId, {

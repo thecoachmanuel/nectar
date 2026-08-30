@@ -352,29 +352,40 @@ async function sendWhatsAppMessage(phoneOrJid, message) {
   const jid = formatPhone(phoneOrJid);
   console.log(`📱 Sending message to: "${phoneOrJid}" -> "${jid}"`);
 
-  // 1. Subscribe to presence to synchronize Signal session
+  // 1. Verify existence on WhatsApp & pre-fetch Signal encryption keys
+  let targetJid = jid;
   try {
-    await sock.presenceSubscribe(jid);
+    const [waUser] = await sock.onWhatsApp(jid);
+    if (waUser?.exists && waUser.jid) {
+      targetJid = waUser.jid;
+    }
+  } catch (onWaErr) {
+    console.warn("⚠️ onWhatsApp check skipped:", onWaErr.message);
+  }
+
+  // 2. Subscribe to presence to synchronize Signal session
+  try {
+    await sock.presenceSubscribe(targetJid);
   } catch (_) {}
 
-  // 2. Composing indicator
-  sock.sendPresenceUpdate("composing", jid).catch(() => {});
+  // 3. Composing indicator
+  sock.sendPresenceUpdate("composing", targetJid).catch(() => {});
 
-  // Small 150ms buffer for handshake
-  await new Promise((resolve) => setTimeout(resolve, 150));
+  // 4. Small 250ms buffer for handshake to let Signal session negotiate
+  await new Promise((resolve) => setTimeout(resolve, 250));
 
-  // 3. Send message directly
-  const sentMsg = await sock.sendMessage(jid, { text: message });
+  // 5. Send message directly to verified JID
+  const sentMsg = await sock.sendMessage(targetJid, { text: message });
 
-  // 4. Save message to RAM cache and MongoDB for Signal retry decryption
+  // 6. Save message to RAM cache and MongoDB for Signal retry decryption
   if (sentMsg?.key?.id && sentMsg?.message) {
     await saveMessage(sentMsg.key.id, sentMsg.message);
   }
 
-  // 5. Reset presence
-  sock.sendPresenceUpdate("paused", jid).catch(() => {});
+  // 7. Reset presence
+  sock.sendPresenceUpdate("paused", targetJid).catch(() => {});
 
-  console.log(`📤 Message successfully delivered to ${jid} (ID: ${sentMsg?.key?.id})`);
+  console.log(`📤 Message successfully delivered to ${targetJid} (ID: ${sentMsg?.key?.id})`);
   return sentMsg;
 }
 

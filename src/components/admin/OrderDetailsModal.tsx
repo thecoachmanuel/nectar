@@ -107,27 +107,30 @@ export default function OrderDetailsModal({
     }
   };
 
-  const handleMarkAsPaid = async () => {
+  const handleUpdatePaymentStatus = async (newStatus: "paid" | "unpaid") => {
     if (!order) return;
-    const confirm = window.confirm(`Confirm that payment of ₦${order.totalAmount?.toLocaleString()} has been received from ${order.customerName} via WhatsApp/Manual payment?`);
+    const actionText = newStatus === "paid" ? "mark as PAID" : "mark as UNPAID";
+    const confirm = window.confirm(
+      `Are you sure you want to ${actionText} order #${order.orderSerialNo} (₦${order.totalAmount?.toLocaleString()})?`
+    );
     if (!confirm) return;
     setMarkingPaid(true);
     try {
       const res = await fetch(`/api/admin/orders/${order._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentStatus: "paid" }),
+        body: JSON.stringify({ paymentStatus: newStatus }),
       });
       const data = await res.json();
       if (data.status) {
-        toast.success("Payment confirmed! Order marked as Paid.");
+        toast.success(`Payment status updated to ${newStatus.toUpperCase()}!`);
         fetchOrderDetails(order._id);
         if (onOrderUpdated) onOrderUpdated();
       } else {
         toast.error(data.message || "Failed to update payment status");
       }
     } catch (err) {
-      toast.error("An error occurred while confirming payment");
+      toast.error("An error occurred while updating payment status");
     } finally {
       setMarkingPaid(false);
     }
@@ -463,18 +466,33 @@ export default function OrderDetailsModal({
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[#6E7191]">Payment Status:</span>
-                <span className={`font-bold px-2 py-0.5 rounded-full capitalize text-[11px] ${
+                <span className={`font-bold px-2.5 py-0.5 rounded-full capitalize text-[11px] ${
                   order.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
                 }`}>
-                  {order.paymentStatus || "unpaid"}
+                  {order.paymentStatus === 'paid' ? '✓ Paid' : '⏳ Unpaid'}
                 </span>
               </div>
-              {/* Mark as Paid button — shown for unpaid WhatsApp / manual orders */}
-              {order.paymentStatus !== "paid" && (order.paymentMethod === "whatsapp" || order.paymentMethod === "cash_on_delivery") && (
-                <div className="pt-2 border-t border-[#EFF0F6]">
+
+              {/* Admin Payment Toggle Buttons */}
+              <div className="pt-2 border-t border-[#EFF0F6]">
+                {order.paymentStatus === "paid" ? (
                   <button
                     type="button"
-                    onClick={handleMarkAsPaid}
+                    onClick={() => handleUpdatePaymentStatus("unpaid")}
+                    disabled={markingPaid}
+                    className="w-full h-8 rounded-xl border border-[#D9DBE9] bg-white hover:bg-amber-50 text-amber-700 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  >
+                    {markingPaid ? (
+                      <span className="w-3 h-3 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-3 h-3" />
+                    )}
+                    {markingPaid ? "Updating..." : "↩ Mark as Unpaid"}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleUpdatePaymentStatus("paid")}
                     disabled={markingPaid}
                     className="w-full h-9 rounded-xl bg-[#1AB759] hover:bg-[#159a4a] text-white text-xs font-bold transition-colors flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm"
                   >
@@ -483,10 +501,10 @@ export default function OrderDetailsModal({
                     ) : (
                       <CheckCircle2 className="w-3.5 h-3.5" />
                     )}
-                    {markingPaid ? "Confirming..." : "✓ Confirm & Mark as Paid"}
+                    {markingPaid ? "Updating..." : "✓ Confirm Payment (Mark as Paid)"}
                   </button>
-                </div>
-              )}
+                )}
+              </div>
               {order.paymentReference && (
                 <div className="flex items-center justify-between">
                   <span className="text-[#6E7191]">Ref Code:</span>
