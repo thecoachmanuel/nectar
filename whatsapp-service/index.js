@@ -105,7 +105,11 @@ async function connectToWhatsApp() {
     printQRInTerminal: false,
     logger,
     syncFullHistory: false,
-    generateHighQualityLinkPreview: true,
+    markOnlineOnConnect: true,
+    keepAliveIntervalMs: 25000,
+    connectTimeoutMs: 60000,
+    defaultQueryTimeoutMs: 0,
+    generateHighQualityLinkPreview: false,
     getMessage: async (key) => {
       if (key?.id && messageStore.has(key.id)) {
         return messageStore.get(key.id);
