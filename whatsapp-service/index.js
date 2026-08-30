@@ -6,6 +6,7 @@ const {
   makeCacheableSignalKeyStore,
   Browsers,
   proto,
+  BufferJSON,
 } = require("@whiskeysockets/baileys");
 const { MongoClient } = require("mongodb");
 const { useMongoDBAuthState } = require("./mongoAuthState");
@@ -43,6 +44,15 @@ async function getMongoDb() {
   await mongoClient.connect();
   console.log("🗄️  Connected to MongoDB instance.");
   mongoDbInstance = mongoClient.db();
+
+  // Create TTL index on whatsapp_messages to auto-delete messages after 7 days
+  try {
+    await mongoDbInstance.collection("whatsapp_messages").createIndex(
+      { createdAt: 1 },
+      { expireAfterSeconds: 7 * 24 * 3600, background: true }
+    );
+  } catch (_) {}
+
   return mongoDbInstance;
 }
 
@@ -51,6 +61,38 @@ async function getAuthCollection() {
   const db = await getMongoDb();
   mongoDbCollection = db.collection("whatsapp_auth");
   return mongoDbCollection;
+}
+
+// ─── Message Persistence (Fixes "Waiting for this message") ─────────────────
+async function saveMessage(keyId, message) {
+  if (!keyId || !message) return;
+  messageStore.set(keyId, message);
+  try {
+    const db = await getMongoDb();
+    const stringified = JSON.stringify(message, BufferJSON.replacer);
+    await db.collection("whatsapp_messages").updateOne(
+      { _id: keyId },
+      { $set: { message: stringified, createdAt: new Date() } },
+      { upsert: true }
+    );
+  } catch (_) {}
+}
+
+async function getStoredMessage(key) {
+  if (!key?.id) return proto.Message.fromObject({});
+  if (messageStore.has(key.id)) {
+    return messageStore.get(key.id);
+  }
+  try {
+    const db = await getMongoDb();
+    const doc = await db.collection("whatsapp_messages").findOne({ _id: key.id });
+    if (doc && doc.message) {
+      const parsed = JSON.parse(doc.message, BufferJSON.reviver);
+      messageStore.set(key.id, parsed);
+      return parsed;
+    }
+  } catch (_) {}
+  return proto.Message.fromObject({});
 }
 
 // ─── Message Templates ─────────────────────────────────────────────────────
@@ -188,12 +230,7 @@ async function connectToWhatsApp() {
       connectTimeoutMs: 60000,
       defaultQueryTimeoutMs: 60000,
       generateHighQualityLinkPreview: false,
-      getMessage: async (key) => {
-        if (key?.id && messageStore.has(key.id)) {
-          return messageStore.get(key.id);
-        }
-        return proto.Message.fromObject({});
-      },
+      getMessage: getStoredMessage,
     });
 
     // Save credentials on every update
@@ -204,9 +241,9 @@ async function connectToWhatsApp() {
       const messages = m.messages || [];
 
       for (const msg of messages) {
-        // Cache for Signal retry resolution
+        // Cache and persist for Signal retry resolution
         if (msg.key?.id && msg.message) {
-          messageStore.set(msg.key.id, msg.message);
+          await saveMessage(msg.key.id, msg.message);
         }
 
         const rawJid = msg.key?.remoteJid || "";
@@ -315,18 +352,30 @@ async function sendWhatsAppMessage(phoneOrJid, message) {
   const jid = formatPhone(phoneOrJid);
   console.log(`📱 Sending message to: "${phoneOrJid}" -> "${jid}"`);
 
-  // Optional presence / typing indicator
+  // 1. Subscribe to presence to synchronize Signal session
+  try {
+    await sock.presenceSubscribe(jid);
+  } catch (_) {}
+
+  // 2. Composing indicator
   sock.sendPresenceUpdate("composing", jid).catch(() => {});
 
-  // Send message directly
-  const sentMsg = await sock.sendMessage(jid, { text: message });
-  if (sentMsg?.key?.id && sentMsg?.message) {
-    messageStore.set(sentMsg.key.id, sentMsg.message);
-  }
-  console.log(`📤 Message successfully delivered to ${jid} (ID: ${sentMsg?.key?.id})`);
+  // Small 150ms buffer for handshake
+  await new Promise((resolve) => setTimeout(resolve, 150));
 
-  // Reset presence to paused
+  // 3. Send message directly
+  const sentMsg = await sock.sendMessage(jid, { text: message });
+
+  // 4. Save message to RAM cache and MongoDB for Signal retry decryption
+  if (sentMsg?.key?.id && sentMsg?.message) {
+    await saveMessage(sentMsg.key.id, sentMsg.message);
+  }
+
+  // 5. Reset presence
   sock.sendPresenceUpdate("paused", jid).catch(() => {});
+
+  console.log(`📤 Message successfully delivered to ${jid} (ID: ${sentMsg?.key?.id})`);
+  return sentMsg;
 }
 
 // ─── Express HTTP Server ───────────────────────────────────────────────────
