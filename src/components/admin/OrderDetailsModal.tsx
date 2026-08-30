@@ -84,22 +84,13 @@ export default function OrderDetailsModal({
 
   const handleStatusChange = async (newStatus: string) => {
     if (!order) return;
-    let providedPin = undefined;
-
-    if (newStatus === "delivered" && order.orderType === "delivery") {
-      providedPin = window.prompt(`Enter 4-digit Delivery PIN (Customer PIN: ${order.deliveryPin || "N/A"}):`);
-      if (!providedPin) {
-        toast.error("Delivery PIN is required to complete delivery.");
-        return;
-      }
-    }
 
     setUpdatingStatus(true);
     try {
       const res = await fetch(`/api/admin/orders/${order._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderStatus: newStatus, providedPin }),
+        body: JSON.stringify({ orderStatus: newStatus }),
       });
       const data = await res.json();
       if (data.status) {
