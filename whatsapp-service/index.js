@@ -81,25 +81,41 @@ function buildStatusMessage(orderSerialNo, status, customerName, totalAmount) {
 }
 
 // ─── Format phone for WhatsApp ─────────────────────────────────────────────
-function formatPhone(phone) {
-  // Remove all non-digit characters
-  let digits = String(phone).replace(/\D/g, "");
-  
-  // If starts with 2340 (e.g. +234 080...), strip the extra 0 after 234
+function formatPhone(phoneOrJid) {
+  const str = String(phoneOrJid || "").trim();
+  if (str.endsWith("@s.whatsapp.net") || str.endsWith("@lid")) {
+    return str;
+  }
+  let digits = str.replace(/\D/g, "");
   if (digits.startsWith("2340")) {
     digits = "234" + digits.slice(4);
-  }
-  // If starts with 0 (Nigerian local, e.g. 080...), convert to international 234
-  else if (digits.startsWith("0")) {
+  } else if (digits.startsWith("0")) {
     digits = "234" + digits.slice(1);
-  }
-  // If it's a 10-digit number (e.g. 8012345678, 70..., 90...), prepend 234
-  else if (digits.length === 10 && (digits.startsWith("7") || digits.startsWith("8") || digits.startsWith("9"))) {
+  } else if (digits.length === 10 && (digits.startsWith("7") || digits.startsWith("8") || digits.startsWith("9"))) {
     digits = "234" + digits;
   }
-
-  // Append WhatsApp suffix
   return `${digits}@s.whatsapp.net`;
+}
+
+// ─── Extract Message Text Helper ───────────────────────────────────────────
+function extractMessageText(msg) {
+  if (!msg || !msg.message) return "";
+  let m = msg.message;
+  if (m.ephemeralMessage?.message) m = m.ephemeralMessage.message;
+  if (m.viewOnceMessage?.message) m = m.viewOnceMessage.message;
+  if (m.viewOnceMessageV2?.message) m = m.viewOnceMessageV2.message;
+  if (m.documentWithCaptionMessage?.message) m = m.documentWithCaptionMessage.message;
+
+  return (
+    m.conversation ||
+    m.extendedTextMessage?.text ||
+    m.buttonsResponseMessage?.selectedButtonId ||
+    m.listResponseMessage?.singleSelectReply?.selectedRowId ||
+    m.templateButtonReplyMessage?.selectedId ||
+    m.imageMessage?.caption ||
+    m.videoMessage?.caption ||
+    ""
+  );
 }
 
 // ─── WhatsApp Connection ───────────────────────────────────────────────────
@@ -156,43 +172,64 @@ async function connectToWhatsApp() {
 
     // Store messages in memory for retry resolution and process customer ordering
     sock.ev.on("messages.upsert", async (m) => {
+      // Only process new incoming messages (not history sync)
+      if (m.type !== "notify") return;
+
       for (const msg of m.messages) {
+        // Cache for Signal retry resolution
         if (msg.key?.id && msg.message) {
           messageStore.set(msg.key.id, msg.message);
         }
 
-        // Process incoming customer messages (from others, not from me, not broadcast, not groups)
+        // Skip messages from self, broadcast, or group chats
         const remoteJid = msg.key?.remoteJid || "";
         if (
-          !msg.key?.fromMe &&
-          remoteJid &&
-          !remoteJid.includes("status@broadcast") &&
-          !remoteJid.endsWith("@g.us")
+          msg.key?.fromMe ||
+          !remoteJid ||
+          remoteJid.includes("status@broadcast") ||
+          remoteJid.endsWith("@g.us") ||
+          remoteJid.endsWith("@newsletter") ||
+          remoteJid.endsWith("@lid")
         ) {
-          const messageText =
-            msg.message?.conversation ||
-            msg.message?.extendedTextMessage?.text ||
-            msg.message?.buttonsResponseMessage?.selectedButtonId ||
-            msg.message?.listResponseMessage?.singleSelectReply?.selectedRowId ||
-            "";
+          continue;
+        }
 
-          if (messageText && messageText.trim()) {
-            const senderPhone = remoteJid.replace(/@.+/, "");
-            console.log(`💬 Incoming WhatsApp message from ${senderPhone}: "${messageText.trim()}"`);
+        // Extract text from all supported message types
+        const messageText = extractMessageText(msg);
 
-            try {
-              const db = await getMongoDb();
-              await handleIncomingMessage(
-                db,
-                APP_URL,
-                senderPhone,
-                messageText.trim(),
-                sendWhatsAppMessage
-              );
-            } catch (handlerErr) {
-              console.error("❌ Error handling incoming message:", handlerErr.message);
+        if (!messageText || !messageText.trim()) {
+          console.log(`⏭️  Non-text message from ${remoteJid}, ignoring.`);
+          continue;
+        }
+
+        const senderPhone = remoteJid.replace(/@.+$/, "");
+        console.log(`💬 Incoming from ${senderPhone}: "${messageText.trim()}"`);
+
+        // Send read receipt
+        try {
+          await sock.readMessages([msg.key]);
+        } catch (_) {}
+
+        try {
+          const db = await getMongoDb();
+          await handleIncomingMessage(
+            db,
+            APP_URL,
+            senderPhone,
+            messageText.trim(),
+            // Reply back to the same JID (not via formatPhone, use remoteJid directly)
+            async (_, text) => {
+              await sock.sendMessage(remoteJid, { text });
             }
-          }
+          );
+        } catch (handlerErr) {
+          console.error("❌ Error handling incoming message:", handlerErr.message);
+          // Attempt to notify the user something went wrong
+          try {
+            await sock.sendMessage(remoteJid, {
+              text: "⚠️ Sorry, something went wrong. Please type *MENU* to try again.",
+            });
+          } catch (_) {}
         }
       }
     });
