@@ -56,9 +56,31 @@ export default function PushNotificationsPage() {
     fetchNotifications();
   }, []);
 
+  const [resendingId, setResendingId] = useState<string | null>(null);
+
   const handleDeleteClick = (item: any) => {
     setSelectedNotification(item);
     setIsDeleteOpen(true);
+  };
+
+  const handleResend = async (item: any) => {
+    setResendingId(item._id);
+    try {
+      const res = await fetch(`/api/admin/push-notifications/${item._id}/resend`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (data.status) {
+        toast.success(data.message || "Notification re-sent successfully!");
+        fetchNotifications();
+      } else {
+        toast.error(data.message || "Failed to resend notification");
+      }
+    } catch {
+      toast.error("Error resending notification");
+    } finally {
+      setResendingId(null);
+    }
   };
 
   const confirmDelete = async () => {
@@ -283,13 +305,30 @@ export default function PushNotificationsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleDeleteClick(item)}
-                        className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#FB4E4E] inline-flex items-center justify-center hover:bg-[#FFEAEA] transition-colors"
-                        title="Delete Record"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleResend(item)}
+                          disabled={resendingId === item._id}
+                          className="h-8 px-3 rounded-xl bg-primary/10 hover:bg-primary text-primary hover:text-white text-xs font-bold inline-flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50"
+                          title="Push this notification to users again"
+                        >
+                          {resendingId === item._id ? (
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Send className="w-3.5 h-3.5" />
+                          )}
+                          <span>{resendingId === item._id ? "Pushing..." : "Push Again"}</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteClick(item)}
+                          className="w-8 h-8 rounded-xl bg-[#F7F7FC] text-[#FB4E4E] inline-flex items-center justify-center hover:bg-[#FFEAEA] transition-colors"
+                          title="Delete Record"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

@@ -5,14 +5,14 @@ import { toast } from "sonner";
 
 // ── Web Audio Chime Synthesizer ──────────────────────────────────────────────
 // Produces an instant, pleasant notification chime without relying on external MP3 files
-function playNotificationChime(type: "admin_order" | "customer_update" = "admin_order") {
+function playNotificationChime(type: "admin_order" | "customer_update" | "broadcast" = "admin_order") {
   try {
     const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContext) return;
     const ctx = new AudioContext();
 
     if (type === "admin_order") {
-      // 3-tone urgent alert chime for Admin
+      // 3-tone alert chime for Admin
       const notes = [587.33, 739.99, 880.0]; // D5, F#5, A5
       notes.forEach((freq, i) => {
         const osc = ctx.createOscillator();
@@ -30,8 +30,27 @@ function playNotificationChime(type: "admin_order" | "customer_update" = "admin_
         osc.start(ctx.currentTime + i * 0.12);
         osc.stop(ctx.currentTime + i * 0.12 + 0.3);
       });
+    } else if (type === "broadcast") {
+      // Vibrant 3-chord broadcast chime for promo / announcements
+      const notes = [440.0, 554.37, 659.25, 880.0]; // A4, C#5, E5, A5
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.09);
+
+        gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.09);
+        gain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + i * 0.09 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.09 + 0.4);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(ctx.currentTime + i * 0.09);
+        osc.stop(ctx.currentTime + i * 0.09 + 0.4);
+      });
     } else {
-      // Gentle 2-tone chime for Customer
+      // Gentle 2-tone chime for Customer updates
       const notes = [523.25, 659.25]; // C5, E5
       notes.forEach((freq, i) => {
         const osc = ctx.createOscillator();
@@ -75,8 +94,8 @@ async function triggerOsNotification(title: string, options: { body: string; url
       if (reg) {
         reg.showNotification(title, {
           body: options.body,
-          icon: "/images/theme/theme-favicon-logo.png",
-          badge: "/images/theme/theme-favicon-logo.png",
+          icon: "/images/theme/theme-favicon-logo.png?v=3",
+          badge: "/images/theme/theme-favicon-logo.png?v=3",
           vibrate: [200, 100, 200],
           data: { url: options.url || "/" },
           tag: options.tag || `nectar-${Date.now()}`,
@@ -94,7 +113,7 @@ async function triggerOsNotification(title: string, options: { body: string; url
   try {
     const notif = new Notification(title, {
       body: options.body,
-      icon: "/images/theme/theme-favicon-logo.png",
+      icon: "/images/theme/theme-favicon-logo.png?v=3",
       tag: options.tag,
     });
     notif.onclick = () => {
@@ -111,6 +130,7 @@ export default function NotificationListener() {
   const lastAdminOrderSerialRef = useRef<string | null>(null);
   const knownCustomerOrderStatusesRef = useRef<Record<string, string>>({});
   const isInitialFetchRef = useRef(true);
+  const isInitialBroadcastRef = useRef(true);
 
   // ── 1. Register Service Worker & Request Notification Permission ──
   useEffect(() => {
@@ -120,38 +140,97 @@ export default function NotificationListener() {
       navigator.serviceWorker
         .register("/sw.js")
         .then((reg) => {
-          console.log("✅ [Nectar] Service Worker registered:", reg.scope);
+          console.log("✅ [Nectar] Service Worker active:", reg.scope);
         })
         .catch((err) => {
           console.warn("⚠️ [Nectar] SW registration skipped:", err.message);
         });
     }
 
-    // Request notification permission if not yet decided
-    if ("Notification" in window && Notification.permission === "default") {
-      const requestTimer = setTimeout(() => {
+    // Auto-request notification permission on user's first interaction
+    const requestNotificationPermission = () => {
+      if ("Notification" in window && Notification.permission === "default") {
         Notification.requestPermission().then((perm) => {
           if (perm === "granted") {
             console.log("✅ [Nectar] Push notification permission granted");
           }
         });
-      }, 3000);
-      return () => clearTimeout(requestTimer);
-    }
+      }
+    };
+
+    window.addEventListener("click", requestNotificationPermission, { once: true });
+    window.addEventListener("touchstart", requestNotificationPermission, { once: true });
+
+    return () => {
+      window.removeEventListener("click", requestNotificationPermission);
+      window.removeEventListener("touchstart", requestNotificationPermission);
+    };
   }, []);
 
-  // ── 2. Real-Time Order Polling & Background Dispatcher ──
+  // ── 2. Real-Time Order & Broadcast Polling Engine ──
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     const checkUpdates = async () => {
       try {
         const storedUser = localStorage.getItem("user");
-        if (!storedUser) return;
-        const user = JSON.parse(storedUser);
+        const user = storedUser ? JSON.parse(storedUser) : null;
 
-        // ── Case A: ADMIN / STORE MANAGER ─────────────────────────────────
-        if (user.role === "admin" || user.role === "store_manager") {
+        // ── A. BROADCAST PUSH NOTIFICATIONS (For All Users, Customers, Sellers, Delivery Boys) ──
+        try {
+          const bRes = await fetch("/api/frontend/push-notifications", { cache: "no-store" });
+          const bData = await bRes.json();
+
+          if (bData.status && Array.isArray(bData.data) && bData.data.length > 0) {
+            const seenMap: Record<string, boolean> = JSON.parse(
+              localStorage.getItem("nectar_seen_broadcasts") || "{}"
+            );
+
+            bData.data.forEach((broadcast: any) => {
+              const broadcastKey = `${broadcast._id}_${new Date(broadcast.updatedAt).getTime()}`;
+
+              // If this broadcast is new or has been re-sent
+              if (!seenMap[broadcastKey]) {
+                seenMap[broadcastKey] = true;
+
+                // Don't blast old notifications on fresh first-ever page open unless newly re-sent
+                const sentTime = new Date(broadcast.updatedAt).getTime();
+                const isRecent = Date.now() - sentTime < 10 * 60 * 1000; // Sent within last 10 minutes
+
+                if (!isInitialBroadcastRef.current || isRecent) {
+                  playNotificationChime("broadcast");
+
+                  triggerOsNotification(broadcast.title, {
+                    body: broadcast.description,
+                    url: broadcast.url || "/",
+                    tag: `broadcast-${broadcastKey}`,
+                  });
+
+                  toast(broadcast.title, {
+                    description: broadcast.description,
+                    duration: 8000,
+                    action: broadcast.url
+                      ? {
+                          label: "Open",
+                          onClick: () => {
+                            window.location.href = broadcast.url;
+                          },
+                        }
+                      : undefined,
+                  });
+                }
+              }
+            });
+
+            localStorage.setItem("nectar_seen_broadcasts", JSON.stringify(seenMap));
+          }
+          isInitialBroadcastRef.current = false;
+        } catch {
+          // Silent broadcast poll catch
+        }
+
+        // ── B. ADMIN / STORE MANAGER NEW ORDERS ───────────────────────────
+        if (user && (user.role === "admin" || user.role === "store_manager")) {
           const res = await fetch("/api/admin/orders?limit=5", { cache: "no-store" });
           const data = await res.json();
 
@@ -173,17 +252,14 @@ export default function NotificationListener() {
               const title = `🚨 New Order #${currentLatestSerial}!`;
               const body = `${customerName} placed an order for ${amountFormatted}. Tap to manage.`;
 
-              // Play audible chime sound
               playNotificationChime("admin_order");
 
-              // If minimized or hidden, fire OS-level notification
               triggerOsNotification(title, {
                 body,
                 url: "/admin/orders",
                 tag: `admin-order-${currentLatestSerial}`,
               });
 
-              // Toast in UI
               toast.success(title, {
                 description: body,
                 duration: 8000,
@@ -198,8 +274,8 @@ export default function NotificationListener() {
           }
         }
 
-        // ── Case B: CUSTOMER ──────────────────────────────────────────────
-        if (user.role === "customer") {
+        // ── C. CUSTOMER ORDER STATUS UPDATES ──────────────────────────────
+        if (user && user.role === "customer") {
           const res = await fetch("/api/frontend/orders", { credentials: "include", cache: "no-store" });
           const data = await res.json();
 
@@ -210,7 +286,6 @@ export default function NotificationListener() {
               const prevStatus = knownCustomerOrderStatusesRef.current[orderId];
 
               if (!isInitialFetchRef.current && prevStatus && prevStatus !== currentStatus) {
-                // Status changed!
                 let statusLabel = currentStatus;
                 let emoji = "📦";
                 if (currentStatus === "accepted") { statusLabel = "Accepted by Store"; emoji = "✅"; }
