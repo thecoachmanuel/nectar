@@ -27,6 +27,7 @@ const logger = pino({ level: "silent" }); // Keep logs quiet in production
 // ─── Retry & Message Cache (Fixes "Waiting for this message") ───────────────
 const msgRetryCounterCache = new NodeCache({ stdTTL: 3600, checkperiod: 120 });
 const messageStore = new NodeCache({ stdTTL: 3600, checkperiod: 120 });
+const botSentMessageIds = new NodeCache({ stdTTL: 600, checkperiod: 60 });
 
 // ─── State ─────────────────────────────────────────────────────────────────
 let sock = null;
@@ -314,6 +315,11 @@ async function connectToWhatsApp() {
         // from their phone, we auto-pause the bot for that customer so the
         // business can have a natural conversation without bot interruptions.
         if (msg.key?.fromMe && !isSelfChat) {
+          // If this message was sent programmatically by our bot, ignore it
+          if (msg.key?.id && botSentMessageIds.has(msg.key.id)) {
+            continue;
+          }
+
           const customerPhone = cleanJid.replace(/@.+$/, "");
           const msgText = String(
             msg.message?.conversation ||
@@ -321,19 +327,11 @@ async function connectToWhatsApp() {
             ""
           ).trim();
 
-          // Only pause if it looks like a genuine human reply (not a bot-sent system message)
-          // Bot-sent messages always start with known emoji/keywords — heuristic check
-          const botPrefixes = [
-            "🌿", "🛒", "🔍", "📦", "✅", "🎉", "⚠️", "❌", "🏦", "💳",
-            "📱", "💬", "🚚", "📅", "💰", "🛍️", "🌐", "⏳", "🔗", "🗑️",
-          ];
-          const isBotOwnMessage = botPrefixes.some((p) => msgText.startsWith(p));
-
-          if (!isBotOwnMessage && msgText.length > 0) {
-            // Business sent a manual human message — pause the bot for 2 hours
+          // Only pause if manual human message with text
+          if (msgText.length > 0) {
             const { pauseBot } = require("./sessionManager");
             pauseBot(customerPhone);
-            console.log(`🧑‍💼 Business manually replied to ${customerPhone} — bot paused for 2 hours.`);
+            console.log(`🧑‍💼 Business manually replied to ${customerPhone} from phone — bot paused for 2 hours.`);
             
             // Record manual outgoing business message to chat history
             recordChatMessage(customerPhone, "business", msgText, msg.key?.id, null, true).catch(() => {});
@@ -466,6 +464,7 @@ async function sendWhatsAppMessage(phoneOrJid, message) {
   // 6. Save message to RAM cache and MongoDB for Signal retry decryption
   if (sentMsg?.key?.id && sentMsg?.message) {
     await saveMessage(sentMsg.key.id, sentMsg.message);
+    botSentMessageIds.set(sentMsg.key.id, true);
   }
 
   // 7. Reset presence

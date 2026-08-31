@@ -72,8 +72,8 @@ async function geocodeAddress(db, addressText) {
     }
   }
 
-  // 3. Fallback heuristic validation: Check if text has reasonable detail (at least 8 chars and multiple words)
-  if (clean.length >= 10 && wordCount >= 2) {
+  // 3. Fallback heuristic validation: Accept any address with at least 4 characters
+  if (clean.length >= 4) {
     return {
       success: true,
       latitude: undefined,
@@ -85,7 +85,7 @@ async function geocodeAddress(db, addressText) {
   return {
     success: false,
     reason: "needs_detail",
-    message: "Please provide a complete delivery address with Street Name, Area, and Landmark.",
+    message: "Please provide a complete delivery address with Street Name, Area, and Landmark (or share your Location Pin).",
   };
 }
 

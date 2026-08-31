@@ -267,21 +267,26 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
     upper.startsWith("ORDER") ||
     upper.match(/^ORD-/i);
 
+  // Active ordering funnel check:
+  // When a customer is in the middle of picking items, entering name/phone/address, or choosing payment,
+  // the bot MUST NEVER block or pause their checkout inputs.
+  const isOrderingActive = Boolean(session.step && session.step !== "MAIN_MENU");
+
   // ── Bot Pause Check ────────────────────────────────────────────────────────
   // If the business has manually replied to this customer, the bot steps back
-  // to let them have a normal human conversation. Only hard commands break through.
+  // ONLY when the customer is idle in MAIN_MENU without an active checkout in progress.
   const { isBotPaused, resumeBot, getBotPauseRemainingMinutes } = sessionManager;
   
-  if (isBotPaused(phone) && !isHardCommand) {
-    // Bot is paused — silently let the message through (business is handling it)
-    console.log(`⏸️  Bot paused for ${phone} — ignoring non-command message: "${text.substring(0, 40)}"`);
+  if (isBotPaused(phone) && !isHardCommand && !isOrderingActive) {
+    // Bot is paused & customer is idle — silently let message through for business to reply
+    console.log(`⏸️  Bot paused for ${phone} (idle) — letting message through to business: "${text.substring(0, 40)}"`);
     return;
   }
 
-  // If a hard command arrives while paused, auto-resume the bot
-  if (isBotPaused(phone) && isHardCommand) {
+  // If a command arrives or customer actively interacts in checkout, auto-resume bot
+  if (isBotPaused(phone) && (isHardCommand || isOrderingActive)) {
     resumeBot(phone);
-    console.log(`▶️  Customer used a bot command — bot auto-resumed for ${phone}.`);
+    console.log(`▶️  Customer actively checking out or used command — bot auto-resumed for ${phone}.`);
   }
 
   // 1. Identify user on first interaction if not yet identified
