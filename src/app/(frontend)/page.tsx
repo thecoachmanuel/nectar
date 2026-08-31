@@ -8,6 +8,80 @@ import { useSettingsStore } from "@/store/useSettingsStore";
 import { formatPrice } from "@/lib/formatters";
 import { Search, Plus, Star, Leaf, Drumstick, Tag, MapPin, ChevronLeft, ChevronRight, Loader2, ArrowRight, Clock } from "lucide-react";
 
+// Helper to shuffle items randomly
+function shuffleArray<T>(array: T[]): T[] {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// Helper to interleave 4 items from each category in round-robin sequential order
+function interleaveInFours(items: any[], categoriesList: any[]): any[] {
+  if (!items || items.length === 0) return [];
+
+  const groups: { [key: string]: any[] } = {};
+  const catOrder: string[] = [];
+
+  // 1. Establish order of categories from the provided categoriesList
+  categoriesList.forEach((c: any) => {
+    const id = c._id?.toString() || c.id?.toString();
+    if (id && !groups[id]) {
+      groups[id] = [];
+      catOrder.push(id);
+    }
+  });
+
+  // 2. Put items into their respective category bucket
+  const uncategorized: any[] = [];
+  items.forEach((item: any) => {
+    const rawCat = item.categoryId;
+    const catId = (rawCat && typeof rawCat === "object" ? rawCat._id?.toString() : rawCat?.toString()) || "";
+    if (catId && groups[catId]) {
+      groups[catId].push(item);
+    } else if (catId) {
+      if (!groups[catId]) {
+        groups[catId] = [];
+        catOrder.push(catId);
+      }
+      groups[catId].push(item);
+    } else {
+      uncategorized.push(item);
+    }
+  });
+
+  if (uncategorized.length > 0) {
+    groups["uncategorized"] = uncategorized;
+    catOrder.push("uncategorized");
+  }
+
+  // 3. Filter only active buckets that have items
+  const bucketQueues: any[][] = catOrder
+    .map(id => groups[id] || [])
+    .filter(bucket => bucket.length > 0)
+    .map(bucket => [...bucket]);
+
+  // 4. Interleave 4 items from each category in round-robin sequential order
+  const interleaved: any[] = [];
+  let hasRemaining = true;
+
+  while (hasRemaining) {
+    hasRemaining = false;
+    for (let i = 0; i < bucketQueues.length; i++) {
+      const queue = bucketQueues[i];
+      if (queue.length > 0) {
+        hasRemaining = true;
+        const take = Math.min(4, queue.length);
+        interleaved.push(...queue.splice(0, take));
+      }
+    }
+  }
+
+  return interleaved;
+}
+
 export default function HomePage() {
   const { menuViewMode } = useSettingStore();
   const { settings } = useSettingsStore();
@@ -61,7 +135,11 @@ export default function HomePage() {
       ]).then(([cats, feat, pop, offs, strs, bans]) => {
         if (cats.status) setCategories(cats.data || []);
         if (feat.status) setFeaturedItems((feat.data || []).slice(0, 10));
-        if (pop.status) setPopularItems((pop.data || []).slice(0, 10));
+        if (pop.status) {
+          // Shuffle popular products every time user opens the app or website
+          const shuffledPopular = shuffleArray(pop.data || []);
+          setPopularItems(shuffledPopular.slice(0, 10));
+        }
         
         if (offs.status && offs.data?.length > 0) setOffers(offs.data);
         
@@ -101,6 +179,14 @@ export default function HomePage() {
       if (data.status) setAllItems(data.data || []);
     } catch {}
   };
+
+  // Interleave 4 from each category in round-robin sequential order when viewing "all"
+  const displayedAllItems = React.useMemo(() => {
+    if (selectedCategoryId === "all") {
+      return interleaveInFours(allItems, categories);
+    }
+    return allItems;
+  }, [allItems, categories, selectedCategoryId]);
 
   const openModal = (item: any) => { setSelectedItem(item); setIsModalOpen(true); };
 
@@ -365,7 +451,7 @@ export default function HomePage() {
             <div className="flex justify-center py-16">
               <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--primary-hex)" }} />
             </div>
-          ) : allItems.length === 0 ? (
+          ) : displayedAllItems.length === 0 ? (
             <div className="bg-white rounded-2xl p-12 text-center border border-[#eff0f6]">
               <img src="/images/item/item-not-found.png" alt="Not Found" className="w-28 mx-auto mb-4 opacity-50"
                 onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
@@ -373,11 +459,11 @@ export default function HomePage() {
             </div>
           ) : menuViewMode === "grid" ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-              {allItems.map((item) => <ItemCard key={item._id} item={item} onOpen={openModal} />)}
+              {displayedAllItems.map((item) => <ItemCard key={item._id} item={item} onOpen={openModal} />)}
             </div>
           ) : (
             <div className="space-y-3">
-              {allItems.map((item) => (
+              {displayedAllItems.map((item) => (
                 <div key={item._id} onClick={() => openModal(item)} className="product-card-list cursor-pointer overflow-hidden w-full min-w-0">
                   <img src={item.image || "/images/item/thumb.png"} alt={item.name}
                     className="w-24 sm:w-28 h-24 sm:h-28 object-cover rounded-l-lg shrink-0"
