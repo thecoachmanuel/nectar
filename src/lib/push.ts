@@ -2,15 +2,26 @@ import dbConnect from "@/lib/dbConnect";
 import Setting from "@/models/Setting";
 
 export async function sendPushNotification(token: string, title: string, body: string, data?: any) {
+  return sendBulkPushNotification([token], title, body, data);
+}
+
+export async function sendBulkPushNotification(
+  tokens: string[],
+  title: string,
+  body: string,
+  data?: any
+) {
   try {
     await dbConnect();
-    const settings = await Setting.find({ key: { $in: ["push_onesignal_app_id", "push_onesignal_rest_api_key", "push_enabled"] } });
+    const settings = await Setting.find({
+      key: { $in: ["push_onesignal_app_id", "push_onesignal_rest_api_key", "push_enabled"] },
+    });
     const config: Record<string, string> = {};
-    settings.forEach(s => config[s.key] = s.payload);
+    settings.forEach((s) => (config[s.key] = s.payload));
 
     if (config.push_enabled !== "Yes") {
       console.log("Push notifications are disabled in settings.");
-      return false;
+      return { success: false, message: "Push notifications are disabled in settings." };
     }
 
     const appId = config.push_onesignal_app_id || process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID;
@@ -18,38 +29,44 @@ export async function sendPushNotification(token: string, title: string, body: s
 
     if (!appId || !restApiKey) {
       console.error("OneSignal credentials missing.");
-      return false;
+      return { success: false, message: "OneSignal credentials missing in settings." };
     }
 
-    const payload = {
+    const validTokens = (tokens || []).filter((t) => t && typeof t === "string" && t.trim().length > 0);
+
+    const payload: any = {
       app_id: appId,
-      include_player_ids: [token],
-      // OneSignal uses 'headings' and 'contents' instead of 'title' and 'body'
       headings: { en: title },
       contents: { en: body },
-      data: data
+      data: data || {},
     };
+
+    if (validTokens.length > 0) {
+      payload.include_player_ids = validTokens;
+    } else {
+      payload.included_segments = ["Subscribed Users"];
+    }
 
     const response = await fetch("https://onesignal.com/api/v1/notifications", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Basic ${restApiKey}`
+        Authorization: `Basic ${restApiKey}`,
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
 
     const result = await response.json();
-    
+
     if (response.ok) {
       console.log("Successfully sent OneSignal push message:", result);
-      return true;
+      return { success: true, result, recipients: result.recipients || validTokens.length };
     } else {
       console.error("Error from OneSignal API:", result);
-      return false;
+      return { success: false, message: result?.errors?.[0] || "OneSignal delivery failed", result };
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error sending push notification:", error);
-    return false;
+    return { success: false, message: error.message };
   }
 }

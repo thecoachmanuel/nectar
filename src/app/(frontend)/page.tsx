@@ -176,7 +176,7 @@ export default function HomePage() {
         <section className="mb-6 sm:mb-12 mt-8">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between gap-2 mb-4">
-              <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b]">Our Menu</h2>
+              <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b]">Categories</h2>
               <Link href="/menu" className="text-xs font-medium" style={{ color: "var(--primary-hex)" }}>
                 View All
               </Link>
@@ -317,12 +317,12 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* ========= POPULAR ITEMS ========= */}
+      {/* ========= POPULAR PRODUCTS ========= */}
       {popularItems.length > 0 && (
         <section className="mb-8 sm:mb-12">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between gap-2 mb-4">
-              <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b]">Popular Items</h2>
+              <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b]">Popular Products</h2>
               <Link href="/menu" className="text-xs font-medium" style={{ color: "var(--primary-hex)" }}>View All</Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -353,11 +353,11 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* ========= ALL ITEMS (Category filtered) ========= */}
+      {/* ========= ALL PRODUCTS (Category filtered) ========= */}
       <section className="pb-20 lg:pb-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b] mb-4">
-            {selectedCategoryId === "all" ? "All Items" : categories.find(c => c._id === selectedCategoryId)?.name || "Items"}
+            {selectedCategoryId === "all" ? "All Products" : categories.find(c => c._id === selectedCategoryId)?.name || "Products"}
           </h2>
 
           {loading ? (

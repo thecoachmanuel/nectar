@@ -116,7 +116,7 @@ function MenuContent() {
           {/* HEADER & TOGGLE */}
           <div className="flex gap-2 sm:gap-4 items-start justify-between mb-4 sm:mb-6">
             <h2 className="capitalize text-lg sm:text-2xl font-semibold text-primary">
-              {selectedCategory ? selectedCategory.name : "All Items"}
+              {selectedCategory ? selectedCategory.name : "All Products"}
             </h2>
             <div className="flex items-center gap-3">
               <button onClick={() => setMenuViewMode("list")} className={`text-xl transition-colors ${menuViewMode === "list" ? "text-primary" : "text-[#A0A3BD]"}`}>
