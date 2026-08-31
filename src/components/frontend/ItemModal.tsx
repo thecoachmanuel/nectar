@@ -95,11 +95,11 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-3 pt-3 pb-20 sm:pb-4 md:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in"
       onClick={onClose}
     >
       <div 
-        className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] sm:max-h-[88vh] flex flex-col border border-[#EFF0F6] animate-in zoom-in-95 duration-200"
+        className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[80vh] sm:max-h-[88vh] flex flex-col border border-[#EFF0F6] animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Product Image Header */}
@@ -168,15 +168,15 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
                       type="button"
                       key={option.name || idx}
                       onClick={() => setSelectedVariation(option)}
-                      className={`flex items-center justify-between p-3 rounded-2xl border text-left transition-all ${
+                      className={`outline-none flex items-center justify-between p-3 rounded-2xl border-2 text-left transition-all ${
                         isSelected
-                          ? "border-primary bg-primary/5 text-[#14142B] shadow-sm ring-1 ring-primary/40"
-                          : "border-[#EFF0F6] bg-white hover:bg-[#FAFAFC] text-[#4E4B66]"
+                          ? "border-primary bg-primary/5 text-[#14142B]"
+                          : "border-[#EFF0F6] bg-white hover:border-primary/30 hover:bg-[#FAFAFC] text-[#4E4B66]"
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0 pr-2">
                         <div
-                          className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
+                          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
                             isSelected ? "border-primary bg-primary" : "border-[#D9DBE9] bg-white"
                           }`}
                         >
@@ -213,15 +213,15 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
                     <div
                       key={extra.name || idx}
                       onClick={() => toggleExtra(extra)}
-                      className={`flex items-center justify-between p-3 rounded-2xl border cursor-pointer transition-all ${
+                      className={`outline-none flex items-center justify-between p-3 rounded-2xl border-2 cursor-pointer transition-all ${
                         isChecked
-                          ? "border-primary bg-primary/5 text-[#14142B] shadow-sm"
-                          : "border-[#EFF0F6] bg-white hover:bg-[#FAFAFC] text-[#4E4B66]"
+                          ? "border-primary bg-primary/5 text-[#14142B]"
+                          : "border-[#EFF0F6] bg-white hover:border-primary/30 hover:bg-[#FAFAFC] text-[#4E4B66]"
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div
-                          className={`w-5 h-5 rounded-lg flex items-center justify-center border transition-colors ${
+                          className={`w-5 h-5 rounded-lg flex items-center justify-center border-2 transition-colors ${
                             isChecked ? "bg-primary border-primary text-white" : "border-[#D9DBE9] bg-white"
                           }`}
                         >
@@ -258,15 +258,15 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
                     <div
                       key={addon._id || addon.name || idx}
                       onClick={() => toggleAddon(addon)}
-                      className={`flex items-center justify-between p-3 rounded-2xl border cursor-pointer transition-all ${
+                      className={`outline-none flex items-center justify-between p-3 rounded-2xl border-2 cursor-pointer transition-all ${
                         isChecked
-                          ? "border-primary bg-primary/5 text-[#14142B] shadow-sm"
-                          : "border-[#EFF0F6] bg-white hover:bg-[#FAFAFC] text-[#4E4B66]"
+                          ? "border-primary bg-primary/5 text-[#14142B]"
+                          : "border-[#EFF0F6] bg-white hover:border-primary/30 hover:bg-[#FAFAFC] text-[#4E4B66]"
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div
-                          className={`w-5 h-5 rounded-lg flex items-center justify-center border transition-colors ${
+                          className={`w-5 h-5 rounded-lg flex items-center justify-center border-2 transition-colors ${
                             isChecked ? "bg-primary border-primary text-white" : "border-[#D9DBE9] bg-white"
                           }`}
                         >
