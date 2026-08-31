@@ -18,6 +18,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
   
   const [formData, setFormData] = useState({
     name: "",
+    description: "",
     slug: "",
     categoryId: "",
     offerId: "",
@@ -45,6 +46,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
     if (item) {
       setFormData({
         name: item.name || "",
+        description: item.description || "",
         slug: item.slug || "",
         categoryId: item.categoryId?._id || item.categoryId || "",
         offerId: item.offerId?._id || item.offerId || "",
@@ -60,6 +62,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
     } else {
       setFormData({
         name: "",
+        description: "",
         slug: "",
         categoryId: "",
         offerId: "",
@@ -113,6 +116,20 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
             value={formData.name}
             onChange={(e) => setFormData({...formData, name: e.target.value})}
             className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-[#14142B] mb-1">
+            Product Description
+            <span className="ml-1 text-[11px] font-normal text-[#A0A3BD]">(displayed below product name on cards)</span>
+          </label>
+          <textarea
+            rows={3}
+            placeholder="e.g. Fresh organic tomatoes, hand-picked daily from local farms..."
+            value={formData.description}
+            onChange={(e) => setFormData({...formData, description: e.target.value})}
+            className="w-full px-4 py-3 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors resize-none text-sm"
           />
         </div>
 
