@@ -485,7 +485,7 @@ export default function CheckoutPage() {
                     >
                       <div>
                         <span className="block text-sm font-medium text-[#14142b]">Wallet</span>
-                        <span className="block text-xs font-bold text-primary mt-0.5">Bal: ₦{walletBalance.toLocaleString()}</span>
+                        <span className="block text-xs font-bold text-primary mt-0.5">Bal: {formatPrice(walletBalance)}</span>
                       </div>
                       <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === "wallet" ? 'border-primary' : 'border-[#a0a3bd]'}`}>
                         {paymentMethod === "wallet" && <div className="w-2 h-2 rounded-full bg-primary" />}

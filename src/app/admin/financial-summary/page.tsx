@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useApi } from "@/hooks/useApi";
 import { DollarSign, TrendingUp, Store as StoreIcon, Bike, Wallet, CheckCircle, X } from "lucide-react";
 import { toast } from "sonner";
+import { formatPrice } from "@/lib/formatters";
 
 export default function FinancialSummaryPage() {
   const { execute, data, loading } = useApi();
@@ -16,11 +17,7 @@ export default function FinancialSummaryPage() {
   }, []);
 
   const formatMoney = (amount: number) => {
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-      minimumFractionDigits: 0,
-    }).format(amount || 0);
+    return formatPrice(amount || 0);
   };
 
   const handleInitiatePayout = async (e: React.FormEvent) => {

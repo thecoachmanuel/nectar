@@ -6,6 +6,7 @@ import {
   Filter, 
   Download
 } from "lucide-react";
+import { formatPrice } from "@/lib/formatters";
 
 export default function CreditBalanceReportPage() {
   const [showFilter, setShowFilter] = useState(false);
@@ -169,7 +170,7 @@ export default function CreditBalanceReportPage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <span className={`text-sm font-bold ${report.walletBalance > 0 ? 'text-[#1AB759]' : 'text-[#6E7191]'}`}>
-                      ₦{report.walletBalance || 0}
+                      {formatPrice(report.walletBalance || 0)}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">

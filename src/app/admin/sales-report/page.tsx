@@ -9,6 +9,7 @@ import {
 import { useApi } from "@/hooks/useApi";
 import ExcelJS from "exceljs";
 import { toast } from "sonner";
+import { formatPrice } from "@/lib/formatters";
 
 export default function SalesReportPage() {
   const [showFilter, setShowFilter] = useState(false);
@@ -50,7 +51,7 @@ export default function SalesReportPage() {
           date: new Date(o.createdAt).toLocaleDateString(),
           customerName: o.customerName,
           itemsCount: o.items?.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0) || 0,
-          totalAmount: `₦${(o.totalAmount || 0).toLocaleString()}`,
+          totalAmount: formatPrice(o.totalAmount || 0),
           status: o.orderStatus,
         });
       });
@@ -138,7 +139,7 @@ export default function SalesReportPage() {
           <div className="bg-white p-4 rounded-xl border border-[#EFF0F6] shadow-sm flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold text-[#6E7191] mb-1">Total Sales</p>
-              <h4 className="text-lg font-bold text-[#14142B]">₦{totalSales.toLocaleString()}</h4>
+              <h4 className="text-lg font-bold text-[#14142B]">{formatPrice(totalSales)}</h4>
             </div>
             <div className="w-10 h-10 rounded-full bg-[#E0FFED] flex items-center justify-center text-[#1AB759]">
               <span className="font-bold">₦</span>
@@ -203,7 +204,7 @@ export default function SalesReportPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm font-bold text-[#14142B]">
-                        ₦{(report.totalAmount || 0).toLocaleString()}
+                        {formatPrice(report.totalAmount || 0)}
                       </span>
                     </td>
                     <td className="px-6 py-4">

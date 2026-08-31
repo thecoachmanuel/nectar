@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { formatPrice } from "@/lib/formatters";
 
 interface Conversation {
   phone: string;
@@ -567,7 +568,7 @@ export default function WhatsAppChatPage() {
                       <ShoppingBag className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                       <span>Recent Order:</span>
                       <span className="font-bold">#{recentOrders[0].orderSerialNo}</span>
-                      <span>(₦{Number(recentOrders[0].totalAmount || 0).toLocaleString()})</span>
+                      <span>({formatPrice(recentOrders[0].totalAmount || 0)})</span>
                       <span className="px-1.5 py-0.5 rounded text-[10px] bg-white border border-emerald-200 font-semibold uppercase">
                         {recentOrders[0].orderStatus}
                       </span>

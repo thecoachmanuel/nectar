@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2 } from "lucide-react";
 import OfferModal from "@/components/admin/OfferModal";
 import { useApi } from "@/hooks/useApi";
+import { formatPrice } from "@/lib/formatters";
 
 export default function OffersPage() {
   const [offers, setOffers] = useState<any[]>([]);
@@ -100,7 +101,7 @@ export default function OffersPage() {
                     <p className="text-xs text-[#6E7191]">{offer.slug}</p>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm font-bold text-[#14142B]">₦{offer.price || 0}</span>
+                    <span className="text-sm font-bold text-[#14142B]">{formatPrice(offer.price || 0)}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${

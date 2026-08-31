@@ -10,6 +10,7 @@ import {
   Loader2
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
+import { formatPrice } from "@/lib/formatters";
 import Link from "next/link";
 
 export default function PosOrdersPage() {
@@ -134,7 +135,7 @@ export default function PosOrdersPage() {
                     <span className="text-sm font-semibold text-[#14142B]">{order.items?.length || 0}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm font-semibold text-[#14142B]">₦{(order.totalAmount || 0).toLocaleString()}</span>
+                    <span className="text-sm font-semibold text-[#14142B]">{formatPrice(order.totalAmount || 0)}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-sm text-[#4E4B66]">{new Date(order.createdAt).toLocaleString()}</span>

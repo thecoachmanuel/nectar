@@ -16,6 +16,7 @@ import {
   Store
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
+import { formatPrice } from "@/lib/formatters";
 
 export default function POSPage() {
   const [activeCategory, setActiveCategory] = useState("All");
@@ -236,7 +237,7 @@ export default function POSPage() {
                   </div>
                   <div className="p-3 text-center">
                     <h3 className="font-semibold text-sm text-[#14142B] mb-1 truncate">{product.name}</h3>
-                    <p className="font-bold text-primary text-sm">₦{product.price.toLocaleString()}</p>
+                    <p className="font-bold text-primary text-sm">{formatPrice(product.price)}</p>
                   </div>
                 </div>
               ))}
@@ -302,7 +303,7 @@ export default function POSPage() {
                 <li key={item.itemId} className="flex gap-3 border-b border-dashed border-[#EFF0F6] pb-4 last:border-none last:pb-0">
                   <div className="flex-1">
                     <h4 className="font-semibold text-sm text-[#14142B] mb-1">{item.name}</h4>
-                    <p className="font-bold text-sm text-[#14142B]">₦{(item.price * item.quantity).toLocaleString()}</p>
+                    <p className="font-bold text-sm text-[#14142B]">{formatPrice(item.price * item.quantity)}</p>
                   </div>
                   <div className="flex flex-col items-end justify-between">
                     <button onClick={() => removeFromCart(item.itemId)} className="text-[#FB4E4E] hover:text-red-700 p-1">
@@ -333,19 +334,19 @@ export default function POSPage() {
             <ul className="space-y-2 mb-4">
               <li className="flex justify-between text-sm">
                 <span className="text-[#6E7191]">Sub Total</span>
-                <span className="font-semibold text-[#14142B]">₦{subtotal.toLocaleString()}</span>
+                <span className="font-semibold text-[#14142B]">{formatPrice(subtotal)}</span>
               </li>
               <li className="flex justify-between text-sm">
                 <span className="text-[#6E7191]">Discount</span>
-                <span className="font-semibold text-[#14142B]">₦{discount.toLocaleString()}</span>
+                <span className="font-semibold text-[#14142B]">{formatPrice(discount)}</span>
               </li>
               <li className="flex justify-between text-sm">
                 <span className="text-[#6E7191]">Delivery Charge</span>
-                <span className="font-semibold text-[#1AB759]">₦{deliveryCharge.toLocaleString()}</span>
+                <span className="font-semibold text-[#1AB759]">{formatPrice(deliveryCharge)}</span>
               </li>
               <li className="flex justify-between text-base pt-2 border-t border-dashed border-[#EFF0F6] mt-2">
                 <span className="font-bold text-[#14142B]">Total</span>
-                <span className="font-bold text-primary">₦{total.toLocaleString()}</span>
+                <span className="font-bold text-primary">{formatPrice(total)}</span>
               </li>
             </ul>
 

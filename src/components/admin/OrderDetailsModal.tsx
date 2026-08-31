@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Modal from "./Modal";
+import { formatPrice } from "@/lib/formatters";
 
 interface OrderDetailsModalProps {
   isOpen: boolean;
@@ -112,7 +113,7 @@ export default function OrderDetailsModal({
     if (!order) return;
     const actionText = newStatus === "paid" ? "mark as PAID" : "mark as UNPAID";
     const confirm = window.confirm(
-      `Are you sure you want to ${actionText} order #${order.orderSerialNo} (₦${order.totalAmount?.toLocaleString()})?`
+      `Are you sure you want to ${actionText} order #${order.orderSerialNo} (${formatPrice(order.totalAmount)})?`
     );
     if (!confirm) return;
     setMarkingPaid(true);
@@ -192,14 +193,14 @@ export default function OrderDetailsModal({
             ${order.items?.map((it: any) => `
               <div class="flex">
                 <span>${it.quantity}x ${it.name}</span>
-                <span>₦${Number(it.itemTotal || 0).toLocaleString()}</span>
+                <span>${formatPrice(it.itemTotal)}</span>
               </div>
             `).join("")}
           </div>
-          <div class="border-t flex"><span>Subtotal:</span><span>₦${Number(order.subtotal || 0).toLocaleString()}</span></div>
-          <div class="flex"><span>Delivery Charge:</span><span>₦${Number(order.deliveryCharge || 0).toLocaleString()}</span></div>
-          ${order.discountAmount ? `<div class="flex"><span>Discount:</span><span>-₦${Number(order.discountAmount || 0).toLocaleString()}</span></div>` : ""}
-          <div class="flex bold border-t" style="font-size: 14px;"><span>TOTAL:</span><span>₦${Number(order.totalAmount || 0).toLocaleString()}</span></div>
+          <div class="border-t flex"><span>Subtotal:</span><span>${formatPrice(order.subtotal)}</span></div>
+          <div class="flex"><span>Delivery Charge:</span><span>${formatPrice(order.deliveryCharge)}</span></div>
+          ${order.discountAmount ? `<div class="flex"><span>Discount:</span><span>-${formatPrice(order.discountAmount)}</span></div>` : ""}
+          <div class="flex bold border-t" style="font-size: 14px;"><span>TOTAL:</span><span>${formatPrice(order.totalAmount)}</span></div>
           <div class="text-center border-t" style="margin-top: 15px;">Thank you for ordering!</div>
         </body>
       </html>
@@ -429,18 +430,18 @@ export default function OrderDetailsModal({
                         )}
                         {item.extras?.length > 0 && (
                           <p className="text-[11px] text-[#6E7191] mt-0.5">
-                            Extras: {item.extras.map((ex: any) => `${ex.name} (+₦${ex.price})`).join(", ")}
+                            Extras: {item.extras.map((ex: any) => `${ex.name} (+${formatPrice(ex.price)})`).join(", ")}
                           </p>
                         )}
                         {item.addons?.length > 0 && (
                           <p className="text-[11px] text-[#6E7191] mt-0.5">
-                            Addons: {item.addons.map((ad: any) => `${ad.name} (+₦${ad.price})`).join(", ")}
+                            Addons: {item.addons.map((ad: any) => `${ad.name} (+${formatPrice(ad.price)})`).join(", ")}
                           </p>
                         )}
                       </td>
-                      <td className="p-3 text-[#14142B] font-medium">₦{(item.price || 0).toLocaleString()}</td>
+                      <td className="p-3 text-[#14142B] font-medium">{formatPrice(item.price)}</td>
                       <td className="p-3 text-center font-bold text-[#14142B]">{item.quantity}</td>
-                      <td className="p-3 text-right font-bold text-[#14142B]">₦{(item.itemTotal || 0).toLocaleString()}</td>
+                      <td className="p-3 text-right font-bold text-[#14142B]">{formatPrice(item.itemTotal)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -524,27 +525,27 @@ export default function OrderDetailsModal({
             <div className="space-y-1.5 text-xs text-right border-t md:border-t-0 md:border-l border-[#EFF0F6] pt-3 md:pt-0 md:pl-6">
               <div className="flex justify-between">
                 <span className="text-[#6E7191]">Products Subtotal:</span>
-                <span className="font-semibold text-[#14142B]">₦{(order.subtotal || 0).toLocaleString()}</span>
+                <span className="font-semibold text-[#14142B]">{formatPrice(order.subtotal)}</span>
               </div>
               {order.taxAmount > 0 && (
                 <div className="flex justify-between">
                   <span className="text-[#6E7191]">Tax Amount:</span>
-                  <span className="font-semibold text-[#14142B]">₦{(order.taxAmount || 0).toLocaleString()}</span>
+                  <span className="font-semibold text-[#14142B]">{formatPrice(order.taxAmount)}</span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span className="text-[#6E7191]">Delivery Fee:</span>
-                <span className="font-semibold text-[#14142B]">₦{(order.deliveryCharge || 0).toLocaleString()}</span>
+                <span className="font-semibold text-[#14142B]">{formatPrice(order.deliveryCharge)}</span>
               </div>
               {order.discountAmount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Discount:</span>
-                  <span className="font-semibold">-₦{(order.discountAmount || 0).toLocaleString()}</span>
+                  <span className="font-semibold">-{formatPrice(order.discountAmount)}</span>
                 </div>
               )}
               <div className="flex justify-between pt-2 border-t border-[#EFF0F6] text-sm font-bold text-[#14142B]">
                 <span>Grand Total:</span>
-                <span className="text-primary text-base">₦{(order.totalAmount || 0).toLocaleString()}</span>
+                <span className="text-primary text-base">{formatPrice(order.totalAmount)}</span>
               </div>
             </div>
 

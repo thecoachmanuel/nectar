@@ -10,6 +10,7 @@ import {
   Eye
 } from "lucide-react";
 import { useApi } from "@/hooks/useApi";
+import { formatPrice } from "@/lib/formatters";
 import CouponModal from "@/components/admin/CouponModal";
 import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
 
@@ -160,12 +161,12 @@ export default function CouponsPage() {
                           </span>
                         ) : (
                           <span className="text-sm font-bold text-[#14142B]">
-                            ₦{Number(coupon.discount || 0).toLocaleString()} Off
+                            {formatPrice(coupon.discount || 0)} Off
                           </span>
                         )}
                         {coupon.minimumOrderAmount > 0 && (
                           <span className="block text-[11px] text-[#6E7191] mt-0.5">
-                            Min: ₦{Number(coupon.minimumOrderAmount).toLocaleString()}
+                            Min: {formatPrice(coupon.minimumOrderAmount)}
                           </span>
                         )}
                       </td>

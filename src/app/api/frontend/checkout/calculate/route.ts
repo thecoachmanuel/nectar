@@ -199,7 +199,11 @@ export async function POST(req: Request) {
       }
 
       if (subtotal < coupon.minimumOrderAmount) {
-        return NextResponse.json({ status: false, message: `Minimum order subtotal for this coupon is ₦${coupon.minimumOrderAmount.toLocaleString()}` }, { status: 400 });
+        const formattedMin = Number(coupon.minimumOrderAmount || 0).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+        return NextResponse.json({ status: false, message: `Minimum order subtotal for this coupon is ₦${formattedMin}` }, { status: 400 });
       }
 
       // ── Rule A: New Customers Only Check ──

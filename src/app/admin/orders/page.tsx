@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import { useApi } from "@/hooks/useApi";
 import { orderSoundAlert } from "@/utils/audioAlert";
+import { formatPrice } from "@/lib/formatters";
 
 import OrderDetailsModal from "@/components/admin/OrderDetailsModal";
 
@@ -72,7 +73,7 @@ export default function OrdersPage() {
         if (soundEnabled) {
           orderSoundAlert.playOrderChime();
           toast.success(`🔔 New Order #${latestOrder.orderSerialNo || "New"} Received!`, {
-            description: `${latestOrder.customerName || "Customer"} — ₦${Number(latestOrder.totalAmount || 0).toLocaleString()}`,
+            description: `${latestOrder.customerName || "Customer"} — ${formatPrice(latestOrder.totalAmount || 0)}`,
           });
         }
       }
@@ -264,7 +265,7 @@ export default function OrdersPage() {
                       <span className="text-sm font-medium text-[#14142B]">{order.customerName}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-semibold text-[#14142B]">₦{(order.totalAmount || 0).toLocaleString()}</span>
+                      <span className="text-sm font-semibold text-[#14142B]">{formatPrice(order.totalAmount || 0)}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-[#4E4B66] capitalize">{order.orderType?.replace("_", " ")}</span>

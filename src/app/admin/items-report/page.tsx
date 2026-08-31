@@ -13,6 +13,7 @@ import {
 import { useApi } from "@/hooks/useApi";
 import ExcelJS from "exceljs";
 import { toast } from "sonner";
+import { formatPrice } from "@/lib/formatters";
 
 export default function ItemsReportPage() {
   const [showFilter, setShowFilter] = useState(false);
@@ -83,9 +84,9 @@ export default function ItemsReportPage() {
           name: item.name,
           store: item.store || "-",
           category: item.category || "-",
-          price: `₦${(item.price || 0).toLocaleString()}`,
+          price: formatPrice(item.price || 0),
           quantitySold: item.quantitySold,
-          revenue: `₦${(item.revenue || 0).toLocaleString()}`,
+          revenue: formatPrice(item.revenue || 0),
         });
       });
 
@@ -143,7 +144,7 @@ export default function ItemsReportPage() {
           </div>
           <div>
             <p className="text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Total Products Sales</p>
-            <h3 className="text-xl font-bold text-[#14142B]">₦{totalItemRevenue.toLocaleString()}</h3>
+            <h3 className="text-xl font-bold text-[#14142B]">{formatPrice(totalItemRevenue)}</h3>
           </div>
         </div>
       </div>
@@ -245,7 +246,7 @@ export default function ItemsReportPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <span className="text-sm font-medium text-[#4E4B66]">₦{(item.price || 0).toLocaleString()}</span>
+                      <span className="text-sm font-medium text-[#4E4B66]">{formatPrice(item.price || 0)}</span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <span className={`text-sm font-semibold ${item.quantitySold > 0 ? 'text-[#1AB759]' : 'text-slate-400'}`}>
@@ -254,7 +255,7 @@ export default function ItemsReportPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <span className={`text-sm font-bold ${item.revenue > 0 ? 'text-[#14142B]' : 'text-slate-400'}`}>
-                        ₦{(item.revenue || 0).toLocaleString()}
+                        {formatPrice(item.revenue || 0)}
                       </span>
                     </td>
                   </tr>

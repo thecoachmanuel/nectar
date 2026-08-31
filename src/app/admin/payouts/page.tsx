@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Plus, CheckCircle, XCircle, Clock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { formatPrice } from "@/lib/formatters";
 
 export default function PayoutsPage() {
   const [payouts, setPayouts] = useState<any[]>([]);
@@ -110,7 +111,7 @@ export default function PayoutsPage() {
                   <td className="px-6 py-4">{new Date(p.createdAt).toLocaleDateString()}</td>
                   <td className="px-6 py-4 font-mono text-xs">{p.userId}</td>
                   <td className="px-6 py-4 capitalize">{p.userRole.replace("_", " ")}</td>
-                  <td className="px-6 py-4 font-bold">₦{p.amount.toLocaleString()}</td>
+                  <td className="px-6 py-4 font-bold">{formatPrice(p.amount || 0)}</td>
                   <td className="px-6 py-4">
                     {p.status === "pending" && <span className="flex items-center gap-1.5 text-orange-500 bg-orange-50 px-2.5 py-1 rounded-md text-xs font-semibold w-max"><Clock className="w-3.5 h-3.5"/> Pending</span>}
                     {p.status === "approved" && <span className="flex items-center gap-1.5 text-green-500 bg-green-50 px-2.5 py-1 rounded-md text-xs font-semibold w-max"><CheckCircle className="w-3.5 h-3.5"/> Approved</span>}

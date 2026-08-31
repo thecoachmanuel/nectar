@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Navigation, ShieldCheck, MapPin, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { formatPrice } from "@/lib/formatters";
 
 export default function DeliveryDashboard() {
   const [user, setUser] = useState<any>(null);
@@ -100,7 +101,7 @@ export default function DeliveryDashboard() {
         </div>
         <div className="bg-white/20 p-4 rounded-xl text-right">
           <p className="text-xs uppercase tracking-wider font-semibold opacity-80 mb-1">Wallet Balance</p>
-          <p className="text-2xl font-bold">₦{user?.walletBalance?.toLocaleString() || "0"}</p>
+          <p className="text-2xl font-bold">{formatPrice(user?.walletBalance || 0)}</p>
         </div>
       </div>
 
@@ -173,7 +174,7 @@ export default function DeliveryDashboard() {
                 </div>
                 <p className="text-sm text-[#6E7191] mb-1">To: {order.deliveryAddress}</p>
                 <div className="flex justify-between items-center mt-3">
-                  <p className="text-[11px] font-semibold text-[#A0A3BD] uppercase tracking-wider">Earn: ~₦{order.deliveryCharge}</p>
+                  <p className="text-[11px] font-semibold text-[#A0A3BD] uppercase tracking-wider">Earn: ~{formatPrice(order.deliveryCharge || 0)}</p>
                   <button 
                     onClick={() => claimOrder(order._id)}
                     className="px-4 py-1.5 bg-[#14142B] text-white text-xs font-bold rounded-lg hover:bg-black"

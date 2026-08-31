@@ -352,12 +352,12 @@ export async function POST(req: Request) {
 }
 
 // Format price helper for notifications
-function formatPrice(amount: number) {
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-    minimumFractionDigits: 0,
-  }).format(amount || 0);
+function formatPrice(amount: number | string | undefined | null) {
+  const num = typeof amount === "string" ? parseFloat(amount) : Number(amount || 0);
+  return `₦${(isNaN(num) ? 0 : num).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 // ── Custom Rich Admin Order Notification Generator ─────────────────────────────
@@ -373,9 +373,9 @@ function buildCustomAdminOrderNotification(order: any, appOrigin: string, fallba
     ? items.map((item: any, idx: number) => {
         const itemQty = item.quantity || 1;
         const itemTotal = item.itemTotal
-          ? ` (₦${Number(item.itemTotal).toLocaleString()})`
+          ? ` (${formatPrice(item.itemTotal)})`
           : item.price
-          ? ` (₦${Number(item.price * itemQty).toLocaleString()})`
+          ? ` (${formatPrice(item.price * itemQty)})`
           : "";
         const itemVar = item.itemVariation ? ` [${item.itemVariation}]` : "";
         return `${idx + 1}. *${item.name}*${itemVar} x${itemQty}${itemTotal}`;
@@ -420,10 +420,10 @@ function buildCustomAdminOrderNotification(order: any, appOrigin: string, fallba
     `🛍️ *ORDERED ITEMS (${totalItemQuantity} item${totalItemQuantity === 1 ? "" : "s"})*\n` +
     `${itemsText}\n\n` +
     `💰 *BILLING & SUMMARY*\n` +
-    `• *Subtotal:* ₦${subtotal.toLocaleString()}\n` +
-    `• *Delivery Fee:* ₦${deliveryCharge.toLocaleString()}\n` +
-    (discount > 0 ? `• *Discount Applied:* -₦${discount.toLocaleString()}\n` : "") +
-    `• *TOTAL PAYABLE:* *₦${total.toLocaleString()}*\n\n` +
+    `• *Subtotal:* ${formatPrice(subtotal)}\n` +
+    `• *Delivery Fee:* ${formatPrice(deliveryCharge)}\n` +
+    (discount > 0 ? `• *Discount Applied:* -${formatPrice(discount)}\n` : "") +
+    `• *TOTAL PAYABLE:* *${formatPrice(total)}*\n\n` +
     `💳 *PAYMENT & FULFILLMENT*\n` +
     `• *Payment Method:* ${formattedPaymentMethod}\n` +
     `• *Payment Status:* ${paymentStatusBadge}\n` +

@@ -59,9 +59,9 @@ export const useSettingStore = create<SettingState>()(
       formatPrice: (amount: number | string) => {
         const symbol = get().currencySymbol || "₦";
         const num = typeof amount === "string" ? parseFloat(amount) : Number(amount || 0);
-        if (isNaN(num)) return `${symbol}0`;
+        if (isNaN(num)) return `${symbol}0.00`;
         const val = num.toLocaleString("en-US", {
-          minimumFractionDigits: num % 1 === 0 ? 0 : 2,
+          minimumFractionDigits: 2,
           maximumFractionDigits: 2,
         });
         return `${symbol}${val}`;

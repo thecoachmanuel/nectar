@@ -24,6 +24,8 @@ import {
   Bot,
   FileSpreadsheet
 } from "lucide-react";
+import { toast } from "sonner";
+import { formatPrice } from "@/lib/formatters";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
@@ -208,12 +210,12 @@ export default function AdminDashboardPage() {
             {user?.role === "store_manager" ? (
               <div>
                 <h3 className="font-medium text-white text-[11px] uppercase tracking-wide">Net Earnings</h3>
-                <h4 className="font-semibold text-lg text-white">₦{dashboardData?.storeManagerEarnings?.toLocaleString() || 0}</h4>
+                <h4 className="font-semibold text-lg text-white">{formatPrice(dashboardData?.storeManagerEarnings || 0)}</h4>
               </div>
             ) : (
               <div>
                 <h3 className="font-medium text-white text-[11px] uppercase tracking-wide">Total Revenue</h3>
-                <h4 className="font-semibold text-lg text-white">₦{dashboardData?.totalSales?.toLocaleString() || 0}</h4>
+                <h4 className="font-semibold text-lg text-white">{formatPrice(dashboardData?.totalSales || 0)}</h4>
               </div>
             )}
           </div>
@@ -224,7 +226,7 @@ export default function AdminDashboardPage() {
             </div>
             <div>
               <h3 className="font-medium text-white text-[11px] uppercase tracking-wide">Delivery Fees</h3>
-              <h4 className="font-semibold text-lg text-white">₦{dashboardData?.totalDeliveryCharges?.toLocaleString() || 0}</h4>
+              <h4 className="font-semibold text-lg text-white">{formatPrice(dashboardData?.totalDeliveryCharges || 0)}</h4>
             </div>
           </div>
 
@@ -234,7 +236,7 @@ export default function AdminDashboardPage() {
             </div>
             <div>
               <h3 className="font-medium text-white text-[11px] uppercase tracking-wide">Commission</h3>
-              <h4 className="font-semibold text-lg text-white">₦{dashboardData?.totalCommission?.toLocaleString() || 0}</h4>
+              <h4 className="font-semibold text-lg text-white">{formatPrice(dashboardData?.totalCommission || 0)}</h4>
             </div>
           </div>
           
@@ -397,7 +399,7 @@ export default function AdminDashboardPage() {
           <div className="flex gap-11 mb-2">
             <div>
               <div className="flex items-center gap-2.5">
-                <h3 className="font-bold text-[22px] leading-[34px] text-[#14142B]">₦{dashboardData?.totalSales?.toLocaleString() || 0}</h3>
+                <h3 className="font-bold text-[22px] leading-[34px] text-[#14142B]">{formatPrice(dashboardData?.totalSales || 0)}</h3>
               </div>
               <p className="text-xs text-[#6E7191]">Total Sales</p>
             </div>

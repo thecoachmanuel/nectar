@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { formatPrice } from "@/lib/formatters";
 import PushNotificationDetailModal, {
   PushNotificationData,
 } from "@/components/frontend/PushNotificationDetailModal";
@@ -373,7 +374,7 @@ export default function NotificationListener() {
             ) {
               lastAdminOrderSerialRef.current = currentLatestSerial;
 
-              const amountFormatted = `₦${Number(latestOrder.totalAmount || 0).toLocaleString()}`;
+              const amountFormatted = formatPrice(latestOrder.totalAmount || 0);
               const customerName = latestOrder.customerName || "Customer";
               const title = `🚨 New Order #${currentLatestSerial}!`;
               const body = `${customerName} placed an order for ${amountFormatted}. Tap to view and manage this order from the admin panel.`;

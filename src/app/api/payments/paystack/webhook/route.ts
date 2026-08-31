@@ -113,7 +113,7 @@ export async function POST(req: Request) {
                 phone: customerPhone,
                 message:
                   `✅ *Payment Confirmed!* 💳✨\n\n` +
-                  `We have verified your payment of *₦${Number(order.totalAmount || 0).toLocaleString()}* for Order *#${order.orderSerialNo}* (Ref: ${reference}).\n\n` +
+                  `We have verified your payment of *₦${Number(order.totalAmount || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}* for Order *#${order.orderSerialNo}* (Ref: ${reference}).\n\n` +
                   `Our store team is now preparing your fresh groceries for delivery! 🥦🚚`,
               }),
             }).catch(() => {});
@@ -141,7 +141,7 @@ export async function POST(req: Request) {
                     `━━━━━━━━━━━━━━━━━━━━━\n` +
                     `📋 *Order ID:* #${order.orderSerialNo}\n` +
                     `👤 *Customer:* ${order.customerName || "Customer"} (${order.customerPhone || "N/A"})\n` +
-                    `💰 *Amount Paid:* *₦${Number(order.totalAmount || 0).toLocaleString()}*\n` +
+                    `💰 *Amount Paid:* *₦${Number(order.totalAmount || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}*\n` +
                     `🔢 *Paystack Ref:* ${reference}\n` +
                     `📍 *Delivery:* ${order.deliveryAddress?.address || "Pickup"}\n\n` +
                     `✅ Order is marked PAID and ready for packaging!\n` +
@@ -161,7 +161,7 @@ export async function POST(req: Request) {
         await User.findByIdAndUpdate(metadata.userId, {
           $inc: { walletBalance: amount },
         });
-        console.log(`💰 User ${metadata.userId} wallet credited with ₦${amount.toLocaleString()} via webhook.`);
+        console.log(`💰 User ${metadata.userId} wallet credited with ₦${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} via webhook.`);
       }
     }
 

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Tag, Copy, Check, Sparkles, Percent, Calendar, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
+import { formatPrice } from "@/lib/formatters";
 
 export default function OffersPage() {
   const [offers, setOffers] = useState<any[]>([]);
@@ -65,7 +66,7 @@ export default function OffersPage() {
                 const discountVal = offer.discount || offer.discountAmount || 0;
                 const discountText =
                   offer.discountType === "fixed"
-                    ? `₦${Number(discountVal).toLocaleString()} OFF`
+                    ? `${formatPrice(discountVal)} OFF`
                     : `${discountVal}% OFF`;
                 const displayName = offer.name || `Special Promo (${offer.code})`;
                 const minSpend = offer.minimumOrderAmount || offer.minOrderAmount || 0;
@@ -116,7 +117,7 @@ export default function OffersPage() {
                             <div className="flex items-center justify-between">
                               <span className="text-[#6E7191]">Min. Order:</span>
                               <span className="font-semibold text-[#14142B]">
-                                ₦{minSpend.toLocaleString()}
+                                {formatPrice(minSpend)}
                               </span>
                             </div>
                           )}
@@ -124,7 +125,7 @@ export default function OffersPage() {
                             <div className="flex items-center justify-between">
                               <span className="text-[#6E7191]">Max. Discount:</span>
                               <span className="font-semibold text-[#14142B]">
-                                ₦{maxDiscount.toLocaleString()}
+                                {formatPrice(maxDiscount)}
                               </span>
                             </div>
                           )}

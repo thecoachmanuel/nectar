@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Plus, Search, Edit, Trash2 } from "lucide-react";
 import { useApi } from "@/hooks/useApi";
+import { formatPrice } from "@/lib/formatters";
 import ItemModal from "@/components/admin/ItemModal";
 import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
 
@@ -113,7 +114,7 @@ export default function ItemsPage() {
                       <span className="text-sm text-[#4E4B66]">{item.categoryId?.name || "-"}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-semibold text-[#14142B]">₦{Number(item.price || 0).toLocaleString()}</span>
+                      <span className="text-sm font-semibold text-[#14142B]">{formatPrice(item.price)}</span>
                     </td>
 
                     <td className="px-6 py-4">

@@ -6,6 +6,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { formatPrice } from "@/lib/formatters";
 
 export default function WalletPage() {
   const { user, token, updateUser } = useAuthStore();
@@ -115,7 +116,7 @@ export default function WalletPage() {
           <div className="relative z-10 flex justify-between items-start">
             <div>
               <p className="text-white/70 text-sm font-medium mb-1">Current Balance</p>
-              <h2 className="text-4xl font-bold tracking-tight">₦{walletBalance.toLocaleString()}</h2>
+              <h2 className="text-4xl font-bold tracking-tight">{formatPrice(walletBalance)}</h2>
             </div>
             <div className="w-12 h-8 bg-white/20 rounded-md flex items-center justify-center backdrop-blur-sm">
               <CreditCard className="w-6 h-6 text-white/80" />
