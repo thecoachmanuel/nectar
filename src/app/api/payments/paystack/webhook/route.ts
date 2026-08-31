@@ -98,11 +98,11 @@ export async function POST(req: Request) {
 
           // Dispatch confirmation WhatsApp message to customer
           const customerPhone = order.customerPhone;
-          if (customerPhone && customerPhone !== "N/A") {
-            const rawUrl = process.env.WHATSAPP_SERVICE_URL || "http://localhost:3001";
-            const waServiceUrl = rawUrl.replace(/\/+$/, "");
-            const waSecret = process.env.WHATSAPP_API_SECRET || "wa_secret_change_me";
+          const rawUrl = process.env.WHATSAPP_SERVICE_URL || "http://localhost:3001";
+          const waServiceUrl = rawUrl.replace(/\/+$/, "");
+          const waSecret = process.env.WHATSAPP_API_SECRET || "wa_secret_change_me";
 
+          if (customerPhone && customerPhone !== "N/A") {
             fetch(`${waServiceUrl}/send`, {
               method: "POST",
               headers: {
@@ -117,6 +117,40 @@ export async function POST(req: Request) {
                   `Our store team is now preparing your fresh groceries for delivery! 🥦🚚`,
               }),
             }).catch(() => {});
+          }
+
+          // Dispatch custom payment confirmed alert to Admin
+          try {
+            const Setting = (await import("@/models/Setting")).default;
+            const adminPhoneSetting = await Setting.findOne({
+              key: { $in: ["admin_notification_whatsapp_number", "wa_admin_notification_phone", "company_phone"] }
+            });
+            const adminTargetPhone = adminPhoneSetting?.payload ? String(adminPhoneSetting.payload).trim() : null;
+            if (adminTargetPhone && adminTargetPhone.length >= 7) {
+              const appOrigin = process.env.NEXT_PUBLIC_APP_URL || "https://nectar-groceries.vercel.app";
+              fetch(`${waServiceUrl}/send`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "x-api-secret": waSecret,
+                },
+                body: JSON.stringify({
+                  phone: adminTargetPhone,
+                  message:
+                    `💳 *PAYMENT RECEIVED (PAYSTACK)!* 💰✨\n` +
+                    `━━━━━━━━━━━━━━━━━━━━━\n` +
+                    `📋 *Order ID:* #${order.orderSerialNo}\n` +
+                    `👤 *Customer:* ${order.customerName || "Customer"} (${order.customerPhone || "N/A"})\n` +
+                    `💰 *Amount Paid:* *₦${Number(order.totalAmount || 0).toLocaleString()}*\n` +
+                    `🔢 *Paystack Ref:* ${reference}\n` +
+                    `📍 *Delivery:* ${order.deliveryAddress?.address || "Pickup"}\n\n` +
+                    `✅ Order is marked PAID and ready for packaging!\n` +
+                    `👉 *View in Admin:*\n${appOrigin}/admin/orders`,
+                }),
+              }).catch(() => {});
+            }
+          } catch (adminErr) {
+            console.error("Failed to notify admin on payment confirmation:", adminErr);
           }
         }
       }

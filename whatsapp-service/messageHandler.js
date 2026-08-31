@@ -897,19 +897,47 @@ async function processOrderPlacement(db, appUrl, session, phone, paymentMethod, 
       });
       const adminPhone = adminSetting?.payload ? String(adminSetting.payload).replace(/\D/g, "") : null;
       if (adminPhone && adminPhone.length >= 7 && adminPhone !== String(finalPhone).replace(/\D/g, "")) {
-        const itemsSummary = Array.isArray(order.items)
-          ? order.items.map((i) => `• ${i.name} x${i.quantity || 1}`).join("\n")
-          : "Fresh Groceries";
+        const items = Array.isArray(order.items) ? order.items : [];
+        const totalItemQuantity = items.reduce((sum, i) => sum + (Number(i.quantity) || 1), 0);
+        const itemsText = items.length > 0
+          ? items.map((item, idx) => {
+              const qty = item.quantity || 1;
+              const price = item.itemTotal
+                ? ` (₦${Number(item.itemTotal).toLocaleString()})`
+                : item.price
+                ? ` (₦${Number(item.price * qty).toLocaleString()})`
+                : "";
+              return `${idx + 1}. *${item.name}* x${qty}${price}`;
+            }).join("\n")
+          : "• Standard WhatsApp Basket";
+
+        const formattedPaymentMethod = paymentMethod === "paystack" ? "💳 Paystack (Online)" : "🏦 Bank Transfer";
+        const paymentStatusBadge = order.paymentStatus === "paid" ? "✅ PAID" : "⏳ UNPAID / PENDING";
+        const dateStr = new Date().toLocaleString("en-NG", { dateStyle: "medium", timeStyle: "short" });
 
         const adminAlertText =
-          `🔔 *NEW WHATSAPP BOT ORDER!* 📦✨\n\n` +
-          `• *Order:* #${order.orderSerialNo}\n` +
-          `• *Customer:* ${order.customerName || "WhatsApp Customer"} (+${finalPhone})\n` +
-          `• *Total Amount:* ₦${formatPrice(order.totalAmount)}\n` +
-          `• *Payment:* ${String(order.paymentMethod || "bank_transfer").toUpperCase()}\n\n` +
-          `🛍️ *Items:*\n${itemsSummary}\n\n` +
-          `📍 *Delivery Address:*\n${order.deliveryAddress?.address || "Provided via WhatsApp"}\n\n` +
-          `👉 *View in Admin:*\n${appUrl}/admin/orders`;
+          `🚨 *NEW WHATSAPP BOT ORDER!* 🛒✨\n` +
+          `━━━━━━━━━━━━━━━━━━━━━\n` +
+          `📋 *Order ID:* #${order.orderSerialNo}\n` +
+          `📅 *Date:* ${dateStr}\n\n` +
+          `👤 *CUSTOMER INFORMATION*\n` +
+          `• *Name:* ${order.customerName || "WhatsApp Customer"}\n` +
+          `• *Phone:* +${finalPhone}\n` +
+          `• *Email:* ${order.customerEmail || "N/A"}\n\n` +
+          `🛍️ *ORDERED ITEMS (${totalItemQuantity} item${totalItemQuantity === 1 ? "" : "s"})*\n` +
+          `${itemsText}\n\n` +
+          `💰 *BILLING & SUMMARY*\n` +
+          `• *Subtotal:* ₦${Number(order.subtotal || 0).toLocaleString()}\n` +
+          `• *Delivery Fee:* ₦${Number(order.deliveryCharge || 0).toLocaleString()}\n` +
+          `• *TOTAL PAYABLE:* *₦${Number(order.totalAmount || 0).toLocaleString()}*\n\n` +
+          `💳 *PAYMENT & FULFILLMENT*\n` +
+          `• *Payment Method:* ${formattedPaymentMethod}\n` +
+          `• *Payment Status:* ${paymentStatusBadge}\n` +
+          `• *Order Type:* 🚚 Home Delivery\n` +
+          `• *Delivery Address:* ${order.deliveryAddress?.address || "Provided via WhatsApp"}\n\n` +
+          `━━━━━━━━━━━━━━━━━━━━━\n` +
+          `👉 *Open Admin Dashboard to Manage:*\n` +
+          `${appUrl}/admin/orders`;
 
         sendFn(adminPhone, adminAlertText).catch((e) => console.error("Admin WA alert error:", e.message));
       }

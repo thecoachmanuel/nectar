@@ -292,25 +292,12 @@ export async function POST(req: Request) {
           console.warn(`⚠️ Skipping WhatsApp notification: customer phone is missing or "N/A" (order: ${order.orderSerialNo})`);
         }
 
-        // 2. Notify Admin on WhatsApp (Zero conflict with customer bot sessions)
+        // 2. Notify Admin on WhatsApp (Custom order notification with full details)
         if (adminTargetPhone && adminTargetPhone.length >= 7) {
-          const itemsSummary = Array.isArray(order.items)
-            ? order.items.map((i: any) => `• ${i.name} x${i.quantity || 1}`).join("\n")
-            : "Fresh Groceries";
-
           const appOrigin = process.env.NEXT_PUBLIC_APP_URL || "https://nectar-groceries.vercel.app";
-          const adminAlertText =
-            `🔔 *NEW ORDER ALERT!* 📦✨\n\n` +
-            `• *Order:* #${order.orderSerialNo}\n` +
-            `• *Customer:* ${order.customerName || resolvedCustomerName} (${phone || "N/A"})\n` +
-            `• *Total Amount:* ₦${Number(order.totalAmount || 0).toLocaleString()}\n` +
-            `• *Type:* ${String(order.orderType || "delivery").toUpperCase()}\n` +
-            `• *Payment:* ${String(order.paymentMethod || "bank_transfer").toUpperCase()} (${order.paymentStatus})\n\n` +
-            `🛍️ *Items:*\n${itemsSummary}\n\n` +
-            `📍 *Delivery Address:*\n${order.deliveryAddress?.address || "Pickup / Dine-in"}\n\n` +
-            `👉 *View in Admin:*\n${appOrigin}/admin/orders`;
+          const adminAlertText = buildCustomAdminOrderNotification(order, appOrigin, phone || resolvedCustomerPhone);
 
-          console.log(`[Admin Alert Dispatch] Sending new order alert to Admin (${adminTargetPhone})`);
+          console.log(`[Admin Alert Dispatch] Sending custom new order alert to Admin (${adminTargetPhone}) for #${order.orderSerialNo}`);
           whatsappPromises.push(
             fetch(`${waServiceUrl}/send`, {
               method: "POST",
@@ -325,7 +312,7 @@ export async function POST(req: Request) {
             })
               .then((r) => r.json())
               .then((d) => {
-                if (d.status) console.log(`✅ Admin WhatsApp alert delivered to ${adminTargetPhone}`);
+                if (d.status) console.log(`✅ Admin WhatsApp alert delivered to ${adminTargetPhone} for #${order.orderSerialNo}`);
                 else console.warn(`⚠️ Admin WhatsApp alert response: ${JSON.stringify(d)}`);
               })
               .catch((e) => console.error(`❌ Admin WhatsApp alert error:`, e.message))
@@ -360,6 +347,83 @@ function formatPrice(amount: number) {
     currency: "NGN",
     minimumFractionDigits: 0,
   }).format(amount || 0);
+}
+
+// ── Custom Rich Admin Order Notification Generator ─────────────────────────────
+function buildCustomAdminOrderNotification(order: any, appOrigin: string, fallbackPhone?: string) {
+  const customerName = order.customerName || "Customer";
+  const customerPhone = order.customerPhone || fallbackPhone || "N/A";
+  const customerEmail = order.customerEmail || "N/A";
+
+  const items = Array.isArray(order.items) ? order.items : [];
+  const totalItemQuantity = items.reduce((sum: number, i: any) => sum + (Number(i.quantity) || 1), 0);
+
+  const itemsText = items.length > 0
+    ? items.map((item: any, idx: number) => {
+        const itemQty = item.quantity || 1;
+        const itemTotal = item.itemTotal
+          ? ` (₦${Number(item.itemTotal).toLocaleString()})`
+          : item.price
+          ? ` (₦${Number(item.price * itemQty).toLocaleString()})`
+          : "";
+        const itemVar = item.itemVariation ? ` [${item.itemVariation}]` : "";
+        return `${idx + 1}. *${item.name}*${itemVar} x${itemQty}${itemTotal}`;
+      }).join("\n")
+    : "• Standard Grocery Basket";
+
+  const subtotal = Number(order.subtotal || 0);
+  const deliveryCharge = Number(order.deliveryCharge || 0);
+  const discount = Number(order.discount || order.discountAmount || order.couponDiscount || 0);
+  const total = Number(order.totalAmount || 0);
+
+  const formattedPaymentMethod = (() => {
+    switch (order.paymentMethod) {
+      case "bank_transfer": return "🏦 Bank Transfer";
+      case "paystack": return "💳 Paystack (Online)";
+      case "cash_on_delivery": return "💵 Cash on Delivery";
+      case "wallet": return "👛 Wallet Balance";
+      default: return String(order.paymentMethod || "Bank Transfer").toUpperCase();
+    }
+  })();
+
+  const paymentStatusBadge = order.paymentStatus === "paid" ? "✅ PAID" : "⏳ UNPAID / PENDING";
+  const orderType = order.orderType === "takeaway" ? "🛍️ Takeaway / Pickup" : "🚚 Home Delivery";
+  const deliveryAddress = order.deliveryAddress?.address || "Pickup at Store";
+  const timeSlot = order.deliveryTimeSlot ? `\n• *Delivery Slot:* ${order.deliveryTimeSlot}` : "";
+  const notesText = order.notes && order.notes.trim() ? `\n📝 *Customer Note:* _"${order.notes.trim()}"_` : "";
+
+  const dateStr = new Date().toLocaleString("en-NG", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+
+  return (
+    `🚨 *NEW ORDER RECEIVED!* 🛒✨\n` +
+    `━━━━━━━━━━━━━━━━━━━━━\n` +
+    `📋 *Order ID:* #${order.orderSerialNo}\n` +
+    `📅 *Date:* ${dateStr}\n\n` +
+    `👤 *CUSTOMER INFORMATION*\n` +
+    `• *Name:* ${customerName}\n` +
+    `• *Phone:* ${customerPhone}\n` +
+    `• *Email:* ${customerEmail}\n\n` +
+    `🛍️ *ORDERED ITEMS (${totalItemQuantity} item${totalItemQuantity === 1 ? "" : "s"})*\n` +
+    `${itemsText}\n\n` +
+    `💰 *BILLING & SUMMARY*\n` +
+    `• *Subtotal:* ₦${subtotal.toLocaleString()}\n` +
+    `• *Delivery Fee:* ₦${deliveryCharge.toLocaleString()}\n` +
+    (discount > 0 ? `• *Discount Applied:* -₦${discount.toLocaleString()}\n` : "") +
+    `• *TOTAL PAYABLE:* *₦${total.toLocaleString()}*\n\n` +
+    `💳 *PAYMENT & FULFILLMENT*\n` +
+    `• *Payment Method:* ${formattedPaymentMethod}\n` +
+    `• *Payment Status:* ${paymentStatusBadge}\n` +
+    `• *Order Type:* ${orderType}\n` +
+    `• *Delivery Address:* ${deliveryAddress}` +
+    timeSlot +
+    notesText +
+    `\n\n━━━━━━━━━━━━━━━━━━━━━\n` +
+    `👉 *Open Admin Dashboard to Manage:*\n` +
+    `${appOrigin}/admin/orders`
+  );
 }
 
 export async function GET(req: Request) {
