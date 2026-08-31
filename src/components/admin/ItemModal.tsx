@@ -82,13 +82,13 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
         await execute(`/api/admin/items/${item._id}`, {
           method: "PUT",
           body: formData,
-          successMessage: "Item updated successfully",
+          successMessage: "Product updated successfully",
         });
       } else {
         await execute(`/api/admin/items`, {
           method: "POST",
           body: formData,
-          successMessage: "Item created successfully",
+          successMessage: "Product created successfully",
         });
       }
       onSuccess();
@@ -102,11 +102,11 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
     <Modal 
       isOpen={isOpen} 
       onClose={onClose} 
-      title={item ? "Edit Item" : "Add New Item"}
+      title={item ? "Edit Product" : "Add New Product"}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-[#14142B] mb-1">Name <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium text-[#14142B] mb-1">Product Name <span className="text-red-500">*</span></label>
           <input 
             type="text" 
             required
@@ -264,7 +264,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
               className="w-4 h-4 text-primary rounded focus:ring-[#ff006b]"
             />
             <label htmlFor="isFeatured" className="text-sm font-medium text-[#14142B] cursor-pointer">
-              Featured Item
+              Featured Product
             </label>
           </div>
           

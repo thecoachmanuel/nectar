@@ -164,7 +164,7 @@ export default function ItemCategoriesPage() {
       {/* Header */}
       <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] mb-6">
         <div className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EFF0F6]">
-          <h3 className="font-semibold text-lg text-[#14142B]">Item Categories</h3>
+          <h3 className="font-semibold text-lg text-[#14142B]">Product Categories</h3>
           
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <div className="relative">

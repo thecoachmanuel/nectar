@@ -49,8 +49,8 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
         { name: "Status Screen", path: "/admin/order-status-screen" },
       ]
     },
-    { name: "Item Categories", icon: <Box className="w-4 h-4" />, path: "/admin/item-categories", roles: ["admin", "store_manager"] },
-    { name: "Items", icon: <Utensils className="w-4 h-4" />, path: "/admin/items", roles: ["admin", "store_manager"] },
+    { name: "Product Categories", icon: <Box className="w-4 h-4" />, path: "/admin/item-categories", roles: ["admin", "store_manager"] },
+    { name: "Products", icon: <Utensils className="w-4 h-4" />, path: "/admin/items", roles: ["admin", "store_manager"] },
     { name: "Offers", icon: <Tag className="w-4 h-4" />, path: "/admin/offers", roles: ["admin", "store_manager"] },
     { name: "Banners", icon: <ImageIcon className="w-4 h-4" />, path: "/admin/banners", roles: ["admin"] },
     { name: "Kitchen Display", icon: <BarChart3 className="w-4 h-4" />, path: "/admin/kds", roles: ["admin", "store_manager"] },
@@ -67,7 +67,7 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
       children: [
         { name: "Financial Summary", path: "/admin/financial-summary" },
         { name: "Sales Report", path: "/admin/sales-report" },
-        { name: "Items Report", path: "/admin/items-report" },
+        { name: "Products Report", path: "/admin/items-report" },
         { name: "Credit Balance", path: "/admin/credit-balance-report" },
       ]
     },

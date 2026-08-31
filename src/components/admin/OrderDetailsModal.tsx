@@ -400,18 +400,18 @@ export default function OrderDetailsModal({
 
           </div>
 
-          {/* Items Breakdown Table */}
+          {/* Products Breakdown Table */}
           <div className="border border-[#EFF0F6] rounded-2xl overflow-hidden bg-white">
             <div className="p-3 bg-[#FAFAFC] border-b border-[#EFF0F6] flex items-center justify-between">
               <h5 className="text-xs font-bold text-[#14142B] uppercase tracking-wider flex items-center gap-2">
-                <FileText className="w-4 h-4 text-primary" /> Ordered Items ({order.items?.length || 0})
+                <FileText className="w-4 h-4 text-primary" /> Ordered Products ({order.items?.length || 0})
               </h5>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="bg-[#F7F7FC] border-b border-[#EFF0F6] text-[#6E7191] font-semibold">
                   <tr>
-                    <th className="p-3">Item</th>
+                    <th className="p-3">Product</th>
                     <th className="p-3">Unit Price</th>
                     <th className="p-3 text-center">Qty</th>
                     <th className="p-3 text-right">Total</th>
@@ -523,7 +523,7 @@ export default function OrderDetailsModal({
             {/* Financial Totals */}
             <div className="space-y-1.5 text-xs text-right border-t md:border-t-0 md:border-l border-[#EFF0F6] pt-3 md:pt-0 md:pl-6">
               <div className="flex justify-between">
-                <span className="text-[#6E7191]">Items Subtotal:</span>
+                <span className="text-[#6E7191]">Products Subtotal:</span>
                 <span className="font-semibold text-[#14142B]">₦{(order.subtotal || 0).toLocaleString()}</span>
               </div>
               {order.taxAmount > 0 && (

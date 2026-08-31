@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 export default function KDSPage() {
-  const [activeTab, setActiveTab] = useState("Items Board");
+  const [activeTab, setActiveTab] = useState("Products Board");
   const [orderFilter, setOrderFilter] = useState("All Orders");
   const [orders, setOrders] = useState<any[]>([]);
 
@@ -94,10 +94,10 @@ export default function KDSPage() {
         {/* Mobile Tabs */}
         <div className="lg:hidden flex bg-[#F7F7FC] rounded-lg p-1">
           <button 
-            onClick={() => setActiveTab("Items Board")}
-            className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${activeTab === "Items Board" ? "bg-white text-[#14142B] shadow-sm" : "text-[#6E7191]"}`}
+            onClick={() => setActiveTab("Products Board")}
+            className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${activeTab === "Products Board" ? "bg-white text-[#14142B] shadow-sm" : "text-[#6E7191]"}`}
           >
-            Items
+            Products
           </button>
           <button 
             onClick={() => setActiveTab("Orders")}
@@ -110,10 +110,10 @@ export default function KDSPage() {
 
       <div className="flex-1 p-4 lg:p-6 flex flex-col lg:flex-row gap-6 overflow-hidden">
         
-        {/* Items Board Sidebar */}
-        <div className={`w-full lg:w-[320px] bg-white rounded-2xl shadow-sm border border-[#EFF0F6] flex flex-col ${activeTab === "Items Board" || typeof window !== 'undefined' && window.innerWidth >= 1024 ? "flex" : "hidden lg:flex"}`}>
+        {/* Products Board Sidebar */}
+        <div className={`w-full lg:w-[320px] bg-white rounded-2xl shadow-sm border border-[#EFF0F6] flex flex-col ${activeTab === "Products Board" || typeof window !== 'undefined' && window.innerWidth >= 1024 ? "flex" : "hidden lg:flex"}`}>
           <div className="p-4 border-b border-[#EFF0F6]">
-            <h3 className="font-semibold text-lg text-[#14142B]">Items Board</h3>
+            <h3 className="font-semibold text-lg text-[#14142B]">Products Board</h3>
           </div>
           <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
             <ul className="space-y-2">

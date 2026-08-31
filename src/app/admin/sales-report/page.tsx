@@ -39,7 +39,7 @@ export default function SalesReportPage() {
         { header: "Order ID", key: "orderSerialNo", width: 20 },
         { header: "Date", key: "date", width: 20 },
         { header: "Customer Name", key: "customerName", width: 25 },
-        { header: "Items Count", key: "itemsCount", width: 15 },
+        { header: "Products Count", key: "itemsCount", width: 15 },
         { header: "Total Amount", key: "totalAmount", width: 15 },
         { header: "Status", key: "status", width: 15 },
       ];
@@ -155,7 +155,7 @@ export default function SalesReportPage() {
           </div>
           <div className="bg-white p-4 rounded-xl border border-[#EFF0F6] shadow-sm flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-[#6E7191] mb-1">Items Sold</p>
+              <p className="text-xs font-semibold text-[#6E7191] mb-1">Products Sold</p>
               <h4 className="text-lg font-bold text-[#14142B]">{totalItems}</h4>
             </div>
             <div className="w-10 h-10 rounded-full bg-[#fff5f9] flex items-center justify-center text-primary">
@@ -172,7 +172,7 @@ export default function SalesReportPage() {
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Order ID</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Date</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Customer</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Items</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Products</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Total</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Status</th>
               </tr>

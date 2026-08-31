@@ -187,7 +187,7 @@ export default function AdminDashboardPage() {
               <Utensils className="w-5 h-5 text-[#A953FF]" />
             </div>
             <div>
-              <h3 className="font-medium text-white text-[11px] uppercase tracking-wide">Menu Items</h3>
+              <h3 className="font-medium text-white text-[11px] uppercase tracking-wide">Total Products</h3>
               <h4 className="font-semibold text-lg text-white">{dashboardData?.totalItems || 0}</h4>
             </div>
           </div>

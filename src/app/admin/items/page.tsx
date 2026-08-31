@@ -41,7 +41,7 @@ export default function ItemsPage() {
     if (selectedItem) {
       await deleteItem(`/api/admin/items/${selectedItem._id}`, {
         method: "DELETE",
-        successMessage: "Item deleted",
+        successMessage: "Product deleted",
       });
       fetchItems();
     }
@@ -53,13 +53,13 @@ export default function ItemsPage() {
       {/* Header */}
       <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] mb-6">
         <div className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EFF0F6]">
-          <h3 className="font-semibold text-lg text-[#14142B]">Menu Items</h3>
+          <h3 className="font-semibold text-lg text-[#14142B]">Products</h3>
           
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <div className="relative">
               <input 
                 type="text" 
-                placeholder="Search items..." 
+                placeholder="Search products..." 
                 className="h-10 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-sm focus:outline-none focus:border-primary w-full sm:w-48 transition-colors"
               />
               <Search className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -70,7 +70,7 @@ export default function ItemsPage() {
               className="h-10 px-4 rounded-xl bg-primary text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20"
             >
               <Plus className="w-4 h-4" />
-              <span className="text-sm font-medium">Add Item</span>
+              <span className="text-sm font-medium">Add Product</span>
             </button>
           </div>
         </div>
@@ -80,7 +80,7 @@ export default function ItemsPage() {
           <table className="w-full text-left whitespace-nowrap">
             <thead className="bg-[#F7F7FC] border-b border-[#EFF0F6]">
               <tr>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Item</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Product</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Category</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Price</th>
 
@@ -92,7 +92,7 @@ export default function ItemsPage() {
               {loading && !items ? (
                 <tr><td colSpan={6} className="p-8 text-center text-[#6E7191]">Loading...</td></tr>
               ) : items?.length === 0 ? (
-                <tr><td colSpan={6} className="p-8 text-center text-[#6E7191]">No items found</td></tr>
+                <tr><td colSpan={6} className="p-8 text-center text-[#6E7191]">No products found</td></tr>
               ) : (
                 items?.map((item: any) => (
                   <tr key={item._id} className="hover:bg-[#FAFAFC] transition-colors">
