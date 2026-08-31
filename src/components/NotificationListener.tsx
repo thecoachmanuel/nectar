@@ -135,6 +135,41 @@ export default function NotificationListener() {
     setActiveNotification({ ...notif, receivedAt: notif.receivedAt ?? Date.now() });
   };
 
+  // ── Helper: subscribe to Web Push via VAPID ─────────────────────────────
+  const subscribeToWebPush = async () => {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    try {
+      const reg = await navigator.serviceWorker.ready;
+
+      // Fetch the VAPID public key
+      const keyRes = await fetch("/api/vapid-public-key");
+      const { publicKey } = await keyRes.json();
+      if (!publicKey) return;
+
+      // Convert base64url VAPID key to Uint8Array
+      const padding = "=".repeat((4 - (publicKey.length % 4)) % 4);
+      const base64 = (publicKey + padding).replace(/-/g, "+").replace(/_/g, "/");
+      const rawKey = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+
+      // Create the browser PushSubscription
+      const subscription = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: rawKey,
+      });
+
+      // Save the subscription to the server
+      await fetch("/api/auth/subscribe-push", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subscription: subscription.toJSON() }),
+      });
+
+      console.log("✅ [Nectar] Web Push subscription saved");
+    } catch (err) {
+      console.warn("[Nectar] Web Push subscription failed:", err);
+    }
+  };
+
   // ── 1. Register Service Worker, Request Permission & Listen for SW messages ──
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -142,8 +177,13 @@ export default function NotificationListener() {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("/sw.js")
-        .then((reg) => {
+        .then(async (reg) => {
           console.log("✅ [Nectar] Service Worker active:", reg.scope);
+
+          // If permission already granted, subscribe immediately
+          if ("Notification" in window && Notification.permission === "granted") {
+            await subscribeToWebPush();
+          }
         })
         .catch((err) => {
           console.warn("⚠️ [Nectar] SW registration skipped:", err.message);
@@ -203,13 +243,16 @@ export default function NotificationListener() {
     window.addEventListener(NOTIF_MODAL_EVENT, handleInAppNotif);
 
     // Auto-request notification permission on first user interaction
-    const requestPermission = () => {
+    // After granting, immediately subscribe to Web Push
+    const requestPermission = async () => {
       if ("Notification" in window && Notification.permission === "default") {
-        Notification.requestPermission().then((perm) => {
-          if (perm === "granted") {
-            console.log("✅ [Nectar] Push notification permission granted");
-          }
-        });
+        const perm = await Notification.requestPermission();
+        if (perm === "granted") {
+          console.log("✅ [Nectar] Push notification permission granted");
+          await subscribeToWebPush();
+        }
+      } else if ("Notification" in window && Notification.permission === "granted") {
+        await subscribeToWebPush();
       }
     };
     window.addEventListener("click", requestPermission, { once: true });

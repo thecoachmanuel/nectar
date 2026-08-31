@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import PushNotification from "@/models/PushNotification";
 import User from "@/models/User";
-import { sendBulkPushNotification } from "@/lib/push";
+import { sendBulkPushNotification, sendBulkWebPush } from "@/lib/push";
 
 export const dynamic = "force-dynamic";
 
@@ -10,10 +10,8 @@ export async function GET(req: Request) {
   try {
     await dbConnect();
 
-    // Fetch history
     const notifications = await PushNotification.find({}).sort({ createdAt: -1 });
 
-    // Fetch audience counts
     const [totalUsers, customersCount, sellersCount, ridersCount] = await Promise.all([
       User.countDocuments({ status: true }),
       User.countDocuments({ role: "customer", status: true }),
@@ -22,7 +20,7 @@ export async function GET(req: Request) {
     ]);
 
     const activeTokensCount = await User.countDocuments({
-      deviceToken: { $exists: true, $ne: "" },
+      pushSubscription: { $exists: true, $ne: null },
       status: true,
     });
 
@@ -56,7 +54,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Build user filter query based on target role
+    // Build user filter based on targetRole
     let userFilter: any = { status: true };
     if (targetRole === "customer") {
       userFilter.role = "customer";
@@ -66,21 +64,38 @@ export async function POST(req: Request) {
       userFilter.role = "delivery_boy";
     }
 
-    // Query target users
-    const targetUsers = await User.find(userFilter).select("deviceToken role email");
+    const targetUsers = await User.find(userFilter).select(
+      "deviceToken pushSubscription role email"
+    );
     const totalRecipients = targetUsers.length;
-    const tokens = targetUsers
+
+    // ── 1. Web Push Protocol (VAPID) — Works on Android & iOS PWA even when minimized ──
+    const webPushSubscriptions = targetUsers
+      .map((u) => u.pushSubscription)
+      .filter((s): s is Record<string, any> => !!s && !!s.endpoint);
+
+    let webPushResult: any = { success: false, sent: 0 };
+    if (webPushSubscriptions.length > 0) {
+      webPushResult = await sendBulkWebPush(webPushSubscriptions, title, description, {
+        url: url || "/",
+        image,
+        targetRole,
+        tag: `nectar-broadcast-${Date.now()}`,
+      });
+    }
+
+    // ── 2. OneSignal / Legacy deviceToken dispatch ──────────────────────────
+    const deviceTokens = targetUsers
       .map((u) => u.deviceToken)
       .filter((t): t is string => !!t && typeof t === "string" && t.trim().length > 0);
 
-    // Send push notification via OneSignal / Web Push service
-    const pushResult = await sendBulkPushNotification(tokens, title, description, {
+    await sendBulkPushNotification(deviceTokens, title, description, {
       url: url || "/",
       targetRole,
       image,
     });
 
-    // Save record to DB history
+    // ── 3. Save to DB history ────────────────────────────────────────────────
     const newRecord = new PushNotification({
       title,
       description,
@@ -88,18 +103,26 @@ export async function POST(req: Request) {
       image: image || undefined,
       url: url || "/",
       recipientsCount: totalRecipients,
-      tokensCount: tokens.length,
-      status: pushResult.success ? "sent" : "failed",
+      tokensCount: webPushSubscriptions.length,
+      status: "sent",
       sentBy: "Admin",
     });
-
     await newRecord.save();
+
+    const roleName =
+      targetRole === "all"
+        ? "all users"
+        : targetRole === "customer"
+        ? "all customers"
+        : targetRole === "store_manager"
+        ? "all sellers"
+        : "all delivery boys";
 
     return NextResponse.json({
       status: true,
-      message: `Push notification dispatched successfully to ${targetRole === "all" ? "all users" : targetRole === "customer" ? "all customers" : targetRole === "store_manager" ? "all sellers" : "all delivery boys"} (${tokens.length} active device tokens reached).`,
+      message: `Push notification dispatched to ${roleName}! (${webPushSubscriptions.length} web push + ${deviceTokens.length} device tokens).`,
       data: newRecord,
-      pushResult,
+      webPushResult,
     });
   } catch (error: any) {
     console.error("Send Push Notification error:", error);

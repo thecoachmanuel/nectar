@@ -22,6 +22,7 @@ export interface IUser extends Document {
   permissions: string[];
   image?: string;
   deviceToken?: string;
+  pushSubscription?: Record<string, any>; // Web Push Protocol subscription object
   deliveryCommissionType?: "fixed" | "percentage";
   deliveryCommissionValue?: number;
   walletBalance?: number;
@@ -66,6 +67,7 @@ const UserSchema = new Schema<IUser>(
       default: []
     },
     deviceToken: { type: String },
+    pushSubscription: { type: Schema.Types.Mixed, default: null }, // Web Push subscription
   },
   { timestamps: true }
 );
