@@ -95,15 +95,15 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-3 pt-3 pb-20 sm:pb-4 md:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 md:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in"
       onClick={onClose}
     >
       <div 
-        className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[80vh] sm:max-h-[88vh] flex flex-col border border-[#EFF0F6] animate-in zoom-in-95 duration-200"
+        className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Product Image Header */}
-        <div className="relative h-44 sm:h-52 w-full bg-[#F7F7FC] shrink-0 overflow-hidden">
+        <div className="relative h-60 sm:h-72 md:h-80 w-full bg-[#F7F7FC] shrink-0 overflow-hidden">
           <img
             src={item.image || "/images/item/thumb.png"}
             alt={item.name}
@@ -112,19 +112,19 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
               (e.target as HTMLImageElement).src = "/images/item/thumb.png";
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30 pointer-events-none" />
 
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-3.5 right-3.5 w-9 h-9 bg-white/90 hover:bg-white text-[#14142B] rounded-full shadow-md flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+            className="absolute top-3.5 right-3.5 w-9 h-9 bg-white/90 hover:bg-white text-[#14142B] rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-10"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
           </button>
 
           {item.isFeatured && (
-            <div className="absolute bottom-3 left-3.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/95 backdrop-blur-sm text-xs font-bold shadow-sm" style={{ color: "var(--primary-hex)" }}>
+            <div className="absolute bottom-3.5 left-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/95 backdrop-blur-md text-xs font-bold shadow-md" style={{ color: "var(--primary-hex)" }}>
               <Sparkles className="w-3.5 h-3.5" />
               Featured Product
             </div>
@@ -136,31 +136,31 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
           {/* Title & Description */}
           <div className="border-b border-[#EFF0F6] pb-4">
             <div className="flex items-start justify-between gap-3">
-              <h2 className="text-lg sm:text-xl font-bold text-[#14142B] capitalize">
+              <h2 className="text-lg sm:text-xl font-bold text-[#14142B] capitalize leading-snug">
                 {item.name}
               </h2>
-              <span className="text-lg sm:text-xl font-bold text-primary whitespace-nowrap">
+              <span className="text-lg sm:text-xl font-extrabold text-primary whitespace-nowrap">
                 {formatPrice(basePrice, symbol)}
               </span>
             </div>
             {item.description && (
-              <p className="text-xs sm:text-sm text-[#6E7191] mt-1.5 leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#6E7191] mt-2 leading-relaxed">
                 {item.description}
               </p>
             )}
           </div>
 
-          {/* Single / Multi Variations */}
+          {/* Variations (Sizes/Options) */}
           {item.variations && item.variations.length > 0 && item.variations[0]?.options?.length > 0 && (
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold uppercase tracking-wider text-[#6E7191]">
-                  Select Variation <span className="text-red-500">*</span>
+                  Select Option <span className="text-red-500">*</span>
                 </label>
                 <span className="text-[11px] font-medium text-[#A0A3BD]">Choose 1</span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {item.variations[0].options.map((option: any, idx: number) => {
                   const isSelected = selectedVariation?.name === option.name;
                   return (
@@ -168,16 +168,16 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
                       type="button"
                       key={option.name || idx}
                       onClick={() => setSelectedVariation(option)}
-                      className={`outline-none flex items-center justify-between p-3 rounded-2xl border-2 text-left transition-all ${
+                      className={`flex items-center justify-between p-3.5 rounded-2xl text-left transition-all ${
                         isSelected
-                          ? "border-primary bg-primary/5 text-[#14142B]"
-                          : "border-[#EFF0F6] bg-white hover:border-primary/30 hover:bg-[#FAFAFC] text-[#4E4B66]"
+                          ? "bg-primary/10 text-[#14142B] ring-2 ring-primary/40 shadow-sm"
+                          : "bg-[#F7F7FC] hover:bg-[#EFF0F6] text-[#4E4B66]"
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0 pr-2">
                         <div
-                          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
-                            isSelected ? "border-primary bg-primary" : "border-[#D9DBE9] bg-white"
+                          className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                            isSelected ? "bg-primary" : "border-2 border-[#D9DBE9] bg-white"
                           }`}
                         >
                           {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
@@ -196,12 +196,12 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
             </div>
           )}
 
-          {/* Extra Toppings */}
+          {/* Extra Toppings / Preparation */}
           {item.extras && item.extras.length > 0 && (
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold uppercase tracking-wider text-[#6E7191]">
-                  Extra Toppings
+                  Extras & Preparation
                 </label>
                 <span className="text-[11px] font-medium text-[#A0A3BD]">Optional</span>
               </div>
@@ -213,16 +213,16 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
                     <div
                       key={extra.name || idx}
                       onClick={() => toggleExtra(extra)}
-                      className={`outline-none flex items-center justify-between p-3 rounded-2xl border-2 cursor-pointer transition-all ${
+                      className={`flex items-center justify-between p-3.5 rounded-2xl cursor-pointer transition-all ${
                         isChecked
-                          ? "border-primary bg-primary/5 text-[#14142B]"
-                          : "border-[#EFF0F6] bg-white hover:border-primary/30 hover:bg-[#FAFAFC] text-[#4E4B66]"
+                          ? "bg-primary/10 text-[#14142B] ring-2 ring-primary/40 shadow-sm"
+                          : "bg-[#F7F7FC] hover:bg-[#EFF0F6] text-[#4E4B66]"
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div
-                          className={`w-5 h-5 rounded-lg flex items-center justify-center border-2 transition-colors ${
-                            isChecked ? "bg-primary border-primary text-white" : "border-[#D9DBE9] bg-white"
+                          className={`w-5 h-5 rounded-lg flex items-center justify-center transition-colors ${
+                            isChecked ? "bg-primary text-white" : "border-2 border-[#D9DBE9] bg-white"
                           }`}
                         >
                           {isChecked && <Check className="w-3.5 h-3.5 stroke-[3]" />}
@@ -258,16 +258,16 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
                     <div
                       key={addon._id || addon.name || idx}
                       onClick={() => toggleAddon(addon)}
-                      className={`outline-none flex items-center justify-between p-3 rounded-2xl border-2 cursor-pointer transition-all ${
+                      className={`flex items-center justify-between p-3.5 rounded-2xl cursor-pointer transition-all ${
                         isChecked
-                          ? "border-primary bg-primary/5 text-[#14142B]"
-                          : "border-[#EFF0F6] bg-white hover:border-primary/30 hover:bg-[#FAFAFC] text-[#4E4B66]"
+                          ? "bg-primary/10 text-[#14142B] ring-2 ring-primary/40 shadow-sm"
+                          : "bg-[#F7F7FC] hover:bg-[#EFF0F6] text-[#4E4B66]"
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div
-                          className={`w-5 h-5 rounded-lg flex items-center justify-center border-2 transition-colors ${
-                            isChecked ? "bg-primary border-primary text-white" : "border-[#D9DBE9] bg-white"
+                          className={`w-5 h-5 rounded-lg flex items-center justify-center transition-colors ${
+                            isChecked ? "bg-primary text-white" : "border-2 border-[#D9DBE9] bg-white"
                           }`}
                         >
                           {isChecked && <Check className="w-3.5 h-3.5 stroke-[3]" />}
@@ -287,10 +287,10 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
           )}
         </div>
 
-        {/* Sticky Footer Actions */}
+        {/* Sticky Bottom Actions */}
         <div className="p-3.5 sm:p-4 bg-[#FAFAFC] border-t border-[#EFF0F6] flex items-center justify-between gap-3 shrink-0">
           {/* Quantity Stepper */}
-          <div className="flex items-center space-x-2 bg-white border border-[#EFF0F6] rounded-2xl px-2 py-1 shadow-sm shrink-0">
+          <div className="flex items-center space-x-2 bg-white rounded-2xl px-2 py-1 shadow-sm shrink-0 border border-[#EFF0F6]">
             <button
               type="button"
               onClick={() => setQuantity(Math.max(1, quantity - 1))}

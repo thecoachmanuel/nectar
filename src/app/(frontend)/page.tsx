@@ -18,70 +18,6 @@ function shuffleArray<T>(array: T[]): T[] {
   return arr;
 }
 
-// Helper to interleave 4 items from each category in round-robin sequential order
-function interleaveInFours(items: any[], categoriesList: any[]): any[] {
-  if (!items || items.length === 0) return [];
-
-  const groups: { [key: string]: any[] } = {};
-  const catOrder: string[] = [];
-
-  // 1. Establish order of categories from the provided categoriesList
-  categoriesList.forEach((c: any) => {
-    const id = c._id?.toString() || c.id?.toString();
-    if (id && !groups[id]) {
-      groups[id] = [];
-      catOrder.push(id);
-    }
-  });
-
-  // 2. Put items into their respective category bucket
-  const uncategorized: any[] = [];
-  items.forEach((item: any) => {
-    const rawCat = item.categoryId;
-    const catId = (rawCat && typeof rawCat === "object" ? rawCat._id?.toString() : rawCat?.toString()) || "";
-    if (catId && groups[catId]) {
-      groups[catId].push(item);
-    } else if (catId) {
-      if (!groups[catId]) {
-        groups[catId] = [];
-        catOrder.push(catId);
-      }
-      groups[catId].push(item);
-    } else {
-      uncategorized.push(item);
-    }
-  });
-
-  if (uncategorized.length > 0) {
-    groups["uncategorized"] = uncategorized;
-    catOrder.push("uncategorized");
-  }
-
-  // 3. Filter only active buckets that have items
-  const bucketQueues: any[][] = catOrder
-    .map(id => groups[id] || [])
-    .filter(bucket => bucket.length > 0)
-    .map(bucket => [...bucket]);
-
-  // 4. Interleave 4 items from each category in round-robin sequential order
-  const interleaved: any[] = [];
-  let hasRemaining = true;
-
-  while (hasRemaining) {
-    hasRemaining = false;
-    for (let i = 0; i < bucketQueues.length; i++) {
-      const queue = bucketQueues[i];
-      if (queue.length > 0) {
-        hasRemaining = true;
-        const take = Math.min(4, queue.length);
-        interleaved.push(...queue.splice(0, take));
-      }
-    }
-  }
-
-  return interleaved;
-}
-
 export default function HomePage() {
   const { menuViewMode } = useSettingStore();
   const { settings } = useSettingsStore();
@@ -94,7 +30,6 @@ export default function HomePage() {
   const [offers, setOffers] = useState<any[]>([]);
   const [banners, setBanners] = useState<any[]>([]);
   const [allItems, setAllItems] = useState<any[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -129,10 +64,11 @@ export default function HomePage() {
         fetch("/api/frontend/categories").then(r => r.json()),
         fetch(`/api/frontend/items?featured=true${andLocQuery}`).then(r => r.json()),
         fetch(`/api/frontend/items?popular=true${andLocQuery}`).then(r => r.json()),
+        fetch(`/api/frontend/items${locQuery}`).then(r => r.json()),
         fetch("/api/frontend/offers").then(r => r.json()).catch(() => ({ status: false })),
         fetch(`/api/frontend/stores${locQuery}`).then(r => r.json()).catch(() => ({ status: false })),
         fetch("/api/frontend/banners").then(r => r.json()).catch(() => ({ status: false })),
-      ]).then(([cats, feat, pop, offs, strs, bans]) => {
+      ]).then(([cats, feat, pop, itemsRes, offs, strs, bans]) => {
         if (cats.status) setCategories(cats.data || []);
         if (feat.status) setFeaturedItems((feat.data || []).slice(0, 10));
         if (pop.status) {
@@ -140,11 +76,10 @@ export default function HomePage() {
           const shuffledPopular = shuffleArray(pop.data || []);
           setPopularItems(shuffledPopular.slice(0, 10));
         }
+        if (itemsRes.status) setAllItems(itemsRes.data || []);
         
         if (offs.status && offs.data?.length > 0) setOffers(offs.data);
-        
         if (strs.status) setStores(strs.stores || []);
-        
         if (bans.status && bans.data?.length > 0) setBanners(bans.data);
       }).finally(() => setLoading(false));
     };
@@ -163,30 +98,25 @@ export default function HomePage() {
     }
   }, []);
 
-  // Reload items when category/food type changes
-  useEffect(() => {
-    fetchItems();
-  }, [selectedCategoryId]);
-
-  const fetchItems = async () => {
-    try {
-      let url = `/api/frontend/items?`;
-      if (selectedCategoryId !== "all") url += `categoryId=${selectedCategoryId}&`;
-      if (userLocation) url += `latitude=${userLocation.lat}&longitude=${userLocation.lng}&`;
-
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.status) setAllItems(data.data || []);
-    } catch {}
-  };
-
-  // Interleave 4 from each category in round-robin sequential order when viewing "all"
-  const displayedAllItems = React.useMemo(() => {
-    if (selectedCategoryId === "all") {
-      return interleaveInFours(allItems, categories);
-    }
-    return allItems;
-  }, [allItems, categories, selectedCategoryId]);
+  // Map each category to its live products from the database; hide categories with no products
+  const categoriesWithProducts = React.useMemo(() => {
+    if (!categories || categories.length === 0 || !allItems || allItems.length === 0) return [];
+    
+    return categories
+      .map((cat: any) => {
+        const catIdStr = cat._id?.toString();
+        const catItems = allItems.filter((item: any) => {
+          const rawCat = item.categoryId;
+          const itemCatId = (rawCat && typeof rawCat === "object" ? rawCat._id?.toString() : rawCat?.toString()) || "";
+          return itemCatId === catIdStr;
+        });
+        return {
+          ...cat,
+          products: catItems,
+        };
+      })
+      .filter((cat: any) => cat.products && cat.products.length > 0);
+  }, [categories, allItems]);
 
   const openModal = (item: any) => { setSelectedItem(item); setIsModalOpen(true); };
 
@@ -440,53 +370,104 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* ========= ALL PRODUCTS (Category filtered) ========= */}
-      <section className="pb-20 lg:pb-8">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b] mb-4">
-            {selectedCategoryId === "all" ? "All Products" : categories.find(c => c._id === selectedCategoryId)?.name || "Products"}
-          </h2>
-
-          {loading ? (
-            <div className="flex justify-center py-16">
-              <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--primary-hex)" }} />
-            </div>
-          ) : displayedAllItems.length === 0 ? (
+      {/* ========= CATEGORY PRODUCT SECTIONS (Peppers, Fruits, Vegetables, etc.) ========= */}
+      {loading && categoriesWithProducts.length === 0 ? (
+        <section className="pb-20 lg:pb-8">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 flex justify-center py-16">
+            <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--primary-hex)" }} />
+          </div>
+        </section>
+      ) : categoriesWithProducts.length === 0 ? (
+        <section className="pb-20 lg:pb-8">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="bg-white rounded-2xl p-12 text-center border border-[#eff0f6]">
-              <img src="/images/item/item-not-found.png" alt="Not Found" className="w-28 mx-auto mb-4 opacity-50"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-              <p className="text-sm font-semibold text-[#14142b]">No items found</p>
+              <img
+                src="/images/item/item-not-found.png"
+                alt="Not Found"
+                className="w-28 mx-auto mb-4 opacity-50"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
+              <p className="text-sm font-semibold text-[#14142b]">No products available</p>
             </div>
-          ) : menuViewMode === "grid" ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-              {displayedAllItems.map((item) => <ItemCard key={item._id} item={item} onOpen={openModal} />)}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {displayedAllItems.map((item) => (
-                <div key={item._id} onClick={() => openModal(item)} className="product-card-list cursor-pointer overflow-hidden w-full min-w-0">
-                  <img src={item.image || "/images/item/thumb.png"} alt={item.name}
-                    className="w-24 sm:w-28 h-24 sm:h-28 object-cover rounded-l-lg shrink-0"
-                    onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
-                  <div className="p-3 flex-1 min-w-0 flex flex-col justify-between h-full">
-                    <div className="min-w-0 mb-1">
-                      <h4 className="text-sm font-semibold text-[#14142b] truncate w-full capitalize" title={item.name}>{item.name}</h4>
-                      <p className="text-xs text-[#6e7191] line-clamp-1 mt-0.5 break-words">{item.description}</p>
-                    </div>
-                    <div className="flex items-center justify-between gap-2 min-w-0 pt-1">
-                      <span className="text-sm font-bold text-[#14142b] truncate min-w-0">{formatPrice(item.price)}</span>
-                      <button className="product-card-list-cart-btn flex items-center gap-1.5 text-xs font-semibold text-white px-3 py-1.5 rounded-3xl shrink-0"
-                        style={{ backgroundColor: "var(--primary-hex)" }}>
-                        <Plus className="w-3.5 h-3.5" />Add
-                      </button>
-                    </div>
-                  </div>
+          </div>
+        </section>
+      ) : (
+        <div className="pb-20 lg:pb-8 space-y-8 sm:space-y-12">
+          {categoriesWithProducts.map((cat: any) => (
+            <section key={cat._id}>
+              <div className="max-w-6xl mx-auto px-4 sm:px-6">
+                <div className="flex items-center justify-between gap-2 mb-4">
+                  <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b]">
+                    {cat.name}
+                  </h2>
+                  <Link
+                    href={`/menu?category=${cat._id}`}
+                    className="text-xs font-medium hover:underline flex items-center gap-1"
+                    style={{ color: "var(--primary-hex)" }}
+                  >
+                    View All
+                  </Link>
                 </div>
-              ))}
-            </div>
-          )}
+
+                {menuViewMode === "grid" ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+                    {cat.products.map((item: any) => (
+                      <ItemCard key={item._id} item={item} onOpen={openModal} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {cat.products.map((item: any) => (
+                      <div
+                        key={item._id}
+                        onClick={() => openModal(item)}
+                        className="product-card-list cursor-pointer overflow-hidden w-full min-w-0"
+                      >
+                        <img
+                          src={item.image || "/images/item/thumb.png"}
+                          alt={item.name}
+                          className="w-24 sm:w-28 h-24 sm:h-28 object-cover rounded-l-lg shrink-0"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "/images/item/thumb.png";
+                          }}
+                        />
+                        <div className="p-3 flex-1 min-w-0 flex flex-col justify-between h-full">
+                          <div className="min-w-0 mb-1">
+                            <h4
+                              className="text-sm font-semibold text-[#14142b] truncate w-full capitalize"
+                              title={item.name}
+                            >
+                              {item.name}
+                            </h4>
+                            <p className="text-xs text-[#6e7191] line-clamp-1 mt-0.5 break-words">
+                              {item.description}
+                            </p>
+                          </div>
+                          <div className="flex items-center justify-between gap-2 min-w-0 pt-1">
+                            <span className="text-sm font-bold text-[#14142b] truncate min-w-0">
+                              {formatPrice(item.price)}
+                            </span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openModal(item);
+                              }}
+                              className="product-card-list-cart-btn flex items-center gap-1.5 text-xs font-semibold text-white px-3 py-1.5 rounded-3xl shrink-0"
+                              style={{ backgroundColor: "var(--primary-hex)" }}
+                            >
+                              <Plus className="w-3.5 h-3.5" />Add
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+          ))}
         </div>
-      </section>
+      )}
 
       <ItemModal item={selectedItem} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
