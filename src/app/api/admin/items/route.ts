@@ -26,8 +26,26 @@ export async function GET() {
 
     const items = await Item.find(storeIdFilter)
       .populate("categoryId", "name slug")
-      .sort({ createdAt: -1 });
-    return NextResponse.json({ status: true, data: items });
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const Store = (await import("@/models/Store")).default;
+    const stores = await Store.find({}).select("_id name").lean();
+    const storeMap = new Map(stores.map((s: any) => [s._id.toString(), s.name]));
+
+    const mappedItems = items.map((item: any) => {
+      const rawStoreId = item.storeId ? item.storeId.toString() : "0";
+      const isUnassigned = !rawStoreId || rawStoreId === "0" || rawStoreId === "admin" || rawStoreId === "null" || rawStoreId === "undefined";
+      const storeName = isUnassigned ? "Unassigned (All Stores)" : (storeMap.get(rawStoreId) || "Assigned Store");
+      return {
+        ...item,
+        storeName,
+        isUnassignedStore: isUnassigned,
+        storeIdStr: isUnassigned ? "0" : rawStoreId,
+      };
+    });
+
+    return NextResponse.json({ status: true, data: mappedItems });
   } catch (error: any) {
     return NextResponse.json(
       { status: false, message: error.message },
