@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import PushNotificationDetailModal, {
+  PushNotificationData,
+} from "@/components/frontend/PushNotificationDetailModal";
 
 // ── Web Audio Chime Synthesizer ──────────────────────────────────────────────
-// Produces an instant, pleasant notification chime without relying on external MP3 files
 function playNotificationChime(type: "admin_order" | "customer_update" | "broadcast" = "admin_order") {
   try {
     const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
@@ -12,59 +14,47 @@ function playNotificationChime(type: "admin_order" | "customer_update" | "broadc
     const ctx = new AudioContext();
 
     if (type === "admin_order") {
-      // 3-tone alert chime for Admin
-      const notes = [587.33, 739.99, 880.0]; // D5, F#5, A5
+      const notes = [587.33, 739.99, 880.0];
       notes.forEach((freq, i) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = "sine";
         osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.12);
-
         gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.12);
         gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + i * 0.12 + 0.02);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.12 + 0.3);
-
         osc.connect(gain);
         gain.connect(ctx.destination);
-
         osc.start(ctx.currentTime + i * 0.12);
         osc.stop(ctx.currentTime + i * 0.12 + 0.3);
       });
     } else if (type === "broadcast") {
-      // Vibrant 3-chord broadcast chime for promo / announcements
-      const notes = [440.0, 554.37, 659.25, 880.0]; // A4, C#5, E5, A5
+      const notes = [440.0, 554.37, 659.25, 880.0];
       notes.forEach((freq, i) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = "triangle";
         osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.09);
-
         gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.09);
         gain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + i * 0.09 + 0.02);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.09 + 0.4);
-
         osc.connect(gain);
         gain.connect(ctx.destination);
-
         osc.start(ctx.currentTime + i * 0.09);
         osc.stop(ctx.currentTime + i * 0.09 + 0.4);
       });
     } else {
-      // Gentle 2-tone chime for Customer updates
-      const notes = [523.25, 659.25]; // C5, E5
+      const notes = [523.25, 659.25];
       notes.forEach((freq, i) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = "triangle";
         osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.15);
-
         gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.15);
         gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + i * 0.15 + 0.02);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.15 + 0.35);
-
         osc.connect(gain);
         gain.connect(ctx.destination);
-
         osc.start(ctx.currentTime + i * 0.15);
         osc.stop(ctx.currentTime + i * 0.15 + 0.35);
       });
@@ -74,8 +64,11 @@ function playNotificationChime(type: "admin_order" | "customer_update" | "broadc
   }
 }
 
-// ── Trigger OS Background Notification ─────────────────────────────────────────
-async function triggerOsNotification(title: string, options: { body: string; url?: string; tag?: string }) {
+// ── Trigger OS Background Notification ──────────────────────────────────────
+async function triggerOsNotification(
+  title: string,
+  options: { body: string; url?: string; tag?: string; image?: string }
+) {
   if (typeof window === "undefined" || !("Notification" in window)) return;
 
   if (Notification.permission !== "granted") {
@@ -87,7 +80,6 @@ async function triggerOsNotification(title: string, options: { body: string; url
     }
   }
 
-  // 1. Try displaying via Service Worker (Works perfectly when browser is minimized or tab is hidden)
   if ("serviceWorker" in navigator) {
     try {
       const reg = await navigator.serviceWorker.ready;
@@ -96,8 +88,9 @@ async function triggerOsNotification(title: string, options: { body: string; url
           body: options.body,
           icon: "/images/theme/theme-favicon-logo.png?v=3",
           badge: "/images/theme/theme-favicon-logo.png?v=3",
+          image: options.image,
           vibrate: [200, 100, 200],
-          data: { url: options.url || "/" },
+          data: { url: options.url || "/", body: options.body, title },
           tag: options.tag || `nectar-${Date.now()}`,
           renotify: true,
           requireInteraction: true,
@@ -109,7 +102,6 @@ async function triggerOsNotification(title: string, options: { body: string; url
     }
   }
 
-  // 2. Fallback to standard Notification API
   try {
     const notif = new Notification(title, {
       body: options.body,
@@ -126,13 +118,24 @@ async function triggerOsNotification(title: string, options: { body: string; url
   }
 }
 
+// ── Global event key for showing notification detail modal ──────────────────
+export const NOTIF_MODAL_EVENT = "nectar:show-notification";
+
 export default function NotificationListener() {
   const lastAdminOrderSerialRef = useRef<string | null>(null);
   const knownCustomerOrderStatusesRef = useRef<Record<string, string>>({});
   const isInitialFetchRef = useRef(true);
   const isInitialBroadcastRef = useRef(true);
 
-  // ── 1. Register Service Worker & Request Notification Permission ──
+  // ── Modal state ──────────────────────────────────────────────────────────
+  const [activeNotification, setActiveNotification] = useState<PushNotificationData | null>(null);
+
+  // Helper to open the detail modal
+  const openModal = (notif: PushNotificationData) => {
+    setActiveNotification({ ...notif, receivedAt: notif.receivedAt ?? Date.now() });
+  };
+
+  // ── 1. Register Service Worker, Request Permission & Listen for SW messages ──
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -145,10 +148,62 @@ export default function NotificationListener() {
         .catch((err) => {
           console.warn("⚠️ [Nectar] SW registration skipped:", err.message);
         });
+
+      // Listen for messages from Service Worker (e.g. notification was tapped)
+      navigator.serviceWorker.addEventListener("message", (event) => {
+        if (event.data?.type === "NOTIFICATION_TAPPED") {
+          const { title, body, url, image } = event.data;
+          openModal({ title, body, url, image, receivedAt: Date.now() });
+        }
+      });
     }
 
-    // Auto-request notification permission on user's first interaction
-    const requestNotificationPermission = () => {
+    // Check if there's a pending notification stored from when app was closed
+    try {
+      const pending = localStorage.getItem("nectar_pending_tap_notification");
+      if (pending) {
+        const parsed: PushNotificationData = JSON.parse(pending);
+        // Only show if recent (within 5 minutes)
+        if (parsed.receivedAt && Date.now() - parsed.receivedAt < 5 * 60 * 1000) {
+          openModal(parsed);
+        }
+        localStorage.removeItem("nectar_pending_tap_notification");
+      }
+    } catch {
+      // ignore
+    }
+
+    // SW redirects here with __notif_tap param when notification tapped & app was closed
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const notifTapParam = urlParams.get("__notif_tap");
+      if (notifTapParam) {
+        const tapData = JSON.parse(decodeURIComponent(notifTapParam));
+        openModal({
+          title: tapData.title,
+          body: tapData.body,
+          url: tapData.url,
+          image: tapData.image,
+          receivedAt: tapData.receivedAt || Date.now(),
+        });
+        // Clean the URL without a page reload
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete("__notif_tap");
+        window.history.replaceState({}, "", cleanUrl.toString());
+      }
+    } catch {
+      // ignore malformed param
+    }
+
+    // Listen for in-app dispatched notification events
+    const handleInAppNotif = (e: Event) => {
+      const custom = e as CustomEvent<PushNotificationData>;
+      openModal(custom.detail);
+    };
+    window.addEventListener(NOTIF_MODAL_EVENT, handleInAppNotif);
+
+    // Auto-request notification permission on first user interaction
+    const requestPermission = () => {
       if ("Notification" in window && Notification.permission === "default") {
         Notification.requestPermission().then((perm) => {
           if (perm === "granted") {
@@ -157,17 +212,17 @@ export default function NotificationListener() {
         });
       }
     };
-
-    window.addEventListener("click", requestNotificationPermission, { once: true });
-    window.addEventListener("touchstart", requestNotificationPermission, { once: true });
+    window.addEventListener("click", requestPermission, { once: true });
+    window.addEventListener("touchstart", requestPermission, { once: true });
 
     return () => {
-      window.removeEventListener("click", requestNotificationPermission);
-      window.removeEventListener("touchstart", requestNotificationPermission);
+      window.removeEventListener("click", requestPermission);
+      window.removeEventListener("touchstart", requestPermission);
+      window.removeEventListener(NOTIF_MODAL_EVENT, handleInAppNotif);
     };
   }, []);
 
-  // ── 2. Real-Time Order & Broadcast Polling Engine ──
+  // ── 2. Real-Time Polling Engine ──────────────────────────────────────────
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -176,7 +231,7 @@ export default function NotificationListener() {
         const storedUser = localStorage.getItem("user");
         const user = storedUser ? JSON.parse(storedUser) : null;
 
-        // ── A. BROADCAST PUSH NOTIFICATIONS (For All Users, Customers, Sellers, Delivery Boys) ──
+        // ── A. BROADCAST PUSH NOTIFICATIONS ──────────────────────────────
         try {
           const bRes = await fetch("/api/frontend/push-notifications", { cache: "no-store" });
           const bData = await bRes.json();
@@ -189,34 +244,38 @@ export default function NotificationListener() {
             bData.data.forEach((broadcast: any) => {
               const broadcastKey = `${broadcast._id}_${new Date(broadcast.updatedAt).getTime()}`;
 
-              // If this broadcast is new or has been re-sent
               if (!seenMap[broadcastKey]) {
                 seenMap[broadcastKey] = true;
 
-                // Don't blast old notifications on fresh first-ever page open unless newly re-sent
                 const sentTime = new Date(broadcast.updatedAt).getTime();
-                const isRecent = Date.now() - sentTime < 10 * 60 * 1000; // Sent within last 10 minutes
+                const isRecent = Date.now() - sentTime < 10 * 60 * 1000;
 
                 if (!isInitialBroadcastRef.current || isRecent) {
+                  const notifData: PushNotificationData = {
+                    title: broadcast.title,
+                    body: broadcast.description,
+                    url: broadcast.url || "/",
+                    image: broadcast.image,
+                    receivedAt: Date.now(),
+                  };
+
                   playNotificationChime("broadcast");
 
                   triggerOsNotification(broadcast.title, {
                     body: broadcast.description,
                     url: broadcast.url || "/",
+                    image: broadcast.image,
                     tag: `broadcast-${broadcastKey}`,
                   });
 
+                  // Toast with "View" that opens the detail modal
                   toast(broadcast.title, {
                     description: broadcast.description,
                     duration: 8000,
-                    action: broadcast.url
-                      ? {
-                          label: "Open",
-                          onClick: () => {
-                            window.location.href = broadcast.url;
-                          },
-                        }
-                      : undefined,
+                    action: {
+                      label: "View",
+                      onClick: () => openModal(notifData),
+                    },
                   });
                 }
               }
@@ -229,7 +288,7 @@ export default function NotificationListener() {
           // Silent broadcast poll catch
         }
 
-        // ── B. ADMIN / STORE MANAGER NEW ORDERS ───────────────────────────
+        // ── B. ADMIN / STORE MANAGER NEW ORDERS ──────────────────────────
         if (user && (user.role === "admin" || user.role === "store_manager")) {
           const res = await fetch("/api/admin/orders?limit=5", { cache: "no-store" });
           const data = await res.json();
@@ -244,37 +303,37 @@ export default function NotificationListener() {
               lastAdminOrderSerialRef.current &&
               currentLatestSerial !== lastAdminOrderSerialRef.current
             ) {
-              // 🔔 NEW ORDER DETECTED!
               lastAdminOrderSerialRef.current = currentLatestSerial;
 
               const amountFormatted = `₦${Number(latestOrder.totalAmount || 0).toLocaleString()}`;
               const customerName = latestOrder.customerName || "Customer";
               const title = `🚨 New Order #${currentLatestSerial}!`;
-              const body = `${customerName} placed an order for ${amountFormatted}. Tap to manage.`;
+              const body = `${customerName} placed an order for ${amountFormatted}. Tap to view and manage this order from the admin panel.`;
+
+              const notifData: PushNotificationData = {
+                title,
+                body,
+                url: "/admin/orders",
+                receivedAt: Date.now(),
+              };
 
               playNotificationChime("admin_order");
 
-              triggerOsNotification(title, {
-                body,
-                url: "/admin/orders",
-                tag: `admin-order-${currentLatestSerial}`,
-              });
+              triggerOsNotification(title, { body, url: "/admin/orders", tag: `admin-order-${currentLatestSerial}` });
 
               toast.success(title, {
-                description: body,
+                description: `${customerName} placed an order for ${amountFormatted}.`,
                 duration: 8000,
                 action: {
                   label: "View",
-                  onClick: () => {
-                    window.location.href = "/admin/orders";
-                  },
+                  onClick: () => openModal(notifData),
                 },
               });
             }
           }
         }
 
-        // ── C. CUSTOMER ORDER STATUS UPDATES ──────────────────────────────
+        // ── C. CUSTOMER ORDER STATUS UPDATES ─────────────────────────────
         if (user && user.role === "customer") {
           const res = await fetch("/api/frontend/orders", { credentials: "include", cache: "no-store" });
           const data = await res.json();
@@ -291,11 +350,18 @@ export default function NotificationListener() {
                 if (currentStatus === "accepted") { statusLabel = "Accepted by Store"; emoji = "✅"; }
                 if (currentStatus === "preparing") { statusLabel = "Being Prepared"; emoji = "👨‍🍳"; }
                 if (currentStatus === "out_for_delivery") { statusLabel = "Out for Delivery"; emoji = "🚚"; }
-                if (currentStatus === "delivered") { statusLabel = "Delivered"; emoji = "🎉"; }
+                if (currentStatus === "delivered") { statusLabel = "Delivered! Thank you for ordering with Nectar."; emoji = "🎉"; }
                 if (currentStatus === "canceled") { statusLabel = "Canceled"; emoji = "❌"; }
 
                 const title = `${emoji} Order #${order.orderSerialNo} Update`;
-                const body = `Your order status is now: ${statusLabel}`;
+                const body = `Your order status has been updated to: ${statusLabel}.\n\nTap to view full order details.`;
+
+                const notifData: PushNotificationData = {
+                  title,
+                  body,
+                  url: "/account/orders",
+                  receivedAt: Date.now(),
+                };
 
                 playNotificationChime("customer_update");
 
@@ -306,8 +372,12 @@ export default function NotificationListener() {
                 });
 
                 toast.info(title, {
-                  description: body,
+                  description: `Status: ${statusLabel}`,
                   duration: 6000,
+                  action: {
+                    label: "View",
+                    onClick: () => openModal(notifData),
+                  },
                 });
               }
 
@@ -322,11 +392,17 @@ export default function NotificationListener() {
       }
     };
 
-    // Initial check + recurring background polling interval every 5 seconds
     checkUpdates();
     const interval = setInterval(checkUpdates, 5000);
     return () => clearInterval(interval);
   }, []);
 
-  return null;
+  return (
+    <>
+      <PushNotificationDetailModal
+        notification={activeNotification}
+        onClose={() => setActiveNotification(null)}
+      />
+    </>
+  );
 }
