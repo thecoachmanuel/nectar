@@ -3,6 +3,7 @@ import connectToDatabase from "@/lib/db";
 import Order from "@/models/Order";
 import User from "@/models/User";
 import Item from "@/models/Item";
+import Setting from "@/models/Setting";
 import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
@@ -32,7 +33,8 @@ export async function GET() {
       totalCustomers,
       totalItems,
       orders,
-      topCustomersData
+      topCustomersData,
+      adminPhoneSetting
     ] = await Promise.all([
       Order.countDocuments(storeIdFilter),
       User.countDocuments({ role: "customer" }),
@@ -43,7 +45,10 @@ export async function GET() {
         { $group: { _id: "$customerEmail", count: { $sum: 1 } } },
         { $sort: { count: -1 } },
         { $limit: 5 }
-      ])
+      ]),
+      Setting.findOne({
+        key: { $in: ["admin_notification_whatsapp_number", "wa_admin_notification_phone", "company_phone"] }
+      }).lean()
     ]);
 
     const totalSales = orders.reduce((sum, order: any) => sum + (order.totalAmount || 0), 0);
@@ -74,7 +79,8 @@ export async function GET() {
         totalCustomers,
         totalItems,
         orderStats,
-        topCustomersData
+        topCustomersData,
+        adminNotificationWhatsApp: adminPhoneSetting?.payload ? String(adminPhoneSetting.payload).trim() : null
       }
     });
 

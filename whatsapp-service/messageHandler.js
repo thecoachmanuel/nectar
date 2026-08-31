@@ -890,6 +890,33 @@ async function processOrderPlacement(db, appUrl, session, phone, paymentMethod, 
       userId: session.userId,
     });
 
+    // ── Dispatch Instant Alert to Admin WhatsApp Notification Number ──
+    try {
+      const adminSetting = await db.collection("settings").findOne({
+        key: { $in: ["admin_notification_whatsapp_number", "wa_admin_notification_phone", "company_phone"] }
+      });
+      const adminPhone = adminSetting?.payload ? String(adminSetting.payload).replace(/\D/g, "") : null;
+      if (adminPhone && adminPhone.length >= 7 && adminPhone !== String(finalPhone).replace(/\D/g, "")) {
+        const itemsSummary = Array.isArray(order.items)
+          ? order.items.map((i) => `• ${i.name} x${i.quantity || 1}`).join("\n")
+          : "Fresh Groceries";
+
+        const adminAlertText =
+          `🔔 *NEW WHATSAPP BOT ORDER!* 📦✨\n\n` +
+          `• *Order:* #${order.orderSerialNo}\n` +
+          `• *Customer:* ${order.customerName || "WhatsApp Customer"} (+${finalPhone})\n` +
+          `• *Total Amount:* ₦${formatPrice(order.totalAmount)}\n` +
+          `• *Payment:* ${String(order.paymentMethod || "bank_transfer").toUpperCase()}\n\n` +
+          `🛍️ *Items:*\n${itemsSummary}\n\n` +
+          `📍 *Delivery Address:*\n${order.deliveryAddress?.address || "Provided via WhatsApp"}\n\n` +
+          `👉 *View in Admin:*\n${appUrl}/admin/orders`;
+
+        sendFn(adminPhone, adminAlertText).catch((e) => console.error("Admin WA alert error:", e.message));
+      }
+    } catch (adminNotifErr) {
+      console.error("Failed to notify admin on WA order:", adminNotifErr.message);
+    }
+
     // ── Paystack Option ──
     if (paymentMethod === "paystack") {
       const psResult = await paymentService.initializePaystackPayment(db, appUrl, order);

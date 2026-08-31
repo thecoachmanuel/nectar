@@ -35,6 +35,10 @@ export default function SettingsPage() {
   useEffect(() => {
     if (Object.keys(settings).length > 0) {
       const initialForm = { ...settings };
+      if (settings.admin_notification_whatsapp_number || settings.wa_admin_notification_phone) {
+        initialForm.admin_notification_whatsapp_number =
+          settings.admin_notification_whatsapp_number || settings.wa_admin_notification_phone || "";
+      }
       if (settings.wa_bank_account) {
         const bankObj = typeof settings.wa_bank_account === "string" ? JSON.parse(settings.wa_bank_account) : settings.wa_bank_account;
         initialForm.wa_bank_name = bankObj.bankName || initialForm.wa_bank_name || "";
@@ -59,8 +63,13 @@ export default function SettingsPage() {
         if (key.startsWith("pay_")) group = "Payment Gateway";
         if (key.startsWith("sms_")) group = "SMS Gateway";
         if (key.startsWith("push_")) group = "Push Notification";
-        if (key.startsWith("wa_")) group = "WhatsApp Bot";
+        if (
+          key.startsWith("wa_") || 
+          key === "admin_notification_whatsapp_number" || 
+          key === "wa_admin_notification_phone"
+        ) group = "WhatsApp Bot";
         if (key.startsWith("theme_")) group = "Theme";
+        if (key.startsWith("role_")) group = "Roles & Permissions";
         if (["baseDeliveryFee", "feePerKm", "multiStoreExtraFee", "freeDeliveryThreshold", "orderValueFeePercent", "largeOrderThreshold", "largeOrderFeePercent", "takeaway_enabled"].includes(key)) group = "Delivery";
         return { key, group, payload: formData[key] };
       });
@@ -70,7 +79,7 @@ export default function SettingsPage() {
       
       // For Company tab, also include non-prefixed keys
       if (activeTab === "Company") {
-        tabSettings = allSettings.filter(s => s.group === "Company" || (!s.key.startsWith("site_") && !s.key.startsWith("mail_") && !s.key.startsWith("pay_") && !s.key.startsWith("sms_") && !s.key.startsWith("push_") && !s.key.startsWith("wa_") && !s.key.startsWith("theme_")));
+        tabSettings = allSettings.filter(s => s.group === "Company" || (!s.key.startsWith("site_") && !s.key.startsWith("mail_") && !s.key.startsWith("pay_") && !s.key.startsWith("sms_") && !s.key.startsWith("push_") && !s.key.startsWith("wa_") && !s.key.startsWith("theme_") && !s.key.startsWith("role_") && s.key !== "admin_notification_whatsapp_number" && s.key !== "wa_admin_notification_phone"));
       }
 
       // Also sync alias keys for company info
@@ -79,8 +88,23 @@ export default function SettingsPage() {
         if (formData.company_phone) tabSettings.push({ key: "contactPhone", group: "Company", payload: formData.company_phone });
       }
 
-      // Sync combined bank account payload for WhatsApp Bot
+      // Sync combined bank account payload and admin notification phone for WhatsApp Bot
       if (activeTab === "WhatsApp Bot") {
+        if (formData.admin_notification_whatsapp_number !== undefined) {
+          const cleanPhone = String(formData.admin_notification_whatsapp_number).trim();
+          tabSettings = tabSettings.filter(s => s.key !== "admin_notification_whatsapp_number" && s.key !== "wa_admin_notification_phone");
+          tabSettings.push({
+            key: "admin_notification_whatsapp_number",
+            group: "WhatsApp Bot",
+            payload: cleanPhone,
+          });
+          tabSettings.push({
+            key: "wa_admin_notification_phone",
+            group: "WhatsApp Bot",
+            payload: cleanPhone,
+          });
+        }
+
         tabSettings.push({
           key: "wa_bank_account",
           group: "WhatsApp Bot",

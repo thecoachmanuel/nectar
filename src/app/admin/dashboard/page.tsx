@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { 
   ShoppingBag, 
   ShoppingCart, 
@@ -14,7 +15,9 @@ import {
   PackageCheck,
   XCircle,
   RotateCcw,
-  Ban
+  Ban,
+  BellRing,
+  Phone
 } from "lucide-react";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
@@ -74,10 +77,47 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Greeting */}
-      <div className="mb-8">
-        <h3 className="font-semibold text-[26px] leading-10 capitalize text-primary">{getGreeting()}</h3>
-        <h4 className="font-medium text-[22px] leading-[34px] capitalize text-[#14142B]">{user?.name || "Admin"}</h4>
+      {/* Greeting & WhatsApp Notification Info */}
+      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h3 className="font-semibold text-[26px] leading-10 capitalize text-primary">{getGreeting()}</h3>
+          <h4 className="font-medium text-[22px] leading-[34px] capitalize text-[#14142B]">{user?.name || "Admin"}</h4>
+        </div>
+
+        {/* 🔔 Admin Order Notification WhatsApp Number Card */}
+        <Link
+          href="/admin/settings"
+          className="inline-flex items-center gap-3.5 p-3.5 px-4 rounded-2xl bg-white border border-[#EFF0F6] shadow-sm hover:border-emerald-500/40 hover:shadow-md transition-all group max-w-fit"
+          title="Click to manage Admin WhatsApp notification settings"
+        >
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <BellRing className="w-5 h-5 text-emerald-600" />
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <span className="text-[11px] font-semibold text-[#6E7191] uppercase tracking-wider">
+                Order Alert WhatsApp
+              </span>
+              {dashboardData?.adminNotificationWhatsApp ? (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Active
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  Not Set
+                </span>
+              )}
+            </div>
+            <p className="text-xs font-bold text-[#14142B] font-mono group-hover:text-primary transition-colors flex items-center gap-1">
+              <Phone className="w-3 h-3 text-emerald-500" />
+              {dashboardData?.adminNotificationWhatsApp
+                ? `+${dashboardData.adminNotificationWhatsApp}`
+                : "Click to configure in Settings"}
+            </p>
+          </div>
+        </Link>
       </div>
 
       {/* Overview Cards */}
