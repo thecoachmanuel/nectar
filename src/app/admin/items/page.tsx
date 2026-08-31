@@ -113,7 +113,7 @@ export default function ItemsPage() {
                       <span className="text-sm text-[#4E4B66]">{item.categoryId?.name || "-"}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-semibold text-[#14142B]">₦{item.price?.toFixed(2)}</span>
+                      <span className="text-sm font-semibold text-[#14142B]">₦{Number(item.price || 0).toLocaleString()}</span>
                     </td>
 
                     <td className="px-6 py-4">

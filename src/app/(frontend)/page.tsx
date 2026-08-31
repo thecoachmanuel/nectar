@@ -5,6 +5,7 @@ import Link from "next/link";
 import ItemModal from "@/components/frontend/ItemModal";
 import { useSettingStore } from "@/store/useSettingStore";
 import { useSettingsStore } from "@/store/useSettingsStore";
+import { formatPrice } from "@/lib/formatters";
 import { Search, Plus, Star, Leaf, Drumstick, Tag, MapPin, ChevronLeft, ChevronRight, Loader2, ArrowRight, Clock } from "lucide-react";
 
 export default function HomePage() {
@@ -338,7 +339,7 @@ export default function HomePage() {
                     </div>
                     <p className="text-xs text-[#6e7191] line-clamp-1 mb-2">{item.description}</p>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-[#14142b]">₦{item.price?.toFixed(2)}</span>
+                      <span className="text-sm font-bold text-[#14142b]">{formatPrice(item.price)}</span>
                       <button onClick={(e) => { e.stopPropagation(); openModal(item); }}
                         className="product-card-list-cart-btn flex items-center gap-1.5 text-xs font-semibold text-white px-3 py-1.5 rounded-3xl"
                         style={{ backgroundColor: "var(--primary-hex)" }}>
@@ -387,7 +388,7 @@ export default function HomePage() {
                     </div>
                     <p className="text-xs text-[#6e7191] line-clamp-1 mb-2">{item.description}</p>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-[#14142b]">₦{item.price?.toFixed(2)}</span>
+                      <span className="text-sm font-bold text-[#14142b]">{formatPrice(item.price)}</span>
                       <button className="product-card-list-cart-btn flex items-center gap-1.5 text-xs font-semibold text-white px-3 py-1.5 rounded-3xl"
                         style={{ backgroundColor: "var(--primary-hex)" }}>
                         <Plus className="w-3.5 h-3.5" />Add
@@ -425,7 +426,7 @@ function ItemCard({ item, onOpen }: { item: any; onOpen: (item: any) => void }) 
         <h4 className="text-xs font-semibold text-[#14142b] truncate mb-0.5">{item.name}</h4>
         <p className="text-[10px] text-[#6e7191] line-clamp-2 mb-2 flex-1">{item.description}</p>
         <div className="flex items-center justify-between">
-          <span className="text-sm font-bold text-[#14142b]">₦{item.price?.toFixed(2)}</span>
+          <span className="text-sm font-bold text-[#14142b]">{formatPrice(item.price)}</span>
           <button onClick={(e) => { e.stopPropagation(); onOpen(item); }}
             className="product-card-grid-cart-btn">
             <Plus className="w-3.5 h-3.5" />

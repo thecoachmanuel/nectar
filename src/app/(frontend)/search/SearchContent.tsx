@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search, Plus, Loader2, X } from "lucide-react";
 import ItemModal from "@/components/frontend/ItemModal";
+import { formatPrice } from "@/lib/formatters";
 
 export default function SearchContent() {
   const searchParams = useSearchParams();
@@ -100,7 +101,7 @@ export default function SearchContent() {
                 <h4 className="text-xs font-semibold text-[#14142b] truncate mb-1">{item.name}</h4>
                 <p className="text-[10px] text-[#6e7191] line-clamp-1 mb-2">{item.description}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-[#14142b]">₦{item.price?.toFixed(2)}</span>
+                  <span className="text-sm font-bold text-[#14142b]">{formatPrice(item.price)}</span>
                   <button className="product-card-grid-cart-btn">
                     <Plus className="w-3.5 h-3.5" />
                   </button>

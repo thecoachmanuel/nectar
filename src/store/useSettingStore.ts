@@ -56,9 +56,14 @@ export const useSettingStore = create<SettingState>()(
       setMenuViewMode: (menuViewMode) => set({ menuViewMode }),
       setThemeColor: (themeColor) => set({ themeColor }),
 
-      formatPrice: (amount: number) => {
+      formatPrice: (amount: number | string) => {
         const symbol = get().currencySymbol || "₦";
-        const val = (amount || 0).toFixed(2);
+        const num = typeof amount === "string" ? parseFloat(amount) : Number(amount || 0);
+        if (isNaN(num)) return `${symbol}0`;
+        const val = num.toLocaleString("en-US", {
+          minimumFractionDigits: num % 1 === 0 ? 0 : 2,
+          maximumFractionDigits: 2,
+        });
         return `${symbol}${val}`;
       },
     }),

@@ -8,7 +8,9 @@ import { useSettingStore } from "@/store/useSettingStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useCartStore } from "@/store/useCartStore";
 import { useSettingsStore } from "@/store/useSettingsStore";
+import { formatPrice } from "@/lib/formatters";
 import { toast } from "sonner";
+import AddressModal from "@/components/frontend/AddressModal";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -235,15 +237,15 @@ export default function CheckoutPage() {
           text += `--------------------------\n`;
           items.forEach((item, idx) => {
             text += `${idx + 1}) ${item.name}\n`;
-            text += `  Price: ₦${item.price.toFixed(2)}\n`;
+            text += `  Price: ${formatPrice(item.price)}\n`;
             text += `  Quantity: ${item.quantity}\n`;
-            text += `  Total: ₦${item.itemTotal.toFixed(2)}\n`;
+            text += `  Total: ${formatPrice(item.itemTotal)}\n`;
             text += `  --------------------------\n`;
           });
-          text += `*Subtotal* : ₦${subtotal.toFixed(2)}\n`;
-          text += `*Discount* : ₦${discountAmount.toFixed(2)}\n`;
-          text += `*Delivery* : ₦${deliveryCharge.toFixed(2)}\n`;
-          text += `*Total*    : ₦${total.toFixed(2)}\n`;
+          text += `*Subtotal* : ${formatPrice(subtotal)}\n`;
+          text += `*Discount* : ${formatPrice(discountAmount)}\n`;
+          text += `*Delivery* : ${deliveryCharge === 0 ? "FREE" : formatPrice(deliveryCharge)}\n`;
+          text += `*Total*    : ${formatPrice(total)}\n`;
           text += `--------------------------\n`;
           text += `*Customer Info*\n`;
           text += `Name: ${customerName}\n`;
@@ -511,10 +513,10 @@ export default function CheckoutPage() {
                             <img src={cart.image || "/images/item/thumb.png"} alt={cart.name} className="w-14 h-14 rounded-xl object-cover bg-[#f7f7fc]" />
                             <div className="flex-1">
                               <h4 className="text-sm font-medium capitalize text-[#14142b] mb-1">{cart.name}</h4>
-                              <p className="text-xs font-semibold text-[#14142b]">₦{cart.price.toFixed(2)}</p>
+                              <p className="text-xs font-semibold text-[#14142b]">{formatPrice(cart.price)}</p>
                             </div>
                             <div className="font-bold text-[#14142b] text-sm">
-                              ₦{cart.itemTotal.toFixed(2)}
+                              {formatPrice(cart.itemTotal)}
                             </div>
                           </div>
                         </div>
@@ -554,7 +556,7 @@ export default function CheckoutPage() {
                           <span className="text-[11px] font-semibold text-emerald-600">🚚 Free Delivery applied!</span>
                         )}
                         {discountAmount > 0 && (
-                          <span className="text-[11px] font-semibold text-green-600">You save ₦{discountAmount.toLocaleString()}</span>
+                          <span className="text-[11px] font-semibold text-green-600">You save {formatPrice(discountAmount)}</span>
                         )}
                       </div>
                       <button onClick={handleRemoveCoupon} className="text-xs font-medium text-red-500 hover:text-red-700 underline">Remove</button>
@@ -565,12 +567,12 @@ export default function CheckoutPage() {
                     <ul className="flex flex-col gap-2 p-3 sm:p-4 border-b border-dashed border-[#EFF0F6]">
                       <li className="flex items-center justify-between text-[#6e7191]">
                         <span className="text-sm capitalize">Subtotal</span>
-                        <span className="text-sm">₦{subtotal.toFixed(2)}</span>
+                        <span className="text-sm font-semibold text-[#14142b]">{formatPrice(subtotal)}</span>
                       </li>
                       <li className="flex items-center justify-between text-[#6e7191]">
                         <span className="text-sm capitalize">Discount</span>
-                        <span className={`text-sm ${discountAmount > 0 ? "text-green-600 font-medium" : ""}`}>
-                          {discountAmount > 0 ? "-" : ""}₦{discountAmount.toFixed(2)}
+                        <span className={`text-sm ${discountAmount > 0 ? "text-green-600 font-semibold" : ""}`}>
+                          {discountAmount > 0 ? `-${formatPrice(discountAmount)}` : formatPrice(0)}
                         </span>
                       </li>
                       {orderType === "delivery" && (
@@ -581,14 +583,14 @@ export default function CheckoutPage() {
                           ) : deliveryCharge === 0 && appliedCoupon ? (
                             <span className="text-sm font-bold text-emerald-600">🚚 FREE</span>
                           ) : (
-                            <span className="text-sm font-medium text-[#1AB759]">₦{deliveryCharge.toFixed(2)}</span>
+                            <span className="text-sm font-semibold text-[#1AB759]">{formatPrice(deliveryCharge)}</span>
                           )}
                         </li>
                       )}
                     </ul>
                     <div className="flex items-center justify-between p-3 sm:p-4 bg-[#fff5f9]/30">
                       <h4 className="text-base font-bold capitalize text-[#14142b]">Total</h4>
-                      <h5 className="text-lg font-bold text-primary">₦{total.toFixed(2)}</h5>
+                      <h5 className="text-lg font-extrabold text-primary">{formatPrice(total)}</h5>
                     </div>
                   </div>
                   

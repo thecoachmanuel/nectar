@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Undo2, MapPin, Phone, MessageSquare } from "lucide-react";
+import { formatPrice } from "@/lib/formatters";
 
 export default function OrderStatusPage() {
   const [loading, setLoading] = useState(true);
@@ -209,20 +211,22 @@ export default function OrderStatusPage() {
                     <ul className="flex flex-col gap-2 p-3 sm:p-4 border-b border-dashed border-[#EFF0F6]">
                       <li className="flex items-center justify-between text-[#6e7191]">
                         <span className="text-sm leading-6 capitalize">Subtotal</span>
-                        <span className="text-sm leading-6 capitalize">₦{order.subtotal.toFixed(2)}</span>
+                        <span className="text-sm leading-6 font-semibold text-[#14142b]">{formatPrice(order.subtotal)}</span>
                       </li>
                       <li className="flex items-center justify-between text-[#6e7191]">
                         <span className="text-sm leading-6 capitalize">Discount</span>
-                        <span className="text-sm leading-6 capitalize">₦{order.discount.toFixed(2)}</span>
+                        <span className="text-sm leading-6 font-semibold text-green-600">
+                          {order.discount > 0 ? `-${formatPrice(order.discount)}` : formatPrice(0)}
+                        </span>
                       </li>
                       <li className="flex items-center justify-between text-[#6e7191]">
                         <span className="text-sm leading-6 capitalize">Delivery Charge</span>
-                        <span className="text-sm leading-6 capitalize font-medium text-[#1AB759]">₦{order.delivery_charge.toFixed(2)}</span>
+                        <span className="text-sm leading-6 font-semibold text-[#1AB759]">{formatPrice(order.delivery_charge)}</span>
                       </li>
                     </ul>
                     <div className="flex items-center justify-between p-3 sm:p-4 bg-[#fff5f9]/30">
-                      <h4 className="text-sm leading-6 font-semibold capitalize text-[#14142b]">Total</h4>
-                      <h5 className="text-sm leading-6 font-semibold capitalize text-primary">₦{order.total.toFixed(2)}</h5>
+                      <h4 className="text-sm leading-6 font-bold capitalize text-[#14142b]">Total</h4>
+                      <h5 className="text-base leading-6 font-extrabold capitalize text-primary">{formatPrice(order.total)}</h5>
                     </div>
                   </div>
                 </div>

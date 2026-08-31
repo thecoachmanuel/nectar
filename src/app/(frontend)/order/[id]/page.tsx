@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Undo2, MapPin, Phone, MessageSquare } from "lucide-react";
+import { formatPrice } from "@/lib/formatters";
 
 export default function OrderDetailsPage() {
   const { id } = useParams();
@@ -272,7 +273,7 @@ export default function OrderDetailsPage() {
                             </span>
                             <div className="flex-1">
                               <h4 className="text-sm font-medium capitalize text-[#14142b] hover:underline cursor-pointer">{item.name}</h4>
-                              <h3 className="text-xs font-semibold text-[#14142b] mt-1">₦{item.itemTotal.toFixed(2)}</h3>
+                              <h3 className="text-xs font-semibold text-[#14142b] mt-1">{formatPrice(item.itemTotal)}</h3>
                             </div>
                           </div>
                         </div>
@@ -285,20 +286,22 @@ export default function OrderDetailsPage() {
                       <ul className="flex flex-col gap-2 p-3 sm:p-4 border-b border-dashed border-[#EFF0F6]">
                         <li className="flex items-center justify-between text-[#6e7191]">
                           <span className="text-sm leading-6 capitalize">Subtotal</span>
-                          <span className="text-sm leading-6 capitalize">₦{order.subtotal.toFixed(2)}</span>
+                          <span className="text-sm font-semibold text-[#14142b]">{formatPrice(order.subtotal)}</span>
                         </li>
                         <li className="flex items-center justify-between text-[#6e7191]">
                           <span className="text-sm leading-6 capitalize">Discount</span>
-                          <span className="text-sm leading-6 capitalize">₦{order.discountAmount.toFixed(2)}</span>
+                          <span className="text-sm font-semibold text-green-600">
+                            {order.discountAmount > 0 ? `-${formatPrice(order.discountAmount)}` : formatPrice(0)}
+                          </span>
                         </li>
                         <li className="flex items-center justify-between text-[#6e7191]">
                           <span className="text-sm leading-6 capitalize">Delivery Charge</span>
-                          <span className="text-sm leading-6 capitalize font-medium text-[#1AB759]">₦{order.deliveryCharge.toFixed(2)}</span>
+                          <span className="text-sm leading-6 font-semibold text-[#1AB759]">{formatPrice(order.deliveryCharge)}</span>
                         </li>
                       </ul>
                       <div className="flex items-center justify-between p-3 sm:p-4 bg-[#fff5f9]/30">
-                        <h4 className="text-sm leading-6 font-semibold capitalize text-[#14142b]">Total</h4>
-                        <h5 className="text-sm leading-6 font-semibold capitalize text-primary">₦{order.totalAmount.toFixed(2)}</h5>
+                        <h4 className="text-sm leading-6 font-bold capitalize text-[#14142b]">Total</h4>
+                        <h5 className="text-base leading-6 font-extrabold capitalize text-primary">{formatPrice(order.totalAmount)}</h5>
                       </div>
                     </div>
                   </div>

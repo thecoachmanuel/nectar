@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Undo2, MapPin, Clock, Info } from "lucide-react";
 import ItemModal from "@/components/frontend/ItemModal";
+import { formatPrice } from "@/lib/formatters";
 
 export default function StoreDetailsPage() {
   const { id } = useParams();
@@ -149,7 +150,7 @@ export default function StoreDetailsPage() {
                       <p className="text-xs text-[#6e7191] line-clamp-1">{item.description}</p>
                     </div>
                     <div className="flex items-center justify-between mt-2">
-                      <span className="text-sm font-bold text-[#14142b]">₦{item.price?.toFixed(2)}</span>
+                      <span className="text-sm font-bold text-[#14142b]">{formatPrice(item.price)}</span>
                     </div>
                   </div>
                 </div>

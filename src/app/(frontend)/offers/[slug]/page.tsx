@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import ItemModal from "@/components/frontend/ItemModal";
 import { useSettingStore } from "@/store/useSettingStore";
+import { formatPrice } from "@/lib/formatters";
 import { List, Grid } from "lucide-react";
 import Link from "next/link";
 
@@ -76,7 +77,7 @@ export default function OfferDetailsPage() {
                       <p className="text-[10px] leading-4 sm:text-xs sm:leading-5 text-ellipsis mb-4 flex-auto text-[#6e7191] line-clamp-2">{item.description}</p>
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex flex-wrap items-center gap-x-2">
-                          <h4 className="text-xs sm:text-lg font-medium text-[#14142b]">₦{item.price?.toFixed(2)}</h4>
+                          <h4 className="text-xs sm:text-lg font-bold text-[#14142b]">{formatPrice(item.price)}</h4>
                         </div>
                         <button className="flex items-center gap-1 sm:gap-1.5 rounded-3xl capitalize text-sm font-medium h-5 sm:h-6 px-2 shadow-md transition bg-white text-[#14142b] hover:bg-primary hover:text-white">
                           <span className="text-[10px] sm:text-xs">Add</span>
@@ -97,7 +98,7 @@ export default function OfferDetailsPage() {
                       </div>
                       <p className="text-[10px] sm:text-xs text-[#6e7191] line-clamp-2 mb-2 sm:mb-3">{item.description}</p>
                       <div className="flex items-center justify-between">
-                        <h4 className="text-sm sm:text-base font-bold text-[#14142b]">₦{item.price?.toFixed(2)}</h4>
+                        <h4 className="text-sm sm:text-base font-bold text-[#14142b]">{formatPrice(item.price)}</h4>
                         <button className="flex items-center gap-1.5 rounded-3xl capitalize text-sm font-medium h-6 sm:h-7 px-3 shadow-md transition bg-white text-[#14142b] hover:bg-primary hover:text-white">
                           <span className="text-[10px] sm:text-xs">Add</span>
                         </button>

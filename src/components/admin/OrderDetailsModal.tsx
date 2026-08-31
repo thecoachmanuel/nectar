@@ -192,14 +192,14 @@ export default function OrderDetailsModal({
             ${order.items?.map((it: any) => `
               <div class="flex">
                 <span>${it.quantity}x ${it.name}</span>
-                <span>₦${it.itemTotal?.toFixed(2)}</span>
+                <span>₦${Number(it.itemTotal || 0).toLocaleString()}</span>
               </div>
             `).join("")}
           </div>
-          <div class="border-t flex"><span>Subtotal:</span><span>₦${order.subtotal?.toFixed(2)}</span></div>
-          <div class="flex"><span>Delivery Charge:</span><span>₦${order.deliveryCharge?.toFixed(2)}</span></div>
-          ${order.discountAmount ? `<div class="flex"><span>Discount:</span><span>-₦${order.discountAmount?.toFixed(2)}</span></div>` : ""}
-          <div class="flex bold border-t" style="font-size: 14px;"><span>TOTAL:</span><span>₦${order.totalAmount?.toFixed(2)}</span></div>
+          <div class="border-t flex"><span>Subtotal:</span><span>₦${Number(order.subtotal || 0).toLocaleString()}</span></div>
+          <div class="flex"><span>Delivery Charge:</span><span>₦${Number(order.deliveryCharge || 0).toLocaleString()}</span></div>
+          ${order.discountAmount ? `<div class="flex"><span>Discount:</span><span>-₦${Number(order.discountAmount || 0).toLocaleString()}</span></div>` : ""}
+          <div class="flex bold border-t" style="font-size: 14px;"><span>TOTAL:</span><span>₦${Number(order.totalAmount || 0).toLocaleString()}</span></div>
           <div class="text-center border-t" style="margin-top: 15px;">Thank you for ordering!</div>
         </body>
       </html>

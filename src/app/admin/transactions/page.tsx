@@ -121,7 +121,7 @@ export default function TransactionsPage() {
                     <span className="text-sm text-[#4E4B66]">{txn.paymentType === 'cod' ? 'Cash on Delivery' : 'Digital Payment'}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm font-bold text-[#14142B]">₦{txn.total}</span>
+                    <span className="text-sm font-bold text-[#14142B]">₦{Number(txn.total || 0).toLocaleString()}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${txn.paymentStatus === 'paid' ? 'bg-[#E0FFED] text-[#1AB759]' : 'bg-[#FFF4E5] text-[#FF9F43]'}`}>

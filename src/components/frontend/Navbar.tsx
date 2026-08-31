@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import PwaInstallModal from "./PwaInstallModal";
 import { toast } from "sonner";
+import { formatPrice } from "@/lib/formatters";
 
 interface NavbarProps { onCartOpen?: () => void; }
 export default function Navbar({ onCartOpen }: NavbarProps) {
@@ -143,7 +144,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
                 className="hidden lg:flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white bg-[#14142b] hover:bg-primary transition-all"
               >
                 <ShoppingBag className="w-4 h-4" />
-                <span className="whitespace-nowrap">₦{cartTotal.toFixed(2)}</span>
+                <span className="whitespace-nowrap font-bold">{formatPrice(cartTotal)}</span>
                 {cartCount > 0 && (
                   <span className="w-5 h-5 rounded-full bg-primary text-white text-[10px] flex items-center justify-center font-bold ml-1">
                     {cartCount}

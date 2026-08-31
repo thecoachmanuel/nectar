@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Undo2, Search, ArrowRight, ShoppingBag } from "lucide-react";
 
 import { useAuthStore } from "@/store/useAuthStore";
+import { formatPrice } from "@/lib/formatters";
 import { useRouter } from "next/navigation";
 
 export default function MyOrdersPage() {
@@ -95,7 +96,7 @@ export default function MyOrdersPage() {
                           <p className="text-sm font-normal capitalize mb-2 text-[#00749B]">{order.orderType}</p>
                           <div className="flex flex-wrap gap-3 items-center justify-between">
                             <p className="text-sm leading-6 capitalize text-[#6e7191]">
-                              Total: <span className="font-bold text-[#14142b]">₦{order.totalAmount.toFixed(2)}</span>
+                              Total: <span className="font-bold text-[#14142b]">{formatPrice(order.totalAmount)}</span>
                             </p>
                             <Link href={`/order/${order._id}`} className="text-[10px] leading-4 font-bold flex items-center gap-1 text-primary hover:text-rose-600 uppercase tracking-wide">
                               See Details <ArrowRight className="w-3 h-3" />
@@ -137,7 +138,7 @@ export default function MyOrdersPage() {
                           <p className="text-sm font-normal capitalize mb-2 text-[#00749B]">{order.orderType}</p>
                           <div className="flex flex-wrap gap-3 items-center justify-between">
                             <p className="text-sm leading-6 capitalize text-[#6e7191]">
-                              Total: <span className="font-bold text-[#14142b]">₦{order.totalAmount.toFixed(2)}</span>
+                              Total: <span className="font-bold text-[#14142b]">{formatPrice(order.totalAmount)}</span>
                             </p>
                             <Link href={`/order/${order._id}`} className="text-[10px] leading-4 font-bold flex items-center gap-1 text-primary hover:text-rose-600 uppercase tracking-wide">
                               See Details <ArrowRight className="w-3 h-3" />
