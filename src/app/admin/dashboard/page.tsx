@@ -17,7 +17,12 @@ import {
   RotateCcw,
   Ban,
   BellRing,
-  Phone
+  Phone,
+  Send,
+  Ticket,
+  MessageCircle,
+  Bot,
+  FileSpreadsheet
 } from "lucide-react";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
@@ -34,12 +39,12 @@ export default function AdminDashboardPage() {
     const fetchDashboard = async () => {
       try {
         const res = await fetch("/api/admin/dashboard");
-        const data = await res.json();
-        if (data.status) {
-          setDashboardData(data.data);
+        const json = await res.json();
+        if (json.status) {
+          setDashboardData(json.data);
         }
-      } catch (error) {
-        console.error("Failed to fetch dashboard data");
+      } catch (err) {
+        console.error("Dashboard error:", err);
       } finally {
         setLoading(false);
       }
@@ -48,10 +53,10 @@ export default function AdminDashboardPage() {
   }, []);
 
   const getGreeting = () => {
-    const hrs = new Date().getHours();
-    if (hrs < 12) return "Good Morning";
-    if (hrs < 17) return "Good Afternoon";
-    return "Good Evening";
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning,";
+    if (hour < 18) return "Good Afternoon,";
+    return "Good Evening,";
   };
 
   const salesChartOptions: any = {
@@ -70,7 +75,7 @@ export default function AdminDashboardPage() {
   const customerChartSeries = [{ name: 'Customers', data: [0, 0, 0, dashboardData?.totalCustomers || 0] }];
 
   return (
-    <div className="pb-16 relative">
+    <div className="pb-16">
       {loading && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/80 backdrop-blur-sm">
           <div className="nectar-loader"></div>
@@ -78,7 +83,7 @@ export default function AdminDashboardPage() {
       )}
 
       {/* Greeting & WhatsApp Notification Info */}
-      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h3 className="font-semibold text-[26px] leading-10 capitalize text-primary">{getGreeting()}</h3>
           <h4 className="font-medium text-[22px] leading-[34px] capitalize text-[#14142B]">{user?.name || "Admin"}</h4>
@@ -118,6 +123,77 @@ export default function AdminDashboardPage() {
             </p>
           </div>
         </Link>
+      </div>
+
+      {/* Admin Quick Action Hub */}
+      <div className="mb-8 p-4 rounded-2xl bg-white border border-[#EFF0F6] shadow-sm">
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#6E7191]">
+            ⚡ Admin Quick Features
+          </span>
+          <span className="text-[11px] text-[#A0A3BD] font-medium">Instant Shortcuts</span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
+          <Link
+            href="/admin/push-notifications"
+            className="p-3 rounded-xl bg-purple-50 hover:bg-purple-100/80 border border-purple-100 text-purple-700 transition-all flex flex-col items-center text-center gap-1.5 group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm text-purple-600 group-hover:scale-110 transition-transform">
+              <Send className="w-4 h-4" />
+            </div>
+            <span className="text-xs font-bold truncate">Push Alerts</span>
+          </Link>
+
+          <Link
+            href="/admin/coupons"
+            className="p-3 rounded-xl bg-pink-50 hover:bg-pink-100/80 border border-pink-100 text-pink-700 transition-all flex flex-col items-center text-center gap-1.5 group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm text-primary group-hover:scale-110 transition-transform">
+              <Ticket className="w-4 h-4" />
+            </div>
+            <span className="text-xs font-bold truncate">Coupons</span>
+          </Link>
+
+          <Link
+            href="/admin/whatsapp-chat"
+            className="p-3 rounded-xl bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-100 text-emerald-700 transition-all flex flex-col items-center text-center gap-1.5 group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm text-emerald-600 group-hover:scale-110 transition-transform">
+              <MessageCircle className="w-4 h-4" />
+            </div>
+            <span className="text-xs font-bold truncate">WhatsApp Live</span>
+          </Link>
+
+          <Link
+            href="/admin/whatsapp"
+            className="p-3 rounded-xl bg-teal-50 hover:bg-teal-100/80 border border-teal-100 text-teal-700 transition-all flex flex-col items-center text-center gap-1.5 group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm text-teal-600 group-hover:scale-110 transition-transform">
+              <Bot className="w-4 h-4" />
+            </div>
+            <span className="text-xs font-bold truncate">Bot Settings</span>
+          </Link>
+
+          <Link
+            href="/admin/items"
+            className="p-3 rounded-xl bg-blue-50 hover:bg-blue-100/80 border border-blue-100 text-blue-700 transition-all flex flex-col items-center text-center gap-1.5 group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm text-blue-600 group-hover:scale-110 transition-transform">
+              <Utensils className="w-4 h-4" />
+            </div>
+            <span className="text-xs font-bold truncate">Products</span>
+          </Link>
+
+          <Link
+            href="/admin/items-report"
+            className="p-3 rounded-xl bg-amber-50 hover:bg-amber-100/80 border border-amber-100 text-amber-700 transition-all flex flex-col items-center text-center gap-1.5 group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm text-amber-600 group-hover:scale-110 transition-transform">
+              <FileSpreadsheet className="w-4 h-4" />
+            </div>
+            <span className="text-xs font-bold truncate">Sales Report</span>
+          </Link>
+        </div>
       </div>
 
       {/* Overview Cards */}

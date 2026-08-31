@@ -19,7 +19,10 @@ import {
   Ticket,
   ChevronDown,
   Image as ImageIcon,
-  Tag
+  Tag,
+  Send,
+  Mail,
+  Bell
 } from "lucide-react";
 
 interface SidebarProps {
@@ -51,6 +54,8 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
     },
     { name: "Product Categories", icon: <Box className="w-4 h-4" />, path: "/admin/item-categories", roles: ["admin", "store_manager"] },
     { name: "Products", icon: <Utensils className="w-4 h-4" />, path: "/admin/items", roles: ["admin", "store_manager"] },
+    { name: "Push Notifications 🔔", icon: <Send className="w-4 h-4 text-primary" />, path: "/admin/push-notifications", roles: ["admin", "store_manager"] },
+    { name: "Coupons", icon: <Ticket className="w-4 h-4" />, path: "/admin/coupons", roles: ["admin"] },
     { name: "Offers", icon: <Tag className="w-4 h-4" />, path: "/admin/offers", roles: ["admin", "store_manager"] },
     { name: "Banners", icon: <ImageIcon className="w-4 h-4" />, path: "/admin/banners", roles: ["admin"] },
     { name: "Kitchen Display", icon: <BarChart3 className="w-4 h-4" />, path: "/admin/kds", roles: ["admin", "store_manager"] },
@@ -58,7 +63,7 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
     { name: "Payouts", icon: <CreditCard className="w-4 h-4" />, path: "/admin/payouts", roles: ["admin", "store_manager", "delivery_boy"] },
     { name: "WhatsApp Live Chat", icon: <MessageCircle className="w-4 h-4" />, path: "/admin/whatsapp-chat", roles: ["admin", "store_manager"] },
     { name: "Support Chat", icon: <MessageSquare className="w-4 h-4" />, path: "/admin/chat", roles: ["admin", "store_manager"] },
-    { name: "Coupons", icon: <Ticket className="w-4 h-4" />, path: "/admin/coupons", roles: ["admin"] },
+    { name: "Contact Messages", icon: <Mail className="w-4 h-4" />, path: "/admin/messages", roles: ["admin"] },
     { name: "Subscribers", icon: <BellRing className="w-4 h-4" />, path: "/admin/subscribers", roles: ["admin"] },
     { 
       name: "Reports", 
