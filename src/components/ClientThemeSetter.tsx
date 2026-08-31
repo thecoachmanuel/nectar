@@ -18,7 +18,22 @@ export default function ClientThemeSetter() {
       document.documentElement.style.setProperty("--primary-slate", color + "e6");
       document.documentElement.style.setProperty("--primary-light", color + "1a");
     }
-  }, [settings.theme_primary_color]);
+
+    // Enforce Nectar app branding on page title
+    const appTitle =
+      settings.site_title ||
+      settings.company_title ||
+      "Nectar - Online Groceries Delivery & WhatsApp Ordering";
+    if (
+      typeof document !== "undefined" &&
+      (document.title.toLowerCase().includes("foodappi") ||
+        document.title.toLowerCase().includes("fast food") ||
+        !document.title ||
+        document.title === "Nectar")
+    ) {
+      document.title = appTitle;
+    }
+  }, [settings]);
 
   return null;
 }

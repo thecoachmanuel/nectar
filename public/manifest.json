@@ -1,0 +1,33 @@
+{
+  "name": "Nectar - Online Groceries Delivery & WhatsApp Ordering",
+  "short_name": "Nectar",
+  "description": "Nectar - Online Groceries Delivery & WhatsApp Ordering with POS and instant home delivery.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ff006b",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["shopping", "food", "lifestyle"],
+  "icons": [
+    {
+      "src": "/images/theme/theme-favicon-logo.png?v=3",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/images/theme/theme-favicon-logo.png?v=3",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/theme/theme-favicon-logo.png?v=3",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

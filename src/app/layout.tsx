@@ -4,9 +4,13 @@ import { Toaster } from "sonner";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Nectar — Food & Grocery Delivery",
-  description: "Order your favourite food and groceries online with instant delivery.",
-  manifest: "/manifest.json",
+  title: {
+    default: "Nectar - Online Groceries Delivery & WhatsApp Ordering",
+    template: "%s | Nectar",
+  },
+  applicationName: "Nectar",
+  description: "Nectar - Online Groceries Delivery & WhatsApp Ordering. Order your favourite fresh groceries and food online with instant delivery.",
+  manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -15,18 +19,19 @@ export const metadata: Metadata = {
   formatDetection: { telephone: false },
   icons: {
     icon: [
-      { url: "/images/theme/theme-favicon-logo.png?v=2", sizes: "192x192", type: "image/png" },
+      { url: "/images/theme/theme-favicon-logo.png?v=3", sizes: "192x192", type: "image/png" },
     ],
     apple: [
-      { url: "/images/theme/theme-favicon-logo.png?v=2", sizes: "192x192", type: "image/png" },
+      { url: "/images/theme/theme-favicon-logo.png?v=3", sizes: "192x192", type: "image/png" },
     ],
   },
   other: {
+    "application-name": "Nectar",
     "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "default",
     "apple-mobile-web-app-title": "Nectar",
-    "msapplication-TileImage": "/images/theme/theme-favicon-logo.png?v=2",
+    "msapplication-TileImage": "/images/theme/theme-favicon-logo.png?v=3",
     "msapplication-TileColor": "#ff006b",
     "theme-color": "#ff006b",
     // iOS splash screens
