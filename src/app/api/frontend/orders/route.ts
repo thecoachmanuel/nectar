@@ -252,10 +252,18 @@ export async function POST(req: Request) {
       const rawUrl = process.env.WHATSAPP_SERVICE_URL || "http://localhost:3001";
       const waServiceUrl = rawUrl.replace(/\/+$/, "");
       const waSecret = process.env.WHATSAPP_API_SECRET || "wa_secret_change_me";
-      const whatsappPromises = [];
+      const whatsappPromises: Promise<any>[] = [];
+
+      const Setting = (await import("@/models/Setting")).default;
+      const adminPhoneSetting = await Setting.findOne({
+        key: { $in: ["admin_notification_whatsapp_number", "wa_admin_notification_phone", "company_phone"] }
+      });
+      const adminTargetPhone = adminPhoneSetting?.payload ? String(adminPhoneSetting.payload).trim() : null;
       
       for (const order of createdOrders) {
         const phone = order.customerPhone || resolvedCustomerPhone;
+
+        // 1. Notify Customer on WhatsApp
         if (phone && phone !== "N/A" && phone.trim() !== "") {
           console.log(`[WhatsApp Dispatch] Sending initial receipt to ${phone} via ${waServiceUrl}/send`);
           whatsappPromises.push(
@@ -282,6 +290,46 @@ export async function POST(req: Request) {
           );
         } else {
           console.warn(`⚠️ Skipping WhatsApp notification: customer phone is missing or "N/A" (order: ${order.orderSerialNo})`);
+        }
+
+        // 2. Notify Admin on WhatsApp (Zero conflict with customer bot sessions)
+        if (adminTargetPhone && adminTargetPhone.length >= 7) {
+          const itemsSummary = Array.isArray(order.items)
+            ? order.items.map((i: any) => `• ${i.name} x${i.quantity || 1}`).join("\n")
+            : "Fresh Groceries";
+
+          const appOrigin = process.env.NEXT_PUBLIC_APP_URL || "https://nectar-groceries.vercel.app";
+          const adminAlertText =
+            `🔔 *NEW ORDER ALERT!* 📦✨\n\n` +
+            `• *Order:* #${order.orderSerialNo}\n` +
+            `• *Customer:* ${order.customerName || resolvedCustomerName} (${phone || "N/A"})\n` +
+            `• *Total Amount:* ₦${Number(order.totalAmount || 0).toLocaleString()}\n` +
+            `• *Type:* ${String(order.orderType || "delivery").toUpperCase()}\n` +
+            `• *Payment:* ${String(order.paymentMethod || "bank_transfer").toUpperCase()} (${order.paymentStatus})\n\n` +
+            `🛍️ *Items:*\n${itemsSummary}\n\n` +
+            `📍 *Delivery Address:*\n${order.deliveryAddress?.address || "Pickup / Dine-in"}\n\n` +
+            `👉 *View in Admin:*\n${appOrigin}/admin/orders`;
+
+          console.log(`[Admin Alert Dispatch] Sending new order alert to Admin (${adminTargetPhone})`);
+          whatsappPromises.push(
+            fetch(`${waServiceUrl}/send`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-api-secret": waSecret,
+              },
+              body: JSON.stringify({
+                phone: adminTargetPhone,
+                message: adminAlertText,
+              }),
+            })
+              .then((r) => r.json())
+              .then((d) => {
+                if (d.status) console.log(`✅ Admin WhatsApp alert delivered to ${adminTargetPhone}`);
+                else console.warn(`⚠️ Admin WhatsApp alert response: ${JSON.stringify(d)}`);
+              })
+              .catch((e) => console.error(`❌ Admin WhatsApp alert error:`, e.message))
+          );
         }
       }
       // Await all WhatsApp messages so Vercel Serverless doesn't kill the thread early

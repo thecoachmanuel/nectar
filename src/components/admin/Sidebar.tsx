@@ -13,6 +13,7 @@ import {
   X,
   CreditCard,
   MessageSquare,
+  MessageCircle,
   Utensils,
   BellRing,
   Ticket,
@@ -24,7 +25,7 @@ import {
 interface SidebarProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  user?: any;
+  user: any;
 }
 
 export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
@@ -55,6 +56,7 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
     { name: "Kitchen Display", icon: <BarChart3 className="w-4 h-4" />, path: "/admin/kds", roles: ["admin", "store_manager"] },
     { name: "Transactions", icon: <CreditCard className="w-4 h-4" />, path: "/admin/transactions", roles: ["admin"] },
     { name: "Payouts", icon: <CreditCard className="w-4 h-4" />, path: "/admin/payouts", roles: ["admin", "store_manager", "delivery_boy"] },
+    { name: "WhatsApp Live Chat", icon: <MessageCircle className="w-4 h-4 text-emerald-500" />, path: "/admin/whatsapp-chat", roles: ["admin", "store_manager"] },
     { name: "Support Chat", icon: <MessageSquare className="w-4 h-4" />, path: "/admin/chat", roles: ["admin", "store_manager"] },
     { name: "Coupons", icon: <Ticket className="w-4 h-4" />, path: "/admin/coupons", roles: ["admin"] },
     { name: "Subscribers", icon: <BellRing className="w-4 h-4" />, path: "/admin/subscribers", roles: ["admin"] },

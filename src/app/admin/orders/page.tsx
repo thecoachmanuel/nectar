@@ -8,15 +8,21 @@ import {
   Eye,
   Printer,
   Trash2,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useApi } from "@/hooks/useApi";
+import { orderSoundAlert } from "@/utils/audioAlert";
 
 import OrderDetailsModal from "@/components/admin/OrderDetailsModal";
 
 export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState("All");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const lastOrderCountRef = useRef<number | null>(null);
+  const lastLatestIdRef = useRef<string | null>(null);
 
   const tabs = ["All", "pending", "accepted", "preparing", "ready", "out_for_delivery", "delivered", "canceled"];
 
@@ -27,9 +33,53 @@ export default function OrdersPage() {
     execute("/api/admin/orders");
   };
 
+  // Load sound preference from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("admin_order_sound_enabled");
+    if (saved !== null) {
+      setSoundEnabled(saved === "true");
+    }
+  }, []);
+
+  // Toggle sound
+  const toggleSound = () => {
+    const newVal = !soundEnabled;
+    setSoundEnabled(newVal);
+    localStorage.setItem("admin_order_sound_enabled", String(newVal));
+    if (newVal) {
+      orderSoundAlert.playOrderChime();
+      toast.success("Order chime sound alert enabled 🔔");
+    } else {
+      toast.info("Order sound alert muted 🔇");
+    }
+  };
+
   useEffect(() => {
     fetchOrders();
+    // Auto-poll every 6 seconds for new orders
+    const interval = setInterval(() => {
+      fetchOrders();
+    }, 6000);
+    return () => clearInterval(interval);
   }, []);
+
+  // Detect new incoming orders and play chime
+  useEffect(() => {
+    if (orders && Array.isArray(orders) && orders.length > 0) {
+      const latestOrder = orders[0];
+      if (lastLatestIdRef.current && lastLatestIdRef.current !== latestOrder._id) {
+        // A new order has arrived!
+        if (soundEnabled) {
+          orderSoundAlert.playOrderChime();
+          toast.success(`🔔 New Order #${latestOrder.orderSerialNo || "New"} Received!`, {
+            description: `${latestOrder.customerName || "Customer"} — ₦${Number(latestOrder.totalAmount || 0).toLocaleString()}`,
+          });
+        }
+      }
+      lastLatestIdRef.current = latestOrder._id;
+      lastOrderCountRef.current = orders.length;
+    }
+  }, [orders, soundEnabled]);
 
   const handleStatusChange = async (id: string, status: string, order: any) => {
     let providedPin = undefined;
@@ -126,6 +176,25 @@ export default function OrdersPage() {
             </button>
             <button className="h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-[#6E7191] flex items-center justify-center hover:bg-[#F7F7FC] transition-colors">
               <Download className="w-4 h-4" />
+            </button>
+
+            {/* Sound Alert Toggle Button */}
+            <button
+              type="button"
+              onClick={toggleSound}
+              className={`h-10 px-3 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm ${
+                soundEnabled
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                  : "border-slate-200 bg-slate-100 text-slate-500 hover:bg-slate-200"
+              }`}
+              title={soundEnabled ? "Order chime sound is active (Click to mute)" : "Order chime sound is muted (Click to unmute)"}
+            >
+              {soundEnabled ? (
+                <Volume2 className="w-4 h-4 text-emerald-600 animate-pulse" />
+              ) : (
+                <VolumeX className="w-4 h-4 text-slate-400" />
+              )}
+              <span className="hidden sm:inline">{soundEnabled ? "Chime: ON" : "Chime: OFF"}</span>
             </button>
 
             {/* Clear All Orders Button */}

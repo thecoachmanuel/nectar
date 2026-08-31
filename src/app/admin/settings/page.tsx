@@ -751,6 +751,24 @@ export default function SettingsPage() {
               </div>
 
               <div className="bg-[#FAFAFC] p-4 rounded-xl border border-[#EFF0F6] mt-6 mb-4">
+                <h4 className="font-semibold text-sm text-[#14142B] mb-1">🔔 Admin Order Notification WhatsApp Number</h4>
+                <p className="text-xs text-[#6E7191]">
+                  This WhatsApp number receives instant order alert messages whenever a customer places an order on the website or via WhatsApp.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Admin Notification WhatsApp Phone</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. 08012345678 or 2348012345678"
+                  value={formData.admin_notification_whatsapp_number || ""} 
+                  onChange={(e) => handleChange("admin_notification_whatsapp_number", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                />
+              </div>
+
+              <div className="bg-[#FAFAFC] p-4 rounded-xl border border-[#EFF0F6] mt-6 mb-4">
                 <h4 className="font-semibold text-sm text-[#14142B] mb-1">🌐 Live Store Website URL</h4>
                 <p className="text-xs text-[#6E7191]">
                   Where customers are redirected to view their order tracking & receipt after Paystack payment.

@@ -95,6 +95,60 @@ async function getStoredMessage(key) {
   return proto.Message.fromObject({});
 }
 
+// ─── Chat Message & Conversation Persistence ──────────────────────────────
+async function recordChatMessage(phone, sender, text, messageId, db, isBotPausedStatus) {
+  if (!phone || !text) return;
+  try {
+    const mongo = db || (await getMongoDb());
+    const timestamp = new Date();
+    const cleanPhone = String(phone).replace(/\D/g, "");
+
+    const msgContent = typeof text === "object" ? (text.address || "📍 Location Pin") : String(text);
+
+    // 1. Insert message document
+    await mongo.collection("whatsapp_chat_messages").insertOne({
+      phone: cleanPhone,
+      sender, // "customer" | "business" | "bot"
+      text: msgContent,
+      messageId: messageId || `msg_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      timestamp,
+      createdAt: timestamp,
+    });
+
+    // 2. Lookup customer name if available
+    let customerName = "Customer";
+    if (cleanPhone.length >= 7) {
+      const user = await mongo.collection("users").findOne({
+        phone: { $regex: cleanPhone.slice(-9), $options: "i" },
+      });
+      if (user?.name) customerName = user.name;
+    }
+
+    // 3. Upsert conversation document
+    await mongo.collection("whatsapp_conversations").updateOne(
+      { phone: cleanPhone },
+      {
+        $set: {
+          phone: cleanPhone,
+          customerName,
+          lastMessage: msgContent.slice(0, 200),
+          lastMessageTimestamp: timestamp,
+          lastSender: sender,
+          isBotPaused: !!isBotPausedStatus,
+          updatedAt: timestamp,
+        },
+        $setOnInsert: {
+          createdAt: timestamp,
+          unreadCount: 0,
+        },
+      },
+      { upsert: true }
+    );
+  } catch (err) {
+    console.error("⚠️ Failed to record chat message:", err.message);
+  }
+}
+
 // ─── Message Templates ─────────────────────────────────────────────────────
 function buildStatusMessage(orderSerialNo, status, customerName, totalAmount) {
   const name = customerName || "Customer";
@@ -280,6 +334,9 @@ async function connectToWhatsApp() {
             const { pauseBot } = require("./sessionManager");
             pauseBot(customerPhone);
             console.log(`🧑‍💼 Business manually replied to ${customerPhone} — bot paused for 2 hours.`);
+            
+            // Record manual outgoing business message to chat history
+            recordChatMessage(customerPhone, "business", msgText, msg.key?.id, null, true).catch(() => {});
           }
           continue; // Never route outgoing (fromMe) messages through the bot handler
         }
@@ -292,6 +349,11 @@ async function connectToWhatsApp() {
 
         const senderPhone = cleanJid.replace(/@.+$/, "");
         console.log(`💬 Processing WhatsApp message from ${cleanJid} (${senderPhone})`);
+
+        // Record incoming customer message to chat history
+        const { isBotPaused } = require("./sessionManager");
+        const currentlyPaused = isBotPaused(senderPhone);
+        recordChatMessage(senderPhone, "customer", messageContent, msg.key?.id, null, currentlyPaused).catch(() => {});
 
         // Send read receipt
         try {
@@ -408,6 +470,12 @@ async function sendWhatsAppMessage(phoneOrJid, message) {
 
   // 7. Reset presence
   sock.sendPresenceUpdate("paused", targetJid).catch(() => {});
+
+  // 8. Record outgoing message in chat history
+  const destPhone = targetJid.replace(/@.+$/, "");
+  const { isBotPaused } = require("./sessionManager");
+  const paused = isBotPaused(destPhone);
+  recordChatMessage(destPhone, paused ? "business" : "bot", message, sentMsg?.key?.id, null, paused).catch(() => {});
 
   console.log(`📤 Message successfully delivered to ${targetJid} (ID: ${sentMsg?.key?.id})`);
   return sentMsg;
