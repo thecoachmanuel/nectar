@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Modal from "./Modal";
-import { Users, ShoppingBag, Store, Bike, Send, Bell, Link as LinkIcon, Sparkles } from "lucide-react";
+import { Users, ShoppingBag, Store, Bike, Send, Bell, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 
 interface SendPushNotificationModalProps {
@@ -216,8 +216,13 @@ export default function SendPushNotificationModal({
             Device Notification Preview
           </div>
           <div className="p-3 bg-white rounded-xl shadow-sm border border-[#EFF0F6] flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <Sparkles className="w-5 h-5 text-primary" />
+            {/* Site logo — exactly how OS push notifications render on device */}
+            <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 shadow-sm border border-[#EFF0F6]">
+              <img
+                src="/images/theme/theme-favicon-logo.png"
+                alt="Nectar"
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="flex-1 min-w-0">
               <h4 className="text-xs font-bold text-[#14142B] truncate">
