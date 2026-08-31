@@ -329,19 +329,19 @@ export default function HomePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {popularItems.map((item) => (
                 <div key={item._id} onClick={() => openModal(item)}
-                  className="product-card-list cursor-pointer">
+                  className="product-card-list cursor-pointer overflow-hidden w-full min-w-0">
                   <img src={item.image || "/images/item/thumb.png"} alt={item.name}
-                    className="w-24 h-full object-cover rounded-l-lg flex-shrink-0"
+                    className="w-24 h-24 object-cover rounded-l-lg shrink-0"
                     onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
-                  <div className="p-3 flex-1">
-                    <div className="flex flex-col gap-0.5 mb-1">
-                      <h4 className="text-sm font-semibold text-[#14142b] flex-1 capitalize">{item.name}</h4>
+                  <div className="p-3 flex-1 min-w-0 flex flex-col justify-between h-full">
+                    <div className="min-w-0 mb-1">
+                      <h4 className="text-sm font-semibold text-[#14142b] truncate w-full capitalize" title={item.name}>{item.name}</h4>
+                      <p className="text-xs text-[#6e7191] line-clamp-1 mt-0.5 break-words">{item.description}</p>
                     </div>
-                    <p className="text-xs text-[#6e7191] line-clamp-1 mb-2">{item.description}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-[#14142b]">{formatPrice(item.price)}</span>
+                    <div className="flex items-center justify-between gap-2 min-w-0 pt-1">
+                      <span className="text-sm font-bold text-[#14142b] truncate min-w-0">{formatPrice(item.price)}</span>
                       <button onClick={(e) => { e.stopPropagation(); openModal(item); }}
-                        className="product-card-list-cart-btn flex items-center gap-1.5 text-xs font-semibold text-white px-3 py-1.5 rounded-3xl"
+                        className="product-card-list-cart-btn flex items-center gap-1.5 text-xs font-semibold text-white px-3 py-1.5 rounded-3xl shrink-0"
                         style={{ backgroundColor: "var(--primary-hex)" }}>
                         <Plus className="w-3.5 h-3.5" />Add
                       </button>
@@ -372,24 +372,24 @@ export default function HomePage() {
               <p className="text-sm font-semibold text-[#14142b]">No items found</p>
             </div>
           ) : menuViewMode === "grid" ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
               {allItems.map((item) => <ItemCard key={item._id} item={item} onOpen={openModal} />)}
             </div>
           ) : (
             <div className="space-y-3">
               {allItems.map((item) => (
-                <div key={item._id} onClick={() => openModal(item)} className="product-card-list cursor-pointer">
+                <div key={item._id} onClick={() => openModal(item)} className="product-card-list cursor-pointer overflow-hidden w-full min-w-0">
                   <img src={item.image || "/images/item/thumb.png"} alt={item.name}
-                    className="w-24 sm:w-28 h-full object-cover rounded-l-lg flex-shrink-0"
+                    className="w-24 sm:w-28 h-24 sm:h-28 object-cover rounded-l-lg shrink-0"
                     onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
-                  <div className="p-3 flex-1">
-                    <div className="flex flex-col gap-0.5 mb-1">
-                      <h4 className="text-sm font-semibold text-[#14142b] flex-1 capitalize">{item.name}</h4>
+                  <div className="p-3 flex-1 min-w-0 flex flex-col justify-between h-full">
+                    <div className="min-w-0 mb-1">
+                      <h4 className="text-sm font-semibold text-[#14142b] truncate w-full capitalize" title={item.name}>{item.name}</h4>
+                      <p className="text-xs text-[#6e7191] line-clamp-1 mt-0.5 break-words">{item.description}</p>
                     </div>
-                    <p className="text-xs text-[#6e7191] line-clamp-1 mb-2">{item.description}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-[#14142b]">{formatPrice(item.price)}</span>
-                      <button className="product-card-list-cart-btn flex items-center gap-1.5 text-xs font-semibold text-white px-3 py-1.5 rounded-3xl"
+                    <div className="flex items-center justify-between gap-2 min-w-0 pt-1">
+                      <span className="text-sm font-bold text-[#14142b] truncate min-w-0">{formatPrice(item.price)}</span>
+                      <button className="product-card-list-cart-btn flex items-center gap-1.5 text-xs font-semibold text-white px-3 py-1.5 rounded-3xl shrink-0"
                         style={{ backgroundColor: "var(--primary-hex)" }}>
                         <Plus className="w-3.5 h-3.5" />Add
                       </button>
@@ -410,8 +410,8 @@ export default function HomePage() {
 /* Reusable grid card */
 function ItemCard({ item, onOpen }: { item: any; onOpen: (item: any) => void }) {
   return (
-    <div onClick={() => onOpen(item)} className="product-card-grid cursor-pointer group">
-      <div className="relative pt-[70%] bg-[#f7f7fc] rounded-t-2xl overflow-hidden">
+    <div onClick={() => onOpen(item)} className="product-card-grid cursor-pointer group overflow-hidden w-full min-w-0">
+      <div className="relative pt-[75%] bg-[#f7f7fc] rounded-t-2xl overflow-hidden">
         <img src={item.image || "/images/item/thumb.png"} alt={item.name}
           className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
@@ -422,13 +422,15 @@ function ItemCard({ item, onOpen }: { item: any; onOpen: (item: any) => void }) 
           </div>
         )}
       </div>
-      <div className="p-2.5 flex-1 flex flex-col">
-        <h4 className="text-xs font-semibold text-[#14142b] truncate mb-0.5">{item.name}</h4>
-        <p className="text-[10px] text-[#6e7191] line-clamp-2 mb-2 flex-1">{item.description}</p>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-bold text-[#14142b]">{formatPrice(item.price)}</span>
+      <div className="p-2.5 sm:p-3 flex-1 min-w-0 flex flex-col justify-between">
+        <div className="min-w-0 mb-1">
+          <h4 className="text-xs sm:text-sm font-semibold text-[#14142b] truncate w-full" title={item.name}>{item.name}</h4>
+          <p className="text-[10px] sm:text-xs text-[#6e7191] line-clamp-2 mt-0.5 break-words flex-1">{item.description}</p>
+        </div>
+        <div className="flex items-center justify-between gap-1 w-full min-w-0 pt-1 mt-auto">
+          <span className="text-xs sm:text-sm font-bold text-[#14142b] truncate min-w-0">{formatPrice(item.price)}</span>
           <button onClick={(e) => { e.stopPropagation(); onOpen(item); }}
-            className="product-card-grid-cart-btn">
+            className="product-card-grid-cart-btn shrink-0">
             <Plus className="w-3.5 h-3.5" />
             <span className="text-[10px]">Add</span>
           </button>

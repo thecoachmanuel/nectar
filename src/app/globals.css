@@ -67,6 +67,10 @@ body {
   border: 1px solid #eff0f6;
   background: #fff;
   transition: all 0.3s ease;
+  overflow: hidden;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .product-card-grid:hover {
   box-shadow: 0 20px 60px rgba(0,0,0,0.1);
@@ -84,6 +88,7 @@ body {
   background: #fff;
   transition: all 0.3s ease;
   color: var(--primary-hex);
+  flex-shrink: 0;
 }
 .product-card-grid-cart-btn:hover {
   background: var(--primary-hex);
@@ -95,10 +100,14 @@ body {
   position: relative;
   display: flex;
   align-items: center;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   border: 1px solid #eff0f6;
   background: #fff;
   transition: all 0.3s ease;
+  overflow: hidden;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .product-card-list:hover {
   box-shadow: 0 20px 60px rgba(0,0,0,0.1);

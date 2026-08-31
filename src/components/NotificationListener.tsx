@@ -336,14 +336,7 @@ export default function NotificationListener() {
 
                   playNotificationChime("broadcast");
 
-                  triggerOsNotification(broadcast.title, {
-                    body: broadcast.description,
-                    url: broadcast.url || "/",
-                    image: broadcast.image,
-                    tag: `broadcast-${broadcastKey}`,
-                  });
-
-                  // Toast with "View" that opens the detail modal
+                  // In-app toast with "View" action (avoids double OS system notifications)
                   toast(broadcast.title, {
                     description: broadcast.description,
                     duration: 8000,

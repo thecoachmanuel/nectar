@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { Undo2, MapPin, Clock, Info } from "lucide-react";
+import { Undo2, MapPin, Clock, Info, Plus } from "lucide-react";
 import ItemModal from "@/components/frontend/ItemModal";
 import { formatPrice } from "@/lib/formatters";
 
@@ -136,21 +136,26 @@ export default function StoreDetailsPage() {
               <p className="text-sm font-semibold text-[#14142b]">No items found for this store</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
               {items.map((item) => (
-                <div key={item._id} onClick={() => openModal(item)} className="product-card-grid cursor-pointer group">
-                  <div className="relative pt-[70%] bg-[#f7f7fc] rounded-t-2xl overflow-hidden">
+                <div key={item._id} onClick={() => openModal(item)} className="product-card-grid cursor-pointer group overflow-hidden w-full min-w-0">
+                  <div className="relative pt-[75%] bg-[#f7f7fc] rounded-t-2xl overflow-hidden">
                     <img src={item.image || "/images/item/thumb.png"} alt={item.name}
                       className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
                   </div>
-                  <div className="p-3 bg-white rounded-b-2xl border border-[#eff0f6] border-t-0 shadow-sm flex flex-col justify-between h-28">
-                    <div>
-                      <h4 className="text-sm font-semibold text-[#14142b] truncate capitalize mb-1 group-hover:text-primary transition-colors">{item.name}</h4>
-                      <p className="text-xs text-[#6e7191] line-clamp-1">{item.description}</p>
+                  <div className="p-2.5 sm:p-3 flex-1 min-w-0 flex flex-col justify-between">
+                    <div className="min-w-0 mb-1">
+                      <h4 className="text-xs sm:text-sm font-semibold text-[#14142b] truncate w-full capitalize group-hover:text-primary transition-colors" title={item.name}>{item.name}</h4>
+                      <p className="text-[10px] sm:text-xs text-[#6e7191] line-clamp-2 mt-0.5 break-words">{item.description}</p>
                     </div>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-sm font-bold text-[#14142b]">{formatPrice(item.price)}</span>
+                    <div className="flex items-center justify-between gap-1 w-full min-w-0 pt-1 mt-auto">
+                      <span className="text-xs sm:text-sm font-bold text-[#14142b] truncate min-w-0">{formatPrice(item.price)}</span>
+                      <button onClick={(e) => { e.stopPropagation(); openModal(item); }}
+                        className="product-card-grid-cart-btn shrink-0">
+                        <Plus className="w-3.5 h-3.5" />
+                        <span className="text-[10px]">Add</span>
+                      </button>
                     </div>
                   </div>
                 </div>

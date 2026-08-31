@@ -31,10 +31,46 @@ export default function PushNotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
+  const [isWebPushActive, setIsWebPushActive] = useState(false);
+  const [togglingWebPush, setTogglingWebPush] = useState(false);
 
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<any>(null);
+
+  const fetchWebPushStatus = async () => {
+    try {
+      const res = await fetch("/api/admin/push-notifications/toggle-web-push");
+      const data = await res.json();
+      if (data.status) {
+        setIsWebPushActive(data.enabled);
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleToggleWebPush = async () => {
+    setTogglingWebPush(true);
+    try {
+      const res = await fetch("/api/admin/push-notifications/toggle-web-push", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: !isWebPushActive }),
+      });
+      const data = await res.json();
+      if (data.status) {
+        setIsWebPushActive(data.enabled);
+        toast.success(data.message);
+      } else {
+        toast.error(data.message || "Failed to toggle Web Push");
+      }
+    } catch {
+      toast.error("Error updating Web Push status");
+    } finally {
+      setTogglingWebPush(false);
+    }
+  };
 
   const fetchNotifications = async () => {
     setLoading(true);
@@ -57,6 +93,7 @@ export default function PushNotificationsPage() {
 
   useEffect(() => {
     fetchNotifications();
+    fetchWebPushStatus();
   }, []);
 
   const [resendingId, setResendingId] = useState<string | null>(null);
@@ -195,6 +232,46 @@ export default function PushNotificationsPage() {
             <span className="text-lg sm:text-xl font-bold text-primary">{audienceStats.activeSubscribers || 0}</span>
           </div>
         </div>
+      </div>
+
+      {/* Web Push Control Card */}
+      <div className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${isWebPushActive ? 'bg-emerald-50/60 border-emerald-200' : 'bg-[#FAFAFC] border-[#EFF0F6]'}`}>
+        <div className="flex items-center gap-3.5">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold shrink-0 ${isWebPushActive ? 'bg-emerald-600 text-white' : 'bg-[#EFF0F6] text-[#A0A3BD]'}`}>
+            <BellRing className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h4 className="text-sm font-bold text-[#14142B]">Web Push Notifications (VAPID)</h4>
+              <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${isWebPushActive ? 'bg-emerald-600 text-white' : 'bg-[#E2E8F0] text-[#6E7191]'}`}>
+                {isWebPushActive ? 'Active' : 'Paused'}
+              </span>
+            </div>
+            <p className="text-xs text-[#6E7191] mt-0.5">
+              {isWebPushActive
+                ? 'Web Push is active. Broadcasts will be sent directly to registered browser & PWA devices.'
+                : 'Web Push is currently PAUSED. Notifications will be stored in-app without sending background OS alerts.'}
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={handleToggleWebPush}
+          disabled={togglingWebPush}
+          className={`h-10 px-5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 shrink-0 ${
+            isWebPushActive
+              ? 'bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 shadow-sm'
+              : 'bg-primary hover:bg-[#e60060] text-white shadow-md shadow-primary/20'
+          }`}
+        >
+          {togglingWebPush ? (
+            <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+          ) : isWebPushActive ? (
+            <span>Pause Web Push</span>
+          ) : (
+            <span>Activate Web Push</span>
+          )}
+        </button>
       </div>
 
       {/* Main Table Card */}

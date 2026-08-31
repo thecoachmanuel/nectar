@@ -63,6 +63,7 @@ import dbConnect from "@/lib/dbConnect";
 import Setting from "@/models/Setting";
 import ClientThemeSetter from "@/components/ClientThemeSetter";
 import NotificationListener from "@/components/NotificationListener";
+import OfflineDetector from "@/components/OfflineDetector";
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   let themeColor = "#ff006b";
@@ -106,6 +107,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body className="antialiased bg-white text-[#14142b]" style={{ fontFamily: "'Rubik', sans-serif" }}>
         <ClientThemeSetter />
         <NotificationListener />
+        <OfflineDetector />
         <Toaster position="top-right" richColors />
         {children}
 

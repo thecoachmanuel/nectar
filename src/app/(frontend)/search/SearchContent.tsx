@@ -87,23 +87,25 @@ export default function SearchContent() {
           <p className="text-sm text-[#a0a3bd] mt-1">Try different keywords or browse the menu.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
           {items.map((item) => (
             <div key={item._id} onClick={() => { setSelectedItem(item); setModalOpen(true); }}
-              className="product-card-grid cursor-pointer">
-              <div className="relative pt-[70%] bg-[#f7f7fc] rounded-t-2xl overflow-hidden">
+              className="product-card-grid cursor-pointer overflow-hidden w-full min-w-0">
+              <div className="relative pt-[75%] bg-[#f7f7fc] rounded-t-2xl overflow-hidden">
                 <img src={item.image || "/images/item/thumb.png"} alt={item.name}
                   className="absolute inset-0 w-full h-full object-cover"
                   onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
-
               </div>
-              <div className="p-2.5">
-                <h4 className="text-xs font-semibold text-[#14142b] truncate mb-1">{item.name}</h4>
-                <p className="text-[10px] text-[#6e7191] line-clamp-1 mb-2">{item.description}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-[#14142b]">{formatPrice(item.price)}</span>
-                  <button className="product-card-grid-cart-btn">
+              <div className="p-2.5 sm:p-3 flex-1 min-w-0 flex flex-col justify-between">
+                <div className="min-w-0 mb-1">
+                  <h4 className="text-xs sm:text-sm font-semibold text-[#14142b] truncate w-full" title={item.name}>{item.name}</h4>
+                  <p className="text-[10px] sm:text-xs text-[#6e7191] line-clamp-2 mt-0.5 break-words">{item.description}</p>
+                </div>
+                <div className="flex items-center justify-between gap-1 w-full min-w-0 pt-1 mt-auto">
+                  <span className="text-xs sm:text-sm font-bold text-[#14142b] truncate min-w-0">{formatPrice(item.price)}</span>
+                  <button className="product-card-grid-cart-btn shrink-0">
                     <Plus className="w-3.5 h-3.5" />
+                    <span className="text-[10px]">Add</span>
                   </button>
                 </div>
               </div>

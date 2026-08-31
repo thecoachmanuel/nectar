@@ -1,15 +1,99 @@
-// ── Nectar Service Worker for Background Notifications ───────────────────────
-const CACHE_NAME = "nectar-cache-v3";
+// ── Nectar Service Worker for Background Notifications & Offline PWA ──────
+const CACHE_NAME = "nectar-cache-v4";
+const OFFLINE_URL = "/offline.html";
 
+const PRECACHE_ASSETS = [
+  OFFLINE_URL,
+  "/images/theme/theme-logo.png",
+  "/images/theme/theme-favicon-logo.png",
+  "/images/item/thumb.png",
+  "/manifest.json",
+];
+
+// ── Install: Precache Offline Assets ─────────────────────────────────────────
 self.addEventListener("install", (event) => {
-  self.skipWaiting();
+  event.waitUntil(
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll(PRECACHE_ASSETS))
+      .then(() => self.skipWaiting())
+      .catch((err) => console.warn("[SW Precache]", err))
+  );
 });
 
+// ── Activate: Clean old caches and claim clients ─────────────────────────────
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches
+      .keys()
+      .then((cacheNames) =>
+        Promise.all(
+          cacheNames.map((name) => {
+            if (name !== CACHE_NAME) {
+              return caches.delete(name);
+            }
+          })
+        )
+      )
+      .then(() => self.clients.claim())
+  );
 });
 
-// ── Handle Background Push Notifications ──
+// ── Fetch: Offline Fallback for Navigation & Cache-First for Static Assets ──
+self.addEventListener("fetch", (event) => {
+  const req = event.request;
+
+  // 1. Navigation requests (User browsing pages or opening app offline)
+  if (req.mode === "navigate") {
+    event.respondWith(
+      fetch(req).catch(async () => {
+        const cache = await caches.open(CACHE_NAME);
+        const cachedOffline = await cache.match(OFFLINE_URL);
+        return (
+          cachedOffline ||
+          new Response(
+            `<!DOCTYPE html><html><head><title>Offline</title><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="font-family:sans-serif;text-align:center;padding:40px;background:#f7f7fc"><h2>No Internet Connection</h2><p>Please check your network connection and reload.</p><button onclick="window.location.reload()" style="padding:10px 24px;border-radius:20px;background:#ff006b;color:#fff;border:none">Retry</button></body></html>`,
+            { headers: { "Content-Type": "text/html; charset=utf-8" } }
+          )
+        );
+      })
+    );
+    return;
+  }
+
+  // 2. Static Images & Assets (Cache First, Network Fallback)
+  if (
+    req.destination === "image" ||
+    req.destination === "font" ||
+    req.url.includes("/images/")
+  ) {
+    event.respondWith(
+      caches.match(req).then((cached) => {
+        if (cached) return cached;
+        return fetch(req)
+          .then((networkRes) => {
+            if (networkRes && networkRes.status === 200) {
+              const resClone = networkRes.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
+            }
+            return networkRes;
+          })
+          .catch(() => {
+            // If image fails, return nothing or empty
+            return new Response("", { status: 408 });
+          });
+      })
+    );
+    return;
+  }
+
+  // 3. All other requests — Network with fallback
+  event.respondWith(
+    fetch(req).catch(() => caches.match(req))
+  );
+});
+
+// ── Handle Background Push Notifications (VAPID) ────────────────────────────
 self.addEventListener("push", (event) => {
   if (!event.data) return;
 
@@ -18,8 +102,8 @@ self.addEventListener("push", (event) => {
     const title = data.title || "Nectar Groceries";
     const options = {
       body: data.body || "You have a new update!",
-      icon: data.icon || "/images/theme/theme-favicon-logo.png?v=3",
-      badge: "/images/theme/theme-favicon-logo.png?v=3",
+      icon: data.icon || "/images/theme/theme-favicon-logo.png",
+      badge: "/images/theme/theme-favicon-logo.png",
       image: data.image,
       vibrate: [200, 100, 200],
       data: {
@@ -29,7 +113,7 @@ self.addEventListener("push", (event) => {
         image: data.image,
         ...data.data,
       },
-      tag: data.tag || "nectar-notification",
+      tag: data.tag || `nectar-notif-${Date.now()}`,
       renotify: true,
       requireInteraction: data.requireInteraction ?? true,
       actions: data.actions || [],
@@ -41,40 +125,15 @@ self.addEventListener("push", (event) => {
     event.waitUntil(
       self.registration.showNotification("Nectar Notification", {
         body: text,
-        icon: "/images/theme/theme-favicon-logo.png?v=3",
-        badge: "/images/theme/theme-favicon-logo.png?v=3",
+        icon: "/images/theme/theme-favicon-logo.png",
+        badge: "/images/theme/theme-favicon-logo.png",
         data: { url: "/" },
       })
     );
   }
 });
 
-// ── Handle Local Notification Trigger via PostMessage (When App is Minimized) ──
-self.addEventListener("message", (event) => {
-  if (event.data && event.data.type === "SHOW_NOTIFICATION") {
-    const { title, options } = event.data;
-    const notificationOptions = {
-      body: options?.body || "New update available",
-      icon: options?.icon || "/images/theme/theme-favicon-logo.png?v=3",
-      badge: "/images/theme/theme-favicon-logo.png?v=3",
-      image: options?.image,
-      vibrate: [200, 100, 200],
-      data: options?.data || { url: "/" },
-      tag: options?.tag || `nectar-alert-${Date.now()}`,
-      renotify: true,
-      requireInteraction: options?.requireInteraction ?? true,
-    };
-
-    self.registration.showNotification(title, notificationOptions);
-  }
-});
-
-// ── Handle Notification Click ──────────────────────────────────────────────
-// When a user taps a push notification:
-// 1. Close the notification banner
-// 2. Find or open an app window
-// 3. Post a message to the app to open the detail modal
-// 4. Store in localStorage as fallback if the app wasn't open
+// ── Handle Notification Click ───────────────────────────────────────────────
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
@@ -97,7 +156,6 @@ self.addEventListener("notificationclick", (event) => {
     self.clients
       .matchAll({ type: "window", includeUncontrolled: true })
       .then((clientList) => {
-        // If app is open — bring it to focus, then post message to show modal
         for (const client of clientList) {
           if (client.url.includes(self.location.origin)) {
             client.postMessage(tapPayload);
@@ -107,9 +165,6 @@ self.addEventListener("notificationclick", (event) => {
           }
         }
 
-        // App was closed — store payload in localStorage for when it re-opens
-        // We can't access localStorage from SW directly, so we open the URL
-        // with a special query param that NotificationListener reads on mount
         if (self.clients.openWindow) {
           const openUrl = new URL(targetUrl, self.location.origin);
           openUrl.searchParams.set("__notif_tap", encodeURIComponent(JSON.stringify(tapPayload)));

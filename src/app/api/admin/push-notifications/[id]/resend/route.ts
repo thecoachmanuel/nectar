@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import PushNotification from "@/models/PushNotification";
 import PushSubscription from "@/models/PushSubscription";
 import User from "@/models/User";
+import Setting from "@/models/Setting";
 import { sendBulkPushNotification, sendBulkWebPush } from "@/lib/push";
 
 export const dynamic = "force-dynamic";
@@ -70,9 +71,13 @@ export async function POST(
 
     const webPushSubscriptions = Array.from(subMap.values());
 
-    // ── 4. Dispatch via Web Push Protocol (VAPID) ─────────────────────────
-    let webPushResult: any = { success: false, sent: 0 };
-    if (webPushSubscriptions.length > 0) {
+    // ── Check if Web Push is Activated by Admin (Defaults to Paused) ───────
+    const webPushSetting = await Setting.findOne({ key: "web_push_enabled" }).lean();
+    const isWebPushActive = webPushSetting?.payload === true;
+
+    // ── 4. Dispatch via Web Push Protocol (VAPID) if Activated ───────────
+    let webPushResult: any = { success: false, paused: !isWebPushActive, sent: 0 };
+    if (isWebPushActive && webPushSubscriptions.length > 0) {
       webPushResult = await sendBulkWebPush(
         webPushSubscriptions,
         notification.title,
@@ -86,23 +91,26 @@ export async function POST(
       );
     }
 
-    // ── 5. OneSignal / Legacy fallback ────────────────────────────────────
+    // ── 5. OneSignal / Native deviceToken dispatch (Mobile App Only) ───────
     const tokens = targetUsers
       .map((u: any) => u.deviceToken)
       .filter((t: any): t is string => !!t && typeof t === "string" && t.trim().length > 0);
 
-    const pushResult = await sendBulkPushNotification(
-      tokens,
-      notification.title,
-      notification.description,
-      {
-        url: notification.url || "/",
-        targetRole: notification.targetRole,
-        image: notification.image,
-      }
-    );
+    let pushResult: any = { success: false, sent: 0 };
+    if (tokens.length > 0 && process.env.ONESIGNAL_APP_ID && process.env.ONESIGNAL_REST_API_KEY) {
+      pushResult = await sendBulkPushNotification(
+        tokens,
+        notification.title,
+        notification.description,
+        {
+          url: notification.url || "/",
+          targetRole: notification.targetRole,
+          image: notification.image,
+        }
+      );
+    }
 
-    const totalDevicesReached = webPushSubscriptions.length || tokens.length;
+    const totalDevicesReached = (isWebPushActive ? webPushSubscriptions.length : 0) + tokens.length;
 
     // ── 6. Update notification record ─────────────────────────────────────
     notification.updatedAt = new Date();

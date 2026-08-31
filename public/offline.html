@@ -2,123 +2,174 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>No Internet — Nectar</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>No Internet Connection — Nectar</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'Rubik', sans-serif;
-            background: #f7f7fc;
+            font-family: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #FAFAFC;
             min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 24px;
+            padding: 24px 16px;
+            color: #14142B;
+            -webkit-tap-highlight-color: transparent;
         }
-        .container {
-            max-width: 400px;
+        .offline-card {
+            background: #FFFFFF;
+            border: 1px solid #EFF0F6;
+            border-radius: 28px;
+            padding: 36px 24px;
+            max-width: 420px;
             width: 100%;
             text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+            animation: fadeIn 0.4s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .logo-wrap {
+            margin-bottom: 24px;
         }
         .logo {
-            width: 120px;
-            height: auto;
-            margin: 0 auto 32px;
+            height: 36px;
+            width: auto;
+            margin: 0 auto;
             display: block;
         }
         .logo-fallback {
-            font-size: 2rem;
+            font-size: 1.75rem;
             font-weight: 900;
-            color: #ff006b;
-            margin-bottom: 32px;
+            color: #FF006B;
+            letter-spacing: -0.5px;
         }
-        .icon-wrap {
-            width: 120px;
-            height: 120px;
-            background: #fff0f6;
+        .icon-circle {
+            width: 100px;
+            height: 100px;
+            background: #FFF0F6;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 28px;
-            animation: pulse 2s ease-in-out infinite;
+            margin: 0 auto 24px;
+            position: relative;
+        }
+        .icon-circle::before {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            background: rgba(255, 0, 107, 0.08);
+            animation: pulse 2.4s ease-in-out infinite;
         }
         @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.85; }
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.12); opacity: 0.3; }
         }
-        .icon-wrap svg {
-            width: 56px;
-            height: 56px;
-            color: #ff006b;
+        .icon-circle svg {
+            width: 48px;
+            height: 48px;
+            color: #FF006B;
+            position: relative;
+            z-index: 1;
         }
         h1 {
-            font-size: 1.75rem;
+            font-size: 1.5rem;
             font-weight: 800;
-            color: #14142b;
-            margin-bottom: 12px;
+            color: #14142B;
+            margin-bottom: 10px;
+            line-height: 1.25;
         }
         p {
-            font-size: 0.95rem;
-            color: #6e7191;
+            font-size: 0.875rem;
+            color: #6E7191;
             line-height: 1.6;
-            margin-bottom: 32px;
+            margin-bottom: 28px;
         }
-        .btn {
+        .btn-retry {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: #FF006B;
+            color: #FFFFFF;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 700;
+            width: 100%;
+            height: 52px;
+            border-radius: 18px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(255, 0, 107, 0.25);
+            transition: all 0.2s ease;
+        }
+        .btn-retry:hover {
+            background: #E60060;
+            transform: translateY(-1px);
+        }
+        .btn-retry:active {
+            transform: scale(0.98);
+        }
+        .btn-retry svg {
+            width: 18px;
+            height: 18px;
+            stroke-width: 2.5;
+        }
+        .status-badge {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: #ff006b;
-            color: #fff;
-            font-family: 'Rubik', sans-serif;
-            font-size: 0.9rem;
+            margin-top: 20px;
+            font-size: 0.75rem;
             font-weight: 600;
-            padding: 12px 28px;
-            border-radius: 9999px;
-            border: none;
-            cursor: pointer;
-            text-decoration: none;
-            transition: background 0.2s;
-            margin-bottom: 12px;
+            color: #A0A3BD;
         }
-        .btn:hover { background: #ff3b8e; }
-        .btn-outline {
-            background: transparent;
-            color: #ff006b;
-            border: 1.5px solid #ff006b;
-        }
-        .btn-outline:hover { background: #fff0f6; }
-        .buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
         .status-dot {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.8rem;
-            color: #a0a3bd;
-            margin-top: 24px;
-        }
-        .dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #ff006b;
+            background: #FF9F43;
             animation: blink 1.5s ease-in-out infinite;
         }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+        .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2.5px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <img src="/images/theme/theme-logo.png" alt="Nectar" class="logo"
-             onerror="this.style.display='none'; document.querySelector('.logo-fallback').style.display='block'">
-        <div class="logo-fallback" style="display:none">Nectar</div>
+    <div class="offline-card">
+        <div class="logo-wrap">
+            <img src="/images/theme/theme-logo.png" alt="Nectar" class="logo"
+                 onerror="this.style.display='none'; document.querySelector('.logo-fallback').style.display='block'">
+            <div class="logo-fallback" style="display:none">Nectar</div>
+        </div>
 
-        <div class="icon-wrap">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M1 1l22 22"/>
+        <div class="icon-circle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="1" y1="1" x2="23" y2="23"/>
                 <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/>
                 <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/>
                 <path d="M10.71 5.05A16 16 0 0 1 22.56 9"/>
@@ -129,27 +180,46 @@
         </div>
 
         <h1>No Internet Connection</h1>
-        <p>Looks like you're offline. Please check your network connection and try again. Your cart is safely saved.</p>
+        <p>You seem to be offline. Please check your Wi-Fi or cellular network connection and tap retry below.</p>
 
-        <div class="buttons">
-            <button class="btn" onclick="window.location.reload()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="23 4 23 10 17 10"/>
-                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-                </svg>
-                Try Again
-            </button>
-            <a href="/" class="btn btn-outline">Go Home</a>
-        </div>
+        <button class="btn-retry" id="retryBtn" onclick="handleRetry()">
+            <svg id="retryIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="23 4 23 10 17 10"/>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+            <span class="spinner" id="retrySpinner"></span>
+            <span id="retryText">Retry Connection</span>
+        </button>
 
-        <div class="status-dot">
-            <span class="dot"></span>
-            Waiting for connection...
+        <div class="status-badge">
+            <span class="status-dot"></span>
+            <span>Auto-reconnecting when online...</span>
         </div>
     </div>
 
     <script>
-        // Auto-reload when connection is restored
+        function handleRetry() {
+            const btn = document.getElementById('retryBtn');
+            const icon = document.getElementById('retryIcon');
+            const spinner = document.getElementById('retrySpinner');
+            const text = document.getElementById('retryText');
+
+            icon.style.display = 'none';
+            spinner.style.display = 'inline-block';
+            text.textContent = 'Checking...';
+
+            setTimeout(() => {
+                if (navigator.onLine) {
+                    window.location.reload();
+                } else {
+                    icon.style.display = 'inline-block';
+                    spinner.style.display = 'none';
+                    text.textContent = 'Retry Connection';
+                }
+            }, 600);
+        }
+
+        // Auto reload immediately when connection returns
         window.addEventListener('online', () => {
             window.location.reload();
         });

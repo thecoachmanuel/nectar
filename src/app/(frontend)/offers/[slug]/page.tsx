@@ -68,18 +68,19 @@ export default function OfferDetailsPage() {
             menuViewMode === "grid" ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 lg:gap-6">
                 {items.map(item => (
-                  <div key={item._id} className="relative flex flex-col rounded-2xl border transition border-[#EFF0F6] bg-white hover:shadow-xl cursor-pointer" onClick={() => { setSelectedItem(item); setIsModalOpen(true); }}>
-                    <img className="w-full rounded-t-2xl object-cover h-32 sm:h-40" src={item.image || "/images/item/thumb.png"} alt={item.name} />
-                    <div className="p-2 sm:py-4 sm:px-3 rounded-b-2xl h-full flex flex-col">
-                      <div className="flex items-start gap-2 mb-2">
-                        <h3 className="text-xs sm:text-sm font-semibold capitalize text-ellipsis whitespace-nowrap overflow-hidden w-fit max-w-[200px]">{item.name}</h3>
+                  <div key={item._id} className="relative flex flex-col rounded-2xl border transition border-[#EFF0F6] bg-white hover:shadow-xl cursor-pointer overflow-hidden w-full min-w-0" onClick={() => { setSelectedItem(item); setIsModalOpen(true); }}>
+                    <div className="relative w-full pt-[75%] bg-[#f7f7fc] overflow-hidden">
+                      <img className="absolute inset-0 w-full h-full object-cover rounded-t-2xl" src={item.image || "/images/item/thumb.png"} alt={item.name} />
+                    </div>
+                    <div className="p-2.5 sm:p-3.5 rounded-b-2xl flex-1 flex flex-col justify-between min-w-0">
+                      <div className="min-w-0 mb-1.5">
+                        <h3 className="text-xs sm:text-sm font-semibold capitalize truncate w-full text-[#14142b]" title={item.name}>{item.name}</h3>
+                        <p className="text-[10px] leading-4 sm:text-xs text-[#6e7191] line-clamp-2 mt-0.5 break-words">{item.description}</p>
                       </div>
-                      <p className="text-[10px] leading-4 sm:text-xs sm:leading-5 text-ellipsis mb-4 flex-auto text-[#6e7191] line-clamp-2">{item.description}</p>
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex flex-wrap items-center gap-x-2">
-                          <h4 className="text-xs sm:text-lg font-bold text-[#14142b]">{formatPrice(item.price)}</h4>
-                        </div>
-                        <button className="flex items-center gap-1 sm:gap-1.5 rounded-3xl capitalize text-sm font-medium h-5 sm:h-6 px-2 shadow-md transition bg-white text-[#14142b] hover:bg-primary hover:text-white">
+                      <div className="flex items-center justify-between gap-1.5 w-full min-w-0 pt-1 mt-auto">
+                        <h4 className="text-xs sm:text-sm font-bold text-[#14142b] truncate min-w-0">{formatPrice(item.price)}</h4>
+                        <button className="flex items-center gap-1 rounded-3xl capitalize text-xs font-semibold h-6 px-2.5 shadow-sm transition text-white hover:opacity-90 shrink-0"
+                          style={{ backgroundColor: "var(--primary-hex)" }}>
                           <span className="text-[10px] sm:text-xs">Add</span>
                         </button>
                       </div>
@@ -90,16 +91,17 @@ export default function OfferDetailsPage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
                 {items.map(item => (
-                  <div key={item._id} className="relative flex items-center rounded-lg border border-[#eff0f6] bg-white transition hover:shadow-xl cursor-pointer" onClick={() => { setSelectedItem(item); setIsModalOpen(true); }}>
-                    <img className="w-24 sm:w-32 h-24 sm:h-32 object-cover rounded-l-lg" src={item.image || "/images/item/thumb.png"} alt={item.name} />
-                    <div className="p-3 sm:p-4 flex-1">
-                      <div className="flex items-start justify-between mb-1">
-                        <h3 className="text-sm font-semibold capitalize text-[#14142b] line-clamp-1">{item.name}</h3>
+                  <div key={item._id} className="relative flex items-center rounded-2xl border border-[#eff0f6] bg-white transition hover:shadow-xl cursor-pointer overflow-hidden w-full min-w-0" onClick={() => { setSelectedItem(item); setIsModalOpen(true); }}>
+                    <img className="w-24 sm:w-28 h-24 sm:h-28 object-cover rounded-l-2xl shrink-0" src={item.image || "/images/item/thumb.png"} alt={item.name} />
+                    <div className="p-3 sm:p-4 flex-1 min-w-0 flex flex-col justify-between h-full">
+                      <div className="min-w-0 mb-1">
+                        <h3 className="text-sm font-semibold capitalize text-[#14142b] truncate w-full" title={item.name}>{item.name}</h3>
+                        <p className="text-[10px] sm:text-xs text-[#6e7191] line-clamp-2 mt-0.5 break-words">{item.description}</p>
                       </div>
-                      <p className="text-[10px] sm:text-xs text-[#6e7191] line-clamp-2 mb-2 sm:mb-3">{item.description}</p>
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-sm sm:text-base font-bold text-[#14142b]">{formatPrice(item.price)}</h4>
-                        <button className="flex items-center gap-1.5 rounded-3xl capitalize text-sm font-medium h-6 sm:h-7 px-3 shadow-md transition bg-white text-[#14142b] hover:bg-primary hover:text-white">
+                      <div className="flex items-center justify-between gap-2 min-w-0 pt-1">
+                        <h4 className="text-sm sm:text-base font-bold text-[#14142b] truncate min-w-0">{formatPrice(item.price)}</h4>
+                        <button className="flex items-center gap-1 rounded-3xl capitalize text-xs font-semibold h-7 px-3.5 shadow-sm transition text-white hover:opacity-90 shrink-0"
+                          style={{ backgroundColor: "var(--primary-hex)" }}>
                           <span className="text-[10px] sm:text-xs">Add</span>
                         </button>
                       </div>

@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import PushNotification from "@/models/PushNotification";
 import PushSubscription from "@/models/PushSubscription";
 import User from "@/models/User";
+import Setting from "@/models/Setting";
 import { sendBulkPushNotification, sendBulkWebPush } from "@/lib/push";
 
 export const dynamic = "force-dynamic";
@@ -110,9 +111,13 @@ export async function POST(req: Request) {
 
     const webPushSubscriptions = Array.from(subMap.values());
 
-    // ── 4. Dispatch via Web Push Protocol (VAPID) ─────────────────────────
-    let webPushResult: any = { success: false, sent: 0, failed: 0 };
-    if (webPushSubscriptions.length > 0) {
+    // ── Check if Web Push is Activated by Admin (Defaults to Paused) ───────
+    const webPushSetting = await Setting.findOne({ key: "web_push_enabled" }).lean();
+    const isWebPushActive = webPushSetting?.payload === true;
+
+    // ── 4. Dispatch via Web Push Protocol (VAPID) if Activated ───────────
+    let webPushResult: any = { success: false, paused: !isWebPushActive, sent: 0, failed: 0 };
+    if (isWebPushActive && webPushSubscriptions.length > 0) {
       webPushResult = await sendBulkWebPush(webPushSubscriptions, title, description, {
         url: url || "/",
         image,
@@ -121,18 +126,21 @@ export async function POST(req: Request) {
       });
     }
 
-    // ── 5. OneSignal / Legacy deviceToken dispatch ────────────────────────
+    // ── 5. OneSignal / Native deviceToken dispatch (Mobile App Only) ───────
     const deviceTokens = targetUsers
       .map((u: any) => u.deviceToken)
       .filter((t: any): t is string => !!t && typeof t === "string" && t.trim().length > 0);
 
-    const pushResult = await sendBulkPushNotification(deviceTokens, title, description, {
-      url: url || "/",
-      targetRole,
-      image,
-    });
+    let pushResult: any = { success: false, sent: 0 };
+    if (deviceTokens.length > 0 && process.env.ONESIGNAL_APP_ID && process.env.ONESIGNAL_REST_API_KEY) {
+      pushResult = await sendBulkPushNotification(deviceTokens, title, description, {
+        url: url || "/",
+        targetRole,
+        image,
+      });
+    }
 
-    const totalDevicesReached = webPushSubscriptions.length || deviceTokens.length;
+    const totalDevicesReached = (isWebPushActive ? webPushSubscriptions.length : 0) + deviceTokens.length;
 
     // ── 6. Save to DB history ─────────────────────────────────────────────
     const newRecord = new PushNotification({
@@ -158,9 +166,9 @@ export async function POST(req: Request) {
         : "all delivery boys";
 
     const feedbackMsg =
-      totalDevicesReached > 0
-        ? `Push notification dispatched to ${roleName}! (${webPushSubscriptions.length} Web Push devices + ${deviceTokens.length} app tokens reached).`
-        : `Push notification created for ${roleName}! Note: 0 subscriber devices registered yet. Open the app on your phone/browser and allow notifications to register your device.`;
+      isWebPushActive
+        ? `Push notification dispatched to ${roleName}! (${webPushSubscriptions.length} Web Push devices reached).`
+        : `Push notification created for ${roleName}! (Web Push is currently PAUSED by admin - in-app notification delivered).`;
 
     return NextResponse.json({
       status: true,
@@ -168,6 +176,7 @@ export async function POST(req: Request) {
       data: newRecord,
       webPushResult,
       pushResult,
+      isWebPushActive,
       devicesCount: totalDevicesReached,
     });
   } catch (error: any) {
