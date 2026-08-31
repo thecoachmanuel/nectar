@@ -83,7 +83,7 @@ export default function AdminDashboardPage() {
       {/* Overview Cards */}
       <div className="mb-9">
         <h4 className="font-semibold text-[22px] leading-[34px] mb-3 capitalize text-[#14142B]">Overview</h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           
           <div className="p-4 rounded-2xl flex items-center gap-3 bg-[#FF4F99] shadow-md shadow-[#FF4F99]/20">
             <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white shrink-0">
