@@ -3,6 +3,13 @@ import connectToDatabase from "@/lib/db";
 import Store from "@/models/Store";
 import Setting from "@/models/Setting";
 import Coupon from "@/models/Coupon";
+import Order from "@/models/Order";
+import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
+
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || "nectar_secret_key_default_2026"
+);
 
 function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371; // Earth's radius in km
@@ -21,11 +28,27 @@ export async function POST(req: Request) {
     await connectToDatabase();
     
     const body = await req.json();
-    const { items, deliveryAddress, orderType, couponCode } = body;
+    const { items, deliveryAddress, orderType, couponCode, customerPhone, customerEmail, userId } = body;
 
     if (!items || items.length === 0) {
       return NextResponse.json({ status: false, message: "Cart is empty" }, { status: 400 });
     }
+
+    // Resolve User Identity for coupon qualification
+    let resolvedUserId = userId || null;
+    let resolvedEmail = customerEmail || null;
+    let resolvedPhone = customerPhone || null;
+
+    try {
+      const cookieStore = await cookies();
+      const token = cookieStore.get("token")?.value;
+      if (token) {
+        const { payload } = await jwtVerify(token, JWT_SECRET);
+        if (payload.id) resolvedUserId = payload.id;
+        if (payload.email) resolvedEmail = payload.email;
+        if (payload.phone) resolvedPhone = payload.phone;
+      }
+    } catch {}
 
     let subtotal = 0;
     const storeIds = new Set<string>();
@@ -39,10 +62,9 @@ export async function POST(req: Request) {
 
     let deliveryCharge = 0;
 
-    if (orderType === "delivery") {
-      const hasCoords = deliveryAddress && deliveryAddress.latitude !== undefined && deliveryAddress.longitude !== undefined;
-      const userLat = hasCoords ? parseFloat(deliveryAddress.latitude) : undefined;
-      const userLng = hasCoords ? parseFloat(deliveryAddress.longitude) : undefined;
+    if (orderType === "delivery" && deliveryAddress && deliveryAddress.latitude !== undefined && deliveryAddress.longitude !== undefined) {
+      const userLat = parseFloat(deliveryAddress.latitude);
+      const userLng = parseFloat(deliveryAddress.longitude);
       
       const settings = await Setting.find({ key: { $in: [
         "baseDeliveryFee", 
@@ -93,41 +115,36 @@ export async function POST(req: Request) {
           }
         });
 
-        if (userLat !== undefined && userLng !== undefined) {
-          if (storeIds.size > 0) {
-            const stores = await Store.find({ _id: { $in: Array.from(storeIds) } }).lean();
-            
-            stores.forEach((store: any) => {
-              if (store.latitude !== undefined && store.longitude !== undefined) {
-                const dist = haversineDistance(userLat, userLng, store.latitude, store.longitude);
-                if (!isNaN(dist)) {
-                  if (dist > (store.deliveryRadius || 5)) {
-                    outOfRangeStoreIds.push(store._id.toString());
-                    outOfRangeStoreNames.push(store.name);
-                  } else {
-                    if (dist > maxDistance) maxDistance = dist;
-                    validStoresCount++;
-                  }
+        if (storeIds.size > 0) {
+          const stores = await Store.find({ _id: { $in: Array.from(storeIds) } }).lean();
+          
+          stores.forEach((store: any) => {
+            if (store.latitude !== undefined && store.longitude !== undefined) {
+              const dist = haversineDistance(userLat, userLng, store.latitude, store.longitude);
+              if (!isNaN(dist)) {
+                if (dist > (store.deliveryRadius || 5)) {
+                  outOfRangeStoreIds.push(store._id.toString());
+                  outOfRangeStoreNames.push(store.name);
+                } else {
+                  if (dist > maxDistance) maxDistance = dist;
+                  validStoresCount++;
                 }
               }
-            });
-          }
+            }
+          });
+        }
 
-          if (hasAdminItems) {
-            if (adminLat !== undefined && adminLng !== undefined && !isNaN(adminLat) && !isNaN(adminLng)) {
-              const dist = haversineDistance(userLat, userLng, adminLat, adminLng);
-              if (!isNaN(dist)) {
-                if (dist > maxDistance) maxDistance = dist;
-                validStoresCount++;
-              }
-            } else {
+        if (hasAdminItems) {
+          if (adminLat !== undefined && adminLng !== undefined && !isNaN(adminLat) && !isNaN(adminLng)) {
+            const dist = haversineDistance(userLat, userLng, adminLat, adminLng);
+            if (!isNaN(dist)) {
+              if (dist > maxDistance) maxDistance = dist;
               validStoresCount++;
             }
+          } else {
+            // Admin doesn't have coordinates set, assume 0 extra distance but it counts as a store location
+            validStoresCount++;
           }
-        } else {
-          // If no GPS coordinates provided for text address, use standard estimated distance (5.0 km)
-          maxDistance = 5.0;
-          validStoresCount = 1;
         }
 
         if (outOfRangeStoreIds.length > 0) {
@@ -139,9 +156,12 @@ export async function POST(req: Request) {
           }, { status: 400 });
         }
 
-        let rawDeliveryFee = baseFee + (maxDistance * feePerKm);
-        if (validStoresCount > 1) {
-          rawDeliveryFee += (validStoresCount - 1) * multiStoreExtraFee;
+        let rawDeliveryFee = baseFee;
+        if (validStoresCount > 0) {
+          rawDeliveryFee = baseFee + (maxDistance * feePerKm);
+          if (validStoresCount > 1) {
+            rawDeliveryFee += (validStoresCount - 1) * multiStoreExtraFee;
+          }
         }
 
         // Auto-scale delivery fee based on order magnitude:
@@ -160,6 +180,7 @@ export async function POST(req: Request) {
 
     let discountAmount = 0;
     let appliedCoupon = null;
+    let isFreeDeliveryCoupon = false;
 
     if (couponCode) {
       const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), status: true });
@@ -178,19 +199,107 @@ export async function POST(req: Request) {
       }
 
       if (subtotal < coupon.minimumOrderAmount) {
-        return NextResponse.json({ status: false, message: `Minimum order amount for this coupon is ₦${coupon.minimumOrderAmount}` }, { status: 400 });
+        return NextResponse.json({ status: false, message: `Minimum order subtotal for this coupon is ₦${coupon.minimumOrderAmount.toLocaleString()}` }, { status: 400 });
       }
 
-      if (coupon.discountType === "percentage") {
+      // ── Rule A: New Customers Only Check ──
+      if (coupon.onlyForNewCustomers) {
+        const userCriteria: any[] = [];
+        if (resolvedUserId) userCriteria.push({ userId: resolvedUserId });
+        if (resolvedEmail) userCriteria.push({ customerEmail: resolvedEmail });
+        if (resolvedPhone) {
+          const cleanPhone = String(resolvedPhone).replace(/\D/g, "");
+          if (cleanPhone.length >= 7) {
+            userCriteria.push({ customerPhone: new RegExp(cleanPhone.slice(-10)) });
+          }
+        }
+
+        if (userCriteria.length > 0) {
+          const priorOrders = await Order.countDocuments({ $or: userCriteria });
+          if (priorOrders > 0) {
+            return NextResponse.json({
+              status: false,
+              message: "This coupon is exclusively available to new customers on their first order."
+            }, { status: 400 });
+          }
+        }
+      }
+
+      // ── Rule B: One-Time Use Per User / Usage Limit Per User Check ──
+      const maxAllowedPerUser = coupon.oneTimePerUser ? 1 : (coupon.limitPerUser || 1);
+      if (maxAllowedPerUser > 0) {
+        const userIdentifiers: string[] = [];
+        if (resolvedUserId) userIdentifiers.push(String(resolvedUserId));
+        if (resolvedEmail) userIdentifiers.push(String(resolvedEmail).toLowerCase().trim());
+        if (resolvedPhone) {
+          const cleanPhone = String(resolvedPhone).replace(/\D/g, "");
+          if (cleanPhone.length >= 7) userIdentifiers.push(cleanPhone.slice(-10));
+        }
+
+        // Check in coupon.usedBy array
+        if (Array.isArray(coupon.usedBy) && coupon.usedBy.length > 0 && userIdentifiers.length > 0) {
+          const usedCountByUser = coupon.usedBy.filter((u: string) =>
+            userIdentifiers.some(id => u === id || u.includes(id) || id.includes(u))
+          ).length;
+
+          if (usedCountByUser >= maxAllowedPerUser) {
+            return NextResponse.json({
+              status: false,
+              message: coupon.oneTimePerUser
+                ? "You have already redeemed this one-time coupon."
+                : `You have reached the maximum usage limit (${maxAllowedPerUser} times) for this coupon.`
+            }, { status: 400 });
+          }
+        }
+
+        // Also cross-verify in Order collection history
+        if (userIdentifiers.length > 0) {
+          const userCriteria: any[] = [];
+          if (resolvedUserId) userCriteria.push({ userId: resolvedUserId });
+          if (resolvedEmail) userCriteria.push({ customerEmail: resolvedEmail });
+          if (resolvedPhone) {
+            const cleanPhone = String(resolvedPhone).replace(/\D/g, "");
+            if (cleanPhone.length >= 7) {
+              userCriteria.push({ customerPhone: new RegExp(cleanPhone.slice(-10)) });
+            }
+          }
+
+          if (userCriteria.length > 0) {
+            const pastOrdersWithCoupon = await Order.countDocuments({
+              couponCode: coupon.code,
+              $or: userCriteria,
+            });
+
+            if (pastOrdersWithCoupon >= maxAllowedPerUser) {
+              return NextResponse.json({
+                status: false,
+                message: coupon.oneTimePerUser
+                  ? "You have already redeemed this one-time coupon."
+                  : `You have reached the maximum usage limit (${maxAllowedPerUser} times) for this coupon.`
+              }, { status: 400 });
+            }
+          }
+        }
+      }
+
+      // ── Rule C: Discount Calculation ──
+      if (coupon.discountType === "free_delivery") {
+        isFreeDeliveryCoupon = true;
+        discountAmount = 0;
+        deliveryCharge = 0; // 100% Free delivery applied
+      } else if (coupon.discountType === "percentage") {
         discountAmount = (subtotal * coupon.discount) / 100;
         if (coupon.maximumDiscount && discountAmount > coupon.maximumDiscount) {
           discountAmount = coupon.maximumDiscount;
         }
       } else {
         discountAmount = coupon.discount;
+        if (discountAmount > subtotal) {
+          discountAmount = subtotal;
+        }
       }
       
-      appliedCoupon = couponCode.toUpperCase();
+      appliedCoupon = coupon.code;
     }
 
     return NextResponse.json({ 
@@ -198,8 +307,9 @@ export async function POST(req: Request) {
       data: {
         subtotal,
         deliveryCharge: Math.round(deliveryCharge * 100) / 100,
-        discountAmount,
-        couponCode: appliedCoupon
+        discountAmount: Math.round(discountAmount * 100) / 100,
+        couponCode: appliedCoupon,
+        isFreeDelivery: isFreeDeliveryCoupon
       }
     });
 

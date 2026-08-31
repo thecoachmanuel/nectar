@@ -93,11 +93,24 @@ export default function CheckoutPage() {
         deliveryAddressObj = addresses.find(a => a._id === selectedAddress);
       }
 
+      const customerName = user?.name || guestInfo?.name || "Guest";
+      const customerEmail = user?.email || guestInfo?.email || "";
+      const customerPhone = user?.phone || guestInfo?.phone || "";
+
       try {
         const res = await fetch("/api/frontend/checkout/calculate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ items, orderType, deliveryAddress: deliveryAddressObj, couponCode: appliedCoupon })
+          body: JSON.stringify({ 
+            items, 
+            orderType, 
+            deliveryAddress: deliveryAddressObj, 
+            couponCode: appliedCoupon,
+            customerName,
+            customerEmail,
+            customerPhone,
+            userId: user?._id,
+          })
         });
         const data = await res.json();
         if (data.status) {
@@ -126,7 +139,7 @@ export default function CheckoutPage() {
     };
     
     fetchDeliveryCharge();
-  }, [items, orderType, selectedAddress, addresses, appliedCoupon]);
+  }, [items, orderType, selectedAddress, addresses, appliedCoupon, user, guestInfo]);
 
   const handlePlaceOrder = async () => {
     if (items.length === 0) {
@@ -262,6 +275,8 @@ export default function CheckoutPage() {
     if (!couponCodeInput) return;
     setIsApplyingCoupon(true);
     try {
+      const cEmail = user?.email || guestInfo?.email || "";
+      const cPhone = user?.phone || guestInfo?.phone || "";
       const res = await fetch("/api/frontend/checkout/calculate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -269,14 +284,22 @@ export default function CheckoutPage() {
           items, 
           orderType, 
           deliveryAddress: orderType === "delivery" && selectedAddress ? addresses.find(a => a._id === selectedAddress) : undefined, 
-          couponCode: couponCodeInput 
+          couponCode: couponCodeInput,
+          customerEmail: cEmail,
+          customerPhone: cPhone,
+          userId: user?._id,
         })
       });
       const data = await res.json();
       if (data.status) {
         setAppliedCoupon(data.data.couponCode);
-        setDiscountAmount(data.data.discountAmount);
-        toast.success("Coupon applied successfully!");
+        setDiscountAmount(data.data.discountAmount || 0);
+        if (data.data.isFreeDelivery) {
+          setDeliveryCharge(0);
+          toast.success("🚚 Free Delivery coupon applied! No delivery charge.");
+        } else {
+          toast.success("✅ Coupon applied successfully!");
+        }
       } else {
         toast.error(data.message || "Invalid coupon code");
       }
@@ -522,9 +545,17 @@ export default function CheckoutPage() {
                     </div>
                   ) : (
                     <div className="flex items-center justify-between mb-6 p-3 bg-green-50 border border-green-200 rounded-xl">
-                      <div className="flex items-center gap-2 text-green-700">
-                        <span className="text-sm font-bold uppercase">{appliedCoupon}</span>
-                        <span className="text-xs font-medium bg-green-100 px-2 py-0.5 rounded-full">Applied</span>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2 text-green-700">
+                          <span className="text-sm font-bold uppercase font-mono">{appliedCoupon}</span>
+                          <span className="text-xs font-semibold bg-green-100 px-2 py-0.5 rounded-full text-green-700">✓ Applied</span>
+                        </div>
+                        {deliveryCharge === 0 && discountAmount === 0 && (
+                          <span className="text-[11px] font-semibold text-emerald-600">🚚 Free Delivery applied!</span>
+                        )}
+                        {discountAmount > 0 && (
+                          <span className="text-[11px] font-semibold text-green-600">You save ₦{discountAmount.toLocaleString()}</span>
+                        )}
                       </div>
                       <button onClick={handleRemoveCoupon} className="text-xs font-medium text-red-500 hover:text-red-700 underline">Remove</button>
                     </div>
@@ -545,9 +576,13 @@ export default function CheckoutPage() {
                       {orderType === "delivery" && (
                         <li className="flex items-center justify-between text-[#6e7191]">
                           <span className="text-sm capitalize">Delivery Charge</span>
-                          <span className={`text-sm font-medium ${deliveryCharge === -1 ? 'text-[#FB4E4E]' : 'text-[#1AB759]'}`}>
-                            {deliveryCharge === -1 ? "Out of Range" : `₦${deliveryCharge.toFixed(2)}`}
-                          </span>
+                          {deliveryCharge === -1 ? (
+                            <span className="text-sm font-medium text-[#FB4E4E]">Out of Range</span>
+                          ) : deliveryCharge === 0 && appliedCoupon ? (
+                            <span className="text-sm font-bold text-emerald-600">🚚 FREE</span>
+                          ) : (
+                            <span className="text-sm font-medium text-[#1AB759]">₦{deliveryCharge.toFixed(2)}</span>
+                          )}
                         </li>
                       )}
                     </ul>

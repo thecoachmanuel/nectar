@@ -122,11 +122,11 @@ export default function CouponsPage() {
           <table className="w-full text-left whitespace-nowrap">
             <thead className="bg-[#F7F7FC] border-b border-[#EFF0F6]">
               <tr>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Name</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Code</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Coupon</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Discount</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Type</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Validity</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Rules & Audience</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Usage</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Validity Period</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider text-right">Action</th>
               </tr>
@@ -137,42 +137,93 @@ export default function CouponsPage() {
               ) : coupons?.length === 0 ? (
                 <tr><td colSpan={7} className="p-8 text-center text-[#6E7191]">No coupons found</td></tr>
               ) : (
-                coupons?.map((coupon: any) => (
-                  <tr key={coupon._id} className="hover:bg-[#FAFAFC] transition-colors">
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-medium text-[#14142B]">{coupon.name}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-primary">{coupon.code}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-semibold text-[#14142B]">{coupon.discountType === 'percentage' ? `${coupon.discount}%` : `₦${coupon.discount}`}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-[#4E4B66] capitalize">{coupon.discountType}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-[#4E4B66]">
-                        {new Date(coupon.startDate).toLocaleDateString()} - {new Date(coupon.endDate).toLocaleDateString()}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${coupon.status ? 'bg-[#E0FFED] text-[#1AB759]' : 'bg-[#FFEAEA] text-[#FB4E4E]'}`}>
-                        {coupon.status ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => handleEdit(coupon)} className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#1AB759] flex items-center justify-center hover:bg-[#E0FFED] transition-colors">
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button onClick={() => handleDeleteClick(coupon)} className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#FB4E4E] flex items-center justify-center hover:bg-[#FFEAEA] transition-colors">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                coupons?.map((coupon: any) => {
+                  const isExpired = new Date() > new Date(coupon.endDate);
+                  return (
+                    <tr key={coupon._id} className="hover:bg-[#FAFAFC] transition-colors">
+                      <td className="px-6 py-4">
+                        <div>
+                          <span className="block text-sm font-semibold text-[#14142B]">{coupon.name}</span>
+                          <span className="inline-block mt-0.5 px-2 py-0.5 rounded-lg bg-primary/10 text-primary font-mono font-bold text-xs">
+                            {coupon.code}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        {coupon.discountType === "free_delivery" ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            🚚 100% Free Delivery
+                          </span>
+                        ) : coupon.discountType === "percentage" ? (
+                          <span className="text-sm font-bold text-[#14142B]">
+                            {coupon.discount}% Off
+                          </span>
+                        ) : (
+                          <span className="text-sm font-bold text-[#14142B]">
+                            ₦{Number(coupon.discount || 0).toLocaleString()} Off
+                          </span>
+                        )}
+                        {coupon.minimumOrderAmount > 0 && (
+                          <span className="block text-[11px] text-[#6E7191] mt-0.5">
+                            Min: ₦{Number(coupon.minimumOrderAmount).toLocaleString()}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-wrap gap-1.5 max-w-xs">
+                          {coupon.onlyForNewCustomers && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                              🎯 New Customers Only
+                            </span>
+                          )}
+                          {(coupon.oneTimePerUser || coupon.limitPerUser === 1) ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                              🔒 1x Per User
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                              Max {coupon.limitPerUser}x / User
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-xs font-semibold text-[#14142B]">
+                          {coupon.usedCount || 0} / {coupon.totalLimit || 1000}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="block text-xs text-[#4E4B66]">
+                          {new Date(coupon.startDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                        </span>
+                        <span className="block text-xs text-[#6E7191]">
+                          to {new Date(coupon.endDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {isExpired ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#FFEAEA] text-[#FB4E4E]">
+                            Expired
+                          </span>
+                        ) : (
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${coupon.status ? 'bg-[#E0FFED] text-[#1AB759]' : 'bg-[#F2F2F7] text-[#6E7191]'}`}>
+                            {coupon.status ? 'Active' : 'Inactive'}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button onClick={() => handleEdit(coupon)} className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#1AB759] flex items-center justify-center hover:bg-[#E0FFED] transition-colors" title="Edit">
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => handleDeleteClick(coupon)} className="w-8 h-8 rounded-lg bg-[#F7F7FC] text-[#FB4E4E] flex items-center justify-center hover:bg-[#FFEAEA] transition-colors" title="Delete">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

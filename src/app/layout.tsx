@@ -57,6 +57,7 @@ export const revalidate = 0;
 import dbConnect from "@/lib/dbConnect";
 import Setting from "@/models/Setting";
 import ClientThemeSetter from "@/components/ClientThemeSetter";
+import NotificationListener from "@/components/NotificationListener";
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   let themeColor = "#ff006b";
@@ -99,29 +100,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       </head>
       <body className="antialiased bg-white text-[#14142b]" style={{ fontFamily: "'Rubik', sans-serif" }}>
         <ClientThemeSetter />
+        <NotificationListener />
         <Toaster position="top-right" richColors />
         {children}
-
-        {/* Force Unregister Stuck Service Workers */}
-        <Script id="unregister-sw" strategy="afterInteractive">
-          {`
-            if ('serviceWorker' in navigator) {
-              navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) {
-                  registration.unregister();
-                  console.log('[Nectar] Unregistered stuck service worker');
-                }
-              });
-              
-              // Clear caches that might be holding old data
-              if (window.caches) {
-                caches.keys().then(function(names) {
-                  for (let name of names) caches.delete(name);
-                });
-              }
-            }
-          `}
-        </Script>
 
         {/* OneSignal SDK */}
         <Script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" strategy="afterInteractive" />
@@ -129,10 +110,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           {`
             window.OneSignalDeferred = window.OneSignalDeferred || [];
             window.OneSignalDeferred.push(async function(OneSignal) {
-              // Note: The App ID will be set from MongoDB dynamically in a global setting,
-              // but to initialize early, we try to load it from env or just initialize without it
-              // and the frontend settings API will call OneSignal.init() if it's not initialized yet.
-              // We'll initialize it here if an env var exists for fallback.
               if ("${process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || ''}") {
                 await OneSignal.init({
                   appId: "${process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || ''}",

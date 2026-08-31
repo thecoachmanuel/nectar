@@ -210,9 +210,20 @@ export async function POST(req: Request) {
     }
 
     if (couponCode) {
+      const userIdentifiersToPush: string[] = [];
+      if (userId) userIdentifiersToPush.push(String(userId));
+      if (resolvedCustomerEmail) userIdentifiersToPush.push(String(resolvedCustomerEmail).toLowerCase().trim());
+      if (resolvedCustomerPhone) {
+        const cleanP = String(resolvedCustomerPhone).replace(/\D/g, "");
+        if (cleanP.length >= 7) userIdentifiersToPush.push(cleanP.slice(-10));
+      }
+
       await Coupon.findOneAndUpdate(
-        { code: couponCode },
-        { $inc: { usedCount: 1 } }
+        { code: String(couponCode).toUpperCase() },
+        {
+          $inc: { usedCount: 1 },
+          $addToSet: { usedBy: { $each: userIdentifiersToPush } },
+        }
       );
     }
 
