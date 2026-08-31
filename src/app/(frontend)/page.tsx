@@ -353,10 +353,10 @@ export default function HomePage() {
                   <div className="p-3 flex-1 min-w-0 flex flex-col justify-between h-full">
                     <div className="min-w-0 mb-1">
                       <h4 className="text-sm font-semibold text-[#14142b] leading-snug break-words w-full capitalize" title={item.name}>{item.name}</h4>
-                      <p className="text-xs text-[#6e7191] line-clamp-1 mt-0.5 break-words">{item.description}</p>
+                      <p className="text-[10px] leading-4 sm:text-xs sm:leading-5 text-[#6e7191] line-clamp-1 mt-0.5 break-words">{item.description}</p>
                     </div>
                     <div className="flex items-center justify-between gap-2 min-w-0 pt-1">
-                      <span className="text-sm font-bold text-[#14142b] truncate min-w-0">{formatPrice(item.price)}</span>
+                      <span className="text-sm sm:text-base font-semibold text-[#14142b] truncate min-w-0">{formatPrice(item.price)}</span>
                       <button onClick={(e) => { e.stopPropagation(); openModal(item); }}
                         className="product-card-list-cart-btn flex items-center gap-1.5 text-xs font-semibold text-white px-3 py-1.5 rounded-3xl shrink-0"
                         style={{ backgroundColor: "var(--primary-hex)" }}>
@@ -440,12 +440,12 @@ export default function HomePage() {
                             >
                               {item.name}
                             </h4>
-                            <p className="text-xs text-[#6e7191] line-clamp-1 mt-0.5 break-words">
+                            <p className="text-[10px] leading-4 sm:text-xs sm:leading-5 text-[#6e7191] line-clamp-1 mt-0.5 break-words">
                               {item.description}
                             </p>
                           </div>
                           <div className="flex items-center justify-between gap-2 min-w-0 pt-1">
-                            <span className="text-sm font-bold text-[#14142b] truncate min-w-0">
+                            <span className="text-sm sm:text-base font-semibold text-[#14142b] truncate min-w-0">
                               {formatPrice(item.price)}
                             </span>
                             <button
@@ -493,10 +493,10 @@ function ItemCard({ item, onOpen }: { item: any; onOpen: (item: any) => void }) 
       <div className="p-2.5 sm:p-3 flex-1 min-w-0 flex flex-col justify-between">
         <div className="min-w-0 mb-1">
           <h4 className="text-xs sm:text-sm font-semibold text-[#14142b] leading-snug break-words w-full capitalize" title={item.name}>{item.name}</h4>
-          <p className="text-[10px] sm:text-xs text-[#6e7191] line-clamp-2 mt-0.5 break-words flex-1">{item.description}</p>
+          <p className="text-[10px] leading-4 sm:text-xs sm:leading-5 text-[#6e7191] line-clamp-2 mt-0.5 break-words flex-1">{item.description}</p>
         </div>
         <div className="flex items-center justify-between gap-1 w-full min-w-0 pt-1 mt-auto">
-          <span className="text-xs sm:text-sm font-bold text-[#14142b] truncate min-w-0">{formatPrice(item.price)}</span>
+          <span className="text-xs sm:text-base font-semibold text-[#14142b] truncate min-w-0">{formatPrice(item.price)}</span>
           <button onClick={(e) => { e.stopPropagation(); onOpen(item); }}
             className="product-card-grid-cart-btn shrink-0">
             <Plus className="w-3.5 h-3.5" />

@@ -141,10 +141,10 @@ function MenuContent() {
                     <div className="p-2.5 sm:p-3.5 rounded-b-2xl flex-1 flex flex-col justify-between min-w-0">
                       <div className="min-w-0 mb-1.5">
                         <h3 className="text-xs sm:text-sm font-semibold capitalize leading-snug break-words w-full text-[#14142b]" title={item.name}>{item.name}</h3>
-                        <p className="text-[10px] leading-4 sm:text-xs text-[#6e7191] line-clamp-2 mt-0.5 break-words">{item.description}</p>
+                        <p className="text-[10px] leading-4 sm:text-xs sm:leading-5 text-[#6e7191] line-clamp-2 mt-0.5 break-words">{item.description}</p>
                       </div>
                       <div className="flex items-center justify-between gap-1.5 w-full min-w-0 pt-1 mt-auto">
-                        <h4 className="text-xs sm:text-sm font-bold text-[#14142b] truncate min-w-0">{formatPrice(item.price)}</h4>
+                        <h4 className="text-xs sm:text-base font-semibold text-[#14142b] truncate min-w-0">{formatPrice(item.price)}</h4>
                         <button className="flex items-center gap-1 rounded-3xl capitalize text-xs font-semibold h-6 px-2.5 shadow-sm transition text-white hover:opacity-90 shrink-0"
                           style={{ backgroundColor: "var(--primary-hex)" }}>
                           <span className="text-[10px] sm:text-xs">Add</span>
@@ -162,10 +162,10 @@ function MenuContent() {
                     <div className="p-3 sm:p-4 flex-1 min-w-0 flex flex-col justify-between h-full">
                       <div className="min-w-0 mb-1">
                         <h3 className="text-sm font-semibold capitalize text-[#14142b] leading-snug break-words w-full" title={item.name}>{item.name}</h3>
-                        <p className="text-[10px] sm:text-xs text-[#6e7191] line-clamp-2 mt-0.5 break-words">{item.description}</p>
+                        <p className="text-[10px] leading-4 sm:text-xs sm:leading-5 text-[#6e7191] line-clamp-2 mt-0.5 break-words">{item.description}</p>
                       </div>
                       <div className="flex items-center justify-between gap-2 min-w-0 pt-1">
-                        <h4 className="text-sm sm:text-base font-bold text-[#14142b] truncate min-w-0">{formatPrice(item.price)}</h4>
+                        <h4 className="text-sm sm:text-base font-semibold text-[#14142b] truncate min-w-0">{formatPrice(item.price)}</h4>
                         <button className="flex items-center gap-1 rounded-3xl capitalize text-xs font-semibold h-7 px-3.5 shadow-sm transition text-white hover:opacity-90 shrink-0"
                           style={{ backgroundColor: "var(--primary-hex)" }}>
                           <span className="text-[10px] sm:text-xs">Add</span>

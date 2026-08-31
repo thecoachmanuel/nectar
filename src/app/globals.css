@@ -80,19 +80,28 @@ body {
   align-items: center;
   gap: 4px;
   border-radius: 9999px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  height: 28px;
-  padding: 0 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  font-size: 0.625rem;   /* 10px – matches PHP text-[10px] */
+  font-weight: 600;      /* semibold */
+  height: 24px;          /* h-6 base */
+  padding: 0 10px;       /* px-2.5 */
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
   background: #fff;
+  border: 1px solid rgba(255, 0, 107, 0.2);
   transition: all 0.3s ease;
   color: var(--primary-hex);
   flex-shrink: 0;
 }
+@media (min-width: 640px) {
+  .product-card-grid-cart-btn {
+    font-size: 0.75rem;  /* sm:text-xs */
+    height: 28px;        /* sm:h-7 */
+    padding: 0 12px;     /* sm:px-3 */
+  }
+}
 .product-card-grid-cart-btn:hover {
   background: var(--primary-hex);
   color: #fff;
+  border-color: var(--primary-hex);
 }
 
 /* PRODUCT CARD LIST */
