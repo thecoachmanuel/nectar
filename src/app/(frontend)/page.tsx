@@ -352,7 +352,7 @@ export default function HomePage() {
                     onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
                   <div className="p-3 flex-1 min-w-0 flex flex-col justify-between h-full">
                     <div className="min-w-0 mb-1">
-                      <h4 className="text-sm font-semibold text-[#14142b] truncate w-full capitalize" title={item.name}>{item.name}</h4>
+                      <h4 className="text-sm font-semibold text-[#14142b] leading-snug break-words w-full capitalize" title={item.name}>{item.name}</h4>
                       <p className="text-xs text-[#6e7191] line-clamp-1 mt-0.5 break-words">{item.description}</p>
                     </div>
                     <div className="flex items-center justify-between gap-2 min-w-0 pt-1">
@@ -435,7 +435,7 @@ export default function HomePage() {
                         <div className="p-3 flex-1 min-w-0 flex flex-col justify-between h-full">
                           <div className="min-w-0 mb-1">
                             <h4
-                              className="text-sm font-semibold text-[#14142b] truncate w-full capitalize"
+                              className="text-sm font-semibold text-[#14142b] leading-snug break-words w-full capitalize"
                               title={item.name}
                             >
                               {item.name}
@@ -492,7 +492,7 @@ function ItemCard({ item, onOpen }: { item: any; onOpen: (item: any) => void }) 
       </div>
       <div className="p-2.5 sm:p-3 flex-1 min-w-0 flex flex-col justify-between">
         <div className="min-w-0 mb-1">
-          <h4 className="text-xs sm:text-sm font-semibold text-[#14142b] truncate w-full" title={item.name}>{item.name}</h4>
+          <h4 className="text-xs sm:text-sm font-semibold text-[#14142b] leading-snug break-words w-full capitalize" title={item.name}>{item.name}</h4>
           <p className="text-[10px] sm:text-xs text-[#6e7191] line-clamp-2 mt-0.5 break-words flex-1">{item.description}</p>
         </div>
         <div className="flex items-center justify-between gap-1 w-full min-w-0 pt-1 mt-auto">

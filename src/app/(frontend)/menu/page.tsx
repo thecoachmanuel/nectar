@@ -140,7 +140,7 @@ function MenuContent() {
                     </div>
                     <div className="p-2.5 sm:p-3.5 rounded-b-2xl flex-1 flex flex-col justify-between min-w-0">
                       <div className="min-w-0 mb-1.5">
-                        <h3 className="text-xs sm:text-sm font-semibold capitalize truncate w-full text-[#14142b]" title={item.name}>{item.name}</h3>
+                        <h3 className="text-xs sm:text-sm font-semibold capitalize leading-snug break-words w-full text-[#14142b]" title={item.name}>{item.name}</h3>
                         <p className="text-[10px] leading-4 sm:text-xs text-[#6e7191] line-clamp-2 mt-0.5 break-words">{item.description}</p>
                       </div>
                       <div className="flex items-center justify-between gap-1.5 w-full min-w-0 pt-1 mt-auto">
@@ -161,7 +161,7 @@ function MenuContent() {
                     <img className="w-24 sm:w-28 h-24 sm:h-28 object-cover rounded-l-2xl shrink-0" src={item.image || "/images/item/thumb.png"} alt={item.name} />
                     <div className="p-3 sm:p-4 flex-1 min-w-0 flex flex-col justify-between h-full">
                       <div className="min-w-0 mb-1">
-                        <h3 className="text-sm font-semibold capitalize text-[#14142b] truncate w-full" title={item.name}>{item.name}</h3>
+                        <h3 className="text-sm font-semibold capitalize text-[#14142b] leading-snug break-words w-full" title={item.name}>{item.name}</h3>
                         <p className="text-[10px] sm:text-xs text-[#6e7191] line-clamp-2 mt-0.5 break-words">{item.description}</p>
                       </div>
                       <div className="flex items-center justify-between gap-2 min-w-0 pt-1">

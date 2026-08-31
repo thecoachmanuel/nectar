@@ -146,7 +146,7 @@ export default function StoreDetailsPage() {
                   </div>
                   <div className="p-2.5 sm:p-3 flex-1 min-w-0 flex flex-col justify-between">
                     <div className="min-w-0 mb-1">
-                      <h4 className="text-xs sm:text-sm font-semibold text-[#14142b] truncate w-full capitalize group-hover:text-primary transition-colors" title={item.name}>{item.name}</h4>
+                      <h4 className="text-xs sm:text-sm font-semibold text-[#14142b] leading-snug break-words w-full capitalize group-hover:text-primary transition-colors" title={item.name}>{item.name}</h4>
                       <p className="text-[10px] sm:text-xs text-[#6e7191] line-clamp-2 mt-0.5 break-words">{item.description}</p>
                     </div>
                     <div className="flex items-center justify-between gap-1 w-full min-w-0 pt-1 mt-auto">
