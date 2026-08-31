@@ -212,21 +212,15 @@ export default function WhatsAppChatPage() {
       });
       const data = await res.json();
       if (data.status) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: data.data?.id || `temp_${Date.now()}`,
-            sender: "business",
-            text,
-            timestamp: new Date().toISOString(),
-          },
-        ]);
+        // Re-fetch messages from the server so there's only one source of truth.
+        // Avoid optimistic append + server fetch duplication.
+        await fetchMessages(activePhone, true);
         setIsBotPaused(true);
         fetchConversations(true);
         inputRef.current?.focus();
       } else {
         toast.error(data.message || "Failed to send message");
-        setMessageInput(text); // restore
+        setMessageInput(text); // restore on failure
       }
     } catch (err: any) {
       toast.error(err.message || "Error sending message");
