@@ -255,9 +255,33 @@ async function connectToWhatsApp() {
         const myJid = (sock.user?.id || "").replace(/:.+@/, "@");
         const isSelfChat = msg.key?.fromMe && myJid && (cleanJid === myJid || cleanJid.includes(myJid.replace(/@.+/, "")));
 
-        // Skip outgoing messages unless it's a message to self for testing
+        // ── Detect OUTGOING business messages to customers ──────────────────
+        // When the business owner manually types and sends a reply to a customer
+        // from their phone, we auto-pause the bot for that customer so the
+        // business can have a natural conversation without bot interruptions.
         if (msg.key?.fromMe && !isSelfChat) {
-          continue;
+          const customerPhone = cleanJid.replace(/@.+$/, "");
+          const msgText = String(
+            msg.message?.conversation ||
+            msg.message?.extendedTextMessage?.text ||
+            ""
+          ).trim();
+
+          // Only pause if it looks like a genuine human reply (not a bot-sent system message)
+          // Bot-sent messages always start with known emoji/keywords — heuristic check
+          const botPrefixes = [
+            "🌿", "🛒", "🔍", "📦", "✅", "🎉", "⚠️", "❌", "🏦", "💳",
+            "📱", "💬", "🚚", "📅", "💰", "🛍️", "🌐", "⏳", "🔗", "🗑️",
+          ];
+          const isBotOwnMessage = botPrefixes.some((p) => msgText.startsWith(p));
+
+          if (!isBotOwnMessage && msgText.length > 0) {
+            // Business sent a manual human message — pause the bot for 2 hours
+            const { pauseBot } = require("./sessionManager");
+            pauseBot(customerPhone);
+            console.log(`🧑‍💼 Business manually replied to ${customerPhone} — bot paused for 2 hours.`);
+          }
+          continue; // Never route outgoing (fromMe) messages through the bot handler
         }
 
         // Extract message text or location object
@@ -496,13 +520,65 @@ app.post("/logout", auth, async (req, res) => {
   }
 });
 
+// POST /bot-mode — Manually pause or resume the bot for a specific customer
+// Body: { phone, action: "pause" | "resume", durationMinutes? }
+app.post("/bot-mode", auth, (req, res) => {
+  try {
+    const { phone, action, durationMinutes } = req.body;
+
+    if (!phone || !action) {
+      return res.status(400).json({ status: false, message: "phone and action are required" });
+    }
+
+    const { pauseBot, resumeBot, isBotPaused, getBotPauseRemainingMinutes } = require("./sessionManager");
+
+    const cleanPhone = String(phone).replace(/\D/g, "");
+
+    if (action === "pause") {
+      const durationMs = durationMinutes
+        ? Number(durationMinutes) * 60 * 1000
+        : 2 * 60 * 60 * 1000; // default 2 hours
+      pauseBot(cleanPhone, durationMs);
+      return res.json({
+        status: true,
+        message: `Bot paused for ${cleanPhone} for ${durationMinutes || 120} minutes.`,
+        paused: true,
+      });
+    }
+
+    if (action === "resume") {
+      resumeBot(cleanPhone);
+      return res.json({
+        status: true,
+        message: `Bot resumed for ${cleanPhone}.`,
+        paused: false,
+      });
+    }
+
+    if (action === "status") {
+      const paused = isBotPaused(cleanPhone);
+      const remaining = getBotPauseRemainingMinutes(cleanPhone);
+      return res.json({
+        status: true,
+        phone: cleanPhone,
+        botPaused: paused,
+        pauseRemainingMinutes: remaining,
+      });
+    }
+
+    return res.status(400).json({ status: false, message: 'action must be "pause", "resume", or "status"' });
+  } catch (err) {
+    res.status(500).json({ status: false, message: err.message });
+  }
+});
+
 // GET / — Health check
 app.get("/", (req, res) => {
   res.json({
     service: "Nectar WhatsApp Bot",
     version: "1.0.0",
     connection: connectionStatus,
-    endpoints: ["/status", "/qr", "/send (POST)", "/logout (POST)"],
+    endpoints: ["/status", "/qr", "/send (POST)", "/logout (POST)", "/bot-mode (POST)"],
   });
 });
 

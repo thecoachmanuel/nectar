@@ -248,6 +248,42 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
   const session = sessionManager.getSession(phone);
   const upper = text.toUpperCase();
 
+  // ── Hard bot commands — these ALWAYS work even when bot is paused ──────────
+  // The customer can always trigger core bot functions regardless of chat mode.
+  const ALWAYS_ON_COMMANDS = [
+    "MENU", "START", "HI", "HELLO", "HEY", "HOME",
+    "CART", "VIEW CART", "BASKET",
+    "CHECKOUT",
+    "CLEAR", "CLEAR CART", "EMPTY",
+    "HELP", "COMMANDS",
+    "CANCEL", "EXIT",
+    "MORE", "SHOP", "KEEP SHOPPING",
+    "STATUS", "MY ORDER",
+  ];
+
+  const isHardCommand =
+    ALWAYS_ON_COMMANDS.includes(upper) ||
+    upper.startsWith("TRACK") ||
+    upper.startsWith("ORDER") ||
+    upper.match(/^ORD-/i);
+
+  // ── Bot Pause Check ────────────────────────────────────────────────────────
+  // If the business has manually replied to this customer, the bot steps back
+  // to let them have a normal human conversation. Only hard commands break through.
+  const { isBotPaused, resumeBot, getBotPauseRemainingMinutes } = sessionManager;
+  
+  if (isBotPaused(phone) && !isHardCommand) {
+    // Bot is paused — silently let the message through (business is handling it)
+    console.log(`⏸️  Bot paused for ${phone} — ignoring non-command message: "${text.substring(0, 40)}"`);
+    return;
+  }
+
+  // If a hard command arrives while paused, auto-resume the bot
+  if (isBotPaused(phone) && isHardCommand) {
+    resumeBot(phone);
+    console.log(`▶️  Customer used a bot command — bot auto-resumed for ${phone}.`);
+  }
+
   // 1. Identify user on first interaction if not yet identified
   if (!session.userIdentified) {
     try {
