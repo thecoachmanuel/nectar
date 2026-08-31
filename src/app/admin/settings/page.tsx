@@ -86,6 +86,7 @@ export default function SettingsPage() {
       if (activeTab === "Company") {
         if (formData.company_email) tabSettings.push({ key: "contactEmail", group: "Company", payload: formData.company_email });
         if (formData.company_phone) tabSettings.push({ key: "contactPhone", group: "Company", payload: formData.company_phone });
+        if (formData.company_address !== undefined) tabSettings.push({ key: "contactAddress", group: "Company", payload: formData.company_address });
       }
 
       // Sync combined bank account payload and admin notification phone for WhatsApp Bot
@@ -231,13 +232,15 @@ export default function SettingsPage() {
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-[#14142B] mb-2">Company Address <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Company / Head Office Address</label>
                 <textarea 
                   rows={3} 
+                  placeholder="e.g. 123 Nectar Fresh Market Way, Victoria Island (Leave blank to hide head office on contact page)"
                   value={formData.company_address || ""} 
                   onChange={(e) => handleChange("company_address", e.target.value)}
                   className="w-full p-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary resize-none"
                 ></textarea>
+                <span className="block text-[11px] text-[#A0A3BD] mt-1">This address appears on the Contact Us page and footer. Clear this field if you wish to remove the head office address.</span>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Company Latitude</label>

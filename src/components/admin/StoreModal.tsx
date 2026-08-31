@@ -34,7 +34,7 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
     status: true,
     profileImage: "",
     bannerImage: "",
-    estimatedDeliveryTime: "30-45 mins",
+    estimatedDeliveryTime: "20-30 mins",
     timeSlots: [
       { day: "Monday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
       { day: "Tuesday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
@@ -68,7 +68,7 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
         status: storeToEdit.status ?? true,
         profileImage: storeToEdit.profileImage || "",
         bannerImage: storeToEdit.bannerImage || "",
-        estimatedDeliveryTime: storeToEdit.estimatedDeliveryTime || "30-45 mins",
+        estimatedDeliveryTime: storeToEdit.estimatedDeliveryTime || "20-30 mins",
         timeSlots: storeToEdit.timeSlots?.length > 0 ? storeToEdit.timeSlots : [
           { day: "Monday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
           { day: "Tuesday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
@@ -98,7 +98,7 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
         status: true,
         profileImage: "",
         bannerImage: "",
-        estimatedDeliveryTime: "30-45 mins",
+        estimatedDeliveryTime: "20-30 mins",
         timeSlots: [
           { day: "Monday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
           { day: "Tuesday", openingTime: "08:00 AM", closingTime: "10:00 PM", isClosed: false },
@@ -300,7 +300,7 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Est. Delivery Time</label>
-                <input type="text" placeholder="e.g. 30-45 mins" value={formData.estimatedDeliveryTime} onChange={(e) => setFormData({ ...formData, estimatedDeliveryTime: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary" />
+                <input type="text" placeholder="e.g. 20-30 mins" value={formData.estimatedDeliveryTime} onChange={(e) => setFormData({ ...formData, estimatedDeliveryTime: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Admin Commission (%)</label>

@@ -115,7 +115,7 @@ export default function StoreDetailsPage() {
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />
-                    <span>{store.estimatedDeliveryTime || "30-45 mins"}</span>
+                    <span>{store.estimatedDeliveryTime || "20-30 mins"}</span>
                   </div>
                 </div>
               </div>

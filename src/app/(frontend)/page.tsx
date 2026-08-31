@@ -254,7 +254,7 @@ export default function HomePage() {
                       <h4 className="text-sm font-bold text-[#14142b] truncate group-hover:text-primary transition-colors">{store.name}</h4>
                       <div className="flex items-center gap-1 mt-1 text-[#6e7191]">
                         <Clock className="w-3 h-3" />
-                        <p className="text-[11px] font-medium">{store.estimatedDeliveryTime || "30-45 mins"}</p>
+                        <p className="text-[11px] font-medium">{store.estimatedDeliveryTime || "20-30 mins"}</p>
                       </div>
                       <div className="flex items-center gap-1 mt-1 text-[#6e7191]">
                         <MapPin className="w-3 h-3" />

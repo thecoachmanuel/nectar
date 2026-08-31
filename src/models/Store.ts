@@ -59,7 +59,7 @@ const StoreSchema = new Schema<IStore>(
     },
     profileImage: { type: String },
     bannerImage: { type: String },
-    estimatedDeliveryTime: { type: String, default: "30-45 mins" },
+    estimatedDeliveryTime: { type: String, default: "20-30 mins" },
     walletBalance: { type: Number, default: 0 },
     commissionRate: { type: Number, default: 0 },
     deliveryRadius: { type: Number, default: 10 },

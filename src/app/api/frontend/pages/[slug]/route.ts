@@ -12,7 +12,7 @@ const defaultPages: Record<string, any> = {
     template_id: 0,
     description: `
       <h2>Fresh Groceries Delivered Right to Your Doorstep</h2>
-      <p>Welcome to <strong>Nectar</strong> — your premier online grocery and fresh food delivery destination. We connect local shoppers with the freshest farm-to-table produce, pantry staples, dairy, beverages, and daily household essentials, delivered in under 45 minutes.</p>
+      <p>Welcome to <strong>Nectar</strong> — your premier online grocery and fresh food delivery destination. We connect local shoppers with the freshest farm-to-table produce, pantry staples, dairy, beverages, and daily household essentials, delivered in under 30 minutes.</p>
       
       <h3>Our Mission</h3>
       <p>At Nectar, our mission is simple: to make healthy, top-quality groceries accessible and affordable for every household, backed by seamless online and WhatsApp ordering.</p>

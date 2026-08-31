@@ -49,8 +49,8 @@ export default function AboutPage() {
     },
     {
       icon: Truck,
-      title: "Lightning 45-Min Delivery",
-      description: "Our distributed fulfillment network ensures your fresh produce and essentials arrive within 30 to 45 minutes.",
+      title: "Lightning 30-Min Delivery",
+      description: "Our distributed fulfillment network ensures your fresh produce and essentials arrive within 30 minutes.",
       color: "bg-blue-50 text-blue-600",
     },
     {
@@ -105,7 +105,7 @@ export default function AboutPage() {
             <span className="text-xs sm:text-sm font-semibold text-[#6E7191]">Fresh Products</span>
           </div>
           <div className="p-6 rounded-3xl bg-white border border-[#EFF0F6] shadow-sm text-center">
-            <span className="block text-3xl sm:text-4xl font-black text-emerald-600 mb-1">45min</span>
+            <span className="block text-3xl sm:text-4xl font-black text-emerald-600 mb-1">30min</span>
             <span className="text-xs sm:text-sm font-semibold text-[#6E7191]">Average Delivery</span>
           </div>
           <div className="p-6 rounded-3xl bg-white border border-[#EFF0F6] shadow-sm text-center">

@@ -46,7 +46,7 @@ export default function ContactPage() {
   // Live Contact Info from Admin Settings (matching site footer)
   const contactEmail = settings?.company_email || settings?.contactEmail || "info@nectar.com";
   const contactPhone = settings?.company_phone || settings?.contactPhone || "+1 800 123 4567";
-  const companyAddress = settings?.company_address || "123 Nectar Fresh Market Way, Victoria Island";
+  const companyAddress = settings?.company_address ?? settings?.contactAddress ?? "";
   const workingHours = settings?.company_working_hours || "Mon - Sun: 8:00 AM - 10:00 PM";
   const waPhone = settings?.pay_whatsapp_phone_number || settings?.admin_notification_whatsapp_number || "";
 
@@ -153,17 +153,19 @@ export default function ContactPage() {
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-white border border-[#EFF0F6] shadow-sm flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-              <MapPin className="w-6 h-6" />
+          {companyAddress && (
+            <div className="p-5 rounded-2xl bg-white border border-[#EFF0F6] shadow-sm flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <MapPin className="w-6 h-6" />
+              </div>
+              <div className="min-w-0">
+                <span className="block text-xs font-semibold text-[#A0A3BD] uppercase tracking-wider">Head Office</span>
+                <span className="block text-sm font-bold text-[#14142B] line-clamp-2 mt-0.5">
+                  {companyAddress}
+                </span>
+              </div>
             </div>
-            <div className="min-w-0">
-              <span className="block text-xs font-semibold text-[#A0A3BD] uppercase tracking-wider">Head Office</span>
-              <span className="block text-sm font-bold text-[#14142B] line-clamp-2 mt-0.5">
-                {companyAddress}
-              </span>
-            </div>
-          </div>
+          )}
 
           <div className="p-5 rounded-2xl bg-white border border-[#EFF0F6] shadow-sm flex items-start gap-4">
             <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
@@ -295,7 +297,7 @@ export default function ContactPage() {
               </p>
               <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/20">
                 <div>
-                  <span className="block text-2xl font-black">45 min</span>
+                  <span className="block text-2xl font-black">30 min</span>
                   <span className="text-[11px] text-white/80">Average Delivery</span>
                 </div>
                 <div>
