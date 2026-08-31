@@ -39,9 +39,10 @@ export async function POST(req: Request) {
 
     let deliveryCharge = 0;
 
-    if (orderType === "delivery" && deliveryAddress && deliveryAddress.latitude !== undefined && deliveryAddress.longitude !== undefined) {
-      const userLat = parseFloat(deliveryAddress.latitude);
-      const userLng = parseFloat(deliveryAddress.longitude);
+    if (orderType === "delivery") {
+      const hasCoords = deliveryAddress && deliveryAddress.latitude !== undefined && deliveryAddress.longitude !== undefined;
+      const userLat = hasCoords ? parseFloat(deliveryAddress.latitude) : undefined;
+      const userLng = hasCoords ? parseFloat(deliveryAddress.longitude) : undefined;
       
       const settings = await Setting.find({ key: { $in: [
         "baseDeliveryFee", 
@@ -92,36 +93,41 @@ export async function POST(req: Request) {
           }
         });
 
-        if (storeIds.size > 0) {
-          const stores = await Store.find({ _id: { $in: Array.from(storeIds) } }).lean();
-          
-          stores.forEach((store: any) => {
-            if (store.latitude !== undefined && store.longitude !== undefined) {
-              const dist = haversineDistance(userLat, userLng, store.latitude, store.longitude);
-              if (!isNaN(dist)) {
-                if (dist > (store.deliveryRadius || 5)) {
-                  outOfRangeStoreIds.push(store._id.toString());
-                  outOfRangeStoreNames.push(store.name);
-                } else {
-                  if (dist > maxDistance) maxDistance = dist;
-                  validStoresCount++;
+        if (userLat !== undefined && userLng !== undefined) {
+          if (storeIds.size > 0) {
+            const stores = await Store.find({ _id: { $in: Array.from(storeIds) } }).lean();
+            
+            stores.forEach((store: any) => {
+              if (store.latitude !== undefined && store.longitude !== undefined) {
+                const dist = haversineDistance(userLat, userLng, store.latitude, store.longitude);
+                if (!isNaN(dist)) {
+                  if (dist > (store.deliveryRadius || 5)) {
+                    outOfRangeStoreIds.push(store._id.toString());
+                    outOfRangeStoreNames.push(store.name);
+                  } else {
+                    if (dist > maxDistance) maxDistance = dist;
+                    validStoresCount++;
+                  }
                 }
               }
-            }
-          });
-        }
+            });
+          }
 
-        if (hasAdminItems) {
-          if (adminLat !== undefined && adminLng !== undefined && !isNaN(adminLat) && !isNaN(adminLng)) {
-            const dist = haversineDistance(userLat, userLng, adminLat, adminLng);
-            if (!isNaN(dist)) {
-              if (dist > maxDistance) maxDistance = dist;
+          if (hasAdminItems) {
+            if (adminLat !== undefined && adminLng !== undefined && !isNaN(adminLat) && !isNaN(adminLng)) {
+              const dist = haversineDistance(userLat, userLng, adminLat, adminLng);
+              if (!isNaN(dist)) {
+                if (dist > maxDistance) maxDistance = dist;
+                validStoresCount++;
+              }
+            } else {
               validStoresCount++;
             }
-          } else {
-            // Admin doesn't have coordinates set, assume 0 extra distance but it counts as a store location
-            validStoresCount++;
           }
+        } else {
+          // If no GPS coordinates provided for text address, use standard estimated distance (5.0 km)
+          maxDistance = 5.0;
+          validStoresCount = 1;
         }
 
         if (outOfRangeStoreIds.length > 0) {
@@ -133,12 +139,9 @@ export async function POST(req: Request) {
           }, { status: 400 });
         }
 
-        let rawDeliveryFee = baseFee;
-        if (validStoresCount > 0) {
-          rawDeliveryFee = baseFee + (maxDistance * feePerKm);
-          if (validStoresCount > 1) {
-            rawDeliveryFee += (validStoresCount - 1) * multiStoreExtraFee;
-          }
+        let rawDeliveryFee = baseFee + (maxDistance * feePerKm);
+        if (validStoresCount > 1) {
+          rawDeliveryFee += (validStoresCount - 1) * multiStoreExtraFee;
         }
 
         // Auto-scale delivery fee based on order magnitude:

@@ -136,6 +136,11 @@ async function calculateDeliveryFee(db, { cart, subtotal, latitude, longitude, a
       maxDistance = dist;
       distanceKm = Math.round(dist * 10) / 10;
     }
+  } else {
+    // If coordinates were not resolved for a typed text address,
+    // apply standard estimated delivery radius (5.0 km) so distance fee is consistent
+    maxDistance = 5.0;
+    distanceKm = 5.0;
   }
 
   let rawDeliveryFee = baseFee + (maxDistance * feePerKm);
