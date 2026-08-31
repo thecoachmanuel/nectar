@@ -7,6 +7,8 @@ import { useSettingsStore } from "@/store/useSettingsStore";
 import { formatPrice } from "@/lib/formatters";
 import { X, Plus, Minus, Trash2, ShoppingBag, ChevronRight } from "lucide-react";
 
+import { toast } from "sonner";
+
 interface CartDrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -24,22 +26,54 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     router.push("/checkout");
   };
 
+  const handleClear = () => {
+    clearCart();
+    toast.success("Cart cleared");
+  };
+
+  // Sync latest product prices ONCE per drawer opening (does not trigger on + / - clicks)
   useEffect(() => {
-    if (isOpen && items.length > 0) {
-      fetch("/api/frontend/cart/sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items }),
+    if (!isOpen) return;
+
+    const currentItems = useCartStore.getState().items;
+    if (currentItems.length === 0) return;
+
+    let isMounted = true;
+    fetch("/api/frontend/cart/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items: currentItems }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (isMounted && data.status && Array.isArray(data.data)) {
+          const activeItems = useCartStore.getState().items;
+          if (activeItems.length === 0) return; // Do not revive cleared cart
+
+          // Merge updated prices while preserving current active quantities
+          const merged = data.data.map((syncedItem: any) => {
+            const active = activeItems.find((i) => i.id === syncedItem.id);
+            const qty = active ? active.quantity : syncedItem.quantity;
+            const extraTotal = syncedItem.extras?.reduce((acc: number, e: any) => acc + (Number(e.price) || 0), 0) || 0;
+            const addonTotal = syncedItem.addons?.reduce((acc: number, a: any) => acc + (Number(a.price) || 0), 0) || 0;
+            const unitPrice = (Number(syncedItem.price) || 0) + extraTotal + addonTotal;
+
+            return {
+              ...syncedItem,
+              quantity: qty,
+              itemTotal: unitPrice * qty,
+            };
+          });
+
+          useCartStore.getState().setItems(merged);
+        }
       })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.status && data.data) {
-            useCartStore.getState().setItems(data.data);
-          }
-        })
-        .catch((err) => console.error("Cart sync failed:", err));
-    }
-  }, [isOpen, items]);
+      .catch((err) => console.error("Cart sync failed:", err));
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen]);
 
   return (
     <>
@@ -72,8 +106,9 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           <div className="flex items-center gap-2">
             {items.length > 0 && (
               <button
-                onClick={clearCart}
-                className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded-md hover:bg-red-50 transition-all flex items-center gap-1 font-medium"
+                type="button"
+                onClick={handleClear}
+                className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded-md hover:bg-red-50 transition-all flex items-center gap-1 font-medium active:scale-95"
               >
                 <Trash2 className="w-3.5 h-3.5" /> Clear
               </button>

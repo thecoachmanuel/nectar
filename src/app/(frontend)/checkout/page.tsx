@@ -62,24 +62,49 @@ export default function CheckoutPage() {
   const total = Math.max(0, subtotal + (deliveryCharge > 0 ? deliveryCharge : 0) - discountAmount);
 
   useEffect(() => {
-    if (items.length > 0) {
+    const currentItems = useCartStore.getState().items;
+    if (currentItems.length > 0) {
+      let isMounted = true;
       fetch("/api/frontend/cart/sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items })
+        body: JSON.stringify({ items: currentItems })
       })
       .then(res => res.json())
       .then(data => {
-        if (data.status && data.data) {
-          useCartStore.getState().setItems(data.data);
+        if (isMounted && data.status && Array.isArray(data.data)) {
+          const activeItems = useCartStore.getState().items;
+          if (activeItems.length === 0) return;
+
+          const merged = data.data.map((syncedItem: any) => {
+            const active = activeItems.find((i) => i.id === syncedItem.id);
+            const qty = active ? active.quantity : syncedItem.quantity;
+            const extraTotal = syncedItem.extras?.reduce((acc: number, e: any) => acc + (Number(e.price) || 0), 0) || 0;
+            const addonTotal = syncedItem.addons?.reduce((acc: number, a: any) => acc + (Number(a.price) || 0), 0) || 0;
+            const unitPrice = (Number(syncedItem.price) || 0) + extraTotal + addonTotal;
+
+            return {
+              ...syncedItem,
+              quantity: qty,
+              itemTotal: unitPrice * qty,
+            };
+          });
+
+          useCartStore.getState().setItems(merged);
         }
       })
       .catch(err => console.error("Cart sync failed:", err))
       .finally(() => {
-        setTimeout(() => setLoading(false), 300);
+        if (isMounted) {
+          setTimeout(() => setLoading(false), 200);
+        }
       });
+
+      return () => {
+        isMounted = false;
+      };
     } else {
-      setTimeout(() => setLoading(false), 500);
+      setTimeout(() => setLoading(false), 300);
     }
   }, []);
 

@@ -96,17 +96,30 @@ export const useCartStore = create<CartState>()(
       },
 
       updateQuantity: (id, delta) => {
-        const items = get().items
-          .map((item) => {
-            if (item.id === id) {
-              const newQty = item.quantity + delta;
-              if (newQty <= 0) return null;
-              const unitPrice = item.itemTotal / item.quantity;
-              return { ...item, quantity: newQty, itemTotal: unitPrice * newQty };
-            }
-            return item;
-          })
-          .filter(Boolean) as CartItem[];
+        const currentItems = get().items;
+        const target = currentItems.find((item) => item.id === id);
+        if (!target) return;
+
+        const newQty = target.quantity + delta;
+        if (newQty <= 0) {
+          set({ items: currentItems.filter((item) => item.id !== id) });
+          return;
+        }
+
+        const extraTotal = target.extras?.reduce((acc, e) => acc + (Number(e.price) || 0), 0) || 0;
+        const addonTotal = target.addons?.reduce((acc, a) => acc + (Number(a.price) || 0), 0) || 0;
+        const unitPrice = (Number(target.price) || 0) + extraTotal + addonTotal;
+
+        const items = currentItems.map((item) => {
+          if (item.id === id) {
+            return {
+              ...item,
+              quantity: newQty,
+              itemTotal: unitPrice * newQty,
+            };
+          }
+          return item;
+        });
 
         set({ items });
       },
@@ -115,7 +128,9 @@ export const useCartStore = create<CartState>()(
         set({ items: get().items.filter((item) => item.id !== id) });
       },
 
-      clearCart: () => set({ items: [], couponCode: "", couponDiscount: 0 }),
+      clearCart: () => {
+        set({ items: [], couponCode: "", couponDiscount: 0, selectedAddressId: undefined });
+      },
 
       applyCoupon: (code, discount) => set({ couponCode: code, couponDiscount: discount }),
 
