@@ -2,184 +2,136 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { Mail, Phone } from "lucide-react";
+import Link from "next/link";
+import { Mail, Phone, ChevronRight, Headphones } from "lucide-react";
+import { useSettingsStore } from "@/store/useSettingsStore";
+import ContactPage from "@/app/(frontend)/contact/page";
+import AboutPage from "@/app/(frontend)/about/page";
 
 export default function DynamicPage() {
-  const { slug } = useParams();
-  const [page, setPage] = useState<any>({});
+  const params = useParams();
+  const rawSlug = params?.slug;
+  const slug = Array.isArray(rawSlug) ? rawSlug[0] : rawSlug || "";
+
+  const { settings, fetchSettings } = useSettingsStore();
+  const [page, setPage] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [settings, setSettings] = useState<any>({});
-  
-  // Contact Form State
-  const [contactData, setContactData] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: "",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchPage();
     fetchSettings();
-  }, [slug]);
+    if (slug && slug !== "contact-us" && slug !== "about-us" && slug !== "contact" && slug !== "about") {
+      fetchPage();
+    } else {
+      setLoading(false);
+    }
+  }, [slug, fetchSettings]);
 
   const fetchPage = async () => {
+    setLoading(true);
     try {
       const res = await fetch(`/api/frontend/pages/${slug}`);
       const data = await res.json();
       if (data.status) {
         setPage(data.data || {});
       }
-    } catch {} finally {
+    } catch {
+      // Fallback
+    } finally {
       setLoading(false);
     }
   };
 
-  const fetchSettings = async () => {
-    try {
-      const res = await fetch(`/api/frontend/settings`);
-      const data = await res.json();
-      if (data.status) {
-        setSettings(data.data || {});
-      }
-    } catch {}
-  };
+  // If slug is contact or about, render the dedicated rich components
+  if (slug === "contact-us" || slug === "contact") {
+    return <ContactPage />;
+  }
 
-  const handleContactSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!contactData.name || !contactData.email || !contactData.subject || !contactData.message) {
-      alert("Please fill in all fields.");
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      const res = await fetch("/api/frontend/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(contactData),
-      });
-      const data = await res.json();
-      if (data.status) {
-        alert("Message sent successfully!");
-        setContactData({ name: "", email: "", subject: "", message: "" });
-      } else {
-        alert(data.message || "Failed to send message.");
-      }
-    } catch (error) {
-      alert("Something went wrong. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  if (slug === "about-us" || slug === "about") {
+    return <AboutPage />;
+  }
+
+  const contactEmail = settings?.company_email || settings?.contactEmail || "info@nectar.com";
+  const contactPhone = settings?.company_phone || settings?.contactPhone || "+1 800 123 4567";
 
   return (
-    <>
-      {loading && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/80 backdrop-blur-sm">
-          <div className="nectar-loader"></div>
+    <div className="min-h-screen bg-[#FAFAFC] pb-24 lg:pb-16">
+      {/* Header & Breadcrumbs */}
+      <div className="bg-gradient-to-b from-white to-[#F7F7FC] border-b border-[#EFF0F6] py-8 sm:py-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center gap-2 text-xs font-semibold text-[#A0A3BD] mb-3">
+            <Link href="/" className="hover:text-primary transition-colors">Home</Link>
+            <ChevronRight className="w-3.5 h-3.5" />
+            <span className="text-[#14142B] capitalize">{page?.title || slug.replace(/-/g, " ")}</span>
+          </div>
+
+          <h1 className="text-2xl sm:text-4xl font-extrabold text-[#14142B] tracking-tight">
+            {page?.title || (loading ? "Loading..." : slug.replace(/-/g, " "))}
+          </h1>
         </div>
-      )}
-      
-      <section className="pt-8 pb-16">
-        <div className="container mx-auto px-4 sm:px-6 max-w-3xl">
-          <div className="mb-6">
-            <h2 className="text-[26px] leading-10 font-semibold capitalize mb-2 text-[#14142b]">
-              {page.title || "Loading..."}
-            </h2>
-            {page.image && (
-              <div className="w-full mb-6">
-                <img src={page.image} alt={page.title} className="w-full rounded-2xl object-cover shadow-sm" />
-              </div>
-            )}
-            {page.description && (
-              <div className="ql-editor prose max-w-none text-[#6e7191]" dangerouslySetInnerHTML={{ __html: page.description }}></div>
-            )}
-            {!page.description && !loading && (
-              <div className="text-center py-12 text-[#6e7191]">
-                <p>Page content not available.</p>
-              </div>
-            )}
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10">
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
           </div>
-          
-          {/* Support Section */}
-          <div className="mb-12 md:mb-20">
-            <h2 className="text-[22px] leading-[34px] font-medium capitalize mb-3 text-[#14142b]">Support</h2>
-            <ul className="flex flex-col gap-2">
-              <li className="flex items-center gap-2.5">
-                <Mail className="w-4 h-4 text-[#6e7191]" />
-                <span className="text-sm leading-6 text-[#14142b]">{settings.company_email || settings.contactEmail || "info@nectar.com"}</span>
-              </li>
-              <li className="flex items-center gap-2.5">
-                <Phone className="w-4 h-4 text-[#6e7191]" />
-                <span className="text-sm font-medium leading-6 text-[#14142b]">{settings.company_phone || settings.contactPhone || "+1 800 123 4567"}</span>
-              </li>
-            </ul>
-          </div>
-          
-          {/* Mock Contact Form if template_id === 1 (from Vue app) */}
-          {page.template_id === 1 && (
-            <div className="bg-[#f7f7fc] p-6 rounded-2xl border border-[#eff0f6]">
-              <h3 className="text-xl font-semibold mb-4 text-[#14142b]">Contact Us</h3>
-              <form className="space-y-4" onSubmit={handleContactSubmit}>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-[#14142b] mb-1">Name</label>
-                    <input 
-                      type="text" 
-                      required
-                      value={contactData.name}
-                      onChange={(e) => setContactData({ ...contactData, name: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-primary transition-colors" 
-                      placeholder="Your Name" 
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-[#14142b] mb-1">Email</label>
-                    <input 
-                      type="email" 
-                      required
-                      value={contactData.email}
-                      onChange={(e) => setContactData({ ...contactData, email: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-primary transition-colors" 
-                      placeholder="Your Email" 
-                    />
-                  </div>
+        ) : (
+          <div className="space-y-8">
+            {/* Page Content */}
+            <div className="bg-white rounded-3xl p-6 sm:p-10 border border-[#EFF0F6] shadow-sm">
+              {page?.image && (
+                <div className="w-full mb-8 overflow-hidden rounded-2xl">
+                  <img src={page.image} alt={page.title} className="w-full object-cover shadow-sm max-h-80" />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-[#14142b] mb-1">Subject</label>
-                  <input 
-                    type="text" 
-                    required
-                    value={contactData.subject}
-                    onChange={(e) => setContactData({ ...contactData, subject: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-primary transition-colors" 
-                    placeholder="Subject" 
-                  />
+              )}
+
+              {page?.description ? (
+                <div
+                  className="prose prose-slate max-w-none text-[#4E4B66] leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: page.description }}
+                />
+              ) : (
+                <div className="text-center py-12 text-[#6E7191]">
+                  <p>Page content is currently being updated by the team.</p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-[#14142b] mb-1">Message</label>
-                  <textarea 
-                    rows={4} 
-                    required
-                    value={contactData.message}
-                    onChange={(e) => setContactData({ ...contactData, message: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-white border border-[#eff0f6] rounded-xl text-sm focus:outline-none focus:border-primary transition-colors resize-none" 
-                    placeholder="Your Message"
-                  ></textarea>
-                </div>
-                <button 
-                  type="submit" 
-                  disabled={isSubmitting}
-                  className="w-full py-3 bg-primary text-white rounded-xl font-medium hover:bg-rose-600 transition-colors disabled:opacity-70"
-                >
-                  {isSubmitting ? "Sending..." : "Send Message"}
-                </button>
-              </form>
+              )}
             </div>
-          )}
-        </div>
-      </section>
-    </>
+
+            {/* Support Box matching Footer & Admin Settings */}
+            <div className="p-6 rounded-3xl bg-white border border-[#EFF0F6] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+              <div>
+                <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider mb-1">
+                  <Headphones className="w-4 h-4" />
+                  <span>Need Assistance?</span>
+                </div>
+                <h3 className="text-base font-bold text-[#14142B]">
+                  Our Customer Support Team is Available Daily
+                </h3>
+                <p className="text-xs text-[#6E7191] mt-0.5">
+                  Reach out to us via email or phone for any questions or order queries.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 shrink-0">
+                <a
+                  href={`mailto:${contactEmail}`}
+                  className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-[#F7F7FC] hover:bg-primary/10 hover:text-primary transition-colors text-xs font-semibold text-[#14142B]"
+                >
+                  <Mail className="w-4 h-4 text-primary" />
+                  <span>{contactEmail}</span>
+                </a>
+                <a
+                  href={`tel:${contactPhone}`}
+                  className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-[#F7F7FC] hover:bg-primary/10 hover:text-primary transition-colors text-xs font-semibold text-[#14142B]"
+                >
+                  <Phone className="w-4 h-4 text-primary" />
+                  <span>{contactPhone}</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

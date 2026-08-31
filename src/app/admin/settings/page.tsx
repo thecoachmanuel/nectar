@@ -295,6 +295,31 @@ export default function SettingsPage() {
                   className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">Operating / Working Hours</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. Mon - Sun: 8:00 AM - 10:00 PM"
+                  value={formData.company_working_hours || ""} 
+                  onChange={(e) => handleChange("company_working_hours", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                />
+                <p className="text-xs text-[#6E7191] mt-1.5">Displayed on the Contact Us page and footer info.</p>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">About Us Story / Description</label>
+                <textarea 
+                  rows={5} 
+                  placeholder="Write your company's mission, story, and grocery delivery vision here..."
+                  value={formData.company_about_us || formData.about_us_content || ""} 
+                  onChange={(e) => {
+                    handleChange("company_about_us", e.target.value);
+                    handleChange("about_us_content", e.target.value);
+                  }}
+                  className="w-full p-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary resize-none"
+                ></textarea>
+                <p className="text-xs text-[#6E7191] mt-1.5">This content is dynamically rendered on the public About Us page.</p>
+              </div>
             </div>
           )}
 
