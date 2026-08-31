@@ -22,7 +22,8 @@ import {
   Tag,
   Send,
   Mail,
-  Bell
+  Bell,
+  ExternalLink
 } from "lucide-react";
 
 interface SidebarProps {
@@ -54,7 +55,7 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
     },
     { name: "Product Categories", icon: <Box className="w-4 h-4" />, path: "/admin/item-categories", roles: ["admin", "store_manager"] },
     { name: "Products", icon: <Utensils className="w-4 h-4" />, path: "/admin/items", roles: ["admin", "store_manager"] },
-    { name: "Push Notifications 🔔", icon: <Send className="w-4 h-4 text-primary" />, path: "/admin/push-notifications", roles: ["admin", "store_manager"] },
+    { name: "Push Notifications", icon: <Send className="w-4 h-4" />, path: "/admin/push-notifications", roles: ["admin", "store_manager"] },
     { name: "Coupons", icon: <Ticket className="w-4 h-4" />, path: "/admin/coupons", roles: ["admin"] },
     { name: "Offers", icon: <Tag className="w-4 h-4" />, path: "/admin/offers", roles: ["admin", "store_manager"] },
     { name: "Banners", icon: <ImageIcon className="w-4 h-4" />, path: "/admin/banners", roles: ["admin"] },
@@ -191,6 +192,19 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
             })}
           </ul>
         </nav>
+
+        {/* Quick Navigate to Main Site */}
+        <div className="p-3 border-t border-[#EFF0F6] bg-[#FAFAFC]">
+          <Link
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-white border border-[#EFF0F6] text-primary hover:bg-primary hover:text-white font-bold text-xs transition-all shadow-sm group"
+          >
+            <ExternalLink className="w-4 h-4 text-primary group-hover:text-white transition-colors" />
+            <span>Visit Live Store</span>
+          </Link>
+        </div>
       </aside>
     </>
   );

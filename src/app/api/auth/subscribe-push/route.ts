@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
+import PushSubscription from "@/models/PushSubscription";
 import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
@@ -12,53 +13,87 @@ const JWT_SECRET = new TextEncoder().encode(
 
 /**
  * POST /api/auth/subscribe-push
- * Saves the browser PushSubscription for the authenticated user.
- * Called from NotificationListener after user grants notification permission.
+ * Saves the browser Web Push PushSubscription for push delivery.
  */
 export async function POST(req: Request) {
   try {
     await dbConnect();
 
     const body = await req.json();
-    const { subscription } = body;
+    const { subscription, userRole: bodyRole, userId: bodyUserId } = body;
 
-    if (!subscription || !subscription.endpoint) {
+    if (!subscription || !subscription.endpoint || !subscription.keys) {
       return NextResponse.json(
-        { status: false, message: "Invalid push subscription object" },
+        { status: false, message: "Invalid push subscription object (endpoint and keys required)" },
         { status: 400 }
       );
     }
 
-    // Try to identify the user from JWT cookie
-    let userId: string | null = null;
-    try {
-      const cookieStore = await cookies();
-      const token = cookieStore.get("token")?.value;
-      if (token) {
-        const { payload } = await jwtVerify(token, JWT_SECRET);
-        if (payload.id) userId = String(payload.id);
+    let userId: string | null = bodyUserId || null;
+    let userRole: "admin" | "customer" | "store_manager" | "delivery_boy" | "guest" | "all" =
+      bodyRole || "customer";
+
+    // Try to extract from Authorization header
+    const authHeader = req.headers.get("authorization");
+    let token = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
+
+    // Fallback to cookie
+    if (!token) {
+      try {
+        const cookieStore = await cookies();
+        token = cookieStore.get("token")?.value || null;
+      } catch {
+        // ignore
       }
-    } catch {
-      // Anonymous subscription — we'll still store it to a guest collection or skip
     }
 
-    if (!userId) {
-      // For non-logged-in visitors, we save by endpoint only so we can still broadcast to them
-      // Find any existing user with this endpoint and update, or skip
-      await User.findOneAndUpdate(
-        { "pushSubscription.endpoint": subscription.endpoint },
-        { $set: { pushSubscription: subscription } }
-      );
-      return NextResponse.json({ status: true, message: "Subscription updated (guest)" });
+    // Verify JWT if token is present
+    if (token) {
+      try {
+        const { payload } = await jwtVerify(token, JWT_SECRET);
+        const resolvedId = (payload.userId || payload.id || payload.sub) as string;
+        if (resolvedId) userId = resolvedId;
+        if (payload.role) userRole = payload.role as any;
+      } catch {
+        // Token invalid or expired, continue as guest or body role
+      }
     }
 
-    await User.findByIdAndUpdate(userId, {
-      $set: { pushSubscription: subscription },
-    });
+    // Upsert into dedicated PushSubscription collection
+    const userAgent = req.headers.get("user-agent") || "";
+    await PushSubscription.findOneAndUpdate(
+      { endpoint: subscription.endpoint },
+      {
+        $set: {
+          endpoint: subscription.endpoint,
+          keys: subscription.keys,
+          userId: userId || undefined,
+          role: userRole,
+          userAgent,
+          updatedAt: new Date(),
+        },
+      },
+      { upsert: true, new: true }
+    );
+
+    // If a valid userId is present, also update User model
+    if (userId) {
+      try {
+        await User.findByIdAndUpdate(userId, {
+          $set: {
+            pushSubscription: subscription,
+            deviceToken: subscription.endpoint,
+          },
+        });
+      } catch (userUpdateErr) {
+        console.warn("[subscribe-push] User model update warning:", userUpdateErr);
+      }
+    }
 
     return NextResponse.json({
       status: true,
-      message: "Push subscription saved successfully",
+      message: "Web Push subscription registered successfully",
+      role: userRole,
     });
   } catch (error: any) {
     console.error("Subscribe push error:", error);
@@ -71,28 +106,18 @@ export async function POST(req: Request) {
 
 /**
  * DELETE /api/auth/subscribe-push
- * Removes the push subscription (called when user revokes permission).
  */
 export async function DELETE(req: Request) {
   try {
     await dbConnect();
+    const body = await req.json();
+    const endpoint = body?.subscription?.endpoint || body?.endpoint;
 
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
-    if (!token) {
-      return NextResponse.json({ status: false, message: "Unauthorized" }, { status: 401 });
+    if (endpoint) {
+      await PushSubscription.deleteOne({ endpoint });
     }
 
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    if (!payload.id) {
-      return NextResponse.json({ status: false, message: "Invalid token" }, { status: 401 });
-    }
-
-    await User.findByIdAndUpdate(payload.id, {
-      $unset: { pushSubscription: 1 },
-    });
-
-    return NextResponse.json({ status: true, message: "Push subscription removed" });
+    return NextResponse.json({ status: true, message: "Subscription removed" });
   } catch (error: any) {
     return NextResponse.json({ status: false, message: error.message }, { status: 500 });
   }

@@ -137,7 +137,7 @@ export default function NotificationListener() {
 
   // ── Helper: subscribe to Web Push via VAPID ─────────────────────────────
   const subscribeToWebPush = async () => {
-    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) return;
     try {
       const reg = await navigator.serviceWorker.ready;
 
@@ -151,22 +151,54 @@ export default function NotificationListener() {
       const base64 = (publicKey + padding).replace(/-/g, "+").replace(/_/g, "/");
       const rawKey = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
 
-      // Create the browser PushSubscription
-      const subscription = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: rawKey,
-      });
+      // Check if already subscribed or create new subscription
+      let subscription = await reg.pushManager.getSubscription();
+      if (!subscription) {
+        subscription = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: rawKey,
+        });
+      }
+
+      // Read current logged-in user profile from localStorage
+      let userId: string | undefined;
+      let userRole: string = "customer";
+      try {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          const u = JSON.parse(storedUser);
+          if (u._id) userId = u._id;
+          if (u.role) userRole = u.role;
+        } else {
+          const authStorage = localStorage.getItem("nectar_auth_storage");
+          if (authStorage) {
+            const parsed = JSON.parse(authStorage);
+            if (parsed?.state?.user?._id) userId = parsed.state.user._id;
+            if (parsed?.state?.user?.role) userRole = parsed.state.user.role;
+          }
+        }
+      } catch {
+        // ignore
+      }
 
       // Save the subscription to the server
+      const token = document.cookie.split("; ").find((row) => row.startsWith("token="))?.split("=")[1];
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       await fetch("/api/auth/subscribe-push", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subscription: subscription.toJSON() }),
+        headers,
+        body: JSON.stringify({
+          subscription: subscription.toJSON(),
+          userId,
+          userRole,
+        }),
       });
 
-      console.log("✅ [Nectar] Web Push subscription saved");
+      console.log("✅ [Nectar] Web Push subscription successfully synced with server");
     } catch (err) {
-      console.warn("[Nectar] Web Push subscription failed:", err);
+      console.warn("[Nectar] Web Push subscription sync warning:", err);
     }
   };
 

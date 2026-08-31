@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Menu, Maximize2, Minimize2, ChevronDown, Store, Globe, LogOut, User, Key } from "lucide-react";
+import { Menu, Maximize2, Minimize2, ChevronDown, Store, Globe, LogOut, User, Key, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useEffect } from "react";
@@ -123,7 +123,18 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
         )}
       </div>
 
-      <div className="flex items-center gap-3 sm:gap-5">
+      <div className="flex items-center gap-3 sm:gap-4">
+        {/* Quick Navigate to Main Live Storefront */}
+        <Link
+          href="/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 h-10 px-3 sm:px-3.5 rounded-xl bg-primary/10 hover:bg-primary text-primary hover:text-white transition-all text-xs font-bold shadow-sm"
+          title="Open Main Storefront"
+        >
+          <ExternalLink className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Live Store</span>
+        </Link>
         
         <button 
           onClick={toggleFullscreen}

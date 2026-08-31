@@ -11,6 +11,9 @@ import {
   Bike,
   Bell,
   RefreshCw,
+  Smartphone,
+  CheckCircle2,
+  BellRing,
 } from "lucide-react";
 import { toast } from "sonner";
 import SendPushNotificationModal from "@/components/admin/SendPushNotificationModal";
@@ -142,7 +145,7 @@ export default function PushNotificationsPage() {
   return (
     <div className="pb-16 space-y-6">
       {/* Audience Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         <div className="p-4 rounded-2xl bg-white border border-[#EFF0F6] shadow-sm flex items-center gap-3">
           <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
             <Users className="w-5 h-5" />
@@ -168,7 +171,7 @@ export default function PushNotificationsPage() {
             <Store className="w-5 h-5" />
           </div>
           <div>
-            <span className="block text-xs font-medium text-[#6E7191]">Sellers & Stores</span>
+            <span className="block text-xs font-medium text-[#6E7191]">Sellers</span>
             <span className="text-lg sm:text-xl font-bold text-[#14142B]">{audienceStats.store_manager}</span>
           </div>
         </div>
@@ -178,8 +181,18 @@ export default function PushNotificationsPage() {
             <Bike className="w-5 h-5" />
           </div>
           <div>
-            <span className="block text-xs font-medium text-[#6E7191]">Delivery Boys</span>
+            <span className="block text-xs font-medium text-[#6E7191]">Delivery</span>
             <span className="text-lg sm:text-xl font-bold text-[#14142B]">{audienceStats.delivery_boy}</span>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-white border border-[#EFF0F6] shadow-sm flex items-center gap-3 col-span-2 sm:col-span-1">
+          <div className="w-11 h-11 rounded-xl bg-rose-50 text-primary flex items-center justify-center shrink-0">
+            <Smartphone className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="block text-xs font-medium text-[#6E7191]">Active Devices</span>
+            <span className="text-lg sm:text-xl font-bold text-primary">{audienceStats.activeSubscribers || 0}</span>
           </div>
         </div>
       </div>
@@ -200,7 +213,7 @@ export default function PushNotificationsPage() {
                 placeholder="Search history..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-10 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-sm focus:outline-none focus:border-primary w-full sm:w-48 transition-colors"
+                className="h-10 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-sm focus:outline-none focus:border-primary w-full sm:w-44 transition-colors"
               />
               <Search className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
             </div>

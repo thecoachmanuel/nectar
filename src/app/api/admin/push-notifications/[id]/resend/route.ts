@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import PushNotification from "@/models/PushNotification";
+import PushSubscription from "@/models/PushSubscription";
 import User from "@/models/User";
 import { sendBulkPushNotification, sendBulkWebPush } from "@/lib/push";
 
@@ -22,7 +23,19 @@ export async function POST(
       );
     }
 
-    // Build audience filter based on targetRole
+    // ── 1. Build Query for Web Push Subscriptions ─────────────────────────
+    let subFilter: any = {};
+    if (notification.targetRole === "customer") {
+      subFilter.role = { $in: ["customer", "guest"] };
+    } else if (notification.targetRole === "store_manager") {
+      subFilter.role = { $in: ["store_manager", "chef", "waiter"] };
+    } else if (notification.targetRole === "delivery_boy") {
+      subFilter.role = "delivery_boy";
+    }
+
+    const dedicatedSubscriptions = await PushSubscription.find(subFilter).lean();
+
+    // ── 2. Build Query for Users ──────────────────────────────────────────
     let userFilter: any = { status: true };
     if (notification.targetRole === "customer") {
       userFilter.role = "customer";
@@ -32,15 +45,32 @@ export async function POST(
       userFilter.role = "delivery_boy";
     }
 
-    // Query target audience with pushSubscription and deviceToken
-    const targetUsers = await User.find(userFilter).select("deviceToken pushSubscription role email");
+    const targetUsers = await User.find(userFilter).select(
+      "deviceToken pushSubscription role email"
+    ).lean();
     const totalRecipients = targetUsers.length;
 
-    // ── 1. Web Push Protocol (VAPID) ── Real background push for Android and iPhone PWA
-    const webPushSubscriptions = targetUsers
-      .map((u) => u.pushSubscription)
-      .filter((s): s is Record<string, any> => !!s && !!s.endpoint);
+    // ── 3. Merge and Deduplicate Web Push Subscriptions ───────────────────
+    const subMap = new Map<string, any>();
 
+    dedicatedSubscriptions.forEach((sub: any) => {
+      if (sub.endpoint && sub.keys?.p256dh && sub.keys?.auth) {
+        subMap.set(sub.endpoint, {
+          endpoint: sub.endpoint,
+          keys: sub.keys,
+        });
+      }
+    });
+
+    targetUsers.forEach((u: any) => {
+      if (u.pushSubscription?.endpoint && u.pushSubscription?.keys) {
+        subMap.set(u.pushSubscription.endpoint, u.pushSubscription);
+      }
+    });
+
+    const webPushSubscriptions = Array.from(subMap.values());
+
+    // ── 4. Dispatch via Web Push Protocol (VAPID) ─────────────────────────
     let webPushResult: any = { success: false, sent: 0 };
     if (webPushSubscriptions.length > 0) {
       webPushResult = await sendBulkWebPush(
@@ -56,10 +86,10 @@ export async function POST(
       );
     }
 
-    // ── 2. OneSignal / Native push fallback
+    // ── 5. OneSignal / Legacy fallback ────────────────────────────────────
     const tokens = targetUsers
-      .map((u) => u.deviceToken)
-      .filter((t): t is string => !!t && typeof t === "string" && t.trim().length > 0);
+      .map((u: any) => u.deviceToken)
+      .filter((t: any): t is string => !!t && typeof t === "string" && t.trim().length > 0);
 
     const pushResult = await sendBulkPushNotification(
       tokens,
@@ -72,10 +102,12 @@ export async function POST(
       }
     );
 
-    // Update notification record with fresh timestamp and counts
+    const totalDevicesReached = webPushSubscriptions.length || tokens.length;
+
+    // ── 6. Update notification record ─────────────────────────────────────
     notification.updatedAt = new Date();
     notification.recipientsCount = totalRecipients;
-    notification.tokensCount = webPushSubscriptions.length || tokens.length;
+    notification.tokensCount = totalDevicesReached;
     notification.status = "sent";
     await notification.save();
 
@@ -88,12 +120,18 @@ export async function POST(
         ? "all sellers & stores"
         : "all delivery boys";
 
+    const feedbackMsg =
+      totalDevicesReached > 0
+        ? `Push notification re-sent to ${roleName}! (${webPushSubscriptions.length} Web Push devices + ${tokens.length} app tokens reached).`
+        : `Push notification re-sent to ${roleName}! Note: 0 subscriber devices registered yet. Open the app on your phone/browser and allow notifications to register.`;
+
     return NextResponse.json({
       status: true,
-      message: `Push notification re-sent successfully to ${roleName}! (${webPushSubscriptions.length} web push + ${tokens.length} device tokens).`,
+      message: feedbackMsg,
       data: notification,
       webPushResult,
       pushResult,
+      devicesCount: totalDevicesReached,
     });
   } catch (error: any) {
     console.error("Resend push notification error:", error);
