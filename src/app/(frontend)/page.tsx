@@ -98,7 +98,7 @@ export default function HomePage() {
     }
   }, []);
 
-  // Map each category to its live products from the database; hide categories with no products
+  // Map each category to its live products from the database; hide categories with no products and cap to max 10 products per category on home screen
   const categoriesWithProducts = React.useMemo(() => {
     if (!categories || categories.length === 0 || !allItems || allItems.length === 0) return [];
     
@@ -112,7 +112,8 @@ export default function HomePage() {
         });
         return {
           ...cat,
-          products: catItems,
+          products: catItems.slice(0, 10),
+          totalCount: catItems.length,
         };
       })
       .filter((cat: any) => cat.products && cat.products.length > 0);
