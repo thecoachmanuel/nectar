@@ -64,6 +64,7 @@ import Setting from "@/models/Setting";
 import ClientThemeSetter from "@/components/ClientThemeSetter";
 import NotificationListener from "@/components/NotificationListener";
 import OfflineDetector from "@/components/OfflineDetector";
+import HorizontalMouseScroll from "@/components/HorizontalMouseScroll";
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   let themeColor = "#ff006b";
@@ -108,6 +109,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <ClientThemeSetter />
         <NotificationListener />
         <OfflineDetector />
+        <HorizontalMouseScroll />
         <Toaster position="top-right" richColors />
         {children}
 
