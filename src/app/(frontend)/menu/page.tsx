@@ -11,6 +11,16 @@ import 'swiper/css';
 import { useSearchParams } from "next/navigation";
 
 /* ─── helpers ─────────────────────────────────────────── */
+// Shuffle array — fresh product order every session
+function shuffleArray<T>(array: T[]): T[] {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 function groupByCategory(items: any[], categories: any[]) {
   const map: Record<string, { cat: any; items: any[] }> = {};
   // preserve category order
@@ -255,12 +265,12 @@ function MenuContent() {
     }
   };
 
-  /* fetch all items (no filter) for grouped aisle view */
+  /* fetch all items (no filter) for grouped aisle view — shuffle for fresh order every visit */
   const fetchAllItems = async () => {
     try {
       const res = await fetch("/api/frontend/items?");
       const data = await res.json();
-      if (data.status) setAllItems(data.data || []);
+      if (data.status) setAllItems(shuffleArray(data.data || []));
     } catch {}
   };
 

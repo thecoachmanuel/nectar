@@ -98,7 +98,8 @@ export default function HomePage() {
     }
   }, []);
 
-  // Map each category to its live products from the database; hide categories with no products and cap to max 10 products per category on home screen
+  // Map each category to its live products from the database;
+  // shuffle each category's items every session so the home screen always feels fresh
   const categoriesWithProducts = React.useMemo(() => {
     if (!categories || categories.length === 0 || !allItems || allItems.length === 0) return [];
     
@@ -110,9 +111,10 @@ export default function HomePage() {
           const itemCatId = (rawCat && typeof rawCat === "object" ? rawCat._id?.toString() : rawCat?.toString()) || "";
           return itemCatId === catIdStr;
         });
+        const shuffled = shuffleArray(catItems); // fresh shuffle every page mount
         return {
           ...cat,
-          products: catItems.slice(0, 10),
+          products: shuffled.slice(0, 10),
           totalCount: catItems.length,
         };
       })
@@ -397,27 +399,44 @@ export default function HomePage() {
           {categoriesWithProducts.map((cat: any) => (
             <section key={cat._id}>
               <div className="max-w-6xl mx-auto px-4 sm:px-6">
+
+                {/* Section header */}
                 <div className="flex items-center justify-between gap-2 mb-4">
-                  <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b]">
+                  <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b] flex items-center gap-2">
+                    {cat.image && (
+                      <img
+                        src={cat.image}
+                        alt={cat.name}
+                        className="w-6 h-6 object-contain rounded"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                      />
+                    )}
                     {cat.name}
+                    <span className="text-xs font-normal text-[#a0a3bd] ml-1">({cat.totalCount})</span>
                   </h2>
                   <Link
                     href={`/menu?category=${cat._id}`}
-                    className="text-xs font-medium hover:underline flex items-center gap-1"
+                    className="flex items-center gap-0.5 text-xs font-semibold hover:underline shrink-0"
                     style={{ color: "var(--primary-hex)" }}
                   >
-                    View All
+                    View All <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
 
                 {menuViewMode === "grid" ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-                    {cat.products.map((item: any) => (
-                      <ItemCard key={item._id} item={item} onOpen={openModal} />
-                    ))}
+                  /* Horizontal aisle scroll — industry standard (Instacart / Ocado / Blinkit pattern) */
+                  <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6 scrollbar-none">
+                    <div className="flex gap-3 sm:gap-4 items-stretch" style={{ width: "max-content" }}>
+                      {cat.products.map((item: any) => (
+                        <div key={item._id} className="w-[8.5rem] sm:w-44 flex flex-col">
+                          <ItemCard item={item} onOpen={openModal} />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  /* List mode — 2-col compact grid */
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {cat.products.map((item: any) => (
                       <div
                         key={item._id}
@@ -428,19 +447,17 @@ export default function HomePage() {
                           src={item.image || "/images/item/thumb.png"}
                           alt={item.name}
                           className="w-24 sm:w-28 h-24 sm:h-28 object-cover rounded-l-lg shrink-0"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = "/images/item/thumb.png";
-                          }}
+                          onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }}
                         />
                         <div className="p-3 flex-1 min-w-0 flex flex-col justify-between h-full">
                           <div className="min-w-0 mb-1">
                             <h4
-                              className="text-sm font-semibold text-[#14142b] leading-snug break-words w-full capitalize"
+                              className="text-sm font-semibold text-[#14142b] leading-snug w-full capitalize line-clamp-2"
                               title={item.name}
                             >
                               {item.name}
                             </h4>
-                            <p className="text-[10px] leading-4 sm:text-xs sm:leading-5 text-[#6e7191] line-clamp-1 mt-0.5 break-words">
+                            <p className="text-[10px] leading-4 sm:text-xs sm:leading-5 text-[#6e7191] line-clamp-1 mt-0.5">
                               {item.description}
                             </p>
                           </div>
@@ -449,10 +466,7 @@ export default function HomePage() {
                               {formatPrice(item.price)}
                             </span>
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openModal(item);
-                              }}
+                              onClick={(e) => { e.stopPropagation(); openModal(item); }}
                               className="product-card-list-cart-btn flex items-center gap-1.5 text-xs font-semibold text-white px-3 py-1.5 rounded-3xl shrink-0"
                               style={{ backgroundColor: "var(--primary-hex)" }}
                             >
@@ -475,10 +489,10 @@ export default function HomePage() {
   );
 }
 
-/* Reusable grid card */
+/* Reusable grid card — h-full ensures uniform height inside aisle rows */
 function ItemCard({ item, onOpen }: { item: any; onOpen: (item: any) => void }) {
   return (
-    <div onClick={() => onOpen(item)} className="product-card-grid cursor-pointer group overflow-hidden w-full min-w-0">
+    <div onClick={() => onOpen(item)} className="product-card-grid cursor-pointer group overflow-hidden w-full min-w-0 h-full">
       <div className="relative pt-[75%] bg-[#f7f7fc] rounded-t-2xl overflow-hidden">
         <img src={item.image || "/images/item/thumb.png"} alt={item.name}
           className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -492,7 +506,7 @@ function ItemCard({ item, onOpen }: { item: any; onOpen: (item: any) => void }) 
       </div>
       <div className="p-2.5 sm:p-3 flex-1 min-w-0 flex flex-col justify-between">
         <div className="min-w-0 mb-1">
-          <h4 className="text-xs sm:text-sm font-semibold text-[#14142b] leading-snug break-words w-full capitalize" title={item.name}>{item.name}</h4>
+          <h4 className="text-xs sm:text-sm font-semibold text-[#14142b] leading-snug w-full capitalize line-clamp-2" title={item.name}>{item.name}</h4>
           <p className="text-[10px] leading-4 sm:text-xs sm:leading-5 text-[#6e7191] line-clamp-2 mt-0.5 break-words flex-1">{item.description}</p>
         </div>
         <div className="flex items-center justify-between gap-1 w-full min-w-0 pt-1 mt-auto">
