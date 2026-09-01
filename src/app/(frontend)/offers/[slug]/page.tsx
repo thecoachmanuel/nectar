@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import ItemModal from "@/components/frontend/ItemModal";
 import { useSettingStore } from "@/store/useSettingStore";
 import { formatPrice } from "@/lib/formatters";
-import { List, Grid } from "lucide-react";
+import { List, Grid, Plus } from "lucide-react";
 import Link from "next/link";
 
 export default function OfferDetailsPage() {
