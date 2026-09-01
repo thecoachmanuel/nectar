@@ -54,7 +54,7 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
 
   const extraTotal = selectedExtras.reduce((acc, e) => acc + (Number(e.price) || 0), 0);
   const addonTotal = selectedAddons.reduce((acc, a) => acc + (Number(a.price) || 0), 0);
-  const hasDiscount = !selectedVariation && item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price);
+  const hasDiscount = Boolean(!selectedVariation && item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price));
   const effectiveBasePrice = hasDiscount ? Number(item.discountPrice) : (selectedVariation ? Number(selectedVariation.price) : Number(item.price || 0));
   const basePrice = effectiveBasePrice;
   const unitPrice = basePrice + extraTotal + addonTotal;

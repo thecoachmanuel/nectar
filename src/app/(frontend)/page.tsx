@@ -347,7 +347,7 @@ export default function HomePage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {popularItems.map((item) => {
-                const hasDiscount = item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price);
+                const hasDiscount = Boolean(item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price));
                 return (
                   <div key={item._id} onClick={() => openModal(item)}
                     className="product-card-list cursor-pointer overflow-hidden w-full min-w-0">
@@ -463,7 +463,7 @@ export default function HomePage() {
                   /* List mode — 2-col compact grid */
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {cat.products.map((item: any) => {
-                      const hasDiscount = item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price);
+                      const hasDiscount = Boolean(item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price));
                       return (
                         <div
                           key={item._id}
@@ -539,7 +539,7 @@ export default function HomePage() {
 
 /* Reusable grid card — h-full ensures uniform height inside aisle rows */
 function ItemCard({ item, onOpen }: { item: any; onOpen: (item: any) => void }) {
-  const hasDiscount = item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price);
+  const hasDiscount = Boolean(item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price));
 
   return (
     <div onClick={() => onOpen(item)} className="product-card-grid cursor-pointer group overflow-hidden w-full min-w-0 h-full">

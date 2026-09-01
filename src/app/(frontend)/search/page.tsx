@@ -1,12 +1,11 @@
-"use client";
-
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import ItemModal from "@/components/frontend/ItemModal";
+import ProductRequestModal from "@/components/frontend/ProductRequestModal";
 import { useSettingStore } from "@/store/useSettingStore";
 import { formatPrice } from "@/lib/formatters";
-import { List, Grid, Plus } from "lucide-react";
+import { List, Grid, Plus, PackageSearch } from "lucide-react";
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -17,6 +16,7 @@ function SearchContent() {
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [requestModalOpen, setRequestModalOpen] = useState(false);
 
   useEffect(() => {
     fetchItems();
@@ -71,7 +71,7 @@ function SearchContent() {
             menuViewMode === "grid" ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 lg:gap-6">
                 {items.map(item => {
-                  const hasDiscount = item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price);
+                  const hasDiscount = Boolean(item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price));
                   return (
                     <div key={item._id} className="product-card-grid cursor-pointer overflow-hidden w-full min-w-0" onClick={() => { setSelectedItem(item); setIsModalOpen(true); }}>
                       <div className="relative w-full pt-[75%] bg-[#f7f7fc] overflow-hidden">
@@ -111,7 +111,7 @@ function SearchContent() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
                 {items.map(item => {
-                  const hasDiscount = item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price);
+                  const hasDiscount = Boolean(item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price));
                   return (
                     <div key={item._id} className="relative flex items-center rounded-2xl border border-[#eff0f6] bg-white transition hover:shadow-xl cursor-pointer overflow-hidden w-full min-w-0" onClick={() => { setSelectedItem(item); setIsModalOpen(true); }}>
                       <div className="relative shrink-0">
@@ -151,20 +151,42 @@ function SearchContent() {
               </div>
             )
           ) : (
-            <div className="mt-12 text-center">
-              <div className="max-w-[250px] mx-auto">
-                <img className="w-full mb-8 opacity-60" src="/images/item/item-not-found.png" alt="Not found" />
+            <div className="mt-12 text-center py-12 px-4 bg-white rounded-3xl border border-[#eff0f6] max-w-xl mx-auto shadow-sm">
+              <div className="w-16 h-16 bg-[#FFF0F5] text-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <PackageSearch className="w-8 h-8" />
               </div>
-              <span className="block w-full mb-4 text-center text-[#14142b]">No items found</span>
-              <Link href="/" className="block w-full mx-auto max-w-[250px] py-3 rounded-3xl capitalize text-base font-medium leading-6 text-center bg-primary text-white hover:bg-rose-600 transition-colors">
-                Go to Home
-              </Link>
+              <h3 className="text-lg sm:text-xl font-bold text-[#14142b]">
+                No Products Found for &ldquo;{query}&rdquo;
+              </h3>
+              <p className="text-xs sm:text-sm text-[#6e7191] mt-1.5 max-w-md mx-auto leading-relaxed">
+                We don&apos;t have this item in stock right now, but you can request it and we&apos;ll get it for you!
+              </p>
+              <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <button
+                  onClick={() => setRequestModalOpen(true)}
+                  className="w-full sm:w-auto px-6 h-11 rounded-2xl bg-primary text-white text-xs sm:text-sm font-semibold hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20 flex items-center justify-center gap-2"
+                >
+                  <PackageSearch className="w-4 h-4" />
+                  <span>Request This Product</span>
+                </button>
+                <Link
+                  href="/menu"
+                  className="w-full sm:w-auto px-6 h-11 rounded-2xl border border-[#eff0f6] bg-[#FAFAFC] text-[#14142b] text-xs sm:text-sm font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center"
+                >
+                  Browse Menu
+                </Link>
+              </div>
             </div>
           )}
         </div>
       </section>
 
       <ItemModal item={selectedItem} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <ProductRequestModal
+        isOpen={requestModalOpen}
+        onClose={() => setRequestModalOpen(false)}
+        initialProductName={query}
+      />
     </>
   );
 }

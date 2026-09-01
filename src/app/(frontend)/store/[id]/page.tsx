@@ -138,7 +138,7 @@ export default function StoreDetailsPage() {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
               {items.map((item) => {
-                const hasDiscount = item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price);
+                const hasDiscount = Boolean(item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price));
                 return (
                   <div key={item._id} onClick={() => openModal(item)} className="product-card-grid cursor-pointer group overflow-hidden w-full min-w-0">
                     <div className="relative pt-[75%] bg-[#f7f7fc] rounded-t-2xl overflow-hidden">

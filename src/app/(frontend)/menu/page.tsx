@@ -42,7 +42,7 @@ function groupByCategory(items: any[], categories: any[]) {
 
 /* ─── small product card (grid) ──────────────────────── */
 function ProductCard({ item, onOpen }: { item: any; onOpen: (i: any) => void }) {
-  const hasDiscount = item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price);
+  const hasDiscount = Boolean(item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price));
 
   return (
     <div
@@ -103,7 +103,7 @@ function ProductCard({ item, onOpen }: { item: any; onOpen: (i: any) => void }) 
 
 /* ─── list row card ───────────────────────────────────── */
 function ProductRow({ item, onOpen }: { item: any; onOpen: (i: any) => void }) {
-  const hasDiscount = item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price);
+  const hasDiscount = Boolean(item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price));
 
   return (
     <div
