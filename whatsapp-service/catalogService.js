@@ -1,4 +1,4 @@
-// ─── Catalog Service ────────────────────────────────────────────────────────
+﻿// ΓöÇΓöÇΓöÇ Catalog Service ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 // Fetches active categories and products live from MongoDB with 5-min caching
 
 const NodeCache = require("node-cache");
@@ -28,7 +28,7 @@ async function getCategories(db) {
     catalogCache.set(cacheKey, formatted);
     return formatted;
   } catch (err) {
-    console.error("⚠️ Error fetching categories:", err.message);
+    console.error("ΓÜá∩╕Å Error fetching categories:", err.message);
     return [];
   }
 }
@@ -70,7 +70,7 @@ async function getItemsByCategory(db, categoryId) {
     catalogCache.set(cacheKey, formatted);
     return formatted;
   } catch (err) {
-    console.error("⚠️ Error fetching items by category:", err.message);
+    console.error("ΓÜá∩╕Å Error fetching items by category:", err.message);
     return [];
   }
 }
@@ -106,7 +106,7 @@ async function searchItems(db, searchTerm) {
     catalogCache.set(cacheKey, formatted);
     return formatted;
   } catch (err) {
-    console.error("⚠️ Error searching items:", err.message);
+    console.error("ΓÜá∩╕Å Error searching items:", err.message);
     return [];
   }
 }

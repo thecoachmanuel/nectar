@@ -32,8 +32,6 @@ function createInitialSession(phone) {
     isKnownUser: false,
     userIdentified: false,
     lastActivity: Date.now(),
-    wishlistItems: [],
-    wishlistRawInput: "",
     // Bot mode control: null means bot is fully active
     botPausedUntil: null,
   };
@@ -66,8 +64,6 @@ function resetToMenu(phone) {
   session.browseItems = [];
   session.searchResults = [];
   session.recentOrders = [];
-  session.wishlistItems = [];
-  session.wishlistRawInput = "";
   session.lastActivity = Date.now();
   return session;
 }
@@ -80,8 +76,6 @@ function clearCart(phone) {
   session.selectedVariation = null;
   session.availableVariations = [];
   session.recentOrders = [];
-  session.wishlistItems = [];
-  session.wishlistRawInput = "";
   session.lastActivity = Date.now();
   return session;
 }

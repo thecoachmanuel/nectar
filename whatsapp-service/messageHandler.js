@@ -33,31 +33,17 @@ function buildCartSummary(cart) {
 }
 
 function buildWelcomeMenu(session) {
-  const isKnown = session.isKnownUser && session.customerName;
-
-  let greeting = "";
-  if (isKnown) {
-    const addressHint =
-      session.savedAddresses && session.savedAddresses.length > 0
-        ? `\n≡ƒôì _Saved delivery address available_`
-        : "";
-    greeting = `≡ƒæï Welcome back, *${session.customerName}*! Γ£¿\n≡ƒî┐ Ready to restock your fresh groceries with *Nectar*?${addressHint}`;
-  } else {
-    greeting = `≡ƒî┐ *Welcome to Nectar Groceries!* ≡ƒÑª\n\nFresh groceries delivered straight to your door.`;
-  }
-
-  const profileOption = isKnown ? `5∩╕ÅΓâú *My Profile & Addresses* ≡ƒæñ\n` : "";
-  const replyHint = isKnown ? `_Reply *1*, *2*, *3*, *4*, or *5* to start_` : `_Reply *1*, *2*, *3*, or *4* to start_`;
+  const greeting = session.isKnownUser && session.customerName
+    ? `≡ƒæï Welcome back, *${session.customerName}*!\n\n≡ƒî┐ Ready to restock your fresh groceries with *Nectar*?`
+    : `≡ƒî┐ *Welcome to Nectar Groceries!* ≡ƒÑª\n\nFresh groceries delivered straight to your door.`;
 
   return (
     `${greeting}\n\n` +
     `How would you like to proceed today?\n\n` +
-    `1∩╕ÅΓâú *Browse by Category* ≡ƒôª\n` +
-    `2∩╕ÅΓâú *Search for an Item* ≡ƒöì\n` +
-    `3∩╕ÅΓâú *Track an Order* ≡ƒÜÜ\n` +
-    `4∩╕ÅΓâú *Submit Shopping Wishlist* ≡ƒô¥ _(Items you buy often)_\n` +
-    profileOption +
-    `\n${replyHint}\n` +
+    `1∩╕ÅΓâú *Browse by Category*\n` +
+    `2∩╕ÅΓâú *Search for an item*\n` +
+    `3∩╕ÅΓâú *Track an Order* ≡ƒÜÜ\n\n` +
+    `_Reply *1*, *2*, or *3* to start_\n` +
     `_Type *CART* to view cart | *HELP* for commands_`
   );
 }
@@ -245,223 +231,6 @@ async function showOrderTrackingCard(db, serialOrId, phone, sendFn) {
   );
 }
 
-async function showCustomerProfileCard(db, session, phone, sendFn) {
-  if (!session.isKnownUser && !session.customerName) {
-    return sendFn(
-      phone,
-      `≡ƒæñ *Customer Profile*\n\n` +
-        `We haven't linked a registered account to this number (+${phone}) yet.\n\n` +
-        `When you place your first order or register on our app, your addresses and history will be saved automatically!\n\n` +
-        `_Reply *MENU* to browse groceries or *WISHLIST* to suggest items you buy often._`
-    );
-  }
-
-  // Look up recent orders count
-  let orderCount = 0;
-  let lastOrderDate = "None yet";
-  try {
-    const ordersCollection = db.collection("orders");
-    const query = [];
-    if (session.userId && ObjectId.isValid(session.userId)) {
-      query.push({ userId: new ObjectId(session.userId) });
-    }
-    const cleanPhone = userService.cleanDigits(phone);
-    if (cleanPhone.length >= 7) {
-      query.push({ customerPhone: { $regex: cleanPhone.slice(-9), $options: "i" } });
-    }
-    if (query.length > 0) {
-      const orders = await ordersCollection
-        .find({ $or: query })
-        .sort({ createdAt: -1 })
-        .limit(5)
-        .toArray();
-      orderCount = orders.length;
-      if (orders.length > 0 && orders[0].createdAt) {
-        lastOrderDate = new Date(orders[0].createdAt).toLocaleDateString("en-NG", {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-        });
-      }
-    }
-  } catch (e) {}
-
-  const addressLines =
-    (session.savedAddresses || []).length > 0
-      ? session.savedAddresses
-          .map((a, i) => `  ΓÇó ${a.address || "Address"} ${a.isDefault ? "*(Default)*" : ""}`)
-          .join("\n")
-      : "  ΓÇó No saved address yet";
-
-  return sendFn(
-    phone,
-    `≡ƒæñ *Your Nectar Profile*\n\n` +
-      `ΓÇó *Name:* ${session.customerName || "Valued Customer"}\n` +
-      `ΓÇó *Phone:* ${session.customerPhone || "+" + phone}\n` +
-      (session.customerEmail ? `ΓÇó *Email:* ${session.customerEmail}\n` : "") +
-      `ΓÇó *Total Orders Placed:* ${orderCount}\n` +
-      `ΓÇó *Last Order Date:* ${lastOrderDate}\n\n` +
-      `≡ƒôì *Saved Addresses:*\n${addressLines}\n\n` +
-      `_Reply *1* to browse, *3* to track, *4* for wishlist, or *MENU*_`
-  );
-}
-
-function startWishlistFlow(session, phone, sendFn) {
-  session.step = "WISHLIST_COLLECT";
-  session.wishlistItems = [];
-  session.wishlistRawInput = "";
-
-  const nameGreeting = session.customerName ? ` ${session.customerName}` : "";
-
-  return sendFn(
-    phone,
-    `≡ƒô¥ *Submit Your Shopping Wishlist* ≡ƒ¢ì∩╕Å\n\n` +
-      `Hi${nameGreeting}! We want to make sure Nectar stocks all the grocery items and brands you buy frequently.\n\n` +
-      `Please tell us what products you buy often and would love to see on the app:\n\n` +
-      `Γ£ì∩╕Å *Examples:*\n` +
-      `ΓÇó _Indomie Chicken 70g (Carton)_\n` +
-      `ΓÇó _Golden Penny Spaghetti 500g_\n` +
-      `ΓÇó _Dano Full Cream Milk 800g_\n` +
-      `ΓÇó _Devon King's Cooking Oil 5L_\n` +
-      `ΓÇó _Titus Sardines (Carton)_\n\n` +
-      `_Send your items separated by commas or on separate lines:_\n` +
-      `_(Type *CANCEL* anytime to exit)_`
-  );
-}
-
-async function handleWishlistCollection(session, text, phone, sendFn) {
-  const upper = text.toUpperCase();
-  if (["CANCEL", "EXIT", "MENU"].includes(upper)) {
-    sessionManager.resetToMenu(phone);
-    return sendFn(phone, `Wishlist submission cancelled.\n\n` + buildWelcomeMenu(session));
-  }
-
-  // Parse items from comma or line breaks
-  const items = text
-    .split(/[\n,;]+/)
-    .map((s) => s.trim().replace(/^[-*ΓÇó\d.)\s]+/, ""))
-    .filter((s) => s.length > 0);
-
-  if (items.length === 0) {
-    return sendFn(
-      phone,
-      `Please enter at least one grocery item (e.g. *Golden Penny Sugar, Peak Milk*):`
-    );
-  }
-
-  session.wishlistRawInput = text;
-  session.wishlistItems = items.map((name) => ({ name }));
-  session.step = "WISHLIST_DETAILS";
-
-  const preview = items.map((item, i) => `${i + 1}. *${item}*`).join("\n");
-
-  return sendFn(
-    phone,
-    `Γ£à *Got it! We noted ${items.length} item${items.length === 1 ? "" : "s"}:*\n\n` +
-      `${preview}\n\n` +
-      `Would you like to add any preferred brands, package sizes, or extra notes?\n\n` +
-      `ΓÇó Type your preferred sizes/brands (e.g. _"1kg size only, carton packaging"_)\n` +
-      `ΓÇó Or reply *DONE* (or *1*) to submit now! ≡ƒÜÇ`
-  );
-}
-
-async function handleWishlistFinalize(db, appUrl, session, text, phone, sendFn) {
-  const upper = text.toUpperCase();
-  if (["CANCEL", "EXIT", "MENU"].includes(upper)) {
-    sessionManager.resetToMenu(phone);
-    return sendFn(phone, `Wishlist cancelled.\n\n` + buildWelcomeMenu(session));
-  }
-
-  let additionalNotes = "";
-  if (!["DONE", "1", "NO", "SUBMIT", "OK", "FINISH", "NONE", "CONFIRM"].includes(upper)) {
-    additionalNotes = text.trim();
-  }
-
-  const items = session.wishlistItems || [];
-  if (items.length === 0 && session.wishlistRawInput) {
-    items.push({ name: session.wishlistRawInput });
-  }
-
-  try {
-    const shoppingWishlists = db.collection("shoppingwishlists");
-    const customerName = session.customerName || (session.isKnownUser ? "Registered Customer" : "WhatsApp Customer");
-    const customerPhone = session.customerPhone || userService.normalizeCustomerPhone(phone);
-
-    let userObjId = null;
-    if (session.userId && ObjectId.isValid(session.userId)) {
-      userObjId = new ObjectId(session.userId);
-    }
-
-    const doc = {
-      customerPhone,
-      customerName,
-      userId: userObjId,
-      items: items.map((it) => ({
-        name: it.name,
-        brandOrSize: additionalNotes || undefined,
-      })),
-      rawInput: session.wishlistRawInput || text,
-      status: "new",
-      source: "whatsapp",
-      adminNotes: additionalNotes ? `Customer note: ${additionalNotes}` : undefined,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    await shoppingWishlists.insertOne(doc);
-    console.log(`≡ƒô¥ Shopping wishlist saved for ${customerPhone}: ${items.length} items`);
-
-    // Alert Admin WhatsApp number
-    try {
-      const adminSetting = await db.collection("settings").findOne({
-        key: { $in: ["admin_notification_whatsapp_number", "wa_admin_notification_phone", "company_phone"] },
-      });
-      const adminPhone = adminSetting?.payload ? String(adminSetting.payload).replace(/\D/g, "") : null;
-      if (adminPhone && adminPhone.length >= 7) {
-        const itemsListStr = items.map((it, idx) => `${idx + 1}. *${it.name}*`).join("\n");
-        const dateStr = new Date().toLocaleString("en-NG", { dateStyle: "medium", timeStyle: "short" });
-
-        const adminAlertText =
-          `≡ƒô¥ *NEW CUSTOMER SHOPPING WISHLIST!* ≡ƒ¢ÆΓ£¿\n` +
-          `ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü\n` +
-          `≡ƒæñ *Customer:* ${customerName}\n` +
-          `≡ƒô▒ *Phone:* +${customerPhone.replace(/^\+/, "")}\n` +
-          `≡ƒôà *Date:* ${dateStr}\n\n` +
-          `≡ƒ¢ì∩╕Å *ITEMS REQUESTED (${items.length}):*\n` +
-          `${itemsListStr}\n` +
-          (additionalNotes ? `\n≡ƒô¥ *Notes / Sizes:* ${additionalNotes}\n` : "\n") +
-          `ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü\n` +
-          `≡ƒæë *Manage Wishlists in Admin:*\n` +
-          `${appUrl}/admin/shopping-wishlist`;
-
-        sendFn(adminPhone, adminAlertText).catch((e) => console.error("Admin WA wishlist alert error:", e.message));
-      }
-    } catch (adminErr) {
-      console.error("Admin notification failed:", adminErr.message);
-    }
-
-    // Reset session step
-    session.wishlistItems = [];
-    session.wishlistRawInput = "";
-    session.step = "MAIN_MENU";
-
-    return sendFn(
-      phone,
-      `≡ƒÄë *Thank you${session.customerName ? `, ${session.customerName}` : ""}!*\n\n` +
-        `We've sent your *${items.length} requested item${items.length === 1 ? "" : "s"}* straight to our inventory sourcing team. ≡ƒÑª≡ƒôª\n\n` +
-        `We'll work on stocking them and will notify you right here on WhatsApp as soon as they become available! Γ£¿\n\n` +
-        `_Reply with *MENU* anytime to browse our active grocery catalog._`
-    );
-  } catch (err) {
-    console.error("Failed to save shopping wishlist:", err);
-    session.step = "MAIN_MENU";
-    return sendFn(
-      phone,
-      `ΓÜá∩╕Å We received your items, but had a temporary error recording them. Our team has been alerted! Type *MENU* to continue.`
-    );
-  }
-}
-
 async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
   // Check if input is a location object or text
   let text = "";
@@ -490,17 +259,12 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
     "CANCEL", "EXIT",
     "MORE", "SHOP", "KEEP SHOPPING",
     "STATUS", "MY ORDER",
-    "WISHLIST", "SUGGEST", "MY LIST", "REQUEST",
-    "PROFILE", "ACCOUNT", "MY PROFILE", "ADDRESS", "ADDRESSES",
   ];
 
   const isHardCommand =
     ALWAYS_ON_COMMANDS.includes(upper) ||
     upper.startsWith("TRACK") ||
     upper.startsWith("ORDER") ||
-    upper.startsWith("WISH") ||
-    upper.startsWith("SUGGEST") ||
-    upper.startsWith("PROFILE") ||
     upper.match(/^ORD-/i);
 
   // Active ordering funnel check:
@@ -549,23 +313,6 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
     return sendFn(phone, buildWelcomeMenu(session));
   }
 
-  // Wishlist shortcut command e.g. "WISHLIST", "SUGGEST", "MY LIST"
-  if (
-    ["WISHLIST", "SUGGEST", "MY LIST", "REQUEST"].includes(upper) ||
-    upper.startsWith("WISHLIST") ||
-    upper.startsWith("SUGGEST")
-  ) {
-    return startWishlistFlow(session, phone, sendFn);
-  }
-
-  // Profile shortcut command e.g. "PROFILE", "ACCOUNT", "MY PROFILE"
-  if (
-    ["PROFILE", "ACCOUNT", "MY PROFILE", "ADDRESS", "ADDRESSES"].includes(upper) ||
-    upper.startsWith("PROFILE")
-  ) {
-    return showCustomerProfileCard(db, session, phone, sendFn);
-  }
-
   // Track command with optional serial e.g. "TRACK ORD-123456"
   if (upper.startsWith("TRACK") || upper === "STATUS" || upper === "MY ORDER") {
     const parts = text.split(/\s+/);
@@ -605,8 +352,6 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
         `Here are the commands you can use anytime:\n` +
         `ΓÇó *MENU* ΓÇö Main store menu\n` +
         `ΓÇó *TRACK* ΓÇö Track your order status ≡ƒÜÜ\n` +
-        `ΓÇó *WISHLIST* ΓÇö Submit items you buy often ≡ƒô¥\n` +
-        `ΓÇó *PROFILE* ΓÇö View account details & saved addresses ≡ƒæñ\n` +
         `ΓÇó *CART* ΓÇö View your shopping cart\n` +
         `ΓÇó *CHECKOUT* ΓÇö Place your order\n` +
         `ΓÇó *CLEAR* ΓÇö Empty your cart\n` +
@@ -672,14 +417,6 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
         return startTrackOrderFlow(db, session, phone, null, sendFn);
       }
 
-      if (text === "4" || upper.includes("WISH") || upper.includes("SUGGEST") || upper.includes("LIST")) {
-        return startWishlistFlow(session, phone, sendFn);
-      }
-
-      if (text === "5" || upper.includes("PROFILE") || upper.includes("ACCOUNT") || upper.includes("ADDRESS")) {
-        return showCustomerProfileCard(db, session, phone, sendFn);
-      }
-
       if (upper === "CHECKOUT") {
         if (session.cart.length === 0) {
           return sendFn(
@@ -692,7 +429,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
 
       return sendFn(
         phone,
-        `Please reply with *1* to browse, *2* to search, *3* to track, *4* for wishlist, or *5* for profile.\n\n` +
+        `Please reply with *1* to browse, *2* to search, or *3* to track an order.\n\n` +
           buildWelcomeMenu(session)
       );
     }
@@ -1033,15 +770,6 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
           `*1* ΓÇö Pay with Paystack (Instant secure online link)\n` +
           `*2* ΓÇö Pay via Bank Transfer (Direct account transfer)`
       );
-    }
-
-    // ΓöÇΓöÇ SHOPPING WISHLIST STEPS ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
-    case "WISHLIST_COLLECT": {
-      return handleWishlistCollection(session, text, phone, sendFn);
-    }
-
-    case "WISHLIST_DETAILS": {
-      return handleWishlistFinalize(db, appUrl, session, text, phone, sendFn);
     }
 
     default: {

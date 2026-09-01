@@ -1,4 +1,4 @@
-// ─── Geocoding & Address Validation Service ─────────────────────────────────
+﻿// ΓöÇΓöÇΓöÇ Geocoding & Address Validation Service ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 // Validates text addresses, converts to GPS coordinates via Google Maps API, or enforces completeness
 
 async function getGoogleMapsApiKey(db) {
@@ -58,7 +58,7 @@ async function geocodeAddress(db, addressText) {
         const formatted = result.formatted_address || clean;
 
         if (lat !== undefined && lng !== undefined) {
-          console.log(`📍 Geocoded "${clean}" ➔ (${lat}, ${lng}) - ${formatted}`);
+          console.log(`≡ƒôì Geocoded "${clean}" Γ₧ö (${lat}, ${lng}) - ${formatted}`);
           return {
             success: true,
             latitude: lat,
@@ -68,7 +68,7 @@ async function geocodeAddress(db, addressText) {
         }
       }
     } catch (apiErr) {
-      console.warn("⚠️ Google Geocoding request failed:", apiErr.message);
+      console.warn("ΓÜá∩╕Å Google Geocoding request failed:", apiErr.message);
     }
   }
 

@@ -180,6 +180,7 @@ function buildStatusMessage(orderSerialNo, status, customerName, totalAmount) {
 }
 
 // ΓöÇΓöÇΓöÇ Format phone for WhatsApp ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ΓöÇΓöÇΓöÇ Format phone for WhatsApp ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 function formatPhone(phoneOrJid) {
   let str = String(phoneOrJid || "").trim();
   // Strip any multi-device suffix e.g. 2348012345678:4@s.whatsapp.net -> 2348012345678@s.whatsapp.net
@@ -277,17 +278,14 @@ async function connectToWhatsApp() {
         keys: makeCacheableSignalKeyStore(state.keys, logger),
       },
       msgRetryCounterCache,
-      browser: Browsers.ubuntu("Chrome"), // Ubuntu browser fingerprint — more stable with WhatsApp servers
+      browser: Browsers.macOS("Chrome"), // Standard desktop browser signature
       printQRInTerminal: false,
       logger,
       syncFullHistory: false,
       markOnlineOnConnect: true,
-      keepAliveIntervalMs: 20000,
+      keepAliveIntervalMs: 30000,
       connectTimeoutMs: 60000,
       defaultQueryTimeoutMs: 60000,
-      retryRequestDelayMs: 500,
-      maxMsgRetryCount: 5,
-      fireInitQueries: true,
       generateHighQualityLinkPreview: false,
       getMessage: getStoredMessage,
     });
@@ -409,29 +407,22 @@ async function connectToWhatsApp() {
         clearTimeout(reconnectTimer);
 
         if (statusCode === DisconnectReason.restartRequired) {
-          console.log("🔄 Immediate restart required by WhatsApp server...");
-          reconnectAttempts = 0;
+          console.log("≡ƒöä Immediate restart required by WhatsApp server...");
           reconnectTimer = setTimeout(connectToWhatsApp, 1000);
         } else if (statusCode === DisconnectReason.loggedOut) {
-          // Only wipe auth on a GENUINE logout. If connected within 30s, treat as transient 401.
-          const recentlyConnected = lastConnectedAt && (Date.now() - lastConnectedAt < 30000);
-          if (!recentlyConnected) {
-            console.log("🔴 Logged out. Clearing MongoDB auth so admin can re-scan QR...");
-            qrDataUrl = null;
-            try {
-              const coll = await getAuthCollection();
-              await coll.deleteMany({});
-            } catch (e) {}
-          } else {
-            console.log("⚠️ loggedOut within 30s of connect — treating as transient, NOT clearing auth.");
-          }
-          reconnectAttempts = 0;
+          console.log("≡ƒö┤ Logged out explicitly. Clearing MongoDB auth and regenerating QR code...");
+          qrDataUrl = null;
+          try {
+            const coll = await getAuthCollection();
+            await coll.deleteMany({});
+          } catch (e) {}
           reconnectTimer = setTimeout(connectToWhatsApp, 2000);
+        } else {
         } else {
           // Exponential backoff: 3s -> 6s -> 12s -> 24s -> 48s (max 60s)
           reconnectAttempts = Math.min(reconnectAttempts + 1, 5);
           const delay = Math.min(3000 * Math.pow(2, reconnectAttempts - 1), 60000);
-          console.log(`🔄 Reconnecting in ${delay / 1000}s (attempt ${reconnectAttempts})...`);
+          console.log(🔄 Reconnecting in \s (attempt \)...);
           reconnectTimer = setTimeout(connectToWhatsApp, delay);
         }
       }

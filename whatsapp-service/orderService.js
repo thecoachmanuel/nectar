@@ -1,4 +1,4 @@
-// ─── Order Service ──────────────────────────────────────────────────────────
+﻿// ΓöÇΓöÇΓöÇ Order Service ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 // Creates orders directly in MongoDB matching the Next.js Order schema with exact online delivery calculation
 
 const { ObjectId } = require("mongodb");
@@ -75,7 +75,7 @@ async function calculateDeliveryFee(db, { cart, subtotal, latitude, longitude, a
   let adminLat = undefined;
   let adminLng = undefined;
   let orderValueFeePercent = 2; // Default 2% handling fee
-  let largeOrderThreshold = 20000; // Default ₦20,000 threshold
+  let largeOrderThreshold = 20000; // Default Γéª20,000 threshold
   let largeOrderFeePercent = 3; // Default 3% extra for large orders
 
   try {
@@ -152,7 +152,7 @@ async function calculateDeliveryFee(db, { cart, subtotal, latitude, longitude, a
 
   const totalDelivery = rawDeliveryFee + orderValueFee + largeOrderSurcharge;
 
-  console.log(`🚚 [Live DB Delivery Calculation] Base: ₦${baseFee}, PerKm: ₦${feePerKm}, Distance: ${distanceKm || 0}km (Fee: ₦${Math.round(maxDistance * feePerKm)}), Handling: ₦${orderValueFee}, LargeOrderSurcharge: ₦${largeOrderSurcharge} ➔ Total Delivery: ₦${totalDelivery}`);
+  console.log(`≡ƒÜÜ [Live DB Delivery Calculation] Base: Γéª${baseFee}, PerKm: Γéª${feePerKm}, Distance: ${distanceKm || 0}km (Fee: Γéª${Math.round(maxDistance * feePerKm)}), Handling: Γéª${orderValueFee}, LargeOrderSurcharge: Γéª${largeOrderSurcharge} Γ₧ö Total Delivery: Γéª${totalDelivery}`);
 
   return {
     deliveryCharge: totalDelivery,
@@ -240,7 +240,7 @@ async function createWhatsAppOrder(db, {
   const insertResult = await ordersCollection.insertOne(orderDoc);
   orderDoc._id = insertResult.insertedId;
 
-  console.log(`📦 New WhatsApp Order #${orderSerialNo} (Phone: ${validPhone}) - Total: ₦${totalAmount.toLocaleString()} (Delivery: ₦${finalDeliveryCharge})`);
+  console.log(`≡ƒôª New WhatsApp Order #${orderSerialNo} (Phone: ${validPhone}) - Total: Γéª${totalAmount.toLocaleString()} (Delivery: Γéª${finalDeliveryCharge})`);
 
   return orderDoc;
 }

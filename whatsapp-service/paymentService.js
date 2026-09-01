@@ -1,4 +1,4 @@
-// ─── Payment Service ────────────────────────────────────────────────────────
+﻿// ΓöÇΓöÇΓöÇ Payment Service ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 // Handles Paystack link generation and Bank Transfer details from Admin settings
 
 async function getFrontendAppUrl(db) {
@@ -24,7 +24,7 @@ async function getFrontendAppUrl(db) {
       }
     }
   } catch (err) {
-    console.warn("⚠️ Could not read site_url setting from DB:", err.message);
+    console.warn("ΓÜá∩╕Å Could not read site_url setting from DB:", err.message);
   }
 
   // 3. Fallback to configured or typical Vercel app URL
@@ -59,7 +59,7 @@ async function getBankAccountDetails(db) {
       };
     }
   } catch (err) {
-    console.error("⚠️ Error reading bank account settings:", err.message);
+    console.error("ΓÜá∩╕Å Error reading bank account settings:", err.message);
   }
 
   // Fallback defaults if not yet configured by admin
@@ -91,7 +91,7 @@ async function initializePaystackPayment(db, appUrlOverride, order) {
       };
     }
   } catch (apiErr) {
-    console.warn("⚠️ Next.js Paystack init endpoint unreachable, trying direct Paystack API:", apiErr.message);
+    console.warn("ΓÜá∩╕Å Next.js Paystack init endpoint unreachable, trying direct Paystack API:", apiErr.message);
   }
 
   // Strategy 2: Direct Paystack API call using Secret Key stored in MongoDB
@@ -148,7 +148,7 @@ async function initializePaystackPayment(db, appUrlOverride, order) {
       throw new Error(psData.message || "Paystack initialization rejected");
     }
   } catch (err) {
-    console.error("❌ Paystack initialize error:", err.message);
+    console.error("Γ¥î Paystack initialize error:", err.message);
     return {
       status: false,
       message: err.message,
