@@ -24,7 +24,8 @@ import {
   Mail,
   Bell,
   ExternalLink,
-  ClipboardList
+  ClipboardList,
+  ListPlus
 } from "lucide-react";
 
 interface SidebarProps {
@@ -57,6 +58,7 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
     { name: "Product Categories", icon: <Box className="w-4 h-4" />, path: "/admin/item-categories", roles: ["admin", "store_manager"] },
     { name: "Products", icon: <Utensils className="w-4 h-4" />, path: "/admin/items", roles: ["admin", "store_manager"] },
     { name: "Product Requests", icon: <ClipboardList className="w-4 h-4" />, path: "/admin/product-requests", roles: ["admin", "store_manager"] },
+    { name: "Shopping Wishlists", icon: <ListPlus className="w-4 h-4" />, path: "/admin/shopping-wishlist", roles: ["admin", "store_manager"] },
     { name: "Push Notifications", icon: <Send className="w-4 h-4" />, path: "/admin/push-notifications", roles: ["admin", "store_manager"] },
     { name: "Coupons", icon: <Ticket className="w-4 h-4" />, path: "/admin/coupons", roles: ["admin"] },
     { name: "Offers", icon: <Tag className="w-4 h-4" />, path: "/admin/offers", roles: ["admin", "store_manager"] },
