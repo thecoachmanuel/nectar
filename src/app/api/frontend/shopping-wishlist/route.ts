@@ -30,20 +30,18 @@ export async function POST(req: Request) {
     let parsedItems: { name: string; brandOrSize?: string }[] = [];
 
     if (Array.isArray(items) && items.length > 0) {
-      parsedItems = items
-        .map((item: any) => {
-          if (typeof item === "string") {
-            return { name: item.trim() };
-          }
-          if (item && item.name) {
-            return {
-              name: String(item.name).trim(),
-              brandOrSize: item.brandOrSize ? String(item.brandOrSize).trim() : undefined,
-            };
-          }
-          return null;
-        })
-        .filter((item: any) => Boolean(item && item.name));
+      const mapped: { name: string; brandOrSize?: string }[] = [];
+      for (const item of items) {
+        if (typeof item === "string" && item.trim()) {
+          mapped.push({ name: item.trim() });
+        } else if (item && item.name && String(item.name).trim()) {
+          mapped.push({
+            name: String(item.name).trim(),
+            brandOrSize: item.brandOrSize ? String(item.brandOrSize).trim() : undefined,
+          });
+        }
+      }
+      parsedItems = mapped;
     } else if (rawInput && typeof rawInput === "string") {
       // Split by commas or newlines
       const split = rawInput
