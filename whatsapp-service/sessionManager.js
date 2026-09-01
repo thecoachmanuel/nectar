@@ -1,4 +1,4 @@
-// ─── Session Manager ────────────────────────────────────────────────────────
+﻿// ΓöÇΓöÇΓöÇ Session Manager ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 // In-memory conversation state for customers ordering via WhatsApp
 
 const sessions = new Map();
@@ -24,7 +24,6 @@ function createInitialSession(phone) {
     customerName: null,
     customerEmail: null,
     customerPhone: null,
-    customerWalletBalance: 0,
     savedAddresses: [],
     deliveryAddress: null,
     latitude: undefined,
@@ -97,7 +96,7 @@ function pauseBot(phone, durationMs = BOT_PAUSE_DURATION_MS) {
   const session = getSession(phone);
   session.botPausedUntil = Date.now() + durationMs;
   sessions.set(phone, session);
-  console.log(`⏸️  Bot paused for ${phone} for ${Math.round(durationMs / 60000)} minutes (business replied manually).`);
+  console.log(`ΓÅ╕∩╕Å  Bot paused for ${phone} for ${Math.round(durationMs / 60000)} minutes (business replied manually).`);
   return session;
 }
 
@@ -110,7 +109,7 @@ function resumeBot(phone) {
   session.botPausedUntil = null;
   session.step = "MAIN_MENU";
   sessions.set(phone, session);
-  console.log(`▶️  Bot resumed for ${phone}.`);
+  console.log(`Γû╢∩╕Å  Bot resumed for ${phone}.`);
   return session;
 }
 
@@ -124,10 +123,10 @@ function isBotPaused(phone) {
   const session = sessions.get(phone);
   if (!session || session.botPausedUntil === null) return false;
   if (Date.now() > session.botPausedUntil) {
-    // Pause expired — auto-resume
+    // Pause expired ΓÇö auto-resume
     session.botPausedUntil = null;
     sessions.set(phone, session);
-    console.log(`▶️  Bot auto-resumed for ${phone} (pause window expired).`);
+    console.log(`Γû╢∩╕Å  Bot auto-resumed for ${phone} (pause window expired).`);
     return false;
   }
   return true;

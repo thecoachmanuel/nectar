@@ -1,4 +1,4 @@
-// ─── User Service ───────────────────────────────────────────────────────────
+﻿// ΓöÇΓöÇΓöÇ User Service ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 // Finds and links existing registered users by their phone number with fuzzy matching
 
 function cleanDigits(phone) {
@@ -88,17 +88,18 @@ async function findUserByPhone(db, phone) {
 
     const user = await usersCollection.findOne({ $or: queries });
 
+    if (user) {
+      console.log(`≡ƒæñ Customer identified in DB: ${user.name} (${user.email})`);
       return {
         _id: user._id,
         name: user.name,
         email: user.email,
         phone: user.phone || normalizeCustomerPhone(phone),
-        walletBalance: Number(user.walletBalance || 0),
         addresses: Array.isArray(user.addresses) ? user.addresses : [],
       };
     }
   } catch (err) {
-    console.error("⚠️ Error in findUserByPhone:", err.message);
+    console.error("ΓÜá∩╕Å Error in findUserByPhone:", err.message);
   }
 
   return null;
