@@ -35,7 +35,7 @@ function ProductCard({ item, onOpen }: { item: any; onOpen: (i: any) => void }) 
   return (
     <div
       onClick={() => onOpen(item)}
-      className="product-card-grid cursor-pointer group overflow-hidden w-full min-w-0 flex-shrink-0"
+      className="product-card-grid cursor-pointer group overflow-hidden w-full min-w-0 flex-shrink-0 h-full"
     >
       <div className="relative w-full pt-[75%] bg-[#f7f7fc] overflow-hidden">
         <img
@@ -47,7 +47,7 @@ function ProductCard({ item, onOpen }: { item: any; onOpen: (i: any) => void }) 
       </div>
       <div className="p-2.5 sm:p-3.5 flex-1 flex flex-col justify-between min-w-0">
         <div className="min-w-0 mb-1.5">
-          <h3 className="text-xs sm:text-sm font-semibold capitalize leading-snug break-words w-full text-[#14142b]" title={item.name}>
+          <h3 className="text-xs sm:text-sm font-semibold capitalize leading-snug w-full text-[#14142b] line-clamp-2" title={item.name}>
             {item.name}
           </h3>
           <p className="text-[10px] leading-4 sm:text-xs sm:leading-5 text-[#6e7191] line-clamp-2 mt-0.5 break-words">
@@ -86,7 +86,7 @@ function ProductRow({ item, onOpen }: { item: any; onOpen: (i: any) => void }) {
       />
       <div className="p-3 sm:p-4 flex-1 min-w-0 flex flex-col justify-between h-full">
         <div className="min-w-0 mb-1">
-          <h3 className="text-sm font-semibold capitalize text-[#14142b] leading-snug break-words w-full" title={item.name}>
+          <h3 className="text-sm font-semibold capitalize text-[#14142b] leading-snug w-full line-clamp-2" title={item.name}>
             {item.name}
           </h3>
           <p className="text-[10px] leading-4 sm:text-xs sm:leading-5 text-[#6e7191] line-clamp-2 mt-0.5 break-words">
@@ -158,13 +158,13 @@ function AisleView({
             /* Horizontal scroll row — top grocers (Ocado / Tesco / Instacart) pattern */
             <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6">
               <div
-                className="flex gap-3 sm:gap-4"
+                className="flex gap-3 sm:gap-4 items-stretch"
                 style={{ width: "max-content" }}
               >
                 {items.map(item => (
                   <div
                     key={item._id}
-                    className="w-[8.5rem] sm:w-44"
+                    className="w-[8.5rem] sm:w-44 flex flex-col"
                   >
                     <ProductCard item={item} onOpen={onOpen} />
                   </div>

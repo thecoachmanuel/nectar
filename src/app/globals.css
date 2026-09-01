@@ -71,9 +71,19 @@ body {
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
+  height: 100%;
 }
 .product-card-grid:hover {
   box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+}
+
+/* enforce product name to max 2 lines inside grid card */
+.product-card-grid h3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
 }
 .product-card-grid-cart-btn {
   display: flex;
