@@ -8,7 +8,7 @@ import { formatPrice } from "@/lib/formatters";
 import { List, Grid, ChevronRight, Plus, Loader2 } from "lucide-react";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 /* ─── helpers ─────────────────────────────────────────── */
 // Shuffle array — fresh product order every session
@@ -195,8 +195,8 @@ function AisleView({
   );
 }
 
-/* ─── main component ─────────────────────────────────── */
 function MenuContent() {
+  const router = useRouter();
   const { menuViewMode, setMenuViewMode } = useSettingStore();
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get("category");
@@ -230,6 +230,7 @@ function MenuContent() {
     } else {
       setSelectedCategory(null);
     }
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [categoryParam, categories]);
 
   /* fetch items on filter change */
@@ -253,6 +254,15 @@ function MenuContent() {
         // selectedCategory is now set reactively by the categoryParam effect above
       }
     } catch {}
+  };
+
+  const handleSelectCategory = (cat: any) => {
+    setSelectedCategory(cat);
+    if (cat) {
+      router.push(`/menu?category=${cat._id}`, { scroll: true });
+    } else {
+      router.push('/menu', { scroll: true });
+    }
   };
 
   const fetchItems = async () => {
@@ -305,7 +315,7 @@ function MenuContent() {
               <Swiper speed={1000} slidesPerView="auto" spaceBetween={16} className="menu-slides">
                 <SwiperSlide className="!w-fit">
                   <button
-                    onClick={() => setSelectedCategory(null)}
+                    onClick={() => handleSelectCategory(null)}
                     className={`w-[5.5rem] sm:w-32 h-[5.5rem] sm:h-32 flex flex-col items-center justify-center text-center gap-2 sm:gap-4 px-1.5 sm:p-3 rounded-2xl border-b-2 border-transparent transition hover:bg-[#D8FFFC] ${!selectedCategory ? 'menu-category-active' : 'bg-[#F7F7FC]'}`}
                   >
                     <img className="h-7 sm:h-12 drop-shadow-sm" src="/images/default/all-category.png" alt="All" />
@@ -315,7 +325,7 @@ function MenuContent() {
                 {categories.map((cat) => (
                   <SwiperSlide key={cat._id} className="!w-fit">
                     <button
-                      onClick={() => setSelectedCategory(cat)}
+                      onClick={() => handleSelectCategory(cat)}
                       className={`w-[5.5rem] sm:w-32 h-[5.5rem] sm:h-32 flex flex-col items-center justify-center text-center gap-2 sm:gap-4 px-1.5 sm:p-3 rounded-2xl border-b-2 border-transparent transition hover:bg-[#D8FFFC] ${selectedCategory?._id === cat._id ? 'menu-category-active' : 'bg-[#F7F7FC]'}`}
                     >
                       <img className="h-7 sm:h-12 drop-shadow-sm" src={cat.image || "/images/category/thumb.png"} alt={cat.name} />
