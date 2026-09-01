@@ -33,17 +33,31 @@ function buildCartSummary(cart) {
 }
 
 function buildWelcomeMenu(session) {
-  const greeting = session.isKnownUser && session.customerName
-    ? `👋 Welcome back, *${session.customerName}*!\n\n🌿 Ready to restock your fresh groceries with *Nectar*?`
-    : `🌿 *Welcome to Nectar Groceries!* 🥦\n\nFresh groceries delivered straight to your door.`;
+  const isKnown = session.isKnownUser && session.customerName;
+
+  let greeting = "";
+  if (isKnown) {
+    const addressHint =
+      session.savedAddresses && session.savedAddresses.length > 0
+        ? `\n📍 _Saved delivery address available_`
+        : "";
+    greeting = `👋 Welcome back, *${session.customerName}*! ✨\n🌿 Ready to restock your fresh groceries with *Nectar*?${addressHint}`;
+  } else {
+    greeting = `🌿 *Welcome to Nectar Groceries!* 🥦\n\nFresh groceries delivered straight to your door.`;
+  }
+
+  const profileOption = isKnown ? `5️⃣ *My Profile & Addresses* 👤\n` : "";
+  const replyHint = isKnown ? `_Reply *1*, *2*, *3*, *4*, or *5* to start_` : `_Reply *1*, *2*, *3*, or *4* to start_`;
 
   return (
     `${greeting}\n\n` +
     `How would you like to proceed today?\n\n` +
-    `1️⃣ *Browse by Category*\n` +
-    `2️⃣ *Search for an item*\n` +
-    `3️⃣ *Track an Order* 🚚\n\n` +
-    `_Reply *1*, *2*, or *3* to start_\n` +
+    `1️⃣ *Browse by Category* 📦\n` +
+    `2️⃣ *Search for an Item* 🔍\n` +
+    `3️⃣ *Track an Order* 🚚\n` +
+    `4️⃣ *Submit Shopping Wishlist* 📝 _(Items you buy often)_\n` +
+    profileOption +
+    `\n${replyHint}\n` +
     `_Type *CART* to view cart | *HELP* for commands_`
   );
 }
@@ -231,6 +245,223 @@ async function showOrderTrackingCard(db, serialOrId, phone, sendFn) {
   );
 }
 
+async function showCustomerProfileCard(db, session, phone, sendFn) {
+  if (!session.isKnownUser && !session.customerName) {
+    return sendFn(
+      phone,
+      `👤 *Customer Profile*\n\n` +
+        `We haven't linked a registered account to this number (+${phone}) yet.\n\n` +
+        `When you place your first order or register on our app, your addresses and history will be saved automatically!\n\n` +
+        `_Reply *MENU* to browse groceries or *WISHLIST* to suggest items you buy often._`
+    );
+  }
+
+  // Look up recent orders count
+  let orderCount = 0;
+  let lastOrderDate = "None yet";
+  try {
+    const ordersCollection = db.collection("orders");
+    const query = [];
+    if (session.userId && ObjectId.isValid(session.userId)) {
+      query.push({ userId: new ObjectId(session.userId) });
+    }
+    const cleanPhone = userService.cleanDigits(phone);
+    if (cleanPhone.length >= 7) {
+      query.push({ customerPhone: { $regex: cleanPhone.slice(-9), $options: "i" } });
+    }
+    if (query.length > 0) {
+      const orders = await ordersCollection
+        .find({ $or: query })
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .toArray();
+      orderCount = orders.length;
+      if (orders.length > 0 && orders[0].createdAt) {
+        lastOrderDate = new Date(orders[0].createdAt).toLocaleDateString("en-NG", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        });
+      }
+    }
+  } catch (e) {}
+
+  const addressLines =
+    (session.savedAddresses || []).length > 0
+      ? session.savedAddresses
+          .map((a, i) => `  • ${a.address || "Address"} ${a.isDefault ? "*(Default)*" : ""}`)
+          .join("\n")
+      : "  • No saved address yet";
+
+  return sendFn(
+    phone,
+    `👤 *Your Nectar Profile*\n\n` +
+      `• *Name:* ${session.customerName || "Valued Customer"}\n` +
+      `• *Phone:* ${session.customerPhone || "+" + phone}\n` +
+      (session.customerEmail ? `• *Email:* ${session.customerEmail}\n` : "") +
+      `• *Total Orders Placed:* ${orderCount}\n` +
+      `• *Last Order Date:* ${lastOrderDate}\n\n` +
+      `📍 *Saved Addresses:*\n${addressLines}\n\n` +
+      `_Reply *1* to browse, *3* to track, *4* for wishlist, or *MENU*_`
+  );
+}
+
+function startWishlistFlow(session, phone, sendFn) {
+  session.step = "WISHLIST_COLLECT";
+  session.wishlistItems = [];
+  session.wishlistRawInput = "";
+
+  const nameGreeting = session.customerName ? ` ${session.customerName}` : "";
+
+  return sendFn(
+    phone,
+    `📝 *Submit Your Shopping Wishlist* 🛍️\n\n` +
+      `Hi${nameGreeting}! We want to make sure Nectar stocks all the grocery items and brands you buy frequently.\n\n` +
+      `Please tell us what products you buy often and would love to see on the app:\n\n` +
+      `✍️ *Examples:*\n` +
+      `• _Indomie Chicken 70g (Carton)_\n` +
+      `• _Golden Penny Spaghetti 500g_\n` +
+      `• _Dano Full Cream Milk 800g_\n` +
+      `• _Devon King's Cooking Oil 5L_\n` +
+      `• _Titus Sardines (Carton)_\n\n` +
+      `_Send your items separated by commas or on separate lines:_\n` +
+      `_(Type *CANCEL* anytime to exit)_`
+  );
+}
+
+async function handleWishlistCollection(session, text, phone, sendFn) {
+  const upper = text.toUpperCase();
+  if (["CANCEL", "EXIT", "MENU"].includes(upper)) {
+    sessionManager.resetToMenu(phone);
+    return sendFn(phone, `Wishlist submission cancelled.\n\n` + buildWelcomeMenu(session));
+  }
+
+  // Parse items from comma or line breaks
+  const items = text
+    .split(/[\n,;]+/)
+    .map((s) => s.trim().replace(/^[-*•\d.)\s]+/, ""))
+    .filter((s) => s.length > 0);
+
+  if (items.length === 0) {
+    return sendFn(
+      phone,
+      `Please enter at least one grocery item (e.g. *Golden Penny Sugar, Peak Milk*):`
+    );
+  }
+
+  session.wishlistRawInput = text;
+  session.wishlistItems = items.map((name) => ({ name }));
+  session.step = "WISHLIST_DETAILS";
+
+  const preview = items.map((item, i) => `${i + 1}. *${item}*`).join("\n");
+
+  return sendFn(
+    phone,
+    `✅ *Got it! We noted ${items.length} item${items.length === 1 ? "" : "s"}:*\n\n` +
+      `${preview}\n\n` +
+      `Would you like to add any preferred brands, package sizes, or extra notes?\n\n` +
+      `• Type your preferred sizes/brands (e.g. _"1kg size only, carton packaging"_)\n` +
+      `• Or reply *DONE* (or *1*) to submit now! 🚀`
+  );
+}
+
+async function handleWishlistFinalize(db, appUrl, session, text, phone, sendFn) {
+  const upper = text.toUpperCase();
+  if (["CANCEL", "EXIT", "MENU"].includes(upper)) {
+    sessionManager.resetToMenu(phone);
+    return sendFn(phone, `Wishlist cancelled.\n\n` + buildWelcomeMenu(session));
+  }
+
+  let additionalNotes = "";
+  if (!["DONE", "1", "NO", "SUBMIT", "OK", "FINISH", "NONE", "CONFIRM"].includes(upper)) {
+    additionalNotes = text.trim();
+  }
+
+  const items = session.wishlistItems || [];
+  if (items.length === 0 && session.wishlistRawInput) {
+    items.push({ name: session.wishlistRawInput });
+  }
+
+  try {
+    const shoppingWishlists = db.collection("shoppingwishlists");
+    const customerName = session.customerName || (session.isKnownUser ? "Registered Customer" : "WhatsApp Customer");
+    const customerPhone = session.customerPhone || userService.normalizeCustomerPhone(phone);
+
+    let userObjId = null;
+    if (session.userId && ObjectId.isValid(session.userId)) {
+      userObjId = new ObjectId(session.userId);
+    }
+
+    const doc = {
+      customerPhone,
+      customerName,
+      userId: userObjId,
+      items: items.map((it) => ({
+        name: it.name,
+        brandOrSize: additionalNotes || undefined,
+      })),
+      rawInput: session.wishlistRawInput || text,
+      status: "new",
+      source: "whatsapp",
+      adminNotes: additionalNotes ? `Customer note: ${additionalNotes}` : undefined,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    await shoppingWishlists.insertOne(doc);
+    console.log(`📝 Shopping wishlist saved for ${customerPhone}: ${items.length} items`);
+
+    // Alert Admin WhatsApp number
+    try {
+      const adminSetting = await db.collection("settings").findOne({
+        key: { $in: ["admin_notification_whatsapp_number", "wa_admin_notification_phone", "company_phone"] },
+      });
+      const adminPhone = adminSetting?.payload ? String(adminSetting.payload).replace(/\D/g, "") : null;
+      if (adminPhone && adminPhone.length >= 7) {
+        const itemsListStr = items.map((it, idx) => `${idx + 1}. *${it.name}*`).join("\n");
+        const dateStr = new Date().toLocaleString("en-NG", { dateStyle: "medium", timeStyle: "short" });
+
+        const adminAlertText =
+          `📝 *NEW CUSTOMER SHOPPING WISHLIST!* 🛒✨\n` +
+          `━━━━━━━━━━━━━━━━━━━━━\n` +
+          `👤 *Customer:* ${customerName}\n` +
+          `📱 *Phone:* +${customerPhone.replace(/^\+/, "")}\n` +
+          `📅 *Date:* ${dateStr}\n\n` +
+          `🛍️ *ITEMS REQUESTED (${items.length}):*\n` +
+          `${itemsListStr}\n` +
+          (additionalNotes ? `\n📝 *Notes / Sizes:* ${additionalNotes}\n` : "\n") +
+          `━━━━━━━━━━━━━━━━━━━━━\n` +
+          `👉 *Manage Wishlists in Admin:*\n` +
+          `${appUrl}/admin/shopping-wishlist`;
+
+        sendFn(adminPhone, adminAlertText).catch((e) => console.error("Admin WA wishlist alert error:", e.message));
+      }
+    } catch (adminErr) {
+      console.error("Admin notification failed:", adminErr.message);
+    }
+
+    // Reset session step
+    session.wishlistItems = [];
+    session.wishlistRawInput = "";
+    session.step = "MAIN_MENU";
+
+    return sendFn(
+      phone,
+      `🎉 *Thank you${session.customerName ? `, ${session.customerName}` : ""}!*\n\n` +
+        `We've sent your *${items.length} requested item${items.length === 1 ? "" : "s"}* straight to our inventory sourcing team. 🥦📦\n\n` +
+        `We'll work on stocking them and will notify you right here on WhatsApp as soon as they become available! ✨\n\n` +
+        `_Reply with *MENU* anytime to browse our active grocery catalog._`
+    );
+  } catch (err) {
+    console.error("Failed to save shopping wishlist:", err);
+    session.step = "MAIN_MENU";
+    return sendFn(
+      phone,
+      `⚠️ We received your items, but had a temporary error recording them. Our team has been alerted! Type *MENU* to continue.`
+    );
+  }
+}
+
 async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
   // Check if input is a location object or text
   let text = "";
@@ -259,14 +490,19 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
     "CANCEL", "EXIT",
     "MORE", "SHOP", "KEEP SHOPPING",
     "STATUS", "MY ORDER",
+    "WISHLIST", "SUGGEST", "MY LIST", "REQUEST",
+    "PROFILE", "ACCOUNT", "MY PROFILE", "ADDRESS", "ADDRESSES",
     "1", "2", "3", "4", "5",
-    "BROWSE", "SEARCH", "BOT", "RESTART",
+    "BROWSE", "SEARCH", "RESTART", "BOT",
   ];
 
   const isHardCommand =
     ALWAYS_ON_COMMANDS.includes(upper) ||
     upper.startsWith("TRACK") ||
     upper.startsWith("ORDER") ||
+    upper.startsWith("WISH") ||
+    upper.startsWith("SUGGEST") ||
+    upper.startsWith("PROFILE") ||
     upper.startsWith("MENU") ||
     upper.startsWith("BROWSE") ||
     upper.startsWith("SEARCH") ||
@@ -318,6 +554,23 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
     return sendFn(phone, buildWelcomeMenu(session));
   }
 
+  // Wishlist shortcut command e.g. "WISHLIST", "SUGGEST", "MY LIST"
+  if (
+    ["WISHLIST", "SUGGEST", "MY LIST", "REQUEST"].includes(upper) ||
+    upper.startsWith("WISHLIST") ||
+    upper.startsWith("SUGGEST")
+  ) {
+    return startWishlistFlow(session, phone, sendFn);
+  }
+
+  // Profile shortcut command e.g. "PROFILE", "ACCOUNT", "MY PROFILE"
+  if (
+    ["PROFILE", "ACCOUNT", "MY PROFILE", "ADDRESS", "ADDRESSES"].includes(upper) ||
+    upper.startsWith("PROFILE")
+  ) {
+    return showCustomerProfileCard(db, session, phone, sendFn);
+  }
+
   // Track command with optional serial e.g. "TRACK ORD-123456"
   if (upper.startsWith("TRACK") || upper === "STATUS" || upper === "MY ORDER") {
     const parts = text.split(/\s+/);
@@ -357,6 +610,8 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
         `Here are the commands you can use anytime:\n` +
         `• *MENU* — Main store menu\n` +
         `• *TRACK* — Track your order status 🚚\n` +
+        `• *WISHLIST* — Submit items you buy often 📝\n` +
+        `• *PROFILE* — View account details & saved addresses 👤\n` +
         `• *CART* — View your shopping cart\n` +
         `• *CHECKOUT* — Place your order\n` +
         `• *CLEAR* — Empty your cart\n` +
@@ -422,6 +677,14 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
         return startTrackOrderFlow(db, session, phone, null, sendFn);
       }
 
+      if (text === "4" || upper.includes("WISH") || upper.includes("SUGGEST") || upper.includes("LIST")) {
+        return startWishlistFlow(session, phone, sendFn);
+      }
+
+      if (text === "5" || upper.includes("PROFILE") || upper.includes("ACCOUNT") || upper.includes("ADDRESS")) {
+        return showCustomerProfileCard(db, session, phone, sendFn);
+      }
+
       if (upper === "CHECKOUT") {
         if (session.cart.length === 0) {
           return sendFn(
@@ -434,7 +697,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
 
       return sendFn(
         phone,
-        `Please reply with *1* to browse, *2* to search, or *3* to track an order.\n\n` +
+        `Please reply with *1* to browse, *2* to search, *3* to track, *4* for wishlist, or *5* for profile.\n\n` +
           buildWelcomeMenu(session)
       );
     }
@@ -775,6 +1038,15 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
           `*1* — Pay with Paystack (Instant secure online link)\n` +
           `*2* — Pay via Bank Transfer (Direct account transfer)`
       );
+    }
+
+    // ── SHOPPING WISHLIST STEPS ─────────────────────────────────────────────
+    case "WISHLIST_COLLECT": {
+      return handleWishlistCollection(session, text, phone, sendFn);
+    }
+
+    case "WISHLIST_DETAILS": {
+      return handleWishlistFinalize(db, appUrl, session, text, phone, sendFn);
     }
 
     default: {
