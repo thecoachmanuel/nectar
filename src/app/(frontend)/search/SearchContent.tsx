@@ -88,29 +88,52 @@ export default function SearchContent() {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-          {items.map((item) => (
-            <div key={item._id} onClick={() => { setSelectedItem(item); setModalOpen(true); }}
-              className="product-card-grid cursor-pointer overflow-hidden w-full min-w-0">
-              <div className="relative pt-[75%] bg-[#f7f7fc] rounded-t-2xl overflow-hidden">
-                <img src={item.image || "/images/item/thumb.png"} alt={item.name}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
-              </div>
-              <div className="p-2.5 sm:p-3 flex-1 min-w-0 flex flex-col justify-between">
-                <div className="min-w-0 mb-1">
-                  <h4 className="text-xs sm:text-sm font-semibold text-[#14142b] leading-snug break-words w-full capitalize" title={item.name}>{item.name}</h4>
-                  <p className="text-[10px] leading-4 sm:text-xs sm:leading-5 text-[#6e7191] line-clamp-2 mt-0.5 break-words">{item.description}</p>
+          {items.map((item) => {
+            const hasDiscount = item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price);
+            return (
+              <div key={item._id} onClick={() => { setSelectedItem(item); setModalOpen(true); }}
+                className="product-card-grid cursor-pointer overflow-hidden w-full min-w-0">
+                <div className="relative pt-[75%] bg-[#f7f7fc] rounded-t-2xl overflow-hidden">
+                  <img src={item.image || "/images/item/thumb.png"} alt={item.name}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
+                  {hasDiscount && (
+                    <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-black shadow-md z-10">
+                      -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}%
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center justify-between gap-1 w-full min-w-0 pt-1 mt-auto">
-                  <span className="text-xs sm:text-base font-semibold text-[#14142b] truncate min-w-0">{formatPrice(item.price)}</span>
-                  <button className="product-card-grid-cart-btn shrink-0">
-                    <Plus className="w-3.5 h-3.5" />
-                    <span className="text-[10px]">Add</span>
-                  </button>
+                <div className="p-2.5 sm:p-3 flex-1 min-w-0 flex flex-col justify-between">
+                  <div className="min-w-0 mb-1">
+                    <h4 className="text-xs sm:text-sm font-semibold text-[#14142b] leading-snug w-full capitalize line-clamp-2" title={item.name}>{item.name}</h4>
+                    <p className="text-[10px] leading-4 sm:text-xs sm:leading-5 text-[#6e7191] line-clamp-2 mt-0.5 break-words">{item.description}</p>
+                  </div>
+                  <div className="flex items-center justify-between gap-1 w-full min-w-0 pt-1 mt-auto">
+                    <div className="min-w-0 flex items-baseline gap-1.5">
+                      {hasDiscount ? (
+                        <>
+                          <span className="text-xs sm:text-base font-bold text-primary truncate min-w-0">
+                            {formatPrice(item.discountPrice)}
+                          </span>
+                          <span className="text-[10px] sm:text-xs text-[#a0a3bd] line-through truncate font-normal">
+                            {formatPrice(item.price)}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-xs sm:text-base font-semibold text-[#14142b] truncate min-w-0">
+                          {formatPrice(item.price)}
+                        </span>
+                      )}
+                    </div>
+                    <button className="product-card-grid-cart-btn shrink-0">
+                      <Plus className="w-3.5 h-3.5" />
+                      <span className="text-[10px]">Add</span>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

@@ -54,7 +54,9 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
 
   const extraTotal = selectedExtras.reduce((acc, e) => acc + (Number(e.price) || 0), 0);
   const addonTotal = selectedAddons.reduce((acc, a) => acc + (Number(a.price) || 0), 0);
-  const basePrice = selectedVariation ? Number(selectedVariation.price) : Number(item.price || 0);
+  const hasDiscount = !selectedVariation && item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price);
+  const effectiveBasePrice = hasDiscount ? Number(item.discountPrice) : (selectedVariation ? Number(selectedVariation.price) : Number(item.price || 0));
+  const basePrice = effectiveBasePrice;
   const unitPrice = basePrice + extraTotal + addonTotal;
   const totalPrice = unitPrice * quantity;
 
@@ -114,6 +116,13 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30 pointer-events-none" />
 
+          {/* Sale badge */}
+          {hasDiscount && (
+            <div className="absolute top-3.5 left-4 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-red-600 text-white text-xs font-black shadow-lg">
+              -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}% OFF
+            </div>
+          )}
+
           {/* Close button */}
           <button
             onClick={onClose}
@@ -136,12 +145,26 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
           {/* Title & Description */}
           <div className="border-b border-[#EFF0F6] pb-4">
             <div className="flex items-start justify-between gap-3">
-              <h2 className="text-lg sm:text-xl font-bold text-[#14142B] capitalize leading-snug">
-                {item.name}
-              </h2>
-              <span className="text-lg sm:text-xl font-extrabold text-primary whitespace-nowrap">
-                {formatPrice(basePrice, symbol)}
-              </span>
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold text-[#14142B] capitalize leading-snug">
+                  {item.name}
+                </h2>
+                {hasDiscount && (
+                  <span className="inline-flex items-center gap-1 mt-1 text-xs font-bold text-[#1AB759] bg-[#E0FFED] px-2 py-0.5 rounded-full">
+                    Save {formatPrice(Number(item.price) - Number(item.discountPrice), symbol)} (-{Math.round(((item.price - item.discountPrice) / item.price) * 100)}% OFF)
+                  </span>
+                )}
+              </div>
+              <div className="text-right shrink-0">
+                <span className="text-lg sm:text-xl font-extrabold text-primary whitespace-nowrap block">
+                  {formatPrice(basePrice, symbol)}
+                </span>
+                {hasDiscount && (
+                  <span className="text-xs sm:text-sm text-[#A0A3BD] line-through block font-medium">
+                    {formatPrice(item.price, symbol)}
+                  </span>
+                )}
+              </div>
             </div>
             {item.description && (
               <p className="text-xs sm:text-sm text-[#6E7191] mt-2 leading-relaxed">

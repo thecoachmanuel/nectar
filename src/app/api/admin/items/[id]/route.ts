@@ -20,6 +20,10 @@ export async function PUT(
       body.offerId = null;
     }
 
+    if (body.discountPrice !== undefined) {
+      body.discountPrice = Number(body.discountPrice) || 0;
+    }
+
     const item = await Item.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,

@@ -76,6 +76,9 @@ export default function POSPage() {
   }, [activeAdminStoreId]);
   
   const addToCart = (product: any) => {
+    const hasDiscount = product.discountPrice && Number(product.discountPrice) > 0 && Number(product.discountPrice) < Number(product.price);
+    const effectivePrice = hasDiscount ? Number(product.discountPrice) : Number(product.price);
+
     setCart(prev => {
       const existing = prev.find(item => item.itemId === product._id);
       if (existing) {
@@ -84,7 +87,7 @@ export default function POSPage() {
       return [...prev, { 
         itemId: product._id, 
         name: product.name, 
-        price: product.price, 
+        price: effectivePrice, 
         quantity: 1,
         image: product.image 
       }];
@@ -237,7 +240,14 @@ export default function POSPage() {
                   </div>
                   <div className="p-3 text-center">
                     <h3 className="font-semibold text-sm text-[#14142B] mb-1 truncate">{product.name}</h3>
-                    <p className="font-bold text-primary text-sm">{formatPrice(product.price)}</p>
+                    {product.discountPrice && Number(product.discountPrice) > 0 && Number(product.discountPrice) < Number(product.price) ? (
+                      <div className="flex items-center justify-center gap-1.5">
+                        <span className="font-bold text-primary text-sm">{formatPrice(product.discountPrice)}</span>
+                        <span className="text-xs text-[#A0A3BD] line-through">{formatPrice(product.price)}</span>
+                      </div>
+                    ) : (
+                      <p className="font-bold text-primary text-sm">{formatPrice(product.price)}</p>
+                    )}
                   </div>
                 </div>
               ))}

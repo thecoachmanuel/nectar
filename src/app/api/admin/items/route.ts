@@ -77,6 +77,10 @@ export async function POST(req: Request) {
       delete body.offerId;
     }
 
+    if (body.discountPrice !== undefined) {
+      body.discountPrice = Number(body.discountPrice) || 0;
+    }
+
     const existing = await Item.findOne({ slug: body.slug });
     if (existing) {
       return NextResponse.json(

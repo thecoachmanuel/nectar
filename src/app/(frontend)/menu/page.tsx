@@ -42,6 +42,8 @@ function groupByCategory(items: any[], categories: any[]) {
 
 /* ─── small product card (grid) ──────────────────────── */
 function ProductCard({ item, onOpen }: { item: any; onOpen: (i: any) => void }) {
+  const hasDiscount = item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price);
+
   return (
     <div
       onClick={() => onOpen(item)}
@@ -54,6 +56,11 @@ function ProductCard({ item, onOpen }: { item: any; onOpen: (i: any) => void }) 
           alt={item.name}
           onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }}
         />
+        {hasDiscount && (
+          <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-black shadow-md z-10">
+            -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}%
+          </div>
+        )}
       </div>
       <div className="p-2.5 sm:p-3.5 flex-1 flex flex-col justify-between min-w-0">
         <div className="min-w-0 mb-1.5">
@@ -65,9 +72,22 @@ function ProductCard({ item, onOpen }: { item: any; onOpen: (i: any) => void }) 
           </p>
         </div>
         <div className="flex items-center justify-between gap-1.5 w-full min-w-0 pt-1 mt-auto">
-          <h4 className="text-xs sm:text-base font-semibold text-[#14142b] truncate min-w-0">
-            {formatPrice(item.price)}
-          </h4>
+          <div className="min-w-0 flex items-baseline gap-1.5">
+            {hasDiscount ? (
+              <>
+                <h4 className="text-xs sm:text-base font-bold text-primary truncate min-w-0">
+                  {formatPrice(item.discountPrice)}
+                </h4>
+                <span className="text-[10px] sm:text-xs text-[#a0a3bd] line-through truncate font-normal">
+                  {formatPrice(item.price)}
+                </span>
+              </>
+            ) : (
+              <h4 className="text-xs sm:text-base font-semibold text-[#14142b] truncate min-w-0">
+                {formatPrice(item.price)}
+              </h4>
+            )}
+          </div>
           <button
             onClick={(e) => { e.stopPropagation(); onOpen(item); }}
             className="product-card-grid-cart-btn shrink-0"
@@ -83,17 +103,26 @@ function ProductCard({ item, onOpen }: { item: any; onOpen: (i: any) => void }) 
 
 /* ─── list row card ───────────────────────────────────── */
 function ProductRow({ item, onOpen }: { item: any; onOpen: (i: any) => void }) {
+  const hasDiscount = item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price);
+
   return (
     <div
       onClick={() => onOpen(item)}
       className="relative flex items-center rounded-2xl border border-[#eff0f6] bg-white transition hover:shadow-xl cursor-pointer overflow-hidden w-full min-w-0"
     >
-      <img
-        className="w-24 sm:w-28 h-24 sm:h-28 object-cover rounded-l-2xl shrink-0"
-        src={item.image || "/images/item/thumb.png"}
-        alt={item.name}
-        onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }}
-      />
+      <div className="relative shrink-0">
+        <img
+          className="w-24 sm:w-28 h-24 sm:h-28 object-cover rounded-l-2xl shrink-0"
+          src={item.image || "/images/item/thumb.png"}
+          alt={item.name}
+          onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }}
+        />
+        {hasDiscount && (
+          <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-black shadow-md z-10">
+            -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}%
+          </div>
+        )}
+      </div>
       <div className="p-3 sm:p-4 flex-1 min-w-0 flex flex-col justify-between h-full">
         <div className="min-w-0 mb-1">
           <h3 className="text-sm font-semibold capitalize text-[#14142b] leading-snug w-full line-clamp-2" title={item.name}>
@@ -104,9 +133,22 @@ function ProductRow({ item, onOpen }: { item: any; onOpen: (i: any) => void }) {
           </p>
         </div>
         <div className="flex items-center justify-between gap-2 min-w-0 pt-1">
-          <h4 className="text-sm sm:text-base font-semibold text-[#14142b] truncate min-w-0">
-            {formatPrice(item.price)}
-          </h4>
+          <div className="min-w-0 flex items-baseline gap-1.5">
+            {hasDiscount ? (
+              <>
+                <h4 className="text-sm sm:text-base font-bold text-primary truncate min-w-0">
+                  {formatPrice(item.discountPrice)}
+                </h4>
+                <span className="text-xs text-[#a0a3bd] line-through truncate font-normal">
+                  {formatPrice(item.price)}
+                </span>
+              </>
+            ) : (
+              <h4 className="text-sm sm:text-base font-semibold text-[#14142b] truncate min-w-0">
+                {formatPrice(item.price)}
+              </h4>
+            )}
+          </div>
           <button
             onClick={(e) => { e.stopPropagation(); onOpen(item); }}
             className="flex items-center gap-1 rounded-3xl capitalize text-xs font-semibold h-7 px-3 shadow-sm transition text-white hover:opacity-90 shrink-0"

@@ -300,7 +300,19 @@ export default function ItemsPage() {
 
                     {/* Price */}
                     <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-[#14142B]">{formatPrice(item.price)}</span>
+                      {item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price) ? (
+                        <div className="flex flex-col gap-0.5">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm font-bold text-primary">{formatPrice(item.discountPrice)}</span>
+                            <span className="text-xs text-[#A0A3BD] line-through">{formatPrice(item.price)}</span>
+                          </div>
+                          <span className="inline-block text-[10px] font-bold text-[#1AB759] bg-[#E0FFED] px-1.5 py-0.5 rounded w-fit">
+                            -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}% Sale
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-sm font-bold text-[#14142B]">{formatPrice(item.price)}</span>
+                      )}
                     </td>
 
                     {/* Status */}

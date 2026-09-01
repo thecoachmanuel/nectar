@@ -346,28 +346,53 @@ export default function HomePage() {
               <Link href="/menu" className="text-xs font-medium" style={{ color: "var(--primary-hex)" }}>View All</Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {popularItems.map((item) => (
-                <div key={item._id} onClick={() => openModal(item)}
-                  className="product-card-list cursor-pointer overflow-hidden w-full min-w-0">
-                  <img src={item.image || "/images/item/thumb.png"} alt={item.name}
-                    className="w-24 h-24 object-cover rounded-l-lg shrink-0"
-                    onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
-                  <div className="p-3 flex-1 min-w-0 flex flex-col justify-between h-full">
-                    <div className="min-w-0 mb-1">
-                      <h4 className="text-sm font-semibold text-[#14142b] leading-snug break-words w-full capitalize" title={item.name}>{item.name}</h4>
-                      <p className="text-[10px] leading-4 sm:text-xs sm:leading-5 text-[#6e7191] line-clamp-1 mt-0.5 break-words">{item.description}</p>
+              {popularItems.map((item) => {
+                const hasDiscount = item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price);
+                return (
+                  <div key={item._id} onClick={() => openModal(item)}
+                    className="product-card-list cursor-pointer overflow-hidden w-full min-w-0">
+                    <div className="relative shrink-0">
+                      <img src={item.image || "/images/item/thumb.png"} alt={item.name}
+                        className="w-24 h-24 object-cover rounded-l-lg shrink-0"
+                        onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
+                      {hasDiscount && (
+                        <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-red-600 text-white text-[9px] font-black shadow-md z-10">
+                          -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}%
+                        </div>
+                      )}
                     </div>
-                    <div className="flex items-center justify-between gap-2 min-w-0 pt-1">
-                      <span className="text-sm sm:text-base font-semibold text-[#14142b] truncate min-w-0">{formatPrice(item.price)}</span>
-                      <button onClick={(e) => { e.stopPropagation(); openModal(item); }}
-                        className="product-card-list-cart-btn flex items-center gap-1.5 text-xs font-semibold text-white px-3 py-1.5 rounded-3xl shrink-0"
-                        style={{ backgroundColor: "var(--primary-hex)" }}>
-                        <Plus className="w-3.5 h-3.5" />Add
-                      </button>
+                    <div className="p-3 flex-1 min-w-0 flex flex-col justify-between h-full">
+                      <div className="min-w-0 mb-1">
+                        <h4 className="text-sm font-semibold text-[#14142b] leading-snug break-words w-full capitalize" title={item.name}>{item.name}</h4>
+                        <p className="text-[10px] leading-4 sm:text-xs sm:leading-5 text-[#6e7191] line-clamp-1 mt-0.5 break-words">{item.description}</p>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 min-w-0 pt-1">
+                        <div className="min-w-0 flex items-baseline gap-1.5">
+                          {hasDiscount ? (
+                            <>
+                              <span className="text-sm sm:text-base font-bold text-primary truncate min-w-0">
+                                {formatPrice(item.discountPrice)}
+                              </span>
+                              <span className="text-xs text-[#a0a3bd] line-through truncate font-normal">
+                                {formatPrice(item.price)}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-sm sm:text-base font-semibold text-[#14142b] truncate min-w-0">
+                              {formatPrice(item.price)}
+                            </span>
+                          )}
+                        </div>
+                        <button onClick={(e) => { e.stopPropagation(); openModal(item); }}
+                          className="product-card-list-cart-btn flex items-center gap-1.5 text-xs font-semibold text-white px-3 py-1.5 rounded-3xl shrink-0"
+                          style={{ backgroundColor: "var(--primary-hex)" }}>
+                          <Plus className="w-3.5 h-3.5" />Add
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
@@ -437,45 +462,68 @@ export default function HomePage() {
                 ) : (
                   /* List mode — 2-col compact grid */
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {cat.products.map((item: any) => (
-                      <div
-                        key={item._id}
-                        onClick={() => openModal(item)}
-                        className="product-card-list cursor-pointer overflow-hidden w-full min-w-0"
-                      >
-                        <img
-                          src={item.image || "/images/item/thumb.png"}
-                          alt={item.name}
-                          className="w-24 sm:w-28 h-24 sm:h-28 object-cover rounded-l-lg shrink-0"
-                          onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }}
-                        />
-                        <div className="p-3 flex-1 min-w-0 flex flex-col justify-between h-full">
-                          <div className="min-w-0 mb-1">
-                            <h4
-                              className="text-sm font-semibold text-[#14142b] leading-snug w-full capitalize line-clamp-2"
-                              title={item.name}
-                            >
-                              {item.name}
-                            </h4>
-                            <p className="text-[10px] leading-4 sm:text-xs sm:leading-5 text-[#6e7191] line-clamp-1 mt-0.5">
-                              {item.description}
-                            </p>
+                    {cat.products.map((item: any) => {
+                      const hasDiscount = item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price);
+                      return (
+                        <div
+                          key={item._id}
+                          onClick={() => openModal(item)}
+                          className="product-card-list cursor-pointer overflow-hidden w-full min-w-0"
+                        >
+                          <div className="relative shrink-0">
+                            <img
+                              src={item.image || "/images/item/thumb.png"}
+                              alt={item.name}
+                              className="w-24 sm:w-28 h-24 sm:h-28 object-cover rounded-l-lg shrink-0"
+                              onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }}
+                            />
+                            {hasDiscount && (
+                              <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-red-600 text-white text-[9px] font-black shadow-md z-10">
+                                -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}%
+                              </div>
+                            )}
                           </div>
-                          <div className="flex items-center justify-between gap-2 min-w-0 pt-1">
-                            <span className="text-sm sm:text-base font-semibold text-[#14142b] truncate min-w-0">
-                              {formatPrice(item.price)}
-                            </span>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); openModal(item); }}
-                              className="product-card-list-cart-btn flex items-center gap-1.5 text-xs font-semibold text-white px-3 py-1.5 rounded-3xl shrink-0"
-                              style={{ backgroundColor: "var(--primary-hex)" }}
-                            >
-                              <Plus className="w-3.5 h-3.5" />Add
-                            </button>
+                          <div className="p-3 flex-1 min-w-0 flex flex-col justify-between h-full">
+                            <div className="min-w-0 mb-1">
+                              <h4
+                                className="text-sm font-semibold text-[#14142b] leading-snug w-full capitalize line-clamp-2"
+                                title={item.name}
+                              >
+                                {item.name}
+                              </h4>
+                              <p className="text-[10px] leading-4 sm:text-xs sm:leading-5 text-[#6e7191] line-clamp-1 mt-0.5">
+                                {item.description}
+                              </p>
+                            </div>
+                            <div className="flex items-center justify-between gap-2 min-w-0 pt-1">
+                              <div className="min-w-0 flex items-baseline gap-1.5">
+                                {hasDiscount ? (
+                                  <>
+                                    <span className="text-sm sm:text-base font-bold text-primary truncate min-w-0">
+                                      {formatPrice(item.discountPrice)}
+                                    </span>
+                                    <span className="text-xs text-[#a0a3bd] line-through truncate font-normal">
+                                      {formatPrice(item.price)}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <span className="text-sm sm:text-base font-semibold text-[#14142b] truncate min-w-0">
+                                    {formatPrice(item.price)}
+                                  </span>
+                                )}
+                              </div>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); openModal(item); }}
+                                className="product-card-list-cart-btn flex items-center gap-1.5 text-xs font-semibold text-white px-3 py-1.5 rounded-3xl shrink-0"
+                                style={{ backgroundColor: "var(--primary-hex)" }}
+                              >
+                                <Plus className="w-3.5 h-3.5" />Add
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -491,6 +539,8 @@ export default function HomePage() {
 
 /* Reusable grid card — h-full ensures uniform height inside aisle rows */
 function ItemCard({ item, onOpen }: { item: any; onOpen: (item: any) => void }) {
+  const hasDiscount = item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price);
+
   return (
     <div onClick={() => onOpen(item)} className="product-card-grid cursor-pointer group overflow-hidden w-full min-w-0 h-full">
       <div className="relative pt-[75%] bg-[#f7f7fc] rounded-t-2xl overflow-hidden">
@@ -498,8 +548,14 @@ function ItemCard({ item, onOpen }: { item: any; onOpen: (item: any) => void }) 
           className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
 
+        {hasDiscount && (
+          <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-black shadow-md z-10">
+            -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}%
+          </div>
+        )}
+
         {item.isFeatured && (
-          <div className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: "var(--primary-hex)" }}>
+          <div className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center z-10" style={{ backgroundColor: "var(--primary-hex)" }}>
             <Star className="w-3 h-3 fill-white text-white" />
           </div>
         )}
@@ -510,7 +566,22 @@ function ItemCard({ item, onOpen }: { item: any; onOpen: (item: any) => void }) 
           <p className="text-[10px] leading-4 sm:text-xs sm:leading-5 text-[#6e7191] line-clamp-2 mt-0.5 break-words flex-1">{item.description}</p>
         </div>
         <div className="flex items-center justify-between gap-1 w-full min-w-0 pt-1 mt-auto">
-          <span className="text-xs sm:text-base font-semibold text-[#14142b] truncate min-w-0">{formatPrice(item.price)}</span>
+          <div className="min-w-0 flex items-baseline gap-1.5">
+            {hasDiscount ? (
+              <>
+                <span className="text-xs sm:text-base font-bold text-primary truncate min-w-0">
+                  {formatPrice(item.discountPrice)}
+                </span>
+                <span className="text-[10px] sm:text-xs text-[#a0a3bd] line-through truncate font-normal">
+                  {formatPrice(item.price)}
+                </span>
+              </>
+            ) : (
+              <span className="text-xs sm:text-base font-semibold text-[#14142b] truncate min-w-0">
+                {formatPrice(item.price)}
+              </span>
+            )}
+          </div>
           <button onClick={(e) => { e.stopPropagation(); onOpen(item); }}
             className="product-card-grid-cart-btn shrink-0">
             <Plus className="w-3.5 h-3.5" />

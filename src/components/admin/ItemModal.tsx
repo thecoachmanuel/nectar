@@ -24,6 +24,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
     offerId: "",
     storeId: "0",
     price: 0,
+    discountPrice: 0,
 
     isFeatured: false,
     status: true,
@@ -52,6 +53,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
         offerId: item.offerId?._id || item.offerId || "",
         storeId: item.storeId || "0",
         price: item.price || 0,
+        discountPrice: item.discountPrice || 0,
 
         isFeatured: item.isFeatured ?? false,
         status: item.status ?? true,
@@ -68,6 +70,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
         offerId: "",
         storeId: "0",
         price: 0,
+        discountPrice: 0,
 
         isFeatured: false,
         status: true,
@@ -177,38 +180,72 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
           </div>
         </div>
 
-        {/* Price & Offer Grid (2-Column on Tablet/Desktop) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-          <div>
-            <label className="block text-sm font-semibold text-[#14142B] mb-1.5">
-              Price (₦) <span className="text-red-500">*</span>
-            </label>
-            <input 
-              type="number" 
-              required
-              min="0"
-              step="0.01"
-              placeholder="0.00"
-              value={formData.price}
-              onChange={(e) => setFormData({...formData, price: Number(e.target.value)})}
-              className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors text-sm font-bold text-[#14142B]"
-            />
+        {/* Pricing & Sale Section */}
+        <div className="p-4 sm:p-5 rounded-2xl border border-[#EFF0F6] bg-[#FAFAFC] space-y-3.5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h4 className="text-sm font-bold text-[#14142B]">Product Pricing & Sale Options</h4>
+              <p className="text-xs text-[#6E7191]">Set the regular retail price and optionally put this product on sale.</p>
+            </div>
+            {Number(formData.discountPrice) > 0 && Number(formData.discountPrice) < Number(formData.price) && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[#E0FFED] text-[#1AB759] border border-[#1AB759]/20 shadow-sm">
+                🔥 On Sale: Save ₦{(Number(formData.price) - Number(formData.discountPrice)).toLocaleString()} (-{Math.round(((Number(formData.price) - Number(formData.discountPrice)) / Number(formData.price)) * 100)}% OFF)
+              </span>
+            )}
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-[#14142B] mb-1.5">
-              Special Offer / Promo Tag <span className="text-xs font-normal text-[#A0A3BD]">(Optional)</span>
-            </label>
-            <select 
-              value={formData.offerId}
-              onChange={(e) => setFormData({...formData, offerId: e.target.value})}
-              className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors bg-white text-sm font-medium"
-            >
-              <option value="">No Promotional Offer</option>
-              {offers?.map((offer: any) => (
-                <option key={offer._id} value={offer._id}>🏷️ {offer.title}</option>
-              ))}
-            </select>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-[#14142B] mb-1.5">
+                Regular Price (₦) <span className="text-red-500">*</span>
+              </label>
+              <input 
+                type="number" 
+                required
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                value={formData.price || ""}
+                onChange={(e) => setFormData({...formData, price: Number(e.target.value)})}
+                className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors text-sm font-bold text-[#14142B] bg-white"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-[#14142B] mb-1.5">
+                Sale / Discount Price (₦) <span className="text-xs font-normal text-[#A0A3BD]">(Optional)</span>
+              </label>
+              <input 
+                type="number" 
+                min="0"
+                step="0.01"
+                placeholder="e.g. 800 (Optional)"
+                value={formData.discountPrice || ""}
+                onChange={(e) => setFormData({...formData, discountPrice: Number(e.target.value)})}
+                className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors text-sm font-bold text-primary bg-white placeholder:font-normal placeholder:text-xs"
+              />
+              {Number(formData.discountPrice) >= Number(formData.price) && Number(formData.discountPrice) > 0 && (
+                <p className="text-[11px] text-amber-600 font-medium mt-1">
+                  ⚠️ Must be lower than regular price to activate discount.
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-[#14142B] mb-1.5">
+                Special Offer Tag <span className="text-xs font-normal text-[#A0A3BD]">(Optional)</span>
+              </label>
+              <select 
+                value={formData.offerId}
+                onChange={(e) => setFormData({...formData, offerId: e.target.value})}
+                className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors bg-white text-sm font-medium"
+              >
+                <option value="">No Promotional Offer</option>
+                {offers?.map((offer: any) => (
+                  <option key={offer._id} value={offer._id}>🏷️ {offer.title}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 

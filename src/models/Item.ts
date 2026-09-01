@@ -25,6 +25,7 @@ export interface IItem extends Document {
   offerId?: mongoose.Types.ObjectId;
   description?: string;
   price: number;
+  discountPrice?: number;
 
   status: boolean;
   isFeatured: boolean;
@@ -61,6 +62,7 @@ const ItemSchema = new Schema<IItem>(
     offerId: { type: Schema.Types.ObjectId, ref: "Offer" },
     description: { type: String },
     price: { type: Number, required: true },
+    discountPrice: { type: Number, default: 0 },
     status: { type: Boolean, default: true },
     isFeatured: { type: Boolean, default: false },
     image: { type: String },
