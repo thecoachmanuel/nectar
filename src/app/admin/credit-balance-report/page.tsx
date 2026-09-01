@@ -4,9 +4,13 @@ import React, { useState, useEffect } from "react";
 import { 
   Search, 
   Filter, 
-  Download
+  Download,
+  Plus,
+  Minus,
+  Wallet
 } from "lucide-react";
 import { formatPrice } from "@/lib/formatters";
+import WalletAdjustmentModal from "@/components/admin/WalletAdjustmentModal";
 
 export default function CreditBalanceReportPage() {
   const [showFilter, setShowFilter] = useState(false);
@@ -14,6 +18,11 @@ export default function CreditBalanceReportPage() {
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
+  // Wallet modal state
+  const [walletModalOpen, setWalletModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [modalAction, setModalAction] = useState<"add" | "deduct">("add");
+
   // Filters
   const [balanceStatus, setBalanceStatus] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -35,7 +44,7 @@ export default function CreditBalanceReportPage() {
       if (searchTerm) url += `&search=${encodeURIComponent(searchTerm)}`;
       if (filterName) url += `&name=${encodeURIComponent(filterName)}`;
       if (filterPhone) url += `&phone=${encodeURIComponent(filterPhone)}`;
-      const res = await fetch(url);
+      const res = await fetch(url, { cache: "no-store" });
       const data = await res.json();
       if (data.status) {
         setReports(data.data);
@@ -47,31 +56,10 @@ export default function CreditBalanceReportPage() {
     }
   };
 
-  const handleUpdateCredit = async (id: string, action: "add" | "deduct") => {
-    const amountStr = prompt(`Enter amount to ${action}:`);
-    if (!amountStr) return;
-    const amount = Number(amountStr);
-    if (isNaN(amount) || amount <= 0) {
-      alert("Please enter a valid positive number.");
-      return;
-    }
-
-    try {
-      const payload = { amount: action === "add" ? amount : -amount };
-      const res = await fetch(`/api/admin/credit-balance-report/${id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (data.status) {
-        fetchReports();
-      } else {
-        alert(data.message || "Failed to update credit");
-      }
-    } catch (err) {
-      alert("Something went wrong");
-    }
+  const openWalletModal = (user: any, action: "add" | "deduct") => {
+    setSelectedUser(user);
+    setModalAction(action);
+    setWalletModalOpen(true);
   };
 
   return (
@@ -176,16 +164,20 @@ export default function CreditBalanceReportPage() {
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button 
-                        onClick={() => handleUpdateCredit(report._id, "add")}
-                        className="px-3 py-1.5 rounded-lg bg-[#E0FFED] text-[#1AB759] text-xs font-medium hover:bg-[#c9fce0] transition-colors"
+                        onClick={() => openWalletModal(report, "add")}
+                        className="px-3 py-1.5 rounded-lg bg-[#E0FFED] text-[#1AB759] text-xs font-semibold hover:bg-[#c9fce0] transition-colors flex items-center gap-1 shadow-sm"
+                        title="Add Credit"
                       >
-                        + Add
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Fund</span>
                       </button>
                       <button 
-                        onClick={() => handleUpdateCredit(report._id, "deduct")}
-                        className="px-3 py-1.5 rounded-lg bg-[#FFF4E5] text-[#FF9F43] text-xs font-medium hover:bg-[#ffead1] transition-colors"
+                        onClick={() => openWalletModal(report, "deduct")}
+                        className="px-3 py-1.5 rounded-lg bg-[#FFF4E5] text-[#FF9F43] text-xs font-semibold hover:bg-[#ffead1] transition-colors flex items-center gap-1 shadow-sm"
+                        title="Deduct Credit"
                       >
-                        - Deduct
+                        <Minus className="w-3.5 h-3.5" />
+                        <span>Deduct</span>
                       </button>
                     </div>
                   </td>
@@ -204,15 +196,18 @@ export default function CreditBalanceReportPage() {
         
         {/* Pagination */}
         <div className="p-4 sm:p-6 border-t border-[#EFF0F6] flex items-center justify-between">
-          <span className="text-sm text-[#6E7191]">Showing 1 to 2 of 2 entries</span>
-          <div className="flex items-center gap-1">
-            <button className="w-8 h-8 rounded-lg border border-[#EFF0F6] flex items-center justify-center text-[#6E7191] hover:bg-[#F7F7FC] disabled:opacity-50">«</button>
-            <button className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center text-sm font-medium shadow-md shadow-primary/20">1</button>
-            <button className="w-8 h-8 rounded-lg border border-[#EFF0F6] flex items-center justify-center text-[#6E7191] hover:bg-[#F7F7FC] disabled:opacity-50">»</button>
-          </div>
+          <span className="text-sm text-[#6E7191]">Showing {reports.length} entries</span>
         </div>
 
       </div>
+
+      <WalletAdjustmentModal 
+        isOpen={walletModalOpen}
+        onClose={() => setWalletModalOpen(false)}
+        user={selectedUser}
+        initialAction={modalAction}
+        onSuccess={fetchReports}
+      />
 
     </div>
   );

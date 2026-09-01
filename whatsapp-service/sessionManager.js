@@ -24,6 +24,7 @@ function createInitialSession(phone) {
     customerName: null,
     customerEmail: null,
     customerPhone: null,
+    customerWalletBalance: 0,
     savedAddresses: [],
     deliveryAddress: null,
     latitude: undefined,

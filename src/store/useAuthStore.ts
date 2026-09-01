@@ -37,13 +37,14 @@ interface AuthState {
   setAuth: (token: string, user: UserProfile) => void;
   setGuest: (info: { name: string; email: string; phone: string }) => void;
   updateUser: (partialUser: Partial<UserProfile>) => void;
+  fetchUserProfile: () => Promise<UserProfile | null>;
   setActiveAdminStoreId: (storeId: string) => void;
   logout: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       token: null,
       user: null,
       isGuest: false,
@@ -58,6 +59,29 @@ export const useAuthStore = create<AuthState>()(
         set((state) => ({
           user: state.user ? { ...state.user, ...partialUser } : null,
         })),
+
+      fetchUserProfile: async () => {
+        const state = get();
+        if (!state.token) return null;
+        try {
+          const res = await fetch("/api/frontend/account/profile", {
+            headers: {
+              Authorization: `Bearer ${state.token}`,
+            },
+            cache: "no-store",
+          });
+          const data = await res.json();
+          if (data.status && data.data) {
+            set((s) => ({
+              user: s.user ? { ...s.user, ...data.data } : data.data,
+            }));
+            return data.data as UserProfile;
+          }
+        } catch (err) {
+          console.error("Failed to sync user profile", err);
+        }
+        return null;
+      },
 
       setActiveAdminStoreId: (storeId) => set({ activeAdminStoreId: storeId }),
 

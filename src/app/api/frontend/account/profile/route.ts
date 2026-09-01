@@ -19,6 +19,40 @@ async function getUserFromToken(req: Request) {
   }
 }
 
+export const dynamic = "force-dynamic";
+
+export async function GET(req: Request) {
+  try {
+    await connectToDatabase();
+    const userId = await getUserFromToken(req);
+    if (!userId) {
+      return NextResponse.json({ status: false, message: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await User.findById(userId).lean();
+    if (!user) {
+      return NextResponse.json({ status: false, message: "User not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      status: true,
+      data: {
+        _id: String(user._id),
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        storeId: user.storeId,
+        image: user.image,
+        walletBalance: user.walletBalance ?? 0,
+        addresses: user.addresses || [],
+      },
+    });
+  } catch (error: any) {
+    return NextResponse.json({ status: false, message: error.message }, { status: 500 });
+  }
+}
+
 export async function PUT(req: Request) {
   try {
     await connectToDatabase();
@@ -40,13 +74,15 @@ export async function PUT(req: Request) {
       status: true,
       message: "Profile updated successfully",
       data: {
-        _id: user._id,
+        _id: String(user._id),
         name: user.name,
         email: user.email,
         phone: user.phone,
         role: user.role,
         storeId: user.storeId,
         image: user.image,
+        walletBalance: user.walletBalance ?? 0,
+        addresses: user.addresses || [],
       }
     });
   } catch (error: any) {

@@ -20,6 +20,7 @@ export default function UserModal({ isOpen, onClose, user, role, onSuccess }: Us
     email: "",
     phone: "",
     password: "",
+    walletBalance: 0,
     status: true,
     deliveryCommissionType: "fixed",
     deliveryCommissionValue: 0,
@@ -32,6 +33,7 @@ export default function UserModal({ isOpen, onClose, user, role, onSuccess }: Us
         email: user.email || "",
         phone: user.phone || "",
         password: "", // Don't populate password on edit
+        walletBalance: user.walletBalance ?? 0,
         status: user.status ?? true,
         deliveryCommissionType: user.deliveryCommissionType || "fixed",
         deliveryCommissionValue: user.deliveryCommissionValue || 0,
@@ -42,6 +44,7 @@ export default function UserModal({ isOpen, onClose, user, role, onSuccess }: Us
         email: "",
         phone: "",
         password: "",
+        walletBalance: 0,
         status: true,
         deliveryCommissionType: "fixed",
         deliveryCommissionValue: 0,
@@ -133,6 +136,20 @@ export default function UserModal({ isOpen, onClose, user, role, onSuccess }: Us
             </button>
           </div>
         </div>
+
+        {(role === "customer" || role === "delivery_boy") && (
+          <div>
+            <label className="block text-sm font-medium text-[#14142B] mb-1">Wallet Balance (₦)</label>
+            <input 
+              type="number" 
+              min="0"
+              step="any"
+              value={formData.walletBalance}
+              onChange={(e) => setFormData({...formData, walletBalance: Number(e.target.value) || 0})}
+              className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors font-semibold"
+            />
+          </div>
+        )}
 
         <div className="flex items-center gap-2 pt-2">
           <input 

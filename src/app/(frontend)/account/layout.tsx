@@ -10,13 +10,16 @@ export default function AccountLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { token, isGuest } = useAuthStore();
+  const { token, isGuest, fetchUserProfile } = useAuthStore();
   const [mounted, setMounted] = useState(false);
 
-  // Avoid hydration mismatch by waiting for mount to check Zustand persist state
+  // Avoid hydration mismatch and refresh user profile with DB
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (token) {
+      fetchUserProfile();
+    }
+  }, [token, fetchUserProfile]);
 
   if (!mounted) {
     return (

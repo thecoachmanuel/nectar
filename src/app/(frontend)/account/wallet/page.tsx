@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Undo2, Wallet, Plus, CreditCard, Loader2 } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { Undo2, Wallet, Plus, CreditCard, Loader2, RefreshCw } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -9,15 +9,45 @@ import Link from "next/link";
 import { formatPrice } from "@/lib/formatters";
 
 export default function WalletPage() {
-  const { user, token, updateUser } = useAuthStore();
+  const { user, token, updateUser, fetchUserProfile } = useAuthStore();
   const router = useRouter();
   const searchParams = useSearchParams();
   
   const [amount, setAmount] = useState("");
   const [isInitializing, setIsInitializing] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const walletBalance = (user as any)?.walletBalance || 0;
+
+  const refreshBalance = useCallback(async () => {
+    if (!token) return;
+    setIsRefreshing(true);
+    try {
+      await fetchUserProfile();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [token, fetchUserProfile]);
+
+  // Initial sync and real-time polling every 3.5s while active
+  useEffect(() => {
+    refreshBalance();
+
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchUserProfile();
+      }
+    }, 3500);
+
+    const onFocus = () => fetchUserProfile();
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [refreshBalance, fetchUserProfile]);
 
   useEffect(() => {
     // Check if we are returning from Paystack
@@ -115,11 +145,28 @@ export default function WalletPage() {
           
           <div className="relative z-10 flex justify-between items-start">
             <div>
-              <p className="text-white/70 text-sm font-medium mb-1">Current Balance</p>
+              <div className="flex items-center gap-2 mb-1">
+                <p className="text-white/70 text-sm font-medium">Current Balance</p>
+                <button
+                  type="button"
+                  onClick={refreshBalance}
+                  disabled={isRefreshing}
+                  className="w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white/80"
+                  title="Refresh Balance"
+                >
+                  <RefreshCw className={`w-3 h-3 ${isRefreshing ? "animate-spin text-primary" : ""}`} />
+                </button>
+              </div>
               <h2 className="text-4xl font-bold tracking-tight">{formatPrice(walletBalance)}</h2>
             </div>
-            <div className="w-12 h-8 bg-white/20 rounded-md flex items-center justify-center backdrop-blur-sm">
-              <CreditCard className="w-6 h-6 text-white/80" />
+            <div className="flex flex-col items-end gap-2">
+              <div className="w-12 h-8 bg-white/20 rounded-md flex items-center justify-center backdrop-blur-sm">
+                <CreditCard className="w-6 h-6 text-white/80" />
+              </div>
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-400/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Live Synced
+              </span>
             </div>
           </div>
           

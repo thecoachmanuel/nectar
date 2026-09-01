@@ -322,6 +322,7 @@ async function showCustomerProfileCard(db, session, phone, sendFn) {
       `• *Name:* ${session.customerName || "Valued Customer"}\n` +
       `• *Phone:* ${session.customerPhone || "+" + phone}\n` +
       (session.customerEmail ? `• *Email:* ${session.customerEmail}\n` : "") +
+      `• *Wallet Balance:* ₦${formatPrice(session.customerWalletBalance || 0)}\n` +
       `• *Total Orders Placed:* ${orderCount}\n` +
       `• *Last Order Date:* ${lastOrderDate}\n\n` +
       `📍 *Saved Addresses:*\n${addressLines}\n\n` +
@@ -563,6 +564,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
         session.customerName = user.name || null;
         session.customerEmail = user.email || null;
         session.customerPhone = user.phone || userService.normalizeCustomerPhone(phone);
+        session.customerWalletBalance = Number(user.walletBalance || 0);
         session.savedAddresses = Array.isArray(user.addresses) ? user.addresses : [];
         session.isKnownUser = true;
       }

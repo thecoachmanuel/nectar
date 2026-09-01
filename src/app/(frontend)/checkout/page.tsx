@@ -14,7 +14,7 @@ import AddressModal from "@/components/frontend/AddressModal";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { user, isGuest, guestInfo, token } = useAuthStore();
+  const { user, isGuest, guestInfo, token, fetchUserProfile } = useAuthStore();
   const { items, orderType, setOrderType, getSubtotal, getTotalAmount, clearCart, removeItem } = useCartStore();
   const { settings, fetchSettings } = useSettingsStore();
   const [loading, setLoading] = useState(true);
@@ -26,10 +26,13 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<string>(""); // empty until settings loaded
   const [paymentMethodInitialized, setPaymentMethodInitialized] = useState(false);
   
-  // Fetch fresh settings on checkout page mount to avoid stale cache
+  // Fetch fresh settings and user profile/wallet on checkout page mount
   useEffect(() => {
     fetchSettings();
-  }, []);
+    if (token) {
+      fetchUserProfile();
+    }
+  }, [token, fetchUserProfile, fetchSettings]);
 
   // Set default payment method ONCE after fresh settings are loaded
   useEffect(() => {
