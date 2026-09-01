@@ -219,6 +219,19 @@ function MenuContent() {
     fetchCategories();
   }, []);
 
+  /* react to URL category param changes (handles "View All" clicks from within the page) */
+  useEffect(() => {
+    if (categories.length === 0) return;
+    if (categoryParam && categoryParam !== "all") {
+      const found = categories.find(
+        (c: any) => c._id === categoryParam || c.slug === categoryParam
+      );
+      setSelectedCategory(found || null);
+    } else {
+      setSelectedCategory(null);
+    }
+  }, [categoryParam, categories]);
+
   /* fetch items on filter change */
   useEffect(() => {
     fetchItems();
@@ -236,15 +249,8 @@ function MenuContent() {
       const res = await fetch("/api/frontend/categories");
       const data = await res.json();
       if (data.status) {
-        const fetchedCats = data.data || [];
-        setCategories(fetchedCats);
-        if (categoryParam && categoryParam !== "all") {
-          const found = fetchedCats.find(
-            (c: any) => c._id === categoryParam || c.slug === categoryParam
-          );
-          if (found) { setSelectedCategory(found); return; }
-        }
-        setSelectedCategory(null);
+        setCategories(data.data || []);
+        // selectedCategory is now set reactively by the categoryParam effect above
       }
     } catch {}
   };
