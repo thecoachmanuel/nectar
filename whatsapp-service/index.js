@@ -39,6 +39,45 @@ let mongoDbCollection = null;
 let mongoDbInstance = null;
 let reconnectAttempts = 0;
 
+// ─── Top-Level Uncaught Exception Safety (Auto-recovers from corrupted auth) ─
+process.on("uncaughtException", async (err) => {
+  console.error("💥 Uncaught Exception:", err.message);
+  
+  // If crypto Noise handshake or cipher authentication fails (corrupted MongoDB keys)
+  if (
+    err.message.includes("unable to authenticate data") ||
+    err.message.includes("Unsupported state") ||
+    err.message.includes("Bad MAC") ||
+    err.message.includes("Decipheriv")
+  ) {
+    console.warn("🧹 Corrupted auth keys detected in MongoDB. Auto-clearing auth state and generating fresh QR...");
+    try {
+      const coll = await getAuthCollection();
+      await coll.deleteMany({});
+    } catch (_) {}
+
+    if (sock) {
+      try {
+        sock.ev.removeAllListeners();
+        sock.end(undefined);
+      } catch (_) {}
+      sock = null;
+    }
+    connectionStatus = "disconnected";
+    qrDataUrl = null;
+    isConnecting = false;
+
+    clearTimeout(reconnectTimer);
+    reconnectTimer = setTimeout(() => {
+      connectToWhatsApp().catch(console.error);
+    }, 2000);
+  }
+});
+
+process.on("unhandledRejection", (reason) => {
+  console.error("⚠️ Unhandled Rejection:", reason);
+});
+
 // ─── Database Initialization ────────────────────────────────────────────────
 async function getMongoDb() {
   if (mongoDbInstance) return mongoDbInstance;
@@ -401,22 +440,29 @@ async function connectToWhatsApp() {
       if (connection === "close") {
         isConnecting = false;
         const statusCode = new Boom(lastDisconnect?.error)?.output?.statusCode;
-        console.log(`⚠️  Connection closed. Status code: ${statusCode}`);
+        const errorMsg = String(lastDisconnect?.error?.message || lastDisconnect?.error || "");
+        console.log(`⚠️  Connection closed. Status code: ${statusCode}. Error: ${errorMsg}`);
         connectionStatus = "disconnected";
 
         clearTimeout(reconnectTimer);
 
-        if (statusCode === DisconnectReason.restartRequired) {
-          console.log("🔄 Immediate restart required by WhatsApp server...");
-          reconnectTimer = setTimeout(connectToWhatsApp, 1000);
-        } else if (statusCode === DisconnectReason.loggedOut) {
-          console.log("🔴 Logged out explicitly. Clearing MongoDB auth and regenerating QR code...");
+        // If decryption/authentication failure or explicit logout, clear auth so fresh QR is generated
+        if (
+          statusCode === DisconnectReason.loggedOut ||
+          errorMsg.includes("unable to authenticate data") ||
+          errorMsg.includes("Unsupported state") ||
+          errorMsg.includes("Bad MAC")
+        ) {
+          console.log("🔴 Logged out or auth state expired. Clearing MongoDB auth and regenerating QR code...");
           qrDataUrl = null;
           try {
             const coll = await getAuthCollection();
             await coll.deleteMany({});
           } catch (e) {}
           reconnectTimer = setTimeout(connectToWhatsApp, 2000);
+        } else if (statusCode === DisconnectReason.restartRequired) {
+          console.log("🔄 Immediate restart required by WhatsApp server...");
+          reconnectTimer = setTimeout(connectToWhatsApp, 1000);
         } else {
           reconnectAttempts = Math.min(reconnectAttempts + 1, 6);
           const delay = Math.min(3000 * Math.pow(1.5, reconnectAttempts - 1), 30000);
@@ -429,6 +475,21 @@ async function connectToWhatsApp() {
     isConnecting = false;
     connectionStatus = "disconnected";
     console.error("❌ Connection setup error:", err.message);
+
+    // If initial connection setup failed due to corrupted auth keys, auto-clear
+    if (
+      err.message.includes("unable to authenticate data") ||
+      err.message.includes("Unsupported state") ||
+      err.message.includes("Bad MAC") ||
+      err.message.includes("Decipheriv")
+    ) {
+      console.warn("🧹 Wiping corrupted auth in MongoDB...");
+      try {
+        const coll = await getAuthCollection();
+        await coll.deleteMany({});
+      } catch (_) {}
+    }
+
     clearTimeout(reconnectTimer);
     reconnectTimer = setTimeout(connectToWhatsApp, 5000);
   }
