@@ -402,7 +402,7 @@ export default function ProductRequestsPage() {
         onClose={() => setIsDeleteOpen(false)}
         onConfirm={confirmDelete}
         title="Delete Product Request"
-        description={`Are you sure you want to delete the request for "${selectedRequest?.productName}"?`}
+        message={`Are you sure you want to delete the request for "${selectedRequest?.productName}"?`}
       />
 
       <ItemModal
