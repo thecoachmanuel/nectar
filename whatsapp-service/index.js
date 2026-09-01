@@ -223,7 +223,7 @@ function formatPhone(phoneOrJid) {
   // Strip any multi-device suffix e.g. 2348012345678:4@s.whatsapp.net -> 2348012345678@s.whatsapp.net
   str = str.replace(/:.+@/, "@");
 
-  if (str.endsWith("@s.whatsapp.net")) {
+  if (str.endsWith("@s.whatsapp.net") || str.endsWith("@lid")) {
     return str;
   }
   let digits = str.replace(/\D/g, "");
@@ -412,8 +412,16 @@ async function connectToWhatsApp() {
             senderPhone,
             messageContent,
             async (destOrText, maybeText) => {
-              const target = maybeText !== undefined ? (destOrText || cleanJid) : cleanJid;
-              const textToSend = maybeText !== undefined ? maybeText : destOrText;
+              let target = rawJid;
+              let textToSend = destOrText;
+
+              if (maybeText !== undefined) {
+                textToSend = maybeText;
+                if (destOrText && destOrText !== senderPhone && destOrText !== rawJid) {
+                  target = formatPhone(destOrText);
+                }
+              }
+
               console.log(`🤖 [BOT REPLY] Dispatching to ${target}`);
               await sendWhatsAppMessage(target, textToSend);
             }
@@ -508,14 +516,6 @@ async function sendWhatsAppMessage(phoneOrJid, message) {
     throw new Error(`WhatsApp not connected. Status: ${connectionStatus}`);
   }
   let targetJid = formatPhone(phoneOrJid);
-
-  // If targetJid has @lid suffix, convert numeric phone to standard @s.whatsapp.net
-  if (targetJid.endsWith("@lid")) {
-    const digitsOnly = targetJid.replace(/\D/g, "");
-    if (digitsOnly.length >= 7) {
-      targetJid = `${digitsOnly}@s.whatsapp.net`;
-    }
-  }
 
   // Sanitize message content
   let textToSend = "";
