@@ -348,7 +348,19 @@ async function connectToWhatsApp() {
 
         const cleanJid = rawJid.replace(/:.+@/, "@");
         const myJid = (sock.user?.id || "").replace(/:.+@/, "@");
-        const isSelfChat = msg.key?.fromMe && myJid && (cleanJid === myJid || cleanJid.includes(myJid.replace(/@.+/, "")));
+        const myPhone = (sock.user?.id || "").replace(/\D/g, "");
+        const senderDigits = cleanJid.replace(/\D/g, "");
+        const isSelfChat = Boolean(
+          myPhone &&
+          senderDigits &&
+          (cleanJid === myJid || senderDigits.endsWith(myPhone.slice(-10)) || myPhone.endsWith(senderDigits.slice(-10)))
+        );
+
+        // Extract message text or location object
+        const messageContent = extractMessageContent(msg);
+        if (!messageContent) {
+          continue;
+        }
 
         // ── Detect OUTGOING business messages to customers ──────────────────
         // When the business owner manually types and sends a reply to a customer
@@ -379,14 +391,8 @@ async function connectToWhatsApp() {
           continue; // Never route outgoing (fromMe) messages through the bot handler
         }
 
-        // Extract message text or location object
-        const messageContent = extractMessageContent(msg);
-        if (!messageContent) {
-          continue;
-        }
-
         const senderPhone = cleanJid.replace(/@.+$/, "");
-        console.log(`💬 Processing WhatsApp message from ${cleanJid} (${senderPhone}): "${typeof messageContent === "string" ? messageContent.slice(0, 40) : "Location"}"`);
+        console.log(`💬 [INCOMING] From: ${cleanJid} (${senderPhone}) | Content: "${typeof messageContent === "string" ? messageContent.slice(0, 50) : "Location Pin"}" | fromMe: ${Boolean(msg.key?.fromMe)}`);
 
         // Record incoming customer message to chat history
         const { isBotPaused } = require("./sessionManager");
@@ -408,6 +414,7 @@ async function connectToWhatsApp() {
             async (destOrText, maybeText) => {
               const target = maybeText !== undefined ? (destOrText || cleanJid) : cleanJid;
               const textToSend = maybeText !== undefined ? maybeText : destOrText;
+              console.log(`🤖 [BOT REPLY] Dispatching to ${target}`);
               await sendWhatsAppMessage(target, textToSend);
             }
           );
