@@ -1,4 +1,4 @@
-﻿// ΓöÇΓöÇΓöÇ Session Manager ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Session Manager ────────────────────────────────────────────────────────
 // In-memory conversation state for customers ordering via WhatsApp
 
 const sessions = new Map();
@@ -90,7 +90,7 @@ function pauseBot(phone, durationMs = BOT_PAUSE_DURATION_MS) {
   const session = getSession(phone);
   session.botPausedUntil = Date.now() + durationMs;
   sessions.set(phone, session);
-  console.log(`ΓÅ╕∩╕Å  Bot paused for ${phone} for ${Math.round(durationMs / 60000)} minutes (business replied manually).`);
+  console.log(`⏸️  Bot paused for ${phone} for ${Math.round(durationMs / 60000)} minutes (business replied manually).`);
   return session;
 }
 
@@ -103,7 +103,7 @@ function resumeBot(phone) {
   session.botPausedUntil = null;
   session.step = "MAIN_MENU";
   sessions.set(phone, session);
-  console.log(`Γû╢∩╕Å  Bot resumed for ${phone}.`);
+  console.log(`▶️  Bot resumed for ${phone}.`);
   return session;
 }
 
@@ -117,10 +117,10 @@ function isBotPaused(phone) {
   const session = sessions.get(phone);
   if (!session || session.botPausedUntil === null) return false;
   if (Date.now() > session.botPausedUntil) {
-    // Pause expired ΓÇö auto-resume
+    // Pause expired — auto-resume
     session.botPausedUntil = null;
     sessions.set(phone, session);
-    console.log(`Γû╢∩╕Å  Bot auto-resumed for ${phone} (pause window expired).`);
+    console.log(`▶️  Bot auto-resumed for ${phone} (pause window expired).`);
     return false;
   }
   return true;

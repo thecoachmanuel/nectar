@@ -1,4 +1,4 @@
-﻿require("dotenv").config();
+require("dotenv").config();
 const {
   default: makeWASocket,
   DisconnectReason,
@@ -16,7 +16,7 @@ const qrcode = require("qrcode");
 const pino = require("pino");
 const NodeCache = require("node-cache");
 
-// ΓöÇΓöÇΓöÇ Config ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Config ────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3001;
 const API_SECRET = process.env.API_SECRET || "wa_secret_change_me";
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/foodappi";
@@ -24,12 +24,12 @@ const APP_URL = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "";
 const { handleIncomingMessage } = require("./messageHandler");
 const logger = pino({ level: "silent" }); // Keep logs quiet in production
 
-// ΓöÇΓöÇΓöÇ Retry & Message Cache (Fixes "Waiting for this message") ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Retry & Message Cache (Fixes "Waiting for this message") ───────────────
 const msgRetryCounterCache = new NodeCache({ stdTTL: 3600, checkperiod: 120 });
 const messageStore = new NodeCache({ stdTTL: 3600, checkperiod: 120 });
 const botSentMessageIds = new NodeCache({ stdTTL: 600, checkperiod: 60 });
 
-// ΓöÇΓöÇΓöÇ State ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── State ─────────────────────────────────────────────────────────────────
 let sock = null;
 let qrDataUrl = null;          // base64 QR image served to admin UI
 let connectionStatus = "disconnected"; // 'connecting' | 'open' | 'disconnected'
@@ -37,15 +37,14 @@ let isConnecting = false;
 let reconnectTimer = null;
 let mongoDbCollection = null;
 let mongoDbInstance = null;
-let reconnectAttempts = 0;     // for exponential backoff
-let lastConnectedAt = null;    // timestamp of last successful open connection
+let reconnectAttempts = 0;
 
-// ΓöÇΓöÇΓöÇ Database Initialization ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Database Initialization ────────────────────────────────────────────────
 async function getMongoDb() {
   if (mongoDbInstance) return mongoDbInstance;
   const mongoClient = new MongoClient(MONGODB_URI);
   await mongoClient.connect();
-  console.log("≡ƒùä∩╕Å  Connected to MongoDB instance.");
+  console.log("🗄️  Connected to MongoDB instance.");
   mongoDbInstance = mongoClient.db();
 
   // Create TTL index on whatsapp_messages to auto-delete messages after 7 days
@@ -66,7 +65,7 @@ async function getAuthCollection() {
   return mongoDbCollection;
 }
 
-// ΓöÇΓöÇΓöÇ Message Persistence (Fixes "Waiting for this message") ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Message Persistence (Fixes "Waiting for this message") ─────────────────
 async function saveMessage(keyId, message) {
   if (!keyId || !message) return;
   messageStore.set(keyId, message);
@@ -98,7 +97,7 @@ async function getStoredMessage(key) {
   return proto.Message.fromObject({});
 }
 
-// ΓöÇΓöÇΓöÇ Chat Message & Conversation Persistence ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Chat Message & Conversation Persistence ──────────────────────────────
 async function recordChatMessage(phone, sender, text, messageId, db, isBotPausedStatus) {
   if (!phone || !text) return;
   try {
@@ -106,7 +105,7 @@ async function recordChatMessage(phone, sender, text, messageId, db, isBotPaused
     const timestamp = new Date();
     const cleanPhone = String(phone).replace(/\D/g, "");
 
-    const msgContent = typeof text === "object" ? (text.address || "≡ƒôì Location Pin") : String(text);
+    const msgContent = typeof text === "object" ? (text.address || "📍 Location Pin") : String(text);
 
     // 1. Insert message document
     await mongo.collection("whatsapp_chat_messages").insertOne({
@@ -148,45 +147,44 @@ async function recordChatMessage(phone, sender, text, messageId, db, isBotPaused
       { upsert: true }
     );
   } catch (err) {
-    console.error("ΓÜá∩╕Å Failed to record chat message:", err.message);
+    console.error("⚠️ Failed to record chat message:", err.message);
   }
 }
 
-// ΓöÇΓöÇΓöÇ Message Templates ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Message Templates ─────────────────────────────────────────────────────
 function buildStatusMessage(orderSerialNo, status, customerName, totalAmount) {
   const name = customerName || "Customer";
-  const amount = totalAmount ? ` (Γéª${Number(totalAmount).toLocaleString()})` : "";
+  const amount = totalAmount ? ` (₦${Number(totalAmount).toLocaleString()})` : "";
 
   const templates = {
-    pending: `≡ƒî┐ *Nectar Groceries*\n\n≡ƒæï Hi *${name}*!\n\nWe've received your grocery order *#${orderSerialNo}*${amount} and it is currently *pending confirmation*.\n\nOur team is reviewing your items, and we'll update you the moment it is confirmed! ≡ƒ¢ÆΓ£¿\n\n_Thank you for choosing Nectar!_`,
+    pending: `🌿 *Nectar Groceries*\n\n👋 Hi *${name}*!\n\nWe've received your grocery order *#${orderSerialNo}*${amount} and it is currently *pending confirmation*.\n\nOur team is reviewing your items, and we'll update you the moment it is confirmed! 🛒✨\n\n_Thank you for choosing Nectar!_`,
 
-    accepted: `≡ƒî┐ *Nectar Groceries*\n\nΓ£à Great news, *${name}*!\n\nYour grocery order *#${orderSerialNo}* has been *confirmed*! ≡ƒÄë\n\nOur store team is now getting your fresh items ready for packing. ≡ƒÑª≡ƒìÄ\n\n_ΓÇö Team Nectar_`,
+    accepted: `🌿 *Nectar Groceries*\n\n✅ Great news, *${name}*!\n\nYour grocery order *#${orderSerialNo}* has been *confirmed*! 🎉\n\nOur store team is now getting your fresh items ready for packing. 🥦🍎\n\n_— Team Nectar_`,
 
-    preparing: `≡ƒî┐ *Nectar Groceries*\n\n≡ƒ¢ì∩╕Å Hey *${name}*!\n\nYour order *#${orderSerialNo}* is now being carefully *picked & packed*. ≡ƒÑæ≡ƒôª\n\nWe ensure only the freshest groceries are selected for your package. Sit tight ΓÇö it'll be ready shortly! Γ£¿`,
+    preparing: `🌿 *Nectar Groceries*\n\n🛍️ Hey *${name}*!\n\nYour order *#${orderSerialNo}* is now being carefully *picked & packed*. 🥑📦\n\nWe ensure only the freshest groceries are selected for your package. Sit tight — it'll be ready shortly! ✨`,
 
-    ready: `≡ƒî┐ *Nectar Groceries*\n\n≡ƒÄü *${name}*, your grocery package *#${orderSerialNo}* is *all packed and ready!* ≡ƒ¢ì∩╕Å\n\nOur dispatch team is assigned and about to pick it up for delivery. ≡ƒÜÇ`,
+    ready: `🌿 *Nectar Groceries*\n\n🎁 *${name}*, your grocery package *#${orderSerialNo}* is *all packed and ready!* 🛍️\n\nOur dispatch team is assigned and about to pick it up for delivery. 🚀`,
 
-    out_for_delivery: `≡ƒî┐ *Nectar Groceries*\n\n≡ƒÜÜ Exciting news, *${name}*!\n\nYour grocery order *#${orderSerialNo}* is now *out for delivery!* ≡ƒ¢╡≡ƒÆ¿\n\nOur rider is heading your way with your fresh package. Please be available to receive it.\n\n_ΓÇö Team Nectar_`,
+    out_for_delivery: `🌿 *Nectar Groceries*\n\n🚚 Exciting news, *${name}*!\n\nYour grocery order *#${orderSerialNo}* is now *out for delivery!* 🛵💨\n\nOur rider is heading your way with your fresh package. Please be available to receive it.\n\n_— Team Nectar_`,
 
-    delivered: `≡ƒî┐ *Nectar Groceries*\n\n≡ƒÄë *${name}*, your grocery order *#${orderSerialNo}* has been *successfully delivered!* ≡ƒÅá≡ƒôª\n\nThank you for shopping with Nectar! We hope you love your fresh groceries. ≡ƒìÄ≡ƒÑæ≡ƒÑ¢\n\n_Enjoy your fresh items & see you on your next order!_ Γ¡É`,
+    delivered: `🌿 *Nectar Groceries*\n\n🎉 *${name}*, your grocery order *#${orderSerialNo}* has been *successfully delivered!* 🏠📦\n\nThank you for shopping with Nectar! We hope you love your fresh groceries. 🍎🥑🥛\n\n_Enjoy your fresh items & see you on your next order!_ ⭐`,
 
-    canceled: `≡ƒî┐ *Nectar Groceries*\n\n≡ƒÿö *${name}*, your grocery order *#${orderSerialNo}* has been *canceled*.\n\nIf you have any questions or need assistance, simply reply directly to this chat or reach out to our customer care.\n\n_We apologize for any inconvenience! ≡ƒÖÅ_`,
+    canceled: `🌿 *Nectar Groceries*\n\n😔 *${name}*, your grocery order *#${orderSerialNo}* has been *canceled*.\n\nIf you have any questions or need assistance, simply reply directly to this chat or reach out to our customer care.\n\n_We apologize for any inconvenience! 🙏_`,
   };
 
   return (
     templates[status] ||
-    `≡ƒî┐ *Nectar Groceries*\n\nHi *${name}*, your order *#${orderSerialNo}* status has been updated to: *${status.replace("_", " ")}*.\n\n_ΓÇö Team Nectar_`
+    `🌿 *Nectar Groceries*\n\nHi *${name}*, your order *#${orderSerialNo}* status has been updated to: *${status.replace("_", " ")}*.\n\n_— Team Nectar_`
   );
 }
 
-// ΓöÇΓöÇΓöÇ Format phone for WhatsApp ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
-// ΓöÇΓöÇΓöÇ Format phone for WhatsApp ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Format phone for WhatsApp ─────────────────────────────────────────────
 function formatPhone(phoneOrJid) {
   let str = String(phoneOrJid || "").trim();
   // Strip any multi-device suffix e.g. 2348012345678:4@s.whatsapp.net -> 2348012345678@s.whatsapp.net
   str = str.replace(/:.+@/, "@");
 
-  if (str.endsWith("@s.whatsapp.net") || str.endsWith("@lid")) {
+  if (str.endsWith("@s.whatsapp.net")) {
     return str;
   }
   let digits = str.replace(/\D/g, "");
@@ -200,7 +198,7 @@ function formatPhone(phoneOrJid) {
   return `${digits}@s.whatsapp.net`;
 }
 
-// ΓöÇΓöÇΓöÇ Extract Message Content Helper ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Extract Message Content Helper ─────────────────────────────────────────
 function extractMessageContent(msg) {
   if (!msg) return "";
   let m = msg.message || msg;
@@ -239,6 +237,7 @@ function extractMessageContent(msg) {
     m.templateButtonReplyMessage?.selectedId ||
     m.templateButtonReplyMessage?.selectedDisplayText ||
     m.interactiveResponseMessage?.nativeFlowResponseMessage?.paramsJson ||
+    m.interactiveResponseMessage?.body?.text ||
     m.imageMessage?.caption ||
     m.videoMessage?.caption ||
     m.documentMessage?.caption ||
@@ -246,10 +245,10 @@ function extractMessageContent(msg) {
   );
 }
 
-// ΓöÇΓöÇΓöÇ WhatsApp Connection ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── WhatsApp Connection ───────────────────────────────────────────────────
 async function connectToWhatsApp() {
   if (isConnecting) {
-    console.log("ΓÅ│ Connection attempt already in progress, skipping duplicate call...");
+    console.log("⏳ Connection attempt already in progress, skipping duplicate call...");
     return;
   }
   isConnecting = true;
@@ -269,7 +268,7 @@ async function connectToWhatsApp() {
     const { state, saveCreds } = await useMongoDBAuthState(collection);
     const { version } = await fetchLatestBaileysVersion();
 
-    console.log(`≡ƒöî Connecting to WhatsApp (Baileys v${version.join(".")})...`);
+    console.log(`🔌 Connecting to WhatsApp (Baileys v${version.join(".")})...`);
 
     sock = makeWASocket({
       version,
@@ -283,7 +282,7 @@ async function connectToWhatsApp() {
       logger,
       syncFullHistory: false,
       markOnlineOnConnect: true,
-      keepAliveIntervalMs: 30000,
+      keepAliveIntervalMs: 25000,
       connectTimeoutMs: 60000,
       defaultQueryTimeoutMs: 60000,
       generateHighQualityLinkPreview: false,
@@ -312,7 +311,7 @@ async function connectToWhatsApp() {
         const myJid = (sock.user?.id || "").replace(/:.+@/, "@");
         const isSelfChat = msg.key?.fromMe && myJid && (cleanJid === myJid || cleanJid.includes(myJid.replace(/@.+/, "")));
 
-        // ΓöÇΓöÇ Detect OUTGOING business messages to customers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+        // ── Detect OUTGOING business messages to customers ──────────────────
         // When the business owner manually types and sends a reply to a customer
         // from their phone, we auto-pause the bot for that customer so the
         // business can have a natural conversation without bot interruptions.
@@ -333,7 +332,7 @@ async function connectToWhatsApp() {
           if (msgText.length > 0) {
             const { pauseBot } = require("./sessionManager");
             pauseBot(customerPhone);
-            console.log(`≡ƒºæΓÇì≡ƒÆ╝ Business manually replied to ${customerPhone} from phone ΓÇö bot paused for 2 hours.`);
+            console.log(`🧑‍💼 Business manually replied to ${customerPhone} from phone — bot paused for 2 hours.`);
             
             // Record manual outgoing business message to chat history
             recordChatMessage(customerPhone, "business", msgText, msg.key?.id, null, true).catch(() => {});
@@ -348,7 +347,7 @@ async function connectToWhatsApp() {
         }
 
         const senderPhone = cleanJid.replace(/@.+$/, "");
-        console.log(`≡ƒÆ¼ Processing WhatsApp message from ${cleanJid} (${senderPhone})`);
+        console.log(`💬 Processing WhatsApp message from ${cleanJid} (${senderPhone}): "${typeof messageContent === "string" ? messageContent.slice(0, 40) : "Location"}"`);
 
         // Record incoming customer message to chat history
         const { isBotPaused } = require("./sessionManager");
@@ -367,12 +366,14 @@ async function connectToWhatsApp() {
             APP_URL,
             senderPhone,
             messageContent,
-            async (dest, replyText) => {
-              await sendWhatsAppMessage(cleanJid, replyText);
+            async (destOrText, maybeText) => {
+              const target = maybeText !== undefined ? (destOrText || cleanJid) : cleanJid;
+              const textToSend = maybeText !== undefined ? maybeText : destOrText;
+              await sendWhatsAppMessage(target, textToSend);
             }
           );
         } catch (handlerErr) {
-          console.error("Γ¥î Error handling incoming message:", handlerErr);
+          console.error("❌ Error handling incoming message:", handlerErr);
         }
       }
     });
@@ -381,36 +382,35 @@ async function connectToWhatsApp() {
     sock.ev.on("connection.update", async (update) => {
       const { connection, lastDisconnect, qr } = update;
 
-      // New QR code generated ΓÇö convert to base64 PNG for admin UI
+      // New QR code generated — convert to base64 PNG for admin UI
       if (qr) {
-        console.log("≡ƒô▒ QR Code ready ΓÇö scan with WhatsApp on your phone.");
+        console.log("📱 QR Code ready — scan with WhatsApp on your phone.");
         qrDataUrl = await qrcode.toDataURL(qr);
         connectionStatus = "qr_pending";
         isConnecting = false;
       }
 
       if (connection === "open") {
-        console.log("Γ£à WhatsApp connected successfully!");
+        console.log("✅ WhatsApp connected successfully!");
         connectionStatus = "open";
         qrDataUrl = null; // Clear QR once connected
         isConnecting = false;
-        reconnectAttempts = 0;   // Reset backoff counter on successful connection
-        lastConnectedAt = Date.now();
+        reconnectAttempts = 0;
       }
 
       if (connection === "close") {
         isConnecting = false;
         const statusCode = new Boom(lastDisconnect?.error)?.output?.statusCode;
-        console.log(`ΓÜá∩╕Å  Connection closed. Status code: ${statusCode}`);
+        console.log(`⚠️  Connection closed. Status code: ${statusCode}`);
         connectionStatus = "disconnected";
 
         clearTimeout(reconnectTimer);
 
         if (statusCode === DisconnectReason.restartRequired) {
-          console.log("≡ƒöä Immediate restart required by WhatsApp server...");
+          console.log("🔄 Immediate restart required by WhatsApp server...");
           reconnectTimer = setTimeout(connectToWhatsApp, 1000);
         } else if (statusCode === DisconnectReason.loggedOut) {
-          console.log("≡ƒö┤ Logged out explicitly. Clearing MongoDB auth and regenerating QR code...");
+          console.log("🔴 Logged out explicitly. Clearing MongoDB auth and regenerating QR code...");
           qrDataUrl = null;
           try {
             const coll = await getAuthCollection();
@@ -418,11 +418,9 @@ async function connectToWhatsApp() {
           } catch (e) {}
           reconnectTimer = setTimeout(connectToWhatsApp, 2000);
         } else {
-        } else {
-          // Exponential backoff: 3s -> 6s -> 12s -> 24s -> 48s (max 60s)
-          reconnectAttempts = Math.min(reconnectAttempts + 1, 5);
-          const delay = Math.min(3000 * Math.pow(2, reconnectAttempts - 1), 60000);
-          console.log(🔄 Reconnecting in \s (attempt \)...);
+          reconnectAttempts = Math.min(reconnectAttempts + 1, 6);
+          const delay = Math.min(3000 * Math.pow(1.5, reconnectAttempts - 1), 30000);
+          console.log(`🔄 Reconnecting in ${Math.round(delay / 1000)}s (attempt ${reconnectAttempts})...`);
           reconnectTimer = setTimeout(connectToWhatsApp, delay);
         }
       }
@@ -430,65 +428,79 @@ async function connectToWhatsApp() {
   } catch (err) {
     isConnecting = false;
     connectionStatus = "disconnected";
-    console.error("Γ¥î Connection setup error:", err.message);
+    console.error("❌ Connection setup error:", err.message);
     clearTimeout(reconnectTimer);
     reconnectTimer = setTimeout(connectToWhatsApp, 5000);
   }
 }
 
-// ΓöÇΓöÇΓöÇ Send Message Function ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Send Message Function ─────────────────────────────────────────────────
 async function sendWhatsAppMessage(phoneOrJid, message) {
   if (!sock || connectionStatus !== "open") {
     throw new Error(`WhatsApp not connected. Status: ${connectionStatus}`);
   }
-  const jid = formatPhone(phoneOrJid);
-  console.log(`≡ƒô▒ Sending message to: "${phoneOrJid}" -> "${jid}"`);
+  let targetJid = formatPhone(phoneOrJid);
 
-  // 1. Verify existence on WhatsApp & pre-fetch Signal encryption keys
-  let targetJid = jid;
-  try {
-    const [waUser] = await sock.onWhatsApp(jid);
-    if (waUser?.exists && waUser.jid) {
-      targetJid = waUser.jid;
+  // If targetJid has @lid suffix, convert numeric phone to standard @s.whatsapp.net
+  if (targetJid.endsWith("@lid")) {
+    const digitsOnly = targetJid.replace(/\D/g, "");
+    if (digitsOnly.length >= 7) {
+      targetJid = `${digitsOnly}@s.whatsapp.net`;
     }
-  } catch (onWaErr) {
-    console.warn("ΓÜá∩╕Å onWhatsApp check skipped:", onWaErr.message);
   }
 
-  // 2. Subscribe to presence to synchronize Signal session
+  // Sanitize message content
+  let textToSend = "";
+  if (typeof message === "object" && message !== null) {
+    textToSend = message.text || message.message || message.caption || JSON.stringify(message);
+  } else {
+    textToSend = String(message || "").trim();
+  }
+
+  if (!textToSend) {
+    console.warn(`⚠️ Warning: Empty message string passed for ${targetJid}`);
+    return null;
+  }
+
+  console.log(`📱 Sending WhatsApp message to: "${phoneOrJid}" -> "${targetJid}" (${textToSend.length} chars)`);
+
+  // Presence typing indicator (safe catch)
   try {
-    await sock.presenceSubscribe(targetJid);
+    sock.presenceSubscribe(targetJid).catch(() => {});
+    sock.sendPresenceUpdate("composing", targetJid).catch(() => {});
   } catch (_) {}
 
-  // 3. Composing indicator
-  sock.sendPresenceUpdate("composing", targetJid).catch(() => {});
+  let sentMsg = null;
+  try {
+    // 200ms buffer for Signal session
+    await new Promise((resolve) => setTimeout(resolve, 200));
 
-  // 4. Small 250ms buffer for handshake to let Signal session negotiate
-  await new Promise((resolve) => setTimeout(resolve, 250));
+    // Send text message directly to targetJid
+    sentMsg = await sock.sendMessage(targetJid, { text: textToSend });
 
-  // 5. Send message directly to verified JID
-  const sentMsg = await sock.sendMessage(targetJid, { text: message });
-
-  // 6. Save message to RAM cache and MongoDB for Signal retry decryption
-  if (sentMsg?.key?.id && sentMsg?.message) {
-    await saveMessage(sentMsg.key.id, sentMsg.message);
-    botSentMessageIds.set(sentMsg.key.id, true);
+    // Save message to cache and MongoDB for retry decryption
+    if (sentMsg?.key?.id && sentMsg?.message) {
+      await saveMessage(sentMsg.key.id, sentMsg.message);
+      botSentMessageIds.set(sentMsg.key.id, true);
+    }
+  } finally {
+    // ALWAYS reset typing indicator
+    try {
+      sock.sendPresenceUpdate("paused", targetJid).catch(() => {});
+    } catch (_) {}
   }
 
-  // 7. Reset presence
-  sock.sendPresenceUpdate("paused", targetJid).catch(() => {});
-
-  // 8. Record outgoing message in chat history
+  // Record outgoing message in chat history
   const destPhone = targetJid.replace(/@.+$/, "");
   const { isBotPaused } = require("./sessionManager");
   const paused = isBotPaused(destPhone);
-  recordChatMessage(destPhone, paused ? "business" : "bot", message, sentMsg?.key?.id, null, paused).catch(() => {});
+  recordChatMessage(destPhone, paused ? "business" : "bot", textToSend, sentMsg?.key?.id, null, paused).catch(() => {});
 
-  console.log(`≡ƒôñ Message successfully delivered to ${targetJid} (ID: ${sentMsg?.key?.id})`);
+  console.log(`📤 Message successfully delivered to ${targetJid} (ID: ${sentMsg?.key?.id})`);
   return sentMsg;
 }
 
-// ΓöÇΓöÇΓöÇ Express HTTP Server ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Express HTTP Server ───────────────────────────────────────────────────
 const app = express();
 app.use(express.json());
 
@@ -501,7 +513,7 @@ function auth(req, res, next) {
   next();
 }
 
-// GET /order/:id ΓÇö Redirect to Next.js frontend order tracking page (graceful redirect)
+// GET /order/:id — Redirect to Next.js frontend order tracking page (graceful redirect)
 app.get("/order/:id", async (req, res) => {
   try {
     const db = await getMongoDb();
@@ -514,7 +526,7 @@ app.get("/order/:id", async (req, res) => {
   }
 });
 
-// GET /status ΓÇö Check connection status (Read-only)
+// GET /status — Check connection status (Read-only)
 app.get("/status", (req, res) => {
   res.json({
     status: true,
@@ -524,19 +536,19 @@ app.get("/status", (req, res) => {
   });
 });
 
-// GET /qr ΓÇö Get QR code as base64 image (for admin panel)
+// GET /qr — Get QR code as base64 image (for admin panel)
 app.get("/qr", (req, res) => {
   if (!qrDataUrl) {
     return res.status(404).json({
       status: false,
-      message: connectionStatus === "open" ? "Already connected ΓÇö no QR needed." : "QR code generating... Please refresh in a moment.",
+      message: connectionStatus === "open" ? "Already connected — no QR needed." : "QR code generating... Please refresh in a moment.",
       connection: connectionStatus,
     });
   }
   res.json({ status: true, qr: qrDataUrl });
 });
 
-// POST /send ΓÇö Send a WhatsApp message (called by Next.js API)
+// POST /send — Send a WhatsApp message (called by Next.js API)
 // Body: { phone, message } OR { phone, orderSerialNo, orderStatus, customerName, totalAmount }
 app.post("/send", auth, async (req, res) => {
   try {
@@ -555,12 +567,12 @@ app.post("/send", auth, async (req, res) => {
 
     res.json({ status: true, message: "Message sent successfully" });
   } catch (err) {
-    console.error("Γ¥î Failed to send message:", err.message);
+    console.error("❌ Failed to send message:", err.message);
     res.status(500).json({ status: false, message: err.message });
   }
 });
 
-// POST /logout ΓÇö Disconnect, wipe session, and immediately generate a fresh QR code
+// POST /logout — Disconnect, wipe session, and immediately generate a fresh QR code
 app.post("/logout", auth, async (req, res) => {
   try {
     if (sock) {
@@ -574,7 +586,7 @@ app.post("/logout", auth, async (req, res) => {
     try {
       const coll = await getAuthCollection();
       await coll.deleteMany({});
-      console.log("≡ƒº╣ Auth collection cleared in MongoDB on logout");
+      console.log("🧹 Auth collection cleared in MongoDB on logout");
     } catch (dbErr) {
       console.error("Failed to wipe auth on logout:", dbErr.message);
     }
@@ -595,7 +607,7 @@ app.post("/logout", auth, async (req, res) => {
   }
 });
 
-// POST /bot-mode ΓÇö Manually pause or resume the bot for a specific customer
+// POST /bot-mode — Manually pause or resume the bot for a specific customer
 // Body: { phone, action: "pause" | "resume", durationMinutes? }
 app.post("/bot-mode", auth, (req, res) => {
   try {
@@ -647,7 +659,7 @@ app.post("/bot-mode", auth, (req, res) => {
   }
 });
 
-// GET / ΓÇö Health check
+// GET / — Health check
 app.get("/", (req, res) => {
   res.json({
     service: "Nectar WhatsApp Bot",
@@ -657,24 +669,24 @@ app.get("/", (req, res) => {
   });
 });
 
-// ΓöÇΓöÇΓöÇ Start ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Start ─────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`\n≡ƒÜÇ WhatsApp Service running on http://localhost:${PORT}`);
-  console.log(`≡ƒöæ API Secret: ${API_SECRET}`);
-  console.log(`≡ƒôï Endpoints:`);
-  console.log(`   GET  /status  ΓåÆ connection status`);
-  console.log(`   GET  /qr      ΓåÆ QR code (base64) for admin panel`);
-  console.log(`   POST /send    ΓåÆ send a WhatsApp message`);
-  console.log(`   POST /logout  ΓåÆ disconnect WhatsApp session\n`);
+  console.log(`\n🚀 WhatsApp Service running on http://localhost:${PORT}`);
+  console.log(`🔑 API Secret: ${API_SECRET}`);
+  console.log(`📋 Endpoints:`);
+  console.log(`   GET  /status  → connection status`);
+  console.log(`   GET  /qr      → QR code (base64) for admin panel`);
+  console.log(`   POST /send    → send a WhatsApp message`);
+  console.log(`   POST /logout  → disconnect WhatsApp session\n`);
 });
 
-// ΓöÇΓöÇΓöÇ Self-Keepalive Ping (Prevents Render Free-Tier Sleep) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Self-Keepalive Ping (Prevents Render Free-Tier Sleep) ──────────────────
 const KEEP_ALIVE_URL = process.env.KEEP_ALIVE_URL || "https://nectar-58qj.onrender.com/status";
 const PING_INTERVAL_MS = 8 * 60 * 1000; // Ping every 8 minutes (Render sleep timeout is 15 mins)
 
 function startKeepAlive() {
   if (!KEEP_ALIVE_URL || KEEP_ALIVE_URL.includes("localhost")) return;
-  console.log(`ΓÅ▒∩╕Å Auto-Keepalive initialized: pinging ${KEEP_ALIVE_URL} every 8 mins`);
+  console.log(`⏱️ Auto-Keepalive initialized: pinging ${KEEP_ALIVE_URL} every 8 mins`);
   
   // Initial ping after 30 seconds
   setTimeout(pingServer, 30 * 1000);
@@ -687,12 +699,12 @@ async function pingServer() {
   try {
     const res = await fetch(KEEP_ALIVE_URL);
     if (res.ok) {
-      console.log(`≡ƒÆô [Keepalive] Render instance kept awake at ${new Date().toLocaleTimeString()}`);
+      console.log(`💓 [Keepalive] Render instance kept awake at ${new Date().toLocaleTimeString()}`);
     } else {
-      console.warn(`ΓÜá∩╕Å [Keepalive] Ping returned status ${res.status}`);
+      console.warn(`⚠️ [Keepalive] Ping returned status ${res.status}`);
     }
   } catch (err) {
-    console.warn(`ΓÜá∩╕Å [Keepalive] Ping error:`, err.message);
+    console.warn(`⚠️ [Keepalive] Ping error:`, err.message);
   }
 }
 

@@ -1,4 +1,4 @@
-﻿// ΓöÇΓöÇΓöÇ Message Handler ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Message Handler ───────────────────────────────────────────────────────
 // Conversational ordering bot state machine for Nectar Groceries with Product Variations, GPS Location, and Order Tracking
 
 const { ObjectId } = require("mongodb");
@@ -20,29 +20,29 @@ function buildCartSummary(cart) {
 
   const lines = cart.map(
     (item, idx) =>
-      `${idx + 1}∩╕ÅΓâú *${item.name}* x${item.quantity} ΓÇö Γéª${formatPrice(item.itemTotal)}`
+      `${idx + 1}️⃣ *${item.name}* x${item.quantity} — ₦${formatPrice(item.itemTotal)}`
   );
 
   const subtotal = cart.reduce((sum, item) => sum + item.itemTotal, 0);
 
   return (
-    `≡ƒ¢ì∩╕Å *Your Nectar Cart*\n\n` +
+    `🛍️ *Your Nectar Cart*\n\n` +
     lines.join("\n") +
-    `\n\n*Subtotal: Γéª${formatPrice(subtotal)}*`
+    `\n\n*Subtotal: ₦${formatPrice(subtotal)}*`
   );
 }
 
 function buildWelcomeMenu(session) {
   const greeting = session.isKnownUser && session.customerName
-    ? `≡ƒæï Welcome back, *${session.customerName}*!\n\n≡ƒî┐ Ready to restock your fresh groceries with *Nectar*?`
-    : `≡ƒî┐ *Welcome to Nectar Groceries!* ≡ƒÑª\n\nFresh groceries delivered straight to your door.`;
+    ? `👋 Welcome back, *${session.customerName}*!\n\n🌿 Ready to restock your fresh groceries with *Nectar*?`
+    : `🌿 *Welcome to Nectar Groceries!* 🥦\n\nFresh groceries delivered straight to your door.`;
 
   return (
     `${greeting}\n\n` +
     `How would you like to proceed today?\n\n` +
-    `1∩╕ÅΓâú *Browse by Category*\n` +
-    `2∩╕ÅΓâú *Search for an item*\n` +
-    `3∩╕ÅΓâú *Track an Order* ≡ƒÜÜ\n\n` +
+    `1️⃣ *Browse by Category*\n` +
+    `2️⃣ *Search for an item*\n` +
+    `3️⃣ *Track an Order* 🚚\n\n` +
     `_Reply *1*, *2*, or *3* to start_\n` +
     `_Type *CART* to view cart | *HELP* for commands_`
   );
@@ -52,21 +52,21 @@ function formatOrderStatusProgress(status) {
   const s = String(status || "").toLowerCase();
   switch (s) {
     case "pending":
-      return "≡ƒƒí *Order Received (Pending)*\n_We have received your order and are confirming item availability._";
+      return "🟡 *Order Received (Pending)*\n_We have received your order and are confirming item availability._";
     case "confirmed":
     case "processing":
     case "preparing":
-      return "≡ƒì│ *Confirmed & Preparing*\n_Our store team is carefully packing your fresh groceries._";
+      return "🍳 *Confirmed & Preparing*\n_Our store team is carefully packing your fresh groceries._";
     case "out_for_delivery":
     case "on_the_way":
-      return "≡ƒÜÜ *Out for Delivery*\n_Your rider is on the way to your delivery address!_";
+      return "🚚 *Out for Delivery*\n_Your rider is on the way to your delivery address!_";
     case "delivered":
-      return "Γ£à *Delivered*\n_Your groceries have been safely delivered. Enjoy! ≡ƒÑæ_";
+      return "✅ *Delivered*\n_Your groceries have been safely delivered. Enjoy! 🥑_";
     case "cancelled":
     case "rejected":
-      return "Γ¥î *Cancelled*\n_This order was cancelled. Please contact customer support for details._";
+      return "❌ *Cancelled*\n_This order was cancelled. Please contact customer support for details._";
     default:
-      return `≡ƒôª *Status:* ${status.toUpperCase()}`;
+      return `📦 *Status:* ${status.toUpperCase()}`;
   }
 }
 
@@ -98,12 +98,12 @@ function handleItemSelection(session, selectedItem, sendFn, phone) {
     session.step = "VARIATION_CHOICE";
 
     const optionsText = variationsList
-      .map((v, i) => `${i + 1}∩╕ÅΓâú ${v.name} ΓÇö Γéª${formatPrice(v.price)}`)
+      .map((v, i) => `${i + 1}️⃣ ${v.name} — ₦${formatPrice(v.price)}`)
       .join("\n");
 
     return sendFn(
       phone,
-      `≡ƒ¢Æ *${selectedItem.name}*\n\nPlease choose your preferred variation / size:\n\n` +
+      `🛒 *${selectedItem.name}*\n\nPlease choose your preferred variation / size:\n\n` +
         `${optionsText}\n\n` +
         `_Reply with a number (1 to ${variationsList.length}) to pick_\n` +
         `_Type *MENU* to go back_`
@@ -117,7 +117,7 @@ function handleItemSelection(session, selectedItem, sendFn, phone) {
 
   return sendFn(
     phone,
-    `≡ƒ¢Æ You selected: *${selectedItem.name}* (Γéª${formatPrice(selectedItem.price)})\n\n` +
+    `🛒 You selected: *${selectedItem.name}* (₦${formatPrice(selectedItem.price)})\n\n` +
       `How many would you like?\n` +
       `_Reply with a quantity (e.g. 1, 2, 3...)_`
   );
@@ -157,13 +157,13 @@ async function startTrackOrderFlow(db, session, phone, directSerial, sendFn) {
     const list = recentOrders
       .map(
         (o, idx) =>
-          `${idx + 1}∩╕ÅΓâú *#${o.orderSerialNo}* (Γéª${formatPrice(o.totalAmount)}) ΓÇö ${o.orderStatus?.replace("_", " ")?.toUpperCase()}`
+          `${idx + 1}️⃣ *#${o.orderSerialNo}* (₦${formatPrice(o.totalAmount)}) — ${o.orderStatus?.replace("_", " ")?.toUpperCase()}`
       )
       .join("\n");
 
     return sendFn(
       phone,
-      `≡ƒöì *Track Your Order*\n\n` +
+      `🔍 *Track Your Order*\n\n` +
         `Your recent orders:\n` +
         `${list}\n\n` +
         `_Reply with *1*, *2*, or *3* to view details,\n` +
@@ -175,7 +175,7 @@ async function startTrackOrderFlow(db, session, phone, directSerial, sendFn) {
   session.recentOrders = [];
   return sendFn(
     phone,
-    `≡ƒöì *Track Your Order*\n\n` +
+    `🔍 *Track Your Order*\n\n` +
       `Please enter your *Order Number* (e.g. *ORD-7X9K2L*):\n\n` +
       `_Type *MENU* to go back to store_`
   );
@@ -202,7 +202,7 @@ async function showOrderTrackingCard(db, serialOrId, phone, sendFn) {
   if (!order) {
     return sendFn(
       phone,
-      `Γ¥î We couldn't find an order matching "*${serialOrId}*".\n\n` +
+      `❌ We couldn't find an order matching "*${serialOrId}*".\n\n` +
         `Please verify the Order Number from your confirmation message (e.g. *ORD-7X9K2L*) and try again.\n\n` +
         `_Type *MENU* to return to store_`
     );
@@ -210,23 +210,23 @@ async function showOrderTrackingCard(db, serialOrId, phone, sendFn) {
 
   const frontendUrl = await paymentService.getFrontendAppUrl(db);
   const itemsList = Array.isArray(order.items)
-    ? order.items.map((i) => `ΓÇó ${i.name} x${i.quantity || 1}`).join("\n")
+    ? order.items.map((i) => `• ${i.name} x${i.quantity || 1}`).join("\n")
     : "Fresh Groceries";
 
   const orderDate = order.createdAt ? new Date(order.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "Recent";
-  const paymentBadge = order.paymentStatus === "paid" ? "Γ£ô Paid" : "ΓÅ│ Pending Payment";
+  const paymentBadge = order.paymentStatus === "paid" ? "✓ Paid" : "⏳ Pending Payment";
 
   return sendFn(
     phone,
-    `≡ƒôª *Order Tracking: #${order.orderSerialNo}*\n` +
-      `≡ƒôà Placed: ${orderDate}\n\n` +
+    `📦 *Order Tracking: #${order.orderSerialNo}*\n` +
+      `📅 Placed: ${orderDate}\n\n` +
       `${formatOrderStatusProgress(order.orderStatus)}\n\n` +
-      `≡ƒÆ│ *Payment:* ${paymentBadge} (${order.paymentMethod || "Bank Transfer"})\n` +
-      `≡ƒ¢ì∩╕Å *Items:*\n${itemsList}\n\n` +
-      `≡ƒÆ░ *Total Amount:* Γéª${formatPrice(order.totalAmount)}\n` +
-      `≡ƒôì *Delivery Address:*\n${order.deliveryAddress?.address || "Address provided"}\n\n` +
-      `≡ƒîÉ *Live Web Tracking & Receipt:*\n` +
-      `≡ƒæë ${frontendUrl}/order/${order._id}\n\n` +
+      `💳 *Payment:* ${paymentBadge} (${order.paymentMethod || "Bank Transfer"})\n` +
+      `🛍️ *Items:*\n${itemsList}\n\n` +
+      `💰 *Total Amount:* ₦${formatPrice(order.totalAmount)}\n` +
+      `📍 *Delivery Address:*\n${order.deliveryAddress?.address || "Address provided"}\n\n` +
+      `🌐 *Live Web Tracking & Receipt:*\n` +
+      `👉 ${frontendUrl}/order/${order._id}\n\n` +
       `_Reply *TRACK* to check another order | *MENU* for store_`
   );
 }
@@ -248,7 +248,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
   const session = sessionManager.getSession(phone);
   const upper = text.toUpperCase();
 
-  // ΓöÇΓöÇ Hard bot commands ΓÇö these ALWAYS work even when bot is paused ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  // ── Hard bot commands — these ALWAYS work even when bot is paused ──────────
   // The customer can always trigger core bot functions regardless of chat mode.
   const ALWAYS_ON_COMMANDS = [
     "MENU", "START", "HI", "HELLO", "HEY", "HOME",
@@ -259,12 +259,17 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
     "CANCEL", "EXIT",
     "MORE", "SHOP", "KEEP SHOPPING",
     "STATUS", "MY ORDER",
+    "1", "2", "3", "4", "5",
+    "BROWSE", "SEARCH", "BOT", "RESTART",
   ];
 
   const isHardCommand =
     ALWAYS_ON_COMMANDS.includes(upper) ||
     upper.startsWith("TRACK") ||
     upper.startsWith("ORDER") ||
+    upper.startsWith("MENU") ||
+    upper.startsWith("BROWSE") ||
+    upper.startsWith("SEARCH") ||
     upper.match(/^ORD-/i);
 
   // Active ordering funnel check:
@@ -272,21 +277,21 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
   // the bot MUST NEVER block or pause their checkout inputs.
   const isOrderingActive = Boolean(session.step && session.step !== "MAIN_MENU");
 
-  // ΓöÇΓöÇ Bot Pause Check ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  // ── Bot Pause Check ────────────────────────────────────────────────────────
   // If the business has manually replied to this customer, the bot steps back
   // ONLY when the customer is idle in MAIN_MENU without an active checkout in progress.
   const { isBotPaused, resumeBot, getBotPauseRemainingMinutes } = sessionManager;
   
   if (isBotPaused(phone) && !isHardCommand && !isOrderingActive) {
-    // Bot is paused & customer is idle ΓÇö silently let message through for business to reply
-    console.log(`ΓÅ╕∩╕Å  Bot paused for ${phone} (idle) ΓÇö letting message through to business: "${text.substring(0, 40)}"`);
+    // Bot is paused & customer is idle — silently let message through for business to reply
+    console.log(`⏸️  Bot paused for ${phone} (idle) — letting message through to business: "${text.substring(0, 40)}"`);
     return;
   }
 
   // If a command arrives or customer actively interacts in checkout, auto-resume bot
   if (isBotPaused(phone) && (isHardCommand || isOrderingActive)) {
     resumeBot(phone);
-    console.log(`Γû╢∩╕Å  Customer actively checking out or used command ΓÇö bot auto-resumed for ${phone}.`);
+    console.log(`▶️  Customer actively checking out or used command — bot auto-resumed for ${phone}.`);
   }
 
   // 1. Identify user on first interaction if not yet identified
@@ -302,7 +307,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
         session.isKnownUser = true;
       }
     } catch (userErr) {
-      console.warn("ΓÜá∩╕Å User lookup failed:", userErr.message);
+      console.warn("⚠️ User lookup failed:", userErr.message);
     }
     session.userIdentified = true;
   }
@@ -324,15 +329,15 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
     if (session.cart.length === 0) {
       return sendFn(
         phone,
-        `≡ƒ¢ì∩╕Å Your cart is currently empty!\n\nType *MENU* to browse fresh groceries.`
+        `🛍️ Your cart is currently empty!\n\nType *MENU* to browse fresh groceries.`
       );
     }
     const cartText =
       `${buildCartSummary(session.cart)}\n\n` +
       `Reply:\n` +
-      `ΓÇó *CHECKOUT* ΓÇö Place your order ≡ƒ¢Æ\n` +
-      `ΓÇó *MORE* or *MENU* ΓÇö Keep shopping ≡ƒÑª\n` +
-      `ΓÇó *CLEAR* ΓÇö Empty your cart`;
+      `• *CHECKOUT* — Place your order 🛒\n` +
+      `• *MORE* or *MENU* — Keep shopping 🥦\n` +
+      `• *CLEAR* — Empty your cart`;
     session.step = "CART";
     return sendFn(phone, cartText);
   }
@@ -341,21 +346,21 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
     sessionManager.clearCart(phone);
     return sendFn(
       phone,
-      `≡ƒùæ∩╕Å Your cart has been cleared.\n\nType *MENU* to start shopping again.`
+      `🗑️ Your cart has been cleared.\n\nType *MENU* to start shopping again.`
     );
   }
 
   if (["HELP", "COMMANDS"].includes(upper)) {
     return sendFn(
       phone,
-      `≡ƒî┐ *Nectar WhatsApp Assistant*\n\n` +
+      `🌿 *Nectar WhatsApp Assistant*\n\n` +
         `Here are the commands you can use anytime:\n` +
-        `ΓÇó *MENU* ΓÇö Main store menu\n` +
-        `ΓÇó *TRACK* ΓÇö Track your order status ≡ƒÜÜ\n` +
-        `ΓÇó *CART* ΓÇö View your shopping cart\n` +
-        `ΓÇó *CHECKOUT* ΓÇö Place your order\n` +
-        `ΓÇó *CLEAR* ΓÇö Empty your cart\n` +
-        `ΓÇó *CANCEL* ΓÇö Return to main menu\n\n` +
+        `• *MENU* — Main store menu\n` +
+        `• *TRACK* — Track your order status 🚚\n` +
+        `• *CART* — View your shopping cart\n` +
+        `• *CHECKOUT* — Place your order\n` +
+        `• *CLEAR* — Empty your cart\n` +
+        `• *CANCEL* — Return to main menu\n\n` +
         `_Reply with *MENU* to browse groceries._`
     );
   }
@@ -375,7 +380,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
 
   // 3. Step-by-step state machine
   switch (session.step) {
-    // ΓöÇΓöÇ MAIN MENU ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ── MAIN MENU ──────────────────────────────────────────────────────────
     case "MAIN_MENU": {
       if (text === "1" || upper.includes("BROWSE") || upper.includes("CATEGOR")) {
         const categories = await catalogService.getCategories(db);
@@ -390,12 +395,12 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
         session.step = "BROWSE_CATEGORIES";
 
         const catList = categories
-          .map((cat, idx) => `${idx + 1}∩╕ÅΓâú ${cat.name}`)
+          .map((cat, idx) => `${idx + 1}️⃣ ${cat.name}`)
           .join("\n");
 
         return sendFn(
           phone,
-          `≡ƒôª *Our Grocery Categories*\n\n` +
+          `📦 *Our Grocery Categories*\n\n` +
             `Reply with a number to view items:\n\n` +
             `${catList}\n\n` +
             `_Type *MENU* to go back_`
@@ -406,7 +411,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
         session.step = "SEARCH_QUERY";
         return sendFn(
           phone,
-          `≡ƒöì *Search Nectar Groceries*\n\n` +
+          `🔍 *Search Nectar Groceries*\n\n` +
             `What item are you looking for?\n` +
             `(e.g. "tomatoes", "milk", "avocado", "bread")\n\n` +
             `_Type *MENU* to go back_`
@@ -434,7 +439,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
       );
     }
 
-    // ΓöÇΓöÇ TRACK ORDER INPUT ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ── TRACK ORDER INPUT ──────────────────────────────────────────────────
     case "TRACK_ORDER": {
       // Check if user selected from recent orders list (e.g. "1", "2", "3")
       const numIdx = parseInt(text, 10) - 1;
@@ -449,7 +454,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
       return showOrderTrackingCard(db, text, phone, sendFn);
     }
 
-    // ΓöÇΓöÇ BROWSE CATEGORIES ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ── BROWSE CATEGORIES ──────────────────────────────────────────────────
     case "BROWSE_CATEGORIES": {
       const idx = parseInt(text, 10) - 1;
       if (isNaN(idx) || idx < 0 || idx >= (session.browseCategories || []).length) {
@@ -474,19 +479,19 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
       session.step = "BROWSE_ITEMS";
 
       const itemsList = items
-        .map((item, i) => `${i + 1}∩╕ÅΓâú ${item.name} ΓÇö Γéª${formatPrice(item.price)}`)
+        .map((item, i) => `${i + 1}️⃣ ${item.name} — ₦${formatPrice(item.price)}`)
         .join("\n");
 
       return sendFn(
         phone,
-        `≡ƒ¢Æ *${selectedCat.name}*\n\n` +
+        `🛒 *${selectedCat.name}*\n\n` +
           `Reply with a number to select an item:\n\n` +
           `${itemsList}\n\n` +
           `_Type *MENU* to go back to categories_`
       );
     }
 
-    // ΓöÇΓöÇ BROWSE ITEMS ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ── BROWSE ITEMS ───────────────────────────────────────────────────────
     case "BROWSE_ITEMS": {
       const idx = parseInt(text, 10) - 1;
       if (isNaN(idx) || idx < 0 || idx >= (session.browseItems || []).length) {
@@ -500,13 +505,13 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
       return handleItemSelection(session, selectedItem, sendFn, phone);
     }
 
-    // ΓöÇΓöÇ SEARCH QUERY ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ── SEARCH QUERY ───────────────────────────────────────────────────────
     case "SEARCH_QUERY": {
       const results = await catalogService.searchItems(db, text);
       if (!results || results.length === 0) {
         return sendFn(
           phone,
-          `≡ƒÿö No groceries found matching "*${text}*".\n\n` +
+          `😔 No groceries found matching "*${text}*".\n\n` +
             `Try a different keyword or type *MENU* to browse our categories.`
         );
       }
@@ -515,19 +520,19 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
       session.step = "SEARCH_RESULTS";
 
       const resultsList = results
-        .map((item, i) => `${i + 1}∩╕ÅΓâú ${item.name} ΓÇö Γéª${formatPrice(item.price)}`)
+        .map((item, i) => `${i + 1}️⃣ ${item.name} — ₦${formatPrice(item.price)}`)
         .join("\n");
 
       return sendFn(
         phone,
-        `≡ƒöì *Results for "${text}"*\n\n` +
+        `🔍 *Results for "${text}"*\n\n` +
           `Reply with a number to select:\n\n` +
           `${resultsList}\n\n` +
           `_Type *MENU* to go back_`
       );
     }
 
-    // ΓöÇΓöÇ SEARCH RESULTS ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ── SEARCH RESULTS ─────────────────────────────────────────────────────
     case "SEARCH_RESULTS": {
       const idx = parseInt(text, 10) - 1;
       if (isNaN(idx) || idx < 0 || idx >= (session.searchResults || []).length) {
@@ -541,7 +546,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
       return handleItemSelection(session, selectedItem, sendFn, phone);
     }
 
-    // ΓöÇΓöÇ VARIATION CHOICE ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ── VARIATION CHOICE ───────────────────────────────────────────────────
     case "VARIATION_CHOICE": {
       const idx = parseInt(text, 10) - 1;
       if (isNaN(idx) || idx < 0 || idx >= (session.availableVariations || []).length) {
@@ -557,13 +562,13 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
 
       return sendFn(
         phone,
-        `≡ƒ¢Æ You selected: *${session.selectedItem.name} (${pickedVar.name})* ΓÇö Γéª${formatPrice(pickedVar.price)}\n\n` +
+        `🛒 You selected: *${session.selectedItem.name} (${pickedVar.name})* — ₦${formatPrice(pickedVar.price)}\n\n` +
           `How many would you like?\n` +
           `_Reply with a quantity (e.g. 1, 2, 3...)_`
       );
     }
 
-    // ΓöÇΓöÇ QUANTITY INPUT ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ── QUANTITY INPUT ─────────────────────────────────────────────────────
     case "QTY": {
       const qty = parseInt(text, 10);
       if (isNaN(qty) || qty < 1 || qty > 99) {
@@ -615,16 +620,16 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
 
       return sendFn(
         phone,
-        `Γ£à Added *${qty}x ${itemName}* to your cart!\n\n` +
+        `✅ Added *${qty}x ${itemName}* to your cart!\n\n` +
           `${buildCartSummary(session.cart)}\n\n` +
           `Reply:\n` +
-          `ΓÇó *CHECKOUT* ΓÇö Place your order now ≡ƒ¢Æ\n` +
-          `ΓÇó *MORE* or *MENU* ΓÇö Keep shopping ≡ƒÑª\n` +
-          `ΓÇó *CLEAR* ΓÇö Empty cart`
+          `• *CHECKOUT* — Place your order now 🛒\n` +
+          `• *MORE* or *MENU* — Keep shopping 🥦\n` +
+          `• *CLEAR* — Empty cart`
       );
     }
 
-    // ΓöÇΓöÇ CART STEP ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ── CART STEP ──────────────────────────────────────────────────────────
     case "CART": {
       if (upper === "CHECKOUT") {
         if (session.cart.length === 0) {
@@ -647,7 +652,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
       );
     }
 
-    // ΓöÇΓöÇ GUEST NAME INPUT ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ── GUEST NAME INPUT ───────────────────────────────────────────────────
     case "NAME": {
       if (text.length < 2) {
         return sendFn(phone, `Please enter your full name:`);
@@ -657,11 +662,11 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
 
       return sendFn(
         phone,
-        `≡ƒô▒ What is your phone number for order updates & delivery calls?\n(e.g. 08012345678)`
+        `📱 What is your phone number for order updates & delivery calls?\n(e.g. 08012345678)`
       );
     }
 
-    // ΓöÇΓöÇ PHONE INPUT ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ── PHONE INPUT ────────────────────────────────────────────────────────
     case "PHONE": {
       const clean = userService.cleanDigits(text);
       if (clean.length < 9 || clean.length > 15) {
@@ -682,7 +687,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
           session.customerEmail = foundUser.email || session.customerEmail;
           session.savedAddresses = Array.isArray(foundUser.addresses) ? foundUser.addresses : [];
           session.isKnownUser = true;
-          console.log(`≡ƒöù Linked WhatsApp order to existing account: ${foundUser.name}`);
+          console.log(`🔗 Linked WhatsApp order to existing account: ${foundUser.name}`);
         }
       } catch (e) {}
 
@@ -691,7 +696,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
       return sendAddressPrompt(session, phone, sendFn);
     }
 
-    // ΓöÇΓöÇ ADDRESS INPUT (Text or Location Pin) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ── ADDRESS INPUT (Text or Location Pin) ───────────────────────────────
     case "ADDRESS": {
       if (locationData) {
         session.latitude = locationData.latitude;
@@ -705,12 +710,12 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
       if (!geoResult.success) {
         return sendFn(
           phone,
-          `ΓÜá∩╕Å *Please provide more address detail!*\n\n` +
+          `⚠️ *Please provide more address detail!*\n\n` +
             `To ensure our rider finds you and your delivery fee is accurate, please include:\n` +
-            `ΓÇó House / Flat No & Street Name\n` +
-            `ΓÇó Area or Estate Name\n` +
-            `ΓÇó Nearest Landmark (e.g. Opposite Zenith Bank, yellow gate)\n\n` +
-            `≡ƒîƒ *Or simply tap ≡ƒôÄ (or +) Γ₧ö Location to share your GPS Pin!*`
+            `• House / Flat No & Street Name\n` +
+            `• Area or Estate Name\n` +
+            `• Nearest Landmark (e.g. Opposite Zenith Bank, yellow gate)\n\n` +
+            `🌟 *Or simply tap 📎 (or +) ➔ Location to share your GPS Pin!*`
         );
       }
 
@@ -721,7 +726,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
       return showPaymentOptions(db, session, phone, sendFn);
     }
 
-    // ΓöÇΓöÇ USE SAVED ADDRESS CONFIRMATION ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ── USE SAVED ADDRESS CONFIRMATION ─────────────────────────────────────
     case "USE_SAVED_ADDRESS": {
       if (["YES", "1", "Y", "OK", "CONFIRM", "USE SAVED"].includes(upper)) {
         // Keeps pre-filled session.deliveryAddress and its coordinates if available
@@ -741,9 +746,9 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
       if (!geoResult.success) {
         return sendFn(
           phone,
-          `ΓÜá∩╕Å *Please provide more address detail!*\n\n` +
+          `⚠️ *Please provide more address detail!*\n\n` +
             `Include your House/Flat No, Street Name, Area, and Nearest Landmark:\n\n` +
-            `≡ƒîƒ *Or tap ≡ƒôÄ Γ₧ö Location to share your GPS Pin!*`
+            `🌟 *Or tap 📎 ➔ Location to share your GPS Pin!*`
         );
       }
 
@@ -754,7 +759,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
       return showPaymentOptions(db, session, phone, sendFn);
     }
 
-    // ΓöÇΓöÇ PAYMENT METHOD SELECTION ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    // ── PAYMENT METHOD SELECTION ───────────────────────────────────────────
     case "PAYMENT_CHOICE": {
       if (text === "1" || upper.includes("PAYSTACK") || upper.includes("CARD")) {
         return processOrderPlacement(db, appUrl, session, phone, "paystack", sendFn);
@@ -767,8 +772,8 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
       return sendFn(
         phone,
         `Please reply with:\n` +
-          `*1* ΓÇö Pay with Paystack (Instant secure online link)\n` +
-          `*2* ΓÇö Pay via Bank Transfer (Direct account transfer)`
+          `*1* — Pay with Paystack (Instant secure online link)\n` +
+          `*2* — Pay via Bank Transfer (Direct account transfer)`
       );
     }
 
@@ -779,15 +784,15 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
   }
 }
 
-// ΓöÇΓöÇΓöÇ Helper Functions ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ─── Helper Functions ──────────────────────────────────────────────────────
 
 function sendAddressPrompt(session, phone, sendFn) {
   return sendFn(
     phone,
-    `≡ƒôì *Where should we deliver your order?*\n\n` +
-      `≡ƒîƒ *Fastest & Most Accurate:* \n` +
-      `≡ƒæë Tap *≡ƒôÄ* (or *+*) Γ₧ö *Location* Γ₧ö *Send Your Current Location*\n\n` +
-      `Γ£ì∩╕Å *Or reply with your full address:*\n` +
+    `📍 *Where should we deliver your order?*\n\n` +
+      `🌟 *Fastest & Most Accurate:* \n` +
+      `👉 Tap *📎* (or *+*) ➔ *Location* ➔ *Send Your Current Location*\n\n` +
+      `✍️ *Or reply with your full address:*\n` +
       `House/Flat No, Street Name, Area & Nearest Landmark\n` +
       `_(e.g. 14 Admiralty Way, Lekki Phase 1, Opposite Zenith Bank)_`
   );
@@ -807,10 +812,10 @@ async function startCheckoutFlow(session, phone, sendFn) {
 
     return sendFn(
       phone,
-      `≡ƒôì We found your saved delivery address:\n` +
+      `📍 We found your saved delivery address:\n` +
         `*${session.deliveryAddress}*\n\n` +
         `Reply *YES* to use this address,\n` +
-        `OR send a new address / tap *≡ƒôÄ Γ₧ö Location* for a GPS pin:`
+        `OR send a new address / tap *📎 ➔ Location* for a GPS pin:`
     );
   }
 
@@ -825,7 +830,7 @@ async function startCheckoutFlow(session, phone, sendFn) {
   session.step = "NAME";
   return sendFn(
     phone,
-    `≡ƒ¢Æ *Checkout*\n\nTo place your order, what is your *full name*?`
+    `🛒 *Checkout*\n\nTo place your order, what is your *full name*?`
   );
 }
 
@@ -846,29 +851,29 @@ async function showPaymentOptions(db, session, phone, sendFn) {
   const total = subtotal + deliveryFee;
 
   const cartLines = session.cart
-    .map((item) => `ΓÇó ${item.name} x${item.quantity} ΓÇö Γéª${formatPrice(item.itemTotal)}`)
+    .map((item) => `• ${item.name} x${item.quantity} — ₦${formatPrice(item.itemTotal)}`)
     .join("\n");
 
-  let deliveryNote = `ΓÇó Delivery: Γéª${formatPrice(deliveryFee)}`;
+  let deliveryNote = `• Delivery: ₦${formatPrice(deliveryFee)}`;
   if (deliveryCalc.isFree) {
-    deliveryNote = `ΓÇó Delivery: *FREE* (Order over threshold ≡ƒÄë)`;
+    deliveryNote = `• Delivery: *FREE* (Order over threshold 🎉)`;
   } else if (deliveryCalc.distanceKm) {
-    deliveryNote = `ΓÇó Delivery: Γéª${formatPrice(deliveryFee)} (${deliveryCalc.distanceKm} km)`;
+    deliveryNote = `• Delivery: ₦${formatPrice(deliveryFee)} (${deliveryCalc.distanceKm} km)`;
   }
 
   session.step = "PAYMENT_CHOICE";
 
   return sendFn(
     phone,
-    `≡ƒôï *Order Summary for ${session.customerName || "Customer"}*\n\n` +
+    `📋 *Order Summary for ${session.customerName || "Customer"}*\n\n` +
       `${cartLines}\n\n` +
-      `ΓÇó Subtotal: Γéª${formatPrice(subtotal)}\n` +
+      `• Subtotal: ₦${formatPrice(subtotal)}\n` +
       `${deliveryNote}\n` +
-      `ΓÇó *Total: Γéª${formatPrice(total)}*\n\n` +
-      `≡ƒôì *Delivery Address:*\n${session.deliveryAddress}\n\n` +
-      `≡ƒÆ│ *How would you like to pay?*\n` +
-      `1∩╕ÅΓâú *Pay with Paystack* (Instant online payment link)\n` +
-      `2∩╕ÅΓâú *Pay via Bank Transfer* (Direct account transfer)\n\n` +
+      `• *Total: ₦${formatPrice(total)}*\n\n` +
+      `📍 *Delivery Address:*\n${session.deliveryAddress}\n\n` +
+      `💳 *How would you like to pay?*\n` +
+      `1️⃣ *Pay with Paystack* (Instant online payment link)\n` +
+      `2️⃣ *Pay via Bank Transfer* (Direct account transfer)\n\n` +
       `_Reply *1* or *2* to place order_`
   );
 }
@@ -890,7 +895,7 @@ async function processOrderPlacement(db, appUrl, session, phone, paymentMethod, 
       userId: session.userId,
     });
 
-    // ΓöÇΓöÇ Dispatch Instant Alert to Admin WhatsApp Notification Number ΓöÇΓöÇ
+    // ── Dispatch Instant Alert to Admin WhatsApp Notification Number ──
     try {
       const adminSetting = await db.collection("settings").findOne({
         key: { $in: ["admin_notification_whatsapp_number", "wa_admin_notification_phone", "company_phone"] }
@@ -903,40 +908,40 @@ async function processOrderPlacement(db, appUrl, session, phone, paymentMethod, 
           ? items.map((item, idx) => {
               const qty = item.quantity || 1;
               const price = item.itemTotal
-                ? ` (Γéª${Number(item.itemTotal).toLocaleString()})`
+                ? ` (₦${Number(item.itemTotal).toLocaleString()})`
                 : item.price
-                ? ` (Γéª${Number(item.price * qty).toLocaleString()})`
+                ? ` (₦${Number(item.price * qty).toLocaleString()})`
                 : "";
               return `${idx + 1}. *${item.name}* x${qty}${price}`;
             }).join("\n")
-          : "ΓÇó Standard WhatsApp Basket";
+          : "• Standard WhatsApp Basket";
 
-        const formattedPaymentMethod = paymentMethod === "paystack" ? "≡ƒÆ│ Paystack (Online)" : "≡ƒÅª Bank Transfer";
-        const paymentStatusBadge = order.paymentStatus === "paid" ? "Γ£à PAID" : "ΓÅ│ UNPAID / PENDING";
+        const formattedPaymentMethod = paymentMethod === "paystack" ? "💳 Paystack (Online)" : "🏦 Bank Transfer";
+        const paymentStatusBadge = order.paymentStatus === "paid" ? "✅ PAID" : "⏳ UNPAID / PENDING";
         const dateStr = new Date().toLocaleString("en-NG", { dateStyle: "medium", timeStyle: "short" });
 
         const adminAlertText =
-          `≡ƒÜ¿ *NEW WHATSAPP BOT ORDER!* ≡ƒ¢ÆΓ£¿\n` +
-          `ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü\n` +
-          `≡ƒôï *Order ID:* #${order.orderSerialNo}\n` +
-          `≡ƒôà *Date:* ${dateStr}\n\n` +
-          `≡ƒæñ *CUSTOMER INFORMATION*\n` +
-          `ΓÇó *Name:* ${order.customerName || "WhatsApp Customer"}\n` +
-          `ΓÇó *Phone:* +${finalPhone}\n` +
-          `ΓÇó *Email:* ${order.customerEmail || "N/A"}\n\n` +
-          `≡ƒ¢ì∩╕Å *ORDERED ITEMS (${totalItemQuantity} item${totalItemQuantity === 1 ? "" : "s"})*\n` +
+          `🚨 *NEW WHATSAPP BOT ORDER!* 🛒✨\n` +
+          `━━━━━━━━━━━━━━━━━━━━━\n` +
+          `📋 *Order ID:* #${order.orderSerialNo}\n` +
+          `📅 *Date:* ${dateStr}\n\n` +
+          `👤 *CUSTOMER INFORMATION*\n` +
+          `• *Name:* ${order.customerName || "WhatsApp Customer"}\n` +
+          `• *Phone:* +${finalPhone}\n` +
+          `• *Email:* ${order.customerEmail || "N/A"}\n\n` +
+          `🛍️ *ORDERED ITEMS (${totalItemQuantity} item${totalItemQuantity === 1 ? "" : "s"})*\n` +
           `${itemsText}\n\n` +
-          `≡ƒÆ░ *BILLING & SUMMARY*\n` +
-          `ΓÇó *Subtotal:* Γéª${Number(order.subtotal || 0).toLocaleString()}\n` +
-          `ΓÇó *Delivery Fee:* Γéª${Number(order.deliveryCharge || 0).toLocaleString()}\n` +
-          `ΓÇó *TOTAL PAYABLE:* *Γéª${Number(order.totalAmount || 0).toLocaleString()}*\n\n` +
-          `≡ƒÆ│ *PAYMENT & FULFILLMENT*\n` +
-          `ΓÇó *Payment Method:* ${formattedPaymentMethod}\n` +
-          `ΓÇó *Payment Status:* ${paymentStatusBadge}\n` +
-          `ΓÇó *Order Type:* ≡ƒÜÜ Home Delivery\n` +
-          `ΓÇó *Delivery Address:* ${order.deliveryAddress?.address || "Provided via WhatsApp"}\n\n` +
-          `ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü\n` +
-          `≡ƒæë *Open Admin Dashboard to Manage:*\n` +
+          `💰 *BILLING & SUMMARY*\n` +
+          `• *Subtotal:* ₦${Number(order.subtotal || 0).toLocaleString()}\n` +
+          `• *Delivery Fee:* ₦${Number(order.deliveryCharge || 0).toLocaleString()}\n` +
+          `• *TOTAL PAYABLE:* *₦${Number(order.totalAmount || 0).toLocaleString()}*\n\n` +
+          `💳 *PAYMENT & FULFILLMENT*\n` +
+          `• *Payment Method:* ${formattedPaymentMethod}\n` +
+          `• *Payment Status:* ${paymentStatusBadge}\n` +
+          `• *Order Type:* 🚚 Home Delivery\n` +
+          `• *Delivery Address:* ${order.deliveryAddress?.address || "Provided via WhatsApp"}\n\n` +
+          `━━━━━━━━━━━━━━━━━━━━━\n` +
+          `👉 *Open Admin Dashboard to Manage:*\n` +
           `${appUrl}/admin/orders`;
 
         sendFn(adminPhone, adminAlertText).catch((e) => console.error("Admin WA alert error:", e.message));
@@ -945,7 +950,7 @@ async function processOrderPlacement(db, appUrl, session, phone, paymentMethod, 
       console.error("Failed to notify admin on WA order:", adminNotifErr.message);
     }
 
-    // ΓöÇΓöÇ Paystack Option ΓöÇΓöÇ
+    // ── Paystack Option ──
     if (paymentMethod === "paystack") {
       const psResult = await paymentService.initializePaystackPayment(db, appUrl, order);
 
@@ -954,41 +959,41 @@ async function processOrderPlacement(db, appUrl, session, phone, paymentMethod, 
 
         return sendFn(
           phone,
-          `≡ƒÄë *Order #${order.orderSerialNo} Placed!* ≡ƒ¢ÆΓ£¿\n\n` +
-            `Total: *Γéª${formatPrice(order.totalAmount)}*\n\n` +
+          `🎉 *Order #${order.orderSerialNo} Placed!* 🛒✨\n\n` +
+            `Total: *₦${formatPrice(order.totalAmount)}*\n\n` +
             `Please click the secure link below to complete your payment:\n` +
-            `≡ƒæë ${psResult.authorizationUrl}\n\n` +
-            `Once paid, our store team will confirm and dispatch your groceries! ≡ƒÑª≡ƒÜÜ\n\n` +
+            `👉 ${psResult.authorizationUrl}\n\n` +
+            `Once paid, our store team will confirm and dispatch your groceries! 🥦🚚\n\n` +
             `_Thank you for choosing Nectar!_`
         );
       }
     }
 
-    // ΓöÇΓöÇ Bank Transfer Option ΓöÇΓöÇ
+    // ── Bank Transfer Option ──
     const bank = await paymentService.getBankAccountDetails(db);
     sessionManager.clearCart(phone);
 
     const guestTip = !session.isKnownUser
-      ? `\n\n≡ƒÆí _Tip: Next time, orders linked to your phone number will save your details automatically!_`
+      ? `\n\n💡 _Tip: Next time, orders linked to your phone number will save your details automatically!_`
       : "";
 
     return sendFn(
       phone,
-      `≡ƒÄë *Order #${order.orderSerialNo} Placed!* ≡ƒ¢ÆΓ£¿\n\n` +
-        `Total: *Γéª${formatPrice(order.totalAmount)}*\n\n` +
-        `Please transfer *Γéª${formatPrice(order.totalAmount)}* to:\n\n` +
-        `≡ƒÅª *Bank:* ${bank.bankName}\n` +
-        `≡ƒÆ│ *Account Number:* ${bank.accountNumber}\n` +
-        `≡ƒæñ *Account Name:* ${bank.accountName}\n` +
-        `≡ƒôï *Reference:* *${order.orderSerialNo}*\n\n` +
-        `Kindly send your payment proof here once done. Our team will verify and dispatch your fresh package! ≡ƒÑæ≡ƒôª` +
+      `🎉 *Order #${order.orderSerialNo} Placed!* 🛒✨\n\n` +
+        `Total: *₦${formatPrice(order.totalAmount)}*\n\n` +
+        `Please transfer *₦${formatPrice(order.totalAmount)}* to:\n\n` +
+        `🏦 *Bank:* ${bank.bankName}\n` +
+        `💳 *Account Number:* ${bank.accountNumber}\n` +
+        `👤 *Account Name:* ${bank.accountName}\n` +
+        `📋 *Reference:* *${order.orderSerialNo}*\n\n` +
+        `Kindly send your payment proof here once done. Our team will verify and dispatch your fresh package! 🥑📦` +
         guestTip
     );
   } catch (err) {
-    console.error("Γ¥î Failed to process WhatsApp order:", err.message);
+    console.error("❌ Failed to process WhatsApp order:", err.message);
     return sendFn(
       phone,
-      `ΓÜá∩╕Å Sorry, there was an issue processing your order (${err.message}). Please try again or type *MENU*.`
+      `⚠️ Sorry, there was an issue processing your order (${err.message}). Please try again or type *MENU*.`
     );
   }
 }
