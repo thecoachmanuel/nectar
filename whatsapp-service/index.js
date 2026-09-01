@@ -227,7 +227,17 @@ function extractMessageContent(msg) {
     };
   }
 
+  // Check for Interactive / Button / Template responses
+  let interactiveText = "";
+  if (m.interactiveResponseMessage?.nativeFlowResponseMessage?.paramsJson) {
+    try {
+      const parsed = JSON.parse(m.interactiveResponseMessage.nativeFlowResponseMessage.paramsJson);
+      interactiveText = parsed.id || parsed.selected_id || parsed.value || "";
+    } catch (_) {}
+  }
+
   return (
+    interactiveText ||
     m.conversation ||
     m.extendedTextMessage?.text ||
     m.buttonsResponseMessage?.selectedButtonId ||
@@ -236,7 +246,6 @@ function extractMessageContent(msg) {
     m.listResponseMessage?.title ||
     m.templateButtonReplyMessage?.selectedId ||
     m.templateButtonReplyMessage?.selectedDisplayText ||
-    m.interactiveResponseMessage?.nativeFlowResponseMessage?.paramsJson ||
     m.imageMessage?.caption ||
     m.videoMessage?.caption ||
     m.documentMessage?.caption ||
@@ -458,8 +467,20 @@ async function sendWhatsAppMessage(phoneOrJid, message) {
   // 4. Small 250ms buffer for handshake to let Signal session negotiate
   await new Promise((resolve) => setTimeout(resolve, 250));
 
-  // 5. Send message directly to verified JID
-  const sentMsg = await sock.sendMessage(targetJid, { text: message });
+  // 5. Send message directly to verified JID (supports string or interactive buttons payload)
+  let payload = typeof message === "string" ? { text: message } : message;
+  let sentMsg = null;
+
+  try {
+    sentMsg = await sock.sendMessage(targetJid, payload);
+  } catch (sendErr) {
+    if (typeof payload === "object" && payload.text) {
+      console.warn("⚠️ Button payload send failed, falling back to text:", sendErr.message);
+      sentMsg = await sock.sendMessage(targetJid, { text: payload.text });
+    } else {
+      throw sendErr;
+    }
+  }
 
   // 6. Save message to RAM cache and MongoDB for Signal retry decryption
   if (sentMsg?.key?.id && sentMsg?.message) {
@@ -474,7 +495,8 @@ async function sendWhatsAppMessage(phoneOrJid, message) {
   const destPhone = targetJid.replace(/@.+$/, "");
   const { isBotPaused } = require("./sessionManager");
   const paused = isBotPaused(destPhone);
-  recordChatMessage(destPhone, paused ? "business" : "bot", message, sentMsg?.key?.id, null, paused).catch(() => {});
+  const recordedText = typeof message === "string" ? message : (message.text || JSON.stringify(message));
+  recordChatMessage(destPhone, paused ? "business" : "bot", recordedText, sentMsg?.key?.id, null, paused).catch(() => {});
 
   console.log(`📤 Message successfully delivered to ${targetJid} (ID: ${sentMsg?.key?.id})`);
   return sentMsg;

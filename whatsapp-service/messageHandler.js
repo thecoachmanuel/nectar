@@ -47,9 +47,9 @@ function buildWelcomeMenu(session) {
   }
 
   const profileOption = isKnown ? `5️⃣ *My Profile & Addresses* 👤\n` : "";
-  const replyHint = isKnown ? `_Reply *1*, *2*, *3*, *4*, or *5* to start_` : `_Reply *1*, *2*, *3*, or *4* to start_`;
+  const replyHint = isKnown ? `_Tap a button or reply *1*, *2*, *3*, *4*, or *5*_` : `_Tap a button or reply *1*, *2*, *3*, or *4*_`;
 
-  return (
+  const text =
     `${greeting}\n\n` +
     `How would you like to proceed today?\n\n` +
     `1️⃣ *Browse by Category* 📦\n` +
@@ -58,8 +58,18 @@ function buildWelcomeMenu(session) {
     `4️⃣ *Submit Shopping Wishlist* 📝 _(Items you buy often)_\n` +
     profileOption +
     `\n${replyHint}\n` +
-    `_Type *CART* to view cart | *HELP* for commands_`
-  );
+    `_Type *CART* to view cart | *HELP* for commands_`;
+
+  return {
+    text,
+    footer: "Nectar Groceries 🌿",
+    buttons: [
+      { buttonId: "1", buttonText: { displayText: "📦 Browse Categories" }, type: 1 },
+      { buttonId: "2", buttonText: { displayText: "🔍 Search Item" }, type: 1 },
+      { buttonId: "4", buttonText: { displayText: "📝 Shopping Wishlist" }, type: 1 },
+    ],
+    headerType: 1,
+  };
 }
 
 function formatOrderStatusProgress(status) {
@@ -115,13 +125,26 @@ function handleItemSelection(session, selectedItem, sendFn, phone) {
       .map((v, i) => `${i + 1}️⃣ ${v.name} — ₦${formatPrice(v.price)}`)
       .join("\n");
 
-    return sendFn(
-      phone,
+    const text =
       `🛒 *${selectedItem.name}*\n\nPlease choose your preferred variation / size:\n\n` +
-        `${optionsText}\n\n` +
-        `_Reply with a number (1 to ${variationsList.length}) to pick_\n` +
-        `_Type *MENU* to go back_`
-    );
+      `${optionsText}\n\n` +
+      `_Reply with a number (1 to ${variationsList.length}) to pick_\n` +
+      `_Type *MENU* to go back_`;
+
+    if (variationsList.length <= 3) {
+      return sendFn(phone, {
+        text,
+        footer: "Nectar Groceries 🌿",
+        buttons: variationsList.map((v, idx) => ({
+          buttonId: String(idx + 1),
+          buttonText: { displayText: `${v.name} (₦${formatPrice(v.price)})` },
+          type: 1,
+        })),
+        headerType: 1,
+      });
+    }
+
+    return sendFn(phone, text);
   }
 
   // No variations: proceed directly to quantity
@@ -355,14 +378,20 @@ async function handleWishlistCollection(session, text, phone, sendFn) {
 
   const preview = items.map((item, i) => `${i + 1}. *${item}*`).join("\n");
 
-  return sendFn(
-    phone,
-    `✅ *Got it! We noted ${items.length} item${items.length === 1 ? "" : "s"}:*\n\n` +
+  return sendFn(phone, {
+    text:
+      `✅ *Got it! We noted ${items.length} item${items.length === 1 ? "" : "s"}:*\n\n` +
       `${preview}\n\n` +
       `Would you like to add any preferred brands, package sizes, or extra notes?\n\n` +
       `• Type your preferred sizes/brands (e.g. _"1kg size only, carton packaging"_)\n` +
-      `• Or reply *DONE* (or *1*) to submit now! 🚀`
-  );
+      `• Or tap *Submit Wishlist Now* below! 🚀`,
+    footer: "Nectar Groceries 🌿",
+    buttons: [
+      { buttonId: "DONE", buttonText: { displayText: "🚀 Submit Wishlist Now" }, type: 1 },
+      { buttonId: "CANCEL", buttonText: { displayText: "❌ Cancel" }, type: 1 },
+    ],
+    headerType: 1,
+  });
 }
 
 async function handleWishlistFinalize(db, appUrl, session, text, phone, sendFn) {
@@ -587,7 +616,16 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
       `• *MORE* or *MENU* — Keep shopping 🥦\n` +
       `• *CLEAR* — Empty your cart`;
     session.step = "CART";
-    return sendFn(phone, cartText);
+    return sendFn(phone, {
+      text: cartText,
+      footer: "Nectar Groceries 🌿",
+      buttons: [
+        { buttonId: "CHECKOUT", buttonText: { displayText: "🛒 Checkout Now" }, type: 1 },
+        { buttonId: "MORE", buttonText: { displayText: "🥦 Keep Shopping" }, type: 1 },
+        { buttonId: "CLEAR", buttonText: { displayText: "🗑️ Clear Cart" }, type: 1 },
+      ],
+      headerType: 1,
+    });
   }
 
   if (["CLEAR", "CLEAR CART", "EMPTY"].includes(upper)) {
@@ -876,15 +914,22 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
       session.availableVariations = [];
       session.step = "CART";
 
-      return sendFn(
-        phone,
-        `✅ Added *${qty}x ${itemName}* to your cart!\n\n` +
+      return sendFn(phone, {
+        text:
+          `✅ Added *${qty}x ${itemName}* to your cart!\n\n` +
           `${buildCartSummary(session.cart)}\n\n` +
           `Reply:\n` +
           `• *CHECKOUT* — Place your order now 🛒\n` +
           `• *MORE* or *MENU* — Keep shopping 🥦\n` +
-          `• *CLEAR* — Empty cart`
-      );
+          `• *CLEAR* — Empty cart`,
+        footer: "Nectar Groceries 🌿",
+        buttons: [
+          { buttonId: "CHECKOUT", buttonText: { displayText: "🛒 Checkout Now" }, type: 1 },
+          { buttonId: "MORE", buttonText: { displayText: "🥦 Keep Shopping" }, type: 1 },
+          { buttonId: "CLEAR", buttonText: { displayText: "🗑️ Empty Cart" }, type: 1 },
+        ],
+        headerType: 1,
+      });
     }
 
     // ── CART STEP ──────────────────────────────────────────────────────────
@@ -1077,13 +1122,19 @@ async function startCheckoutFlow(session, phone, sendFn) {
     session.customerPhone = session.customerPhone || userService.normalizeCustomerPhone(phone);
     session.step = "USE_SAVED_ADDRESS";
 
-    return sendFn(
-      phone,
-      `📍 We found your saved delivery address:\n` +
+    return sendFn(phone, {
+      text:
+        `📍 We found your saved delivery address:\n` +
         `*${session.deliveryAddress}*\n\n` +
         `Reply *YES* to use this address,\n` +
-        `OR send a new address / tap *📎 ➔ Location* for a GPS pin:`
-    );
+        `OR send a new address / tap *📎 ➔ Location* for a GPS pin:`,
+      footer: "Nectar Groceries 🌿",
+      buttons: [
+        { buttonId: "YES", buttonText: { displayText: "✅ Use Saved Address" }, type: 1 },
+        { buttonId: "CANCEL", buttonText: { displayText: "❌ Cancel" }, type: 1 },
+      ],
+      headerType: 1,
+    });
   }
 
   // If known customer without saved address
@@ -1130,9 +1181,9 @@ async function showPaymentOptions(db, session, phone, sendFn) {
 
   session.step = "PAYMENT_CHOICE";
 
-  return sendFn(
-    phone,
-    `📋 *Order Summary for ${session.customerName || "Customer"}*\n\n` +
+  return sendFn(phone, {
+    text:
+      `📋 *Order Summary for ${session.customerName || "Customer"}*\n\n` +
       `${cartLines}\n\n` +
       `• Subtotal: ₦${formatPrice(subtotal)}\n` +
       `${deliveryNote}\n` +
@@ -1141,8 +1192,14 @@ async function showPaymentOptions(db, session, phone, sendFn) {
       `💳 *How would you like to pay?*\n` +
       `1️⃣ *Pay with Paystack* (Instant online payment link)\n` +
       `2️⃣ *Pay via Bank Transfer* (Direct account transfer)\n\n` +
-      `_Reply *1* or *2* to place order_`
-  );
+      `_Tap a button or reply *1* or *2*_`,
+    footer: "Nectar Groceries 🌿",
+    buttons: [
+      { buttonId: "1", buttonText: { displayText: "💳 Pay with Paystack" }, type: 1 },
+      { buttonId: "2", buttonText: { displayText: "🏦 Bank Transfer" }, type: 1 },
+    ],
+    headerType: 1,
+  });
 }
 
 async function processOrderPlacement(db, appUrl, session, phone, paymentMethod, sendFn) {
