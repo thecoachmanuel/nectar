@@ -428,7 +428,7 @@ export default function HomePage() {
                   <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6 scrollbar-none">
                     <div className="flex gap-3 sm:gap-4 items-stretch" style={{ width: "max-content" }}>
                       {cat.products.map((item: any) => (
-                        <div key={item._id} className="w-[8.5rem] sm:w-44 flex flex-col">
+                        <div key={item._id} className="w-[10rem] sm:w-48 flex flex-col">
                           <ItemCard item={item} onOpen={openModal} />
                         </div>
                       ))}

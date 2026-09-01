@@ -166,7 +166,7 @@ function AisleView({
 
           {viewMode === "grid" ? (
             /* Horizontal scroll row — top grocers (Ocado / Tesco / Instacart) pattern */
-            <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6">
+            <div className="overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6 scrollbar-none">
               <div
                 className="flex gap-3 sm:gap-4 items-stretch"
                 style={{ width: "max-content" }}
@@ -174,7 +174,7 @@ function AisleView({
                 {items.map(item => (
                   <div
                     key={item._id}
-                    className="w-[8.5rem] sm:w-44 flex flex-col"
+                    className="w-[10rem] sm:w-48 flex flex-col"
                   >
                     <ProductCard item={item} onOpen={onOpen} />
                   </div>
