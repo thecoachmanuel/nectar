@@ -71,6 +71,7 @@ export async function GET(req: Request) {
         status: true,
         matchedStore: matchedStore || stores[0] || null,
         stores,
+        data: stores,
       });
     }
 
@@ -78,6 +79,7 @@ export async function GET(req: Request) {
       status: true,
       matchedStore: stores[0] || null,
       stores,
+      data: stores,
     });
   } catch (error: any) {
     console.error("Stores API Error:", error);

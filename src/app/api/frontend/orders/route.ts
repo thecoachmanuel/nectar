@@ -96,12 +96,16 @@ export async function POST(req: Request) {
 
     const Store = (await import("@/models/Store")).default;
 
-    // 1. Group items by storeId
+    // 1. Group items by storeId (respecting explicit POS branchId/storeId)
+    const posStoreId = (isPos && (body.branchId || body.storeId) && (body.branchId || body.storeId) !== "0") 
+      ? (body.branchId || body.storeId) 
+      : null;
+
     const storeGroups: Record<string, any[]> = {};
     items.forEach((item: any) => {
-      const sId = item.storeId || "admin";
+      const sId = posStoreId || item.storeId || "admin";
       if (!storeGroups[sId]) storeGroups[sId] = [];
-      storeGroups[sId].push(item);
+      storeGroups[sId].push({ ...item, storeId: sId });
     });
 
     const storeIds = Object.keys(storeGroups);
@@ -158,15 +162,16 @@ export async function POST(req: Request) {
 
       const calculatedCommission = (groupSubtotal * commissionRate) / 100;
       
-      // Apply the delivery charge and coupon ONLY to the first order to avoid double counting
-      const groupDeliveryCharge = i === 0 ? (deliveryCharge || 0) : 0;
-      const groupCouponDiscount = i === 0 ? (couponDiscount || 0) : 0;
+      // Apply the delivery charge and discount ONLY to the first order to avoid double counting
+      const effectiveDiscount = Number(discountAmount) || Number(couponDiscount) || 0;
+      const groupDeliveryCharge = i === 0 ? (Number(deliveryCharge) || 0) : 0;
+      const groupDiscount = i === 0 ? effectiveDiscount : 0;
       const groupCouponCode = i === 0 ? couponCode : undefined;
       
       // Simple tax split proportional to subtotal (or just apply to all if it's a fixed rate)
       const groupTax = taxAmount ? (taxAmount * (groupSubtotal / (subtotal || 1))) : 0;
       
-      const groupTotal = Math.max(0, groupSubtotal + groupTax + groupDeliveryCharge - groupCouponDiscount);
+      const groupTotal = Math.max(0, groupSubtotal + groupTax + groupDeliveryCharge - groupDiscount);
       
       const deliveryPin = Math.floor(1000 + Math.random() * 9000).toString();
 
@@ -181,13 +186,13 @@ export async function POST(req: Request) {
         items: groupItems,
         subtotal: groupSubtotal,
         taxAmount: groupTax,
-        discountAmount: groupCouponDiscount,
+        discountAmount: groupDiscount,
         deliveryCharge: groupDeliveryCharge,
         commissionAmount: calculatedCommission,
         deliveryPin: orderType === "delivery" ? deliveryPin : undefined,
         totalAmount: groupTotal,
         couponCode: groupCouponCode,
-        couponDiscount: groupCouponDiscount,
+        couponDiscount: groupDiscount,
         deliveryAddress: orderType === "delivery" ? deliveryAddress : undefined,
         deliveryTimeSlot,
         paymentMethod: paymentMethod || "cash_on_delivery",

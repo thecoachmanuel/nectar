@@ -8,7 +8,7 @@ export async function GET() {
   try {
     await connectToDatabase();
     const stores = await Store.find({}).sort({ createdAt: -1 });
-    return NextResponse.json({ status: true, data: stores });
+    return NextResponse.json({ status: true, data: stores, stores });
   } catch (error: any) {
     return NextResponse.json({ status: false, message: error.message }, { status: 500 });
   }

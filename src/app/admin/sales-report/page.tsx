@@ -5,6 +5,7 @@ import {
   Search, 
   Filter, 
   Download,
+  Tag,
 } from "lucide-react";
 import { useApi } from "@/hooks/useApi";
 import ExcelJS from "exceljs";
@@ -21,6 +22,7 @@ export default function SalesReportPage() {
   }, []);
 
   const totalSales = orders?.reduce((acc: number, o: any) => acc + (o.totalAmount || 0), 0) || 0;
+  const totalDiscounts = orders?.reduce((acc: number, o: any) => acc + Number(o.discountAmount || o.couponDiscount || 0), 0) || 0;
   const totalOrders = orders?.length || 0;
   const totalItems = orders?.reduce((acc: number, o: any) => {
     return acc + (o.items?.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0) || 0);
@@ -41,16 +43,22 @@ export default function SalesReportPage() {
         { header: "Date", key: "date", width: 20 },
         { header: "Customer Name", key: "customerName", width: 25 },
         { header: "Products Count", key: "itemsCount", width: 15 },
-        { header: "Total Amount", key: "totalAmount", width: 15 },
+        { header: "Subtotal", key: "subtotal", width: 16 },
+        { header: "Discount", key: "discount", width: 16 },
+        { header: "Total Amount", key: "totalAmount", width: 16 },
         { header: "Status", key: "status", width: 15 },
       ];
 
       orders.forEach((o: any) => {
+        const discountVal = Number(o.discountAmount || o.couponDiscount || 0);
+        const subtotalVal = o.subtotal || ((o.totalAmount || 0) + discountVal);
         worksheet.addRow({
           orderSerialNo: o.orderSerialNo,
           date: new Date(o.createdAt).toLocaleDateString(),
           customerName: o.customerName,
           itemsCount: o.items?.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0) || 0,
+          subtotal: formatPrice(subtotalVal),
+          discount: discountVal > 0 ? `-${formatPrice(discountVal)}` : "₦0.00",
           totalAmount: formatPrice(o.totalAmount || 0),
           status: o.orderStatus,
         });
@@ -135,8 +143,8 @@ export default function SalesReportPage() {
         )}
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 sm:p-6 border-b border-[#EFF0F6] bg-[#FAFAFC]">
-          <div className="bg-white p-4 rounded-xl border border-[#EFF0F6] shadow-sm flex items-center justify-between">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 sm:p-6 border-b border-[#EFF0F6] bg-[#FAFAFC]">
+          <div className="bg-white p-4 rounded-xl border border-[#EFF0F6] shadow-xs flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold text-[#6E7191] mb-1">Total Sales</p>
               <h4 className="text-lg font-bold text-[#14142B]">{formatPrice(totalSales)}</h4>
@@ -145,7 +153,16 @@ export default function SalesReportPage() {
               <span className="font-bold">₦</span>
             </div>
           </div>
-          <div className="bg-white p-4 rounded-xl border border-[#EFF0F6] shadow-sm flex items-center justify-between">
+          <div className="bg-white p-4 rounded-xl border border-[#EFF0F6] shadow-xs flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-[#6E7191] mb-1">Discounts Given</p>
+              <h4 className="text-lg font-bold text-[#1AB759]">-{formatPrice(totalDiscounts)}</h4>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-[#E0FFED] flex items-center justify-center text-[#1AB759]">
+              <Tag className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="bg-white p-4 rounded-xl border border-[#EFF0F6] shadow-xs flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold text-[#6E7191] mb-1">Total Orders</p>
               <h4 className="text-lg font-bold text-[#14142B]">{totalOrders}</h4>
@@ -154,7 +171,7 @@ export default function SalesReportPage() {
               <span className="font-bold">#</span>
             </div>
           </div>
-          <div className="bg-white p-4 rounded-xl border border-[#EFF0F6] shadow-sm flex items-center justify-between">
+          <div className="bg-white p-4 rounded-xl border border-[#EFF0F6] shadow-xs flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold text-[#6E7191] mb-1">Products Sold</p>
               <h4 className="text-lg font-bold text-[#14142B]">{totalItems}</h4>
@@ -174,46 +191,62 @@ export default function SalesReportPage() {
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Date</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Customer</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Products</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Total</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Subtotal</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider text-green-600">Discount</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Total Paid</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EFF0F6]">
               {loading && !orders ? (
-                <tr><td colSpan={6} className="p-8 text-center text-[#6E7191]">Loading...</td></tr>
+                <tr><td colSpan={8} className="p-8 text-center text-[#6E7191]">Loading...</td></tr>
               ) : orders?.length === 0 ? (
-                <tr><td colSpan={6} className="p-8 text-center text-[#6E7191]">No orders found</td></tr>
+                <tr><td colSpan={8} className="p-8 text-center text-[#6E7191]">No orders found</td></tr>
               ) : (
-                orders?.map((report: any) => (
-                  <tr key={report._id} className="hover:bg-[#FAFAFC] transition-colors">
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-primary">{report.orderSerialNo}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-[#4E4B66]">
-                        {new Date(report.createdAt).toLocaleDateString()}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-medium text-[#14142B]">{report.customerName}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-semibold text-[#14142B]">
-                        {report.items?.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0) || 0}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-[#14142B]">
-                        {formatPrice(report.totalAmount || 0)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize bg-[#E0FFED] text-[#1AB759]">
-                        {report.orderStatus?.replace("_", " ")}
-                      </span>
-                    </td>
-                  </tr>
-                ))
+                orders?.map((report: any) => {
+                  const discountVal = Number(report.discountAmount || report.couponDiscount || 0);
+                  const subtotalVal = report.subtotal || ((report.totalAmount || 0) + discountVal);
+                  return (
+                    <tr key={report._id} className="hover:bg-[#FAFAFC] transition-colors">
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-bold text-primary font-mono">{report.orderSerialNo}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-[#4E4B66]">
+                          {new Date(report.createdAt).toLocaleDateString()}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-medium text-[#14142B]">{report.customerName || "Customer"}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-semibold text-[#14142B]">
+                          {report.items?.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0) || 0}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-medium text-[#4E4B66]">{formatPrice(subtotalVal)}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {discountVal > 0 ? (
+                          <span className="text-sm font-bold text-[#1AB759]">-{formatPrice(discountVal)}</span>
+                        ) : (
+                          <span className="text-sm text-[#A0A3BD]">—</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-bold text-[#14142B]">
+                          {formatPrice(report.totalAmount || 0)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize bg-[#E0FFED] text-[#1AB759]">
+                          {report.orderStatus?.replace("_", " ")}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
