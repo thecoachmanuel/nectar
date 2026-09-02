@@ -39,6 +39,42 @@ let mongoDbCollection = null;
 let mongoDbInstance = null;
 let reconnectAttempts = 0;
 
+// ─── LID → Real Phone Map ──────────────────────────────────────────────────
+// WhatsApp's privacy system maps real phones to internal LIDs. We maintain
+// this map from contacts events so we can resolve the actual number.
+const lidToPhoneMap = new Map(); // lid digits (no @lid) → phone digits (no @s.whatsapp.net)
+
+function registerContact(contact) {
+  // contact.id = "2348100918189@s.whatsapp.net"
+  // contact.lid = "33372130783232@lid" (may not always be present)
+  if (!contact) return;
+  const lid = contact.lid || contact.implicitlyCreatedLid || "";
+  const id  = contact.id || "";
+  if (lid && id && !id.endsWith("@lid") && id.endsWith("@s.whatsapp.net")) {
+    const lidDigits   = String(lid).replace(/@.+$/, "");
+    const phoneDigits = String(id).replace(/@.+$/, "");
+    if (lidDigits && phoneDigits) {
+      lidToPhoneMap.set(lidDigits, phoneDigits);
+    }
+  }
+}
+
+function resolveSenderPhone(rawJid, cleanJid) {
+  const stripped = cleanJid.replace(/@.+$/, "");
+  // If it's already a normal @s.whatsapp.net JID, just return stripped digits
+  if (rawJid.endsWith("@s.whatsapp.net")) return stripped;
+  // LID JID — try to resolve from our map
+  if (rawJid.endsWith("@lid") || rawJid.endsWith("@lid")) {
+    const resolved = lidToPhoneMap.get(stripped);
+    if (resolved) {
+      console.log(`🔁 Resolved LID ${stripped} → ${resolved}`);
+      return resolved;
+    }
+    console.warn(`⚠️ LID ${stripped} not in contact map yet — using LID as session key`);
+  }
+  return stripped;
+}
+
 // ─── Top-Level Uncaught Exception Safety (Auto-recovers from corrupted auth) ─
 process.on("uncaughtException", async (err) => {
   console.error("💥 Uncaught Exception:", err.message);
@@ -331,6 +367,14 @@ async function connectToWhatsApp() {
     // Save credentials on every update
     sock.ev.on("creds.update", saveCreds);
 
+    // ── Maintain LID → Real Phone contact map ──────────────────────────────
+    sock.ev.on("contacts.upsert", (contacts) => {
+      for (const c of contacts) registerContact(c);
+    });
+    sock.ev.on("contacts.update", (updates) => {
+      for (const c of updates) registerContact(c);
+    });
+
     // Store messages in memory for retry resolution and process customer ordering
     sock.ev.on("messages.upsert", async (m) => {
       const messages = m.messages || [];
@@ -372,7 +416,7 @@ async function connectToWhatsApp() {
             continue;
           }
 
-          const customerPhone = cleanJid.replace(/@.+$/, "");
+          const customerPhone = resolveSenderPhone(rawJid, cleanJid);
           const msgText = String(
             msg.message?.conversation ||
             msg.message?.extendedTextMessage?.text ||
@@ -391,8 +435,9 @@ async function connectToWhatsApp() {
           continue; // Never route outgoing (fromMe) messages through the bot handler
         }
 
-        const senderPhone = cleanJid.replace(/@.+$/, "");
-        console.log(`💬 [INCOMING] From: ${cleanJid} (${senderPhone}) | Content: "${typeof messageContent === "string" ? messageContent.slice(0, 50) : "Location Pin"}" | fromMe: ${Boolean(msg.key?.fromMe)}`);
+        const senderPhone = resolveSenderPhone(rawJid, cleanJid);
+        console.log(`💬 [INCOMING] From: ${cleanJid} (resolved: ${senderPhone}) | Content: "${typeof messageContent === "string" ? messageContent.slice(0, 50) : "Location Pin"}" | fromMe: ${Boolean(msg.key?.fromMe)}`);
+
 
         // Record incoming customer message to chat history
         const { isBotPaused } = require("./sessionManager");
