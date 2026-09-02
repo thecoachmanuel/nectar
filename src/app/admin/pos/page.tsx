@@ -774,7 +774,7 @@ export default function POSPage() {
                             ) : null}
                           </div>
                           
-                          <div className="w-7 h-7 rounded-lg bg-[#F7F7FC] group-hover:bg-primary group-hover:text-white text-[#6E7191] flex items-center justify-center transition-colors">
+                          <div className="w-7 h-7 rounded-lg bg-[#F7F7FC] text-[#6E7191] group-hover:bg-[#ff006b] group-hover:text-white flex items-center justify-center transition-all duration-200 shadow-xs">
                             <Plus className="w-4 h-4" />
                           </div>
                         </div>

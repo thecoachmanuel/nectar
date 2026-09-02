@@ -1,6 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&family=Public+Sans:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --color-primary: #ff006b;
+  --color-primary-light: #ffedf4;
+  --color-primary-slate: #ff3b8e;
+}
+
 :root {
   /* === EXACT PHP APP PRIMARY COLOR: rgb(255, 0, 107) === */
   --primary: 255 0 107;
