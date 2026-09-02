@@ -203,19 +203,29 @@ export default function POSPage() {
 
   // Cart operations
   const addToCart = (product: any) => {
-    const hasDiscount = product.discountPrice && Number(product.discountPrice) > 0 && Number(product.discountPrice) < Number(product.price);
+    const hasDiscount = Boolean(
+      product.discountPrice && 
+      Number(product.discountPrice) > 0 && 
+      Number(product.discountPrice) < Number(product.price)
+    );
     const effectivePrice = hasDiscount ? Number(product.discountPrice) : Number(product.price);
 
     setCart(prev => {
       const existing = prev.find(item => item.itemId === product._id);
       if (existing) {
-        return prev.map(item => item.itemId === product._id ? { ...item, quantity: item.quantity + 1 } : item);
+        const newQty = existing.quantity + 1;
+        return prev.map(item => item.itemId === product._id ? { 
+          ...item, 
+          quantity: newQty,
+          itemTotal: effectivePrice * newQty
+        } : item);
       }
       return [...prev, { 
         itemId: product._id, 
         name: product.name, 
         price: effectivePrice, 
         quantity: 1,
+        itemTotal: effectivePrice,
         image: product.image,
         storeId: selectedBranch || product.storeId || undefined
       }];
@@ -226,7 +236,11 @@ export default function POSPage() {
     setCart(prev => prev.map(item => {
       if (item.itemId === itemId) {
         const newQty = item.quantity + delta;
-        return newQty > 0 ? { ...item, quantity: newQty } : item;
+        return newQty > 0 ? { 
+          ...item, 
+          quantity: newQty,
+          itemTotal: Number(item.price || 0) * newQty
+        } : item;
       }
       return item;
     }));
@@ -462,10 +476,17 @@ export default function POSPage() {
           orderType,
           branchId: selectedBranch,
           storeId: selectedBranch,
-          items: cart.map(item => ({
-            ...item,
-            storeId: selectedBranch
-          })),
+          items: cart.map(item => {
+            const qty = Number(item.quantity) || 1;
+            const unitPrice = Number(item.price) || 0;
+            return {
+              ...item,
+              price: unitPrice,
+              quantity: qty,
+              itemTotal: item.itemTotal !== undefined ? Number(item.itemTotal) : (unitPrice * qty),
+              storeId: selectedBranch
+            };
+          }),
           subtotal,
           discountAmount: currentDiscount,
           couponDiscount: currentDiscount,
@@ -700,8 +721,12 @@ export default function POSPage() {
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4">
                 {filteredProducts.map(product => {
-                  const hasDiscount = product.discountPrice && Number(product.discountPrice) > 0 && Number(product.discountPrice) < Number(product.price);
-                  const effectivePrice = hasDiscount ? Number(product.discountPrice) : Number(product.price);
+                  const hasDiscount = Boolean(
+                    product.discountPrice && 
+                    Number(product.discountPrice) > 0 && 
+                    Number(product.discountPrice) < Number(product.price)
+                  );
+                  const effectivePrice = hasDiscount ? Number(product.discountPrice) : Number(product.price || 0);
                   const cartItem = cart.find(i => i.itemId === product._id);
 
                   return (
@@ -717,16 +742,16 @@ export default function POSPage() {
                           alt={product.name} 
                           className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                         />
-                        {hasDiscount && (
+                        {hasDiscount ? (
                           <span className="absolute top-2 left-2 bg-[#FB4E4E] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
                             SALE
                           </span>
-                        )}
-                        {cartItem && (
+                        ) : null}
+                        {cartItem && cartItem.quantity > 0 ? (
                           <span className="absolute top-2 right-2 bg-primary text-white text-xs font-extrabold w-6 h-6 rounded-full flex items-center justify-center shadow-md">
                             {cartItem.quantity}
                           </span>
-                        )}
+                        ) : null}
                       </div>
 
                       {/* Info Frame */}
@@ -742,11 +767,11 @@ export default function POSPage() {
                             <span className="font-extrabold text-xs sm:text-sm text-primary">
                               {formatPrice(effectivePrice)}
                             </span>
-                            {hasDiscount && (
+                            {hasDiscount ? (
                               <span className="text-[10px] text-[#A0A3BD] line-through">
                                 {formatPrice(product.price)}
                               </span>
-                            )}
+                            ) : null}
                           </div>
                           
                           <div className="w-7 h-7 rounded-lg bg-[#F7F7FC] group-hover:bg-primary group-hover:text-white text-[#6E7191] flex items-center justify-center transition-colors">

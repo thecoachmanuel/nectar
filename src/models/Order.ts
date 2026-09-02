@@ -69,7 +69,12 @@ const OrderItemSchema = new Schema<IOrderItem>({
   variationName: { type: String },
   extras: [{ name: String, price: Number }],
   addons: [{ name: String, price: Number }],
-  itemTotal: { type: Number, required: true },
+  itemTotal: { 
+    type: Number, 
+    default: function (this: any) { 
+      return (Number(this.price) || 0) * (Number(this.quantity) || 1); 
+    } 
+  },
 });
 
 const StatusTimelineSchema = new Schema<IStatusTimeline>({

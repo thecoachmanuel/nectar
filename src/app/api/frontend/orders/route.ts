@@ -109,7 +109,14 @@ export async function POST(req: Request) {
     items.forEach((item: any) => {
       const sId = posStoreId || item.storeId || "admin";
       if (!storeGroups[sId]) storeGroups[sId] = [];
-      storeGroups[sId].push({ ...item, storeId: sId });
+      const computedTotal = item.itemTotal !== undefined && item.itemTotal !== null
+        ? Number(item.itemTotal)
+        : (Number(item.price || 0) * Number(item.quantity || 1));
+      storeGroups[sId].push({ 
+        ...item, 
+        storeId: sId,
+        itemTotal: computedTotal
+      });
     });
 
     const storeIds = Object.keys(storeGroups);
