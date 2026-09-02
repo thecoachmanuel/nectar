@@ -23,7 +23,7 @@ export interface IOrder extends Document {
   customerName: string;
   customerEmail?: string;
   customerPhone: string;
-  orderType: "delivery" | "pickup" | "dine_in";
+  orderType: "delivery" | "pickup" | "takeaway" | "dine_in" | "pos" | string;
   storeId: mongoose.Types.ObjectId | string;
   deliveryBoyId?: mongoose.Types.ObjectId | string;
   items: IOrderItem[];
@@ -90,7 +90,7 @@ const OrderSchema = new Schema<IOrder>(
     customerName: { type: String, required: true },
     customerEmail: { type: String },
     customerPhone: { type: String, required: true },
-    orderType: { type: String, enum: ["delivery", "pickup", "dine_in"], required: true },
+    orderType: { type: String, enum: ["delivery", "pickup", "takeaway", "dine_in", "pos"], required: true },
     storeId: { type: Schema.Types.Mixed, required: true },
     deliveryBoyId: { type: Schema.Types.Mixed },
     items: [OrderItemSchema],
