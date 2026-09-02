@@ -22,6 +22,7 @@ export default function PosOrdersPage() {
   const [showFilter, setShowFilter] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStoreFilter, setSelectedStoreFilter] = useState<string>("all");
+  const [selectedPaymentFilter, setSelectedPaymentFilter] = useState<string>("all");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
@@ -55,6 +56,9 @@ export default function PosOrdersPage() {
       if (effectiveStore) {
         url += `&storeId=${effectiveStore}`;
       }
+      if (selectedPaymentFilter !== "all") {
+        url += `&paymentMethod=${selectedPaymentFilter}`;
+      }
 
       const res = await fetch(url);
       const data = await res.json();
@@ -71,7 +75,7 @@ export default function PosOrdersPage() {
 
   useEffect(() => {
     fetchOrders();
-  }, [activeAdminStoreId, selectedStoreFilter]);
+  }, [activeAdminStoreId, selectedStoreFilter, selectedPaymentFilter]);
 
   // Client-side filtering for search & dates
   const filteredOrders = useMemo(() => {
@@ -82,6 +86,12 @@ export default function PosOrdersPage() {
         (o.orderSerialNo && o.orderSerialNo.toLowerCase().includes(q)) ||
         (o.customerName && o.customerName.toLowerCase().includes(q)) ||
         (o.customerPhone && o.customerPhone.toLowerCase().includes(q));
+
+      // Payment filter
+      let matchesPayment = true;
+      if (selectedPaymentFilter !== "all") {
+        matchesPayment = o.paymentMethod === selectedPaymentFilter;
+      }
 
       // Date Range
       let matchesDate = true;
@@ -94,11 +104,11 @@ export default function PosOrdersPage() {
         if (orderDate > toDate) matchesDate = false;
       }
 
-      return matchesSearch && matchesDate;
+      return matchesSearch && matchesPayment && matchesDate;
     });
-  }, [orders, searchQuery, fromDate, toDate]);
+  }, [orders, searchQuery, selectedPaymentFilter, fromDate, toDate]);
 
-  // Export to Excel with full discount column
+  // Export to Excel with full payment method & discount columns
   const exportToExcel = async () => {
     if (filteredOrders.length === 0) {
       toast.error("No POS orders to export");
@@ -115,6 +125,8 @@ export default function PosOrdersPage() {
         { header: "Customer Name", key: "customerName", width: 22 },
         { header: "Customer Phone", key: "customerPhone", width: 18 },
         { header: "Store Context", key: "store", width: 22 },
+        { header: "Payment Method", key: "paymentMethod", width: 16 },
+        { header: "Payment Ref / Note", key: "paymentReference", width: 22 },
         { header: "Items Count", key: "itemsCount", width: 14 },
         { header: "Subtotal", key: "subtotal", width: 16 },
         { header: "Discount Amount", key: "discount", width: 16 },
@@ -133,6 +145,8 @@ export default function PosOrdersPage() {
           customerName: o.customerName || "Walk-in Customer",
           customerPhone: o.customerPhone || "—",
           store: storeName,
+          paymentMethod: (o.paymentMethod || "cash").toUpperCase(),
+          paymentReference: o.paymentReference || "—",
           itemsCount: o.items?.reduce((sum: number, it: any) => sum + (it.quantity || 1), 0) || o.items?.length || 0,
           subtotal: formatPrice(o.subtotal || o.totalAmount || 0),
           discount: discountVal > 0 ? `-${formatPrice(discountVal)}` : "₦0.00",
@@ -211,6 +225,21 @@ export default function PosOrdersPage() {
               <Store className="w-3.5 h-3.5 text-primary absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
 
+            {/* Payment Method Filter */}
+            <div className="relative">
+              <select
+                value={selectedPaymentFilter}
+                onChange={(e) => setSelectedPaymentFilter(e.target.value)}
+                className="h-10 px-3 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-xs font-semibold focus:outline-none focus:border-primary cursor-pointer text-[#14142B]"
+              >
+                <option value="all">All Payments</option>
+                <option value="cash">Cash</option>
+                <option value="card">Card</option>
+                <option value="mobile_banking">Transfer</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
             {/* Filter Toggle */}
             <button 
               onClick={() => setShowFilter(!showFilter)}
@@ -278,7 +307,7 @@ export default function PosOrdersPage() {
             </div>
             <div className="flex items-end gap-2">
               <button 
-                onClick={() => { setFromDate(""); setToDate(""); setSearchQuery(""); }}
+                onClick={() => { setFromDate(""); setToDate(""); setSearchQuery(""); setSelectedPaymentFilter("all"); }}
                 className="h-10 px-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] hover:bg-gray-100 text-xs font-bold text-[#6E7191] transition-colors w-full"
               >
                 Reset Filters
@@ -295,6 +324,7 @@ export default function PosOrdersPage() {
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Order ID</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Customer</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Store Branch</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Payment</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Products</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Subtotal</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider text-green-600">Discount</th>
@@ -307,14 +337,14 @@ export default function PosOrdersPage() {
             <tbody className="divide-y divide-[#EFF0F6]">
               {loading ? (
                 <tr>
-                  <td colSpan={10} className="px-6 py-12 text-center">
+                  <td colSpan={11} className="px-6 py-12 text-center">
                     <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-2" />
                     <span className="text-xs text-[#6E7191]">Loading POS orders...</span>
                   </td>
                 </tr>
               ) : filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-6 py-12 text-center text-[#6E7191]">
+                  <td colSpan={11} className="px-6 py-12 text-center text-[#6E7191]">
                     <ShoppingBag className="w-10 h-10 text-[#D9DBE9] mx-auto mb-2" />
                     <p className="font-semibold text-sm text-[#14142B]">No POS orders found</p>
                     <p className="text-xs text-[#A0A3BD] mt-0.5">
@@ -350,6 +380,26 @@ export default function PosOrdersPage() {
                         <Store className="w-3 h-3 text-[#A0A3BD]" />
                         {storeName}
                       </span>
+                    </td>
+
+                    {/* Payment Method Badge */}
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                        order.paymentMethod === 'cash'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : order.paymentMethod === 'card'
+                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                          : order.paymentMethod === 'mobile_banking'
+                          ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                          : 'bg-amber-50 text-amber-700 border border-amber-200'
+                      }`}>
+                        {order.paymentMethod || "cash"}
+                      </span>
+                      {order.paymentReference && (
+                        <span className="block text-[10px] text-[#A0A3BD] font-mono mt-0.5 max-w-[120px] truncate" title={order.paymentReference}>
+                          {order.paymentReference}
+                        </span>
+                      )}
                     </td>
 
                     {/* Products count */}

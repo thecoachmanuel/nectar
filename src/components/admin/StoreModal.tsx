@@ -27,6 +27,7 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
     latitude: "",
     longitude: "",
     deliveryRadius: 5,
+    deliveryFee: 0,
     commissionRate: 0,
     password: "",
     taxAmount: 0,
@@ -61,6 +62,7 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
         latitude: storeToEdit.latitude || "",
         longitude: storeToEdit.longitude || "",
         deliveryRadius: storeToEdit.deliveryRadius || 5,
+        deliveryFee: storeToEdit.deliveryFee || 0,
         commissionRate: storeToEdit.commissionRate || 0,
         password: "", // Don't pre-fill password on edit
         taxAmount: storeToEdit.taxAmount || 0,
@@ -91,6 +93,7 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
         latitude: "",
         longitude: "",
         deliveryRadius: 5,
+        deliveryFee: 0,
         commissionRate: 0,
         password: "",
         taxAmount: 0,
@@ -293,7 +296,18 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
             </div>
 
             {/* Configs */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Custom Delivery Fee (₦)</label>
+                <input 
+                  type="number" 
+                  placeholder="0 (Admin rate)" 
+                  value={formData.deliveryFee || ""} 
+                  onChange={(e) => setFormData({ ...formData, deliveryFee: Number(e.target.value) })} 
+                  className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary" 
+                />
+                <span className="text-[10px] text-[#6E7191]">0 = default admin fee</span>
+              </div>
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Delivery Radius (km)</label>
                 <input type="number" value={formData.deliveryRadius} onChange={(e) => setFormData({ ...formData, deliveryRadius: Number(e.target.value) })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary" />

@@ -28,6 +28,7 @@ export interface IStore extends Document {
   walletBalance: number;
   commissionRate: number;
   deliveryRadius: number;
+  deliveryFee?: number;
   password?: string;
   timeSlots: ITimeSlot[];
   createdAt: Date;
@@ -63,6 +64,7 @@ const StoreSchema = new Schema<IStore>(
     walletBalance: { type: Number, default: 0 },
     commissionRate: { type: Number, default: 0 },
     deliveryRadius: { type: Number, default: 10 },
+    deliveryFee: { type: Number, default: 0 },
     password: { type: String },
     timeSlots: [TimeSlotSchema],
   },

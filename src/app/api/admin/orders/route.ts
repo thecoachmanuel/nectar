@@ -15,12 +15,14 @@ export async function GET(req: Request) {
     const storeId = searchParams.get("storeId");
     const status = searchParams.get("status");
     const isPos = searchParams.get("isPos");
+    const paymentMethod = searchParams.get("paymentMethod");
 
     const query: any = {};
     if (storeId) query.storeId = storeId;
     if (status) query.orderStatus = status;
     if (isPos === "true") query.isPos = true;
     if (isPos === "false") query.isPos = { $ne: true };
+    if (paymentMethod && paymentMethod !== "all") query.paymentMethod = paymentMethod;
 
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;

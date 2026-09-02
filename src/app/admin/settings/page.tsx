@@ -310,6 +310,19 @@ export default function SettingsPage() {
                 <p className="text-xs text-[#6E7191] mt-1.5">Displayed on the Contact Us page and footer info.</p>
               </div>
               <div className="md:col-span-2">
+                <label className="block text-sm font-semibold text-[#14142B] mb-2">POS Thermal Receipt Footer Signature</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. Powered by Nectar (leave empty to remove)"
+                  value={formData.receipt_powered_by !== undefined ? formData.receipt_powered_by : "Powered by Nectar"} 
+                  onChange={(e) => handleChange("receipt_powered_by", e.target.value)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                />
+                <p className="text-xs text-[#6E7191] mt-1.5">
+                  Customizes or removes the bottom signature on printed POS receipts. Set to &quot;Powered by Nectar&quot; by default, or edit/clear it to match your preference.
+                </p>
+              </div>
+              <div className="md:col-span-2">
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">About Us Story / Description</label>
                 <textarea 
                   rows={5} 

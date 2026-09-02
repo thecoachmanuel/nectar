@@ -42,6 +42,7 @@ export default function SalesReportPage() {
         { header: "Order ID", key: "orderSerialNo", width: 20 },
         { header: "Date", key: "date", width: 20 },
         { header: "Customer Name", key: "customerName", width: 25 },
+        { header: "Payment Method", key: "paymentMethod", width: 16 },
         { header: "Products Count", key: "itemsCount", width: 15 },
         { header: "Subtotal", key: "subtotal", width: 16 },
         { header: "Discount", key: "discount", width: 16 },
@@ -56,6 +57,7 @@ export default function SalesReportPage() {
           orderSerialNo: o.orderSerialNo,
           date: new Date(o.createdAt).toLocaleDateString(),
           customerName: o.customerName,
+          paymentMethod: (o.paymentMethod || "online").toUpperCase(),
           itemsCount: o.items?.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0) || 0,
           subtotal: formatPrice(subtotalVal),
           discount: discountVal > 0 ? `-${formatPrice(discountVal)}` : "₦0.00",
@@ -190,6 +192,7 @@ export default function SalesReportPage() {
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Order ID</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Date</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Customer</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Payment</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Products</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Subtotal</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider text-green-600">Discount</th>
@@ -199,9 +202,9 @@ export default function SalesReportPage() {
             </thead>
             <tbody className="divide-y divide-[#EFF0F6]">
               {loading && !orders ? (
-                <tr><td colSpan={8} className="p-8 text-center text-[#6E7191]">Loading...</td></tr>
+                <tr><td colSpan={9} className="p-8 text-center text-[#6E7191]">Loading...</td></tr>
               ) : orders?.length === 0 ? (
-                <tr><td colSpan={8} className="p-8 text-center text-[#6E7191]">No orders found</td></tr>
+                <tr><td colSpan={9} className="p-8 text-center text-[#6E7191]">No orders found</td></tr>
               ) : (
                 orders?.map((report: any) => {
                   const discountVal = Number(report.discountAmount || report.couponDiscount || 0);
@@ -218,6 +221,19 @@ export default function SalesReportPage() {
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-sm font-medium text-[#14142B]">{report.customerName || "Customer"}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                          report.paymentMethod === 'cash'
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            : report.paymentMethod === 'card'
+                            ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                            : report.paymentMethod === 'mobile_banking'
+                            ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                            : 'bg-gray-100 text-gray-700'
+                        }`}>
+                          {report.paymentMethod || "online"}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-sm font-semibold text-[#14142B]">

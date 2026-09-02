@@ -195,8 +195,11 @@ export async function POST(req: Request) {
         couponDiscount: groupDiscount,
         deliveryAddress: orderType === "delivery" ? deliveryAddress : undefined,
         deliveryTimeSlot,
-        paymentMethod: paymentMethod || "cash_on_delivery",
-        paymentStatus: paymentMethod === "wallet" ? "paid" : "unpaid",
+        paymentMethod: paymentMethod || (isPos ? "cash" : "cash_on_delivery"),
+        paymentStatus: (isPos || paymentMethod === "wallet") ? "paid" : (body.paymentStatus || "unpaid"),
+        paymentReference: body.paymentReference || undefined,
+        posReceivedAmount: body.posReceivedAmount ? Number(body.posReceivedAmount) : undefined,
+        posChangeAmount: body.posChangeAmount ? Number(body.posChangeAmount) : undefined,
         orderStatus: isPos ? "accepted" : "pending",
         statusTimeline: [
           { status: isPos ? "accepted" : "pending", timestamp: new Date(), note: isPos ? "POS Order placed" : "Order placed by customer" }
