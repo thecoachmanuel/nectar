@@ -96,13 +96,30 @@ async function initializePaystackPayment(db, appUrlOverride, order) {
 
   // Strategy 2: Direct Paystack API call using Secret Key stored in MongoDB
   try {
-    const gatewaysCollection = db.collection("paymentgateways");
-    const paystackGateway = await gatewaysCollection.findOne({ slug: "paystack" });
-    let secretKey = process.env.PAYSTACK_SECRET_KEY || "";
+    let secretKey = "";
 
-    if (paystackGateway && Array.isArray(paystackGateway.options)) {
-      const opt = paystackGateway.options.find((o) => o.option === "paystack_secret_key");
-      if (opt && opt.value) secretKey = opt.value;
+    // 1. Check Admin settings collection (pay_paystack_secret)
+    const settingsCollection = db.collection("settings");
+    const secretSetting = await settingsCollection.findOne({
+      key: { $in: ["pay_paystack_secret", "paystack_secret_key", "paystack_secret"] },
+    });
+    if (secretSetting && secretSetting.payload) {
+      secretKey = String(secretSetting.payload).trim();
+    }
+
+    // 2. Check paymentgateways collection
+    if (!secretKey) {
+      const gatewaysCollection = db.collection("paymentgateways");
+      const paystackGateway = await gatewaysCollection.findOne({ slug: "paystack" });
+      if (paystackGateway && Array.isArray(paystackGateway.options)) {
+        const opt = paystackGateway.options.find((o) => o.option === "paystack_secret_key" || o.option === "secret_key");
+        if (opt && opt.value) secretKey = String(opt.value).trim();
+      }
+    }
+
+    // 3. Fallback to process.env
+    if (!secretKey) {
+      secretKey = (process.env.PAYSTACK_SECRET_KEY || "").trim();
     }
 
     if (!secretKey) {

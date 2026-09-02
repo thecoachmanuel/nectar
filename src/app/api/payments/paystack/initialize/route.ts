@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 import Order from "@/models/Order";
-import PaymentGateway from "@/models/PaymentGateway";
+import { getPaystackConfig } from "@/lib/paystack";
 
 export async function POST(req: Request) {
   try {
@@ -18,20 +18,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ status: false, message: "Order not found" }, { status: 404 });
     }
 
-    // Get Paystack secret key from PaymentGateway settings
-    const paystackGateway = await PaymentGateway.findOne({ slug: "paystack" });
-    let secretKey = process.env.PAYSTACK_SECRET_KEY || "";
+    // Get Paystack secret key (Admin settings override env, fallback to env)
+    const { secretKey, isEnabled } = await getPaystackConfig();
 
-    if (paystackGateway && paystackGateway.options) {
-      const secretOption = paystackGateway.options.find((opt) => opt.option === "paystack_secret_key");
-      if (secretOption && secretOption.value) {
-        secretKey = secretOption.value;
-      }
+    if (!isEnabled) {
+      return NextResponse.json(
+        { status: false, message: "Paystack payments are currently disabled by administrator." },
+        { status: 400 }
+      );
     }
 
     if (!secretKey) {
       return NextResponse.json(
-        { status: false, message: "Paystack secret key is not configured" },
+        { status: false, message: "Paystack secret key is not configured in settings or environment." },
         { status: 400 }
       );
     }

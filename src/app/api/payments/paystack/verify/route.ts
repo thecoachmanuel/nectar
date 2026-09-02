@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 import Order from "@/models/Order";
-import PaymentGateway from "@/models/PaymentGateway";
+import { getPaystackConfig } from "@/lib/paystack";
 
 export async function POST(req: Request) {
   try {
@@ -13,14 +13,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ status: false, message: "Reference is required" }, { status: 400 });
     }
 
-    const paystackGateway = await PaymentGateway.findOne({ slug: "paystack" });
-    let secretKey = process.env.PAYSTACK_SECRET_KEY || "";
+    // Get Paystack secret key (Admin settings override env, fallback to env)
+    const { secretKey } = await getPaystackConfig();
 
-    if (paystackGateway && paystackGateway.options) {
-      const secretOption = paystackGateway.options.find((opt) => opt.option === "paystack_secret_key");
-      if (secretOption && secretOption.value) {
-        secretKey = secretOption.value;
-      }
+    if (!secretKey) {
+      return NextResponse.json(
+        { status: false, message: "Paystack secret key is not configured in settings or environment." },
+        { status: 500 }
+      );
     }
 
     const res = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {

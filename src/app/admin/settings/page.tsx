@@ -524,19 +524,23 @@ export default function SettingsPage() {
           {activeTab === "Payment Gateway" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold text-[#14142B] mb-2">Paystack Public Key</label>
+                <label className="block text-sm font-semibold text-[#14142B] mb-1">Paystack Public Key</label>
+                <p className="text-xs text-[#6E7191] mb-2">Overrides NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY from .env when saved.</p>
                 <input 
                   type="text" 
+                  placeholder="pk_live_... or pk_test_... (leave empty to use .env)"
                   value={formData.pay_paystack_public || ""} 
                   onChange={(e) => handleChange("pay_paystack_public", e.target.value)}
                   className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-[#14142B] mb-2">Paystack Secret Key</label>
+                <label className="block text-sm font-semibold text-[#14142B] mb-1">Paystack Secret Key</label>
+                <p className="text-xs text-[#6E7191] mb-2">Overrides PAYSTACK_SECRET_KEY from .env when saved.</p>
                 <div className="relative">
                   <input 
                     type={showPassword ? "text" : "password"} 
+                    placeholder="sk_live_... or sk_test_... (leave empty to use .env)"
                     value={formData.pay_paystack_secret || ""} 
                     onChange={(e) => handleChange("pay_paystack_secret", e.target.value)}
                     className="w-full h-12 pl-4 pr-12 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 

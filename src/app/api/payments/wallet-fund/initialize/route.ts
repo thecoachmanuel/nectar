@@ -37,16 +37,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ status: false, message: "Minimum amount is 100" }, { status: 400 });
     }
 
-    const paystackGateway = await PaymentGateway.findOne({ slug: "paystack" });
-    let secretKey = process.env.PAYSTACK_SECRET_KEY || "";
-    
-    if (paystackGateway && paystackGateway.options) {
-      const secretOption = paystackGateway.options.find((opt: any) => opt.option === "paystack_secret_key");
-      if (secretOption && secretOption.value) secretKey = secretOption.value;
+    const { getPaystackConfig } = await import("@/lib/paystack");
+    const { secretKey, isEnabled } = await getPaystackConfig();
+
+    if (!isEnabled) {
+      return NextResponse.json({ status: false, message: "Paystack wallet funding is currently disabled." }, { status: 400 });
     }
 
     if (!secretKey) {
-      return NextResponse.json({ status: false, message: "Paystack secret key is not configured" }, { status: 500 });
+      return NextResponse.json({ status: false, message: "Paystack secret key is not configured in settings or environment" }, { status: 500 });
     }
 
     const reference = `WLFND-${Date.now()}-${Math.floor(Math.random() * 10000)}`;

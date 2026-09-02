@@ -32,16 +32,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ status: false, message: "Transaction reference is required" }, { status: 400 });
     }
 
-    const paystackGateway = await PaymentGateway.findOne({ slug: "paystack" });
-    let secretKey = process.env.PAYSTACK_SECRET_KEY || "";
-    
-    if (paystackGateway && paystackGateway.options) {
-      const secretOption = paystackGateway.options.find((opt: any) => opt.option === "paystack_secret_key");
-      if (secretOption && secretOption.value) secretKey = secretOption.value;
-    }
+    const { getPaystackConfig } = await import("@/lib/paystack");
+    const { secretKey } = await getPaystackConfig();
 
     if (!secretKey) {
-      return NextResponse.json({ status: false, message: "Paystack secret key is not configured" }, { status: 500 });
+      return NextResponse.json({ status: false, message: "Paystack secret key is not configured in settings or environment" }, { status: 500 });
     }
 
     const res = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {

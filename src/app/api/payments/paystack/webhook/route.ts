@@ -22,23 +22,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // 2. Fetch Paystack Secret Key from PaymentGateway or Environment
-    const paystackGateway = await PaymentGateway.findOne({ slug: "paystack" });
-    let secretKey = process.env.PAYSTACK_SECRET_KEY || "";
-
-    if (paystackGateway && paystackGateway.options) {
-      const secretOption = paystackGateway.options.find(
-        (opt: any) => opt.option === "paystack_secret_key"
-      );
-      if (secretOption && secretOption.value) {
-        secretKey = secretOption.value;
-      }
-    }
+    // 2. Fetch Paystack Secret Key (Admin settings override env, fallback to env)
+    const { getPaystackConfig } = await import("@/lib/paystack");
+    const { secretKey } = await getPaystackConfig();
 
     if (!secretKey) {
       console.error("Paystack secret key is not configured");
       return NextResponse.json(
-        { status: false, message: "Payment gateway secret not configured" },
+        { status: false, message: "Payment gateway secret not configured in settings or environment" },
         { status: 500 }
       );
     }
