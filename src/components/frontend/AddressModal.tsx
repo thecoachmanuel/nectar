@@ -120,6 +120,21 @@ export default function AddressModal({ isOpen, onClose, onSave, initialData }: A
             />
           </div>
 
+          {/* Street Address */}
+          <div>
+            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider block mb-1.5">
+              Delivery Address *
+            </label>
+            <input
+              type="text"
+              placeholder="Search map or enter address..."
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+              required
+            />
+          </div>
+
           {/* Apartment / Building */}
           <div>
             <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider block mb-1.5">
