@@ -5,9 +5,25 @@ function cleanDigits(phone) {
   return String(phone || "").replace(/\D/g, "");
 }
 
+function isLid(phone) {
+  const str = String(phone || "").trim();
+  if (str.endsWith("@lid")) return true;
+  const digits = cleanDigits(str);
+  if (!digits) return false;
+  // Standard phone numbers around the world are up to 13 digits (or 14 for Nigerian 2340...)
+  // WhatsApp LIDs are internal IDs (14-18 digits e.g. 33372130783232)
+  if (digits.length >= 14 && !digits.startsWith("2340")) {
+    return true;
+  }
+  if (digits.length > 14) {
+    return true;
+  }
+  return false;
+}
+
 function normalizeCustomerPhone(phone) {
   let digits = cleanDigits(phone);
-  if (!digits) return "N/A";
+  if (!digits || isLid(phone)) return "N/A";
 
   // If it's a 10-digit Nigerian number (e.g. 8012345678)
   if (digits.length === 10 && (digits.startsWith("7") || digits.startsWith("8") || digits.startsWith("9"))) {
@@ -109,4 +125,5 @@ module.exports = {
   findUserByPhone,
   normalizeCustomerPhone,
   cleanDigits,
+  isLid,
 };
