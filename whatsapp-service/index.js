@@ -40,38 +40,80 @@ let mongoDbInstance = null;
 let reconnectAttempts = 0;
 
 // ─── LID → Real Phone Map ──────────────────────────────────────────────────
-// WhatsApp's privacy system maps real phones to internal LIDs. We maintain
-// this map from contacts events so we can resolve the actual number.
-const lidToPhoneMap = new Map(); // lid digits (no @lid) → phone digits (no @s.whatsapp.net)
+// WhatsApp privacy system sends messages from LID JIDs (e.g. 33372130783232@lid)
+// instead of real phone JIDs (e.g. 2348100918189@s.whatsapp.net).
+// We resolve this via: (1) in-memory map, (2) Baileys sock.contacts, (3) MongoDB cache.
+
+const lidToPhoneMap = new Map(); // lid digits → phone digits (in-memory, fastest)
 
 function registerContact(contact) {
-  // contact.id = "2348100918189@s.whatsapp.net"
-  // contact.lid = "33372130783232@lid" (may not always be present)
   if (!contact) return;
+  // Try every possible property name Baileys uses for LID
   const lid = contact.lid || contact.implicitlyCreatedLid || "";
   const id  = contact.id || "";
-  if (lid && id && !id.endsWith("@lid") && id.endsWith("@s.whatsapp.net")) {
-    const lidDigits   = String(lid).replace(/@.+$/, "");
-    const phoneDigits = String(id).replace(/@.+$/, "");
-    if (lidDigits && phoneDigits) {
+  if (lid && id && id.includes("@s.whatsapp.net")) {
+    const lidDigits   = String(lid).replace(/@.+$/, "").replace(/\D/g, "");
+    const phoneDigits = String(id).replace(/@.+$/, "").replace(/\D/g, "");
+    if (lidDigits && phoneDigits && lidDigits !== phoneDigits) {
       lidToPhoneMap.set(lidDigits, phoneDigits);
+      // Persist to MongoDB so it survives restarts
+      getMongoDb().then((db) => {
+        db.collection("whatsapp_lid_map").updateOne(
+          { _id: lidDigits },
+          { $set: { phone: phoneDigits, updatedAt: new Date() } },
+          { upsert: true }
+        ).catch(() => {});
+      }).catch(() => {});
     }
   }
 }
 
-function resolveSenderPhone(rawJid, cleanJid) {
+async function resolveSenderPhone(rawJid, cleanJid) {
   const stripped = cleanJid.replace(/@.+$/, "");
-  // If it's already a normal @s.whatsapp.net JID, just return stripped digits
+
+  // 1. Normal @s.whatsapp.net — just return the digits
   if (rawJid.endsWith("@s.whatsapp.net")) return stripped;
-  // LID JID — try to resolve from our map
-  if (rawJid.endsWith("@lid") || rawJid.endsWith("@lid")) {
-    const resolved = lidToPhoneMap.get(stripped);
-    if (resolved) {
-      console.log(`🔁 Resolved LID ${stripped} → ${resolved}`);
-      return resolved;
-    }
-    console.warn(`⚠️ LID ${stripped} not in contact map yet — using LID as session key`);
+
+  // For LID JIDs, try multiple resolution strategies
+  const lidDigits = stripped.replace(/\D/g, "");
+
+  // 2. In-memory map (populated from contacts events)
+  if (lidToPhoneMap.has(lidDigits)) {
+    const resolved = lidToPhoneMap.get(lidDigits);
+    console.log(`🔁 LID resolved (memory): ${lidDigits} → ${resolved}`);
+    return resolved;
   }
+
+  // 3. Baileys socket internal contacts store
+  if (sock && sock.contacts) {
+    const contactEntry = sock.contacts[cleanJid] || sock.contacts[lidDigits + "@lid"];
+    if (contactEntry) {
+      // Try to get the real phone JID from the contact
+      const realId = contactEntry.id || contactEntry.jid || "";
+      if (realId && realId.includes("@s.whatsapp.net")) {
+        const phoneDigits = realId.replace(/@.+$/, "").replace(/\D/g, "");
+        if (phoneDigits) {
+          lidToPhoneMap.set(lidDigits, phoneDigits); // cache it
+          console.log(`🔁 LID resolved (sock.contacts): ${lidDigits} → ${phoneDigits}`);
+          return phoneDigits;
+        }
+      }
+    }
+  }
+
+  // 4. MongoDB persisted map (survives restarts)
+  try {
+    const db = await getMongoDb();
+    const doc = await db.collection("whatsapp_lid_map").findOne({ _id: lidDigits });
+    if (doc && doc.phone) {
+      lidToPhoneMap.set(lidDigits, doc.phone); // warm up in-memory cache
+      console.log(`🔁 LID resolved (MongoDB): ${lidDigits} → ${doc.phone}`);
+      return doc.phone;
+    }
+  } catch (_) {}
+
+  // 5. Unresolvable — log and use LID digits as fallback session key
+  console.warn(`⚠️ Cannot resolve LID ${lidDigits} to a real phone number`);
   return stripped;
 }
 
@@ -416,7 +458,7 @@ async function connectToWhatsApp() {
             continue;
           }
 
-          const customerPhone = resolveSenderPhone(rawJid, cleanJid);
+          const customerPhone = await resolveSenderPhone(rawJid, cleanJid);
           const msgText = String(
             msg.message?.conversation ||
             msg.message?.extendedTextMessage?.text ||
@@ -435,7 +477,7 @@ async function connectToWhatsApp() {
           continue; // Never route outgoing (fromMe) messages through the bot handler
         }
 
-        const senderPhone = resolveSenderPhone(rawJid, cleanJid);
+        const senderPhone = await resolveSenderPhone(rawJid, cleanJid);
         console.log(`💬 [INCOMING] From: ${cleanJid} (resolved: ${senderPhone}) | Content: "${typeof messageContent === "string" ? messageContent.slice(0, 50) : "Location Pin"}" | fromMe: ${Boolean(msg.key?.fromMe)}`);
 
 
