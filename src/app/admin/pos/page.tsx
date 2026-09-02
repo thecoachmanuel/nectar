@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { 
@@ -13,31 +13,40 @@ import {
   ChevronDown,
   Loader2,
   Store,
+  Tag,
   Printer,
+  CheckCircle,
   X,
+  Maximize2,
+  Minimize2,
+  RefreshCw,
+  Phone,
+  User,
   ShoppingBag,
+  Percent,
+  MapPin,
   CreditCard,
   Banknote,
   Smartphone,
-  FileText,
-  MapPin,
-  Delete,
-  Navigation,
-  AlertTriangle,
-  Info
+  Check,
+  Building,
+  RotateCcw,
+  FileText
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { formatPrice } from "@/lib/formatters";
 
-// Exact Haversine formula for distance in kilometers
+// Haversine formula for exact distance between store and customer coordinates
 function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371; // Earth's radius in km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
+  const R = 6371; // Earth radius in KM
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
@@ -45,73 +54,66 @@ function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 export default function POSPage() {
   const { activeAdminStoreId, setActiveAdminStoreId } = useAuthStore();
 
-  const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [activeCategory, setActiveCategory] = useState("All");
   const [cartOpen, setCartOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // Settings and Master Data
   const [categories, setCategories] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string>(activeAdminStoreId || "0");
-  const [customers, setCustomers] = useState<any[]>([]);
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
 
-  // Dynamic admin delivery settings (fallbacks)
-  const [adminDeliveryFee, setAdminDeliveryFee] = useState<number>(1500);
-  const [adminFeePerKm, setAdminFeePerKm] = useState<number>(100);
-  const [adminFreeThreshold, setAdminFreeThreshold] = useState<number | undefined>(undefined);
-  const [adminLargeOrderThreshold, setAdminLargeOrderThreshold] = useState<number>(20000);
-  const [adminLargeOrderFeePercent, setAdminLargeOrderFeePercent] = useState<number>(3);
-  const [adminOrderValueFeePercent, setAdminOrderValueFeePercent] = useState<number>(2);
-
-  // Company settings
-  const [companyName, setCompanyName] = useState<string>("Nectar");
-  const [receiptPoweredBy, setReceiptPoweredBy] = useState<string>("Powered by Nectar");
-
-  // Order Details Form
   const [orderType, setOrderType] = useState<"takeaway" | "delivery">("takeaway");
   const [customerName, setCustomerName] = useState("Walk-in Customer");
   const [customerPhone, setCustomerPhone] = useState("");
   const [tokenNo, setTokenNo] = useState("");
 
-  // Customer Location & Address State
+  // Delivery state
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [customerLat, setCustomerLat] = useState<number | null>(null);
   const [customerLng, setCustomerLng] = useState<number | null>(null);
-  const [selectedCustomerAddressId, setSelectedCustomerAddressId] = useState<string>("");
-  const [customDistanceKm, setCustomDistanceKm] = useState<string>("");
+  const [deliveryDistance, setDeliveryDistance] = useState<number | null>(null);
+  const [deliveryFee, setDeliveryFee] = useState<number>(0);
+  const [useFixedDeliveryFee, setUseFixedDeliveryFee] = useState(false);
+  const [addressSearch, setAddressSearch] = useState("");
+  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+  const [isSearchingAddress, setIsSearchingAddress] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Discount state
-  const [discountType, setDiscountType] = useState<"percentage" | "fixed">("percentage");
-  const [isDiscountDropdownOpen, setIsDiscountDropdownOpen] = useState(false);
+  const [discountType, setDiscountType] = useState<"fixed" | "percent">("fixed");
   const [discountInput, setDiscountInput] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState<number>(0);
-
-  // Modal states
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"cash" | "card" | "mobile_banking" | "other">("cash");
-  const [cashReceivedInput, setCashReceivedInput] = useState<string>("");
-  const [cardDigitsInput, setCardDigitsInput] = useState<string>("");
-  const [transferRefInput, setTransferRefInput] = useState<string>("");
-  const [otherNoteInput, setOtherNoteInput] = useState<string>("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingProducts, setLoadingProducts] = useState(false);
 
   const [cart, setCart] = useState<any[]>([]);
-  const [completedOrder, setCompletedOrder] = useState<any | null>(null);
 
-  // 1. Load Stores, Categories, Customers & Settings on mount
+  // Payment Modal state (PHP App PaymentComponent.vue inspiration)
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [posPaymentMethod, setPosPaymentMethod] = useState<"cash" | "card" | "mobile_banking" | "other">("cash");
+  const [posReceivedAmount, setPosReceivedAmount] = useState("");
+  const [cardLast4Digits, setCardLast4Digits] = useState("");
+  const [transactionId, setTransactionId] = useState("");
+  const [paymentNote, setPaymentNote] = useState("");
+  const [activeInputTarget, setActiveInputTarget] = useState<"cash" | "card" | "mfs" | "other">("cash");
+
+  // Receipt Modal state (PHP App ReceiptComponent.vue inspiration)
+  const [receiptOrder, setReceiptOrder] = useState<any | null>(null);
+  const [receiptFooterSignature, setReceiptFooterSignature] = useState("Powered by Nectar App");
+  const [receiptHeaderTagline, setReceiptHeaderTagline] = useState("");
+
+  // 1. Load Stores, Categories, and Receipt Settings on mount
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const [catRes, storeRes, custRes, settingsRes] = await Promise.all([
+        const [catRes, storeRes, settingsRes] = await Promise.all([
           fetch("/api/frontend/categories").catch(() => null),
           fetch("/api/admin/stores").catch(() => null),
-          fetch("/api/admin/users?role=customer").catch(() => null),
           fetch("/api/settings").catch(() => null)
         ]);
 
@@ -133,38 +135,13 @@ export default function POSPage() {
           }
         }
 
-        if (custRes && custRes.ok) {
-          const custData = await custRes.json();
-          if (custData.status) setCustomers(custData.data || []);
-        }
-
         if (settingsRes && settingsRes.ok) {
           const sData = await settingsRes.json();
-          if (sData.data && Array.isArray(sData.data)) {
-            const baseFeeSetting = sData.data.find((s: any) => s.key === "baseDeliveryFee" || s.key === "order_setup_basic_delivery_charge");
-            if (baseFeeSetting?.payload) setAdminDeliveryFee(Number(baseFeeSetting.payload) || 1500);
-
-            const feeKmSetting = sData.data.find((s: any) => s.key === "feePerKm");
-            if (feeKmSetting?.payload) setAdminFeePerKm(Number(feeKmSetting.payload) || 100);
-
-            const freeThreshSetting = sData.data.find((s: any) => s.key === "freeDeliveryThreshold");
-            if (freeThreshSetting?.payload) setAdminFreeThreshold(Number(freeThreshSetting.payload));
-
-            const largeThreshSetting = sData.data.find((s: any) => s.key === "largeOrderThreshold");
-            if (largeThreshSetting?.payload) setAdminLargeOrderThreshold(Number(largeThreshSetting.payload) || 20000);
-
-            const largePercentSetting = sData.data.find((s: any) => s.key === "largeOrderFeePercent");
-            if (largePercentSetting?.payload) setAdminLargeOrderFeePercent(Number(largePercentSetting.payload) || 3);
-
-            const orderValPercentSetting = sData.data.find((s: any) => s.key === "orderValueFeePercent");
-            if (orderValPercentSetting?.payload) setAdminOrderValueFeePercent(Number(orderValPercentSetting.payload) || 2);
-
-            const compSetting = sData.data.find((s: any) => s.key === "company_name");
-            if (compSetting?.payload) setCompanyName(compSetting.payload);
-
-            const pBySetting = sData.data.find((s: any) => s.key === "receipt_powered_by");
-            if (pBySetting !== undefined) setReceiptPoweredBy(pBySetting.payload ?? "");
-          }
+          const items = sData.data || [];
+          const footerSig = items.find((s: any) => s.key === "receipt_footer_signature");
+          const tagline = items.find((s: any) => s.key === "receipt_header_tagline");
+          if (footerSig && footerSig.payload) setReceiptFooterSignature(footerSig.payload);
+          if (tagline && tagline.payload) setReceiptHeaderTagline(tagline.payload);
         }
       } catch (err) {
         console.error("POS initial data error:", err);
@@ -176,16 +153,6 @@ export default function POSPage() {
 
     fetchInitialData();
   }, [activeAdminStoreId, setActiveAdminStoreId]);
-
-  // Current active store details
-  const currentStore = useMemo(() => {
-    return branches.find(b => String(b._id) === String(selectedBranch)) || null;
-  }, [branches, selectedBranch]);
-
-  // Active customer object (if selected)
-  const currentCustomer = useMemo(() => {
-    return customers.find(c => String(c._id) === String(selectedCustomerId)) || null;
-  }, [customers, selectedCustomerId]);
 
   // 2. Fetch products whenever selectedBranch changes
   const fetchProductsForStore = useCallback(async (storeId: string) => {
@@ -212,8 +179,17 @@ export default function POSPage() {
   useEffect(() => {
     if (selectedBranch) {
       fetchProductsForStore(selectedBranch);
+      
+      // Update default delivery fee for store
+      const store = branches.find(b => b._id === selectedBranch);
+      if (store) {
+        const storeFixed = store.fixedDeliveryFee || store.deliveryFee || 0;
+        if (storeFixed > 0 && useFixedDeliveryFee) {
+          setDeliveryFee(storeFixed);
+        }
+      }
     }
-  }, [selectedBranch, fetchProductsForStore]);
+  }, [selectedBranch, branches, useFixedDeliveryFee, fetchProductsForStore]);
 
   // Handle store change from dropdown
   const handleStoreChange = (newStoreId: string) => {
@@ -222,58 +198,8 @@ export default function POSPage() {
     toast.info(`Switched store context`);
   };
 
-  // Handle customer dropdown selection
-  const handleCustomerSelect = (customerId: string) => {
-    setSelectedCustomerId(customerId);
-    setSelectedCustomerAddressId("");
-    if (!customerId) {
-      setCustomerName("Walk-in Customer");
-      setCustomerPhone("");
-      setDeliveryAddress("");
-      setCustomerLat(null);
-      setCustomerLng(null);
-      setCustomDistanceKm("");
-      return;
-    }
-    const found = customers.find(c => String(c._id) === String(customerId));
-    if (found) {
-      setCustomerName(found.name || "Customer");
-      setCustomerPhone(found.phone || "");
-      if (found.addresses && Array.isArray(found.addresses) && found.addresses.length > 0) {
-        const defaultAddr = found.addresses.find((a: any) => a.isDefault) || found.addresses[0];
-        setDeliveryAddress(defaultAddr.address || "");
-        if (defaultAddr.latitude !== undefined && defaultAddr.longitude !== undefined) {
-          setCustomerLat(parseFloat(defaultAddr.latitude));
-          setCustomerLng(parseFloat(defaultAddr.longitude));
-        } else {
-          setCustomerLat(null);
-          setCustomerLng(null);
-        }
-        setSelectedCustomerAddressId(defaultAddr._id || "");
-      } else {
-        setDeliveryAddress("");
-        setCustomerLat(null);
-        setCustomerLng(null);
-      }
-    }
-  };
-
-  // Handle customer address selection
-  const handleAddressSelect = (addrId: string) => {
-    setSelectedCustomerAddressId(addrId);
-    if (!currentCustomer || !currentCustomer.addresses) return;
-    const addr = currentCustomer.addresses.find((a: any) => String(a._id) === String(addrId));
-    if (addr) {
-      setDeliveryAddress(addr.address || "");
-      if (addr.latitude !== undefined && addr.longitude !== undefined) {
-        setCustomerLat(parseFloat(addr.latitude));
-        setCustomerLng(parseFloat(addr.longitude));
-      } else {
-        setCustomerLat(null);
-        setCustomerLng(null);
-      }
-    }
-  };
+  // Get selected store object
+  const currentStore = branches.find(b => b._id === selectedBranch) || branches[0] || null;
 
   // Cart operations
   const addToCart = (product: any) => {
@@ -283,24 +209,13 @@ export default function POSPage() {
     setCart(prev => {
       const existing = prev.find(item => item.itemId === product._id);
       if (existing) {
-        return prev.map(item => {
-          if (item.itemId === product._id) {
-            const newQty = item.quantity + 1;
-            return { 
-              ...item, 
-              quantity: newQty,
-              itemTotal: newQty * item.price 
-            };
-          }
-          return item;
-        });
+        return prev.map(item => item.itemId === product._id ? { ...item, quantity: item.quantity + 1 } : item);
       }
       return [...prev, { 
         itemId: product._id, 
         name: product.name, 
         price: effectivePrice, 
         quantity: 1,
-        itemTotal: effectivePrice * 1,
         image: product.image,
         storeId: selectedBranch || product.storeId || undefined
       }];
@@ -311,178 +226,30 @@ export default function POSPage() {
     setCart(prev => prev.map(item => {
       if (item.itemId === itemId) {
         const newQty = item.quantity + delta;
-        return newQty > 0 ? { 
-          ...item, 
-          quantity: newQty,
-          itemTotal: newQty * item.price 
-        } : item;
+        return newQty > 0 ? { ...item, quantity: newQty } : item;
       }
       return item;
     }));
-  };
-
-  const setExactQty = (itemId: string, qty: number) => {
-    if (isNaN(qty) || qty < 1) return;
-    setCart(prev => prev.map(item => item.itemId === itemId ? { 
-      ...item, 
-      quantity: qty,
-      itemTotal: qty * item.price 
-    } : item));
   };
 
   const removeFromCart = (itemId: string) => {
     setCart(prev => prev.filter(item => item.itemId !== itemId));
   };
 
-  const resetCart = () => {
-    setCart([]);
-    setAppliedDiscount(0);
-    setDiscountInput("");
-    setTokenNo("");
-    setDeliveryAddress("");
-    setCustomerLat(null);
-    setCustomerLng(null);
-    setCustomDistanceKm("");
-    toast.info("Cart cleared");
-  };
-
   // Calculations
   const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const activeDeliveryCharge = orderType === "delivery" ? deliveryFee : 0;
   
   // Calculate discount
-  const currentDiscount = useMemo(() => {
+  const calculateDiscount = () => {
     if (appliedDiscount > 0) {
       return Math.min(appliedDiscount, subtotal);
     }
     return 0;
-  }, [appliedDiscount, subtotal]);
+  };
 
-  // ── DYNAMIC DELIVERY FEE CALCULATION (Exact app logic with store overrides) ──
-  const deliveryCalculation = useMemo(() => {
-    if (orderType !== "delivery") {
-      return { 
-        deliveryFee: 0, 
-        distanceKm: 0, 
-        isOutOfRange: false, 
-        hasCoordinates: false,
-        breakdown: null 
-      };
-    }
-
-    // 1. Resolve Store vs Admin Delivery Parameters (Store strictly overrides Admin)
-    const baseFee = (currentStore?.baseDeliveryFee !== undefined && currentStore.baseDeliveryFee > 0)
-      ? Number(currentStore.baseDeliveryFee)
-      : (currentStore?.deliveryFee !== undefined && currentStore.deliveryFee > 0
-        ? Number(currentStore.deliveryFee)
-        : (adminDeliveryFee || 1500));
-
-    const feePerKm = (currentStore?.feePerKm !== undefined && currentStore.feePerKm > 0)
-      ? Number(currentStore.feePerKm)
-      : (adminFeePerKm || 100);
-
-    const radius = Number(currentStore?.deliveryRadius) || 10;
-
-    const freeThreshold = (currentStore?.freeDeliveryThreshold !== undefined && currentStore.freeDeliveryThreshold > 0)
-      ? Number(currentStore.freeDeliveryThreshold)
-      : adminFreeThreshold;
-
-    const largeOrderThreshold = (currentStore?.largeOrderThreshold !== undefined && currentStore.largeOrderThreshold > 0)
-      ? Number(currentStore.largeOrderThreshold)
-      : (adminLargeOrderThreshold || 20000);
-
-    const largeOrderFeePercent = (currentStore?.largeOrderFeePercent !== undefined && currentStore.largeOrderFeePercent >= 0)
-      ? Number(currentStore.largeOrderFeePercent)
-      : (adminLargeOrderFeePercent || 3);
-
-    const orderValueFeePercent = (currentStore?.orderValueFeePercent !== undefined && currentStore.orderValueFeePercent >= 0)
-      ? Number(currentStore.orderValueFeePercent)
-      : (adminOrderValueFeePercent || 2);
-
-    // 2. Free Delivery Check
-    if (freeThreshold !== undefined && freeThreshold > 0 && subtotal >= freeThreshold) {
-      return {
-        deliveryFee: 0,
-        distanceKm: 0,
-        isOutOfRange: false,
-        hasCoordinates: false,
-        breakdown: {
-          baseFee,
-          feePerKm,
-          radius,
-          distanceFee: 0,
-          orderValueFee: 0,
-          largeOrderSurcharge: 0,
-          freeThresholdApplied: true,
-          freeThreshold
-        }
-      };
-    }
-
-    // 3. Distance determination via Haversine or manual distance
-    let distance = 0;
-    let hasCoords = false;
-
-    if (customDistanceKm && !isNaN(parseFloat(customDistanceKm)) && parseFloat(customDistanceKm) >= 0) {
-      distance = parseFloat(customDistanceKm);
-      hasCoords = true;
-    } else if (
-      customerLat !== null && customerLng !== null &&
-      currentStore?.latitude !== undefined && currentStore?.longitude !== undefined
-    ) {
-      distance = haversineDistance(customerLat, customerLng, currentStore.latitude, currentStore.longitude);
-      hasCoords = true;
-    }
-
-    const isOutOfRange = hasCoords && distance > radius;
-
-    // 4. Dynamic Fee Formula:
-    // rawDistanceFee = baseFee + (distance * feePerKm)
-    const distanceFee = Math.round(distance * feePerKm);
-    const rawDistanceFee = baseFee + distanceFee;
-
-    // Order Value Handling Fee (% of subtotal)
-    const orderValueFee = Math.round((subtotal * orderValueFeePercent) / 100);
-
-    // Large Order Surcharge (% applied when subtotal >= largeOrderThreshold)
-    const largeOrderSurcharge = (largeOrderThreshold > 0 && subtotal >= largeOrderThreshold)
-      ? Math.round((subtotal * largeOrderFeePercent) / 100)
-      : 0;
-
-    const finalFee = Math.max(0, rawDistanceFee + orderValueFee + largeOrderSurcharge);
-
-    return {
-      deliveryFee: finalFee,
-      distanceKm: distance,
-      isOutOfRange,
-      hasCoordinates: hasCoords,
-      breakdown: {
-        baseFee,
-        feePerKm,
-        radius,
-        distanceFee,
-        orderValueFee,
-        largeOrderSurcharge,
-        largeOrderThreshold,
-        freeThresholdApplied: false
-      }
-    };
-  }, [
-    orderType,
-    currentStore,
-    customerLat,
-    customerLng,
-    customDistanceKm,
-    subtotal,
-    adminDeliveryFee,
-    adminFeePerKm,
-    adminFreeThreshold,
-    adminLargeOrderThreshold,
-    adminLargeOrderFeePercent,
-    adminOrderValueFeePercent
-  ]);
-
-  const effectiveDeliveryFee = deliveryCalculation.deliveryFee;
-  const total = Math.max(0, subtotal - currentDiscount + effectiveDeliveryFee);
+  const currentDiscount = calculateDiscount();
+  const total = Math.max(0, subtotal - currentDiscount + activeDeliveryCharge);
 
   // Apply discount button
   const handleApplyDiscount = () => {
@@ -492,7 +259,7 @@ export default function POSPage() {
       return;
     }
 
-    if (discountType === "percentage") {
+    if (discountType === "percent") {
       if (val > 100) {
         toast.error("Percentage discount cannot exceed 100%");
         return;
@@ -510,150 +277,255 @@ export default function POSPage() {
     }
   };
 
-  // Open Payment Modal
-  const handleOpenPaymentModal = () => {
+  const handleRemoveDiscount = () => {
+    setAppliedDiscount(0);
+    setDiscountInput("");
+    toast.info("Discount removed");
+  };
+
+  // Toggle fullscreen
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    }
+  };
+
+  // ── Delivery Location Autocomplete & Distance Calculation ──────────────────
+  const handleAddressSearchChange = (query: string) => {
+    setAddressSearch(query);
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+
+    if (!query || query.trim().length < 3) {
+      setAddressSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    searchTimeoutRef.current = setTimeout(async () => {
+      setIsSearchingAddress(true);
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&addressdetails=1&countrycodes=ng`,
+          { headers: { "Accept-Language": "en" } }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setAddressSuggestions(data || []);
+          setShowSuggestions(true);
+        }
+      } catch (err) {
+        console.warn("Location search error:", err);
+      } finally {
+        setIsSearchingAddress(false);
+      }
+    }, 400);
+  };
+
+  const handleSelectSuggestion = (item: any) => {
+    const fullAddress = item.display_name;
+    const lat = parseFloat(item.lat);
+    const lon = parseFloat(item.lon);
+
+    setDeliveryAddress(fullAddress);
+    setAddressSearch(fullAddress);
+    setCustomerLat(lat);
+    setCustomerLng(lon);
+    setShowSuggestions(false);
+
+    // Compute distance from selected store
+    if (currentStore && currentStore.latitude && currentStore.longitude && !isNaN(lat) && !isNaN(lon)) {
+      const dist = haversineDistance(lat, lon, currentStore.latitude, currentStore.longitude);
+      const roundedDist = Number(dist.toFixed(1));
+      setDeliveryDistance(roundedDist);
+
+      // Distance fee calculation based on store rates
+      const baseFee = currentStore.baseDeliveryFee && currentStore.baseDeliveryFee > 0 ? currentStore.baseDeliveryFee : 1500;
+      const feePerKm = currentStore.feePerKm && currentStore.feePerKm > 0 ? currentStore.feePerKm : 100;
+      const distFee = Math.round(baseFee + dist * feePerKm);
+
+      if (!useFixedDeliveryFee) {
+        setDeliveryFee(distFee);
+      }
+      toast.success(`Distance: ${roundedDist} km • Delivery Fee: ₦${(useFixedDeliveryFee ? deliveryFee : distFee).toLocaleString()}`);
+    } else {
+      const fallbackFee = currentStore?.fixedDeliveryFee || currentStore?.deliveryFee || 1500;
+      setDeliveryFee(fallbackFee);
+    }
+  };
+
+  const handleToggleFixedFee = () => {
+    const storeFixed = currentStore?.fixedDeliveryFee || currentStore?.deliveryFee || 1500;
+    if (!useFixedDeliveryFee) {
+      setUseFixedDeliveryFee(true);
+      setDeliveryFee(storeFixed);
+      toast.info(`Using Store Fixed Delivery Fee: ₦${storeFixed.toLocaleString()}`);
+    } else {
+      setUseFixedDeliveryFee(false);
+      if (customerLat && customerLng && currentStore?.latitude && currentStore?.longitude) {
+        const dist = haversineDistance(customerLat, customerLng, currentStore.latitude, currentStore.longitude);
+        const baseFee = currentStore.baseDeliveryFee && currentStore.baseDeliveryFee > 0 ? currentStore.baseDeliveryFee : 1500;
+        const feePerKm = currentStore.feePerKm && currentStore.feePerKm > 0 ? currentStore.feePerKm : 100;
+        const distFee = Math.round(baseFee + dist * feePerKm);
+        setDeliveryFee(distFee);
+        toast.info(`Switched to Distance Fee: ₦${distFee.toLocaleString()}`);
+      }
+    }
+  };
+
+  // ── Open Order Payment Modal ───────────────────────────────────────────────
+  const openPaymentModal = () => {
     if (cart.length === 0) return toast.error("Cart is empty");
     if (!selectedBranch || selectedBranch === "0") {
       return toast.error("Please select a specific store for this POS order.");
     }
     if (orderType === "delivery" && !deliveryAddress.trim()) {
-      return toast.error("Please enter a delivery address for delivery orders.");
+      return toast.error("Please search and select a customer delivery address.");
     }
-    if (orderType === "delivery" && deliveryCalculation.isOutOfRange) {
-      if (!confirm(`Warning: Customer distance (${deliveryCalculation.distanceKm.toFixed(1)} km) exceeds store delivery radius (${deliveryCalculation.breakdown?.radius} km). Proceed anyway?`)) {
-        return;
-      }
-    }
-    // Set default cash received to exact total
-    setCashReceivedInput(String(total));
-    setCardDigitsInput("");
-    setTransferRefInput("");
-    setOtherNoteInput("");
-    setIsPaymentModalOpen(true);
+
+    // Default cash received to exact total for fast 1-click checkout
+    setPosReceivedAmount(String(total));
+    setPosPaymentMethod("cash");
+    setActiveInputTarget("cash");
+    setCardLast4Digits("");
+    setTransactionId("");
+    setPaymentNote("");
+    setPaymentModalOpen(true);
   };
 
-  // Interactive Numpad handler for cash / card input
-  const handleNumpadPress = (val: string) => {
-    if (paymentMethod === "cash") {
-      if (val === "clear") {
-        setCashReceivedInput("");
-      } else if (val === "back") {
-        setCashReceivedInput(prev => prev.slice(0, -1));
-      } else if (val === ".") {
-        if (!cashReceivedInput.includes(".")) {
-          setCashReceivedInput(prev => prev + ".");
-        }
-      } else {
-        setCashReceivedInput(prev => prev + val);
-      }
-    } else if (paymentMethod === "card") {
-      if (val === "clear") {
-        setCardDigitsInput("");
-      } else if (val === "back") {
-        setCardDigitsInput(prev => prev.slice(0, -1));
-      } else if (val !== ".") {
-        if (cardDigitsInput.length < 4) {
-          setCardDigitsInput(prev => prev + val);
-        }
-      }
+  // ── Numeric Keypad Handlers (PHP App PaymentComponent style) ───────────────
+  const handleKeypadPress = (digit: string) => {
+    if (activeInputTarget === "cash") {
+      setPosReceivedAmount(prev => prev + digit);
+    } else if (activeInputTarget === "card") {
+      if (cardLast4Digits.length < 8) setCardLast4Digits(prev => prev + digit);
+    } else if (activeInputTarget === "mfs") {
+      setTransactionId(prev => prev + digit);
+    } else if (activeInputTarget === "other") {
+      setPaymentNote(prev => prev + digit);
     }
   };
 
-  // Calculate live change for cash payments
-  const cashReceivedAmount = parseFloat(cashReceivedInput) || 0;
-  const cashChangeAmount = Math.max(0, cashReceivedAmount - total);
-  const cashShortageAmount = Math.max(0, total - cashReceivedAmount);
+  const handleKeypadBackspace = () => {
+    if (activeInputTarget === "cash") {
+      setPosReceivedAmount(prev => prev.slice(0, -1));
+    } else if (activeInputTarget === "card") {
+      setCardLast4Digits(prev => prev.slice(0, -1));
+    } else if (activeInputTarget === "mfs") {
+      setTransactionId(prev => prev.slice(0, -1));
+    } else if (activeInputTarget === "other") {
+      setPaymentNote(prev => prev.slice(0, -1));
+    }
+  };
 
-  // Submit and confirm order
+  const handleKeypadClear = () => {
+    if (activeInputTarget === "cash") {
+      setPosReceivedAmount("");
+    } else if (activeInputTarget === "card") {
+      setCardLast4Digits("");
+    } else if (activeInputTarget === "mfs") {
+      setTransactionId("");
+    } else if (activeInputTarget === "other") {
+      setPaymentNote("");
+    }
+  };
+
+  // Calculate live change for Cash payment
+  const cashReceivedNum = parseFloat(posReceivedAmount) || 0;
+  const changeDue = Math.max(0, cashReceivedNum - total);
+
+  // ── Confirm & Place Order ──────────────────────────────────────────────────
   const handleConfirmOrder = async () => {
     setIsSubmitting(true);
     try {
-      let paymentRef = "";
-      if (paymentMethod === "card") paymentRef = cardDigitsInput ? `Card last 4: ${cardDigitsInput}` : "POS Card Terminal";
-      else if (paymentMethod === "mobile_banking") paymentRef = transferRefInput ? `Transfer Ref: ${transferRefInput}` : "Mobile Transfer";
-      else if (paymentMethod === "other") paymentRef = otherNoteInput || "Other Payment";
-
-      // Formulate delivery address object or string
-      const deliveryAddressPayload = orderType === "delivery" ? {
-        address: deliveryAddress.trim(),
-        latitude: customerLat !== null ? customerLat : undefined,
-        longitude: customerLng !== null ? customerLng : undefined,
-      } : undefined;
-
-      const orderPayload = {
-        customerName: customerName.trim() || "Walk-in Customer",
-        customerPhone: customerPhone.trim() || undefined,
-        orderType: orderType === "delivery" ? "delivery" : "takeaway",
-        branchId: selectedBranch,
-        storeId: selectedBranch,
-        items: cart.map(item => ({
-          ...item,
-          storeId: selectedBranch,
-          itemTotal: item.price * item.quantity
-        })),
-        subtotal,
-        discountAmount: currentDiscount,
-        couponDiscount: currentDiscount,
-        couponCode: appliedDiscount > 0 ? (discountType === "percentage" ? `${discountInput}% POS` : "POS DISCOUNT") : undefined,
-        deliveryCharge: effectiveDeliveryFee,
-        totalAmount: total,
-        paymentMethod,
-        paymentStatus: "paid", // POS orders are collected on the spot
-        paymentReference: paymentRef || undefined,
-        posReceivedAmount: paymentMethod === "cash" ? cashReceivedAmount : total,
-        posChangeAmount: paymentMethod === "cash" ? cashChangeAmount : 0,
-        orderStatus: "accepted",
-        deliveryAddress: deliveryAddressPayload,
-        notes: tokenNo ? `Token: ${tokenNo}` : undefined,
-        isPos: true
-      };
+      const finalReceived = posPaymentMethod === "cash" 
+        ? (cashReceivedNum > 0 ? cashReceivedNum : total) 
+        : undefined;
+      const finalChange = posPaymentMethod === "cash" ? changeDue : 0;
+      const finalPaymentNote = posPaymentMethod === "card" 
+        ? cardLast4Digits 
+        : posPaymentMethod === "mobile_banking" 
+        ? transactionId 
+        : paymentNote;
 
       const res = await fetch("/api/frontend/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderPayload)
+        body: JSON.stringify({
+          customerName: customerName.trim() || "Walk-in Customer",
+          customerPhone: customerPhone.trim() || undefined,
+          orderType,
+          branchId: selectedBranch,
+          storeId: selectedBranch,
+          items: cart.map(item => ({
+            ...item,
+            storeId: selectedBranch
+          })),
+          subtotal,
+          discountAmount: currentDiscount,
+          couponDiscount: currentDiscount,
+          couponCode: appliedDiscount > 0 ? (discountType === "percent" ? `${discountInput}% POS` : "POS DISCOUNT") : undefined,
+          deliveryCharge: activeDeliveryCharge,
+          totalAmount: total,
+          paymentMethod: posPaymentMethod,
+          posPaymentMethod,
+          posReceivedAmount: finalReceived,
+          cashBackAmount: finalChange,
+          posPaymentNote: finalPaymentNote,
+          orderStatus: "accepted",
+          deliveryAddress: orderType === "delivery" ? deliveryAddress : "POS Walk-in Store Pickup",
+          notes: tokenNo ? `Token No: ${tokenNo}` : undefined,
+          isPos: true
+        })
       });
 
       const data = await res.json();
       if (data.status) {
-        toast.success(`POS Order #${data.orderSerialNo || "Created"} Confirmed!`);
-        setCompletedOrder({
+        toast.success(`POS Order #${data.orderSerialNo || "Created"} Placed Successfully!`);
+        
+        // Prepare thermal receipt data (matching PHP ReceiptComponent.vue)
+        setReceiptOrder({
           orderSerialNo: data.orderSerialNo || "N/A",
           id: data.orderId || data.data?._id || "",
-          total: total,
-          subtotal: subtotal,
-          discount: currentDiscount,
-          deliveryFee: effectiveDeliveryFee,
-          distanceKm: deliveryCalculation.distanceKm,
-          paymentMethod: paymentMethod,
-          paymentReference: paymentRef,
-          posReceivedAmount: paymentMethod === "cash" ? cashReceivedAmount : total,
-          posChangeAmount: paymentMethod === "cash" ? cashChangeAmount : 0,
-          customer: customerName,
-          phone: customerPhone,
-          address: orderType === "delivery" ? deliveryAddress : null,
-          token: tokenNo,
-          orderType: orderType,
-          date: new Date().toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" }),
-          time: new Date().toLocaleTimeString("en-NG", { hour: "2-digit", minute: "2-digit" }),
+          orderDate: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
+          orderTime: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          storeName: currentStore?.name || "Nectar Groceries",
+          storeAddress: currentStore?.address || "",
+          storePhone: currentStore?.phone || "",
+          customerName: customerName.trim() || "Walk-in Customer",
+          customerPhone: customerPhone.trim() || "",
+          orderType,
+          deliveryAddress: orderType === "delivery" ? deliveryAddress : "",
           items: [...cart],
-          storeName: currentStore?.name || companyName,
-          storeAddress: currentStore?.address || "Main Store",
-          storePhone: currentStore?.phone || ""
+          subtotal,
+          discountAmount: currentDiscount,
+          deliveryCharge: activeDeliveryCharge,
+          totalAmount: total,
+          posPaymentMethod,
+          posReceivedAmount: finalReceived,
+          cashBackAmount: finalChange,
+          posPaymentNote: finalPaymentNote,
+          token: tokenNo
         });
 
-        // Clear active cart & inputs
+        // Reset cart and checkout states
         setCart([]);
         setAppliedDiscount(0);
         setDiscountInput("");
         setTokenNo("");
         setDeliveryAddress("");
+        setAddressSearch("");
         setCustomerLat(null);
         setCustomerLng(null);
-        setCustomDistanceKm("");
+        setDeliveryDistance(null);
+        setDeliveryFee(0);
+        setPaymentModalOpen(false);
         setCartOpen(false);
-        setIsPaymentModalOpen(false);
-        setIsReceiptModalOpen(true);
       } else {
         toast.error(data.message || "Failed to place order");
       }
@@ -665,192 +537,221 @@ export default function POSPage() {
     }
   };
 
+  // Print thermal receipt
+  const handlePrintReceipt = () => {
+    window.print();
+  };
+
   const filteredProducts = products.filter(p => {
     const matchesCategory = activeCategory === "All" || 
-      p.category === activeCategory || 
-      p.itemCategory === activeCategory ||
-      (typeof p.category === "object" && p.category?._id === activeCategory);
-
-    const matchesSearch = !searchTerm.trim() || 
-      p.name?.toLowerCase().includes(searchTerm.toLowerCase());
-
+      p.categoryId?._id === activeCategory || 
+      p.categoryId?.name === activeCategory ||
+      p.categoryId === activeCategory;
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
   return (
-    <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#F7F7FC] font-rubik text-[#2E2F38] select-none">
+    <div className="h-screen w-screen overflow-hidden bg-[#F7F7FC] flex flex-col font-sans select-none">
       
-      {/* ── TOP POS NAVBAR ─────────────────────────────────────────────────── */}
-      <header className="h-16 bg-white border-b border-[#EFF0F6] px-4 sm:px-6 flex items-center justify-between shrink-0 z-30">
-        <div className="flex items-center gap-3">
+      {/* ── TOP HEADER ──────────────────────────────────────────────────────── */}
+      <header className="h-16 bg-white border-b border-[#EFF0F6] flex items-center justify-between px-4 sm:px-6 shrink-0 z-20 shadow-xs">
+        
+        {/* Left: Back & Store Selector */}
+        <div className="flex items-center gap-3 sm:gap-4">
           <Link 
             href="/admin/dashboard" 
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#EFF0F6] text-xs font-medium text-[#6E7191] hover:bg-[#F7F7FC] hover:text-[#14142B] transition-colors"
+            className="w-10 h-10 rounded-xl bg-[#F7F7FC] text-[#6E7191] flex items-center justify-center hover:bg-[#EFF0F6] transition-colors shrink-0"
+            title="Back to Admin Dashboard"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Back</span>
+            <ArrowLeft className="w-5 h-5" />
           </Link>
+          
           <div className="flex items-center gap-2">
-            <h1 className="text-base font-semibold text-[#14142B] tracking-tight">Point of Sale</h1>
-            <span className="hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200">
-              Terminal Live
-            </span>
+            <span className="font-bold text-base sm:text-lg text-[#14142B] tracking-tight">POS Terminal</span>
+            <span className="hidden sm:inline-block text-xs text-[#A0A3BD] font-medium">|</span>
+            
+            {/* Store Context Dropdown Selector */}
+            <div className="relative">
+              <select
+                value={selectedBranch}
+                onChange={(e) => handleStoreChange(e.target.value)}
+                disabled={loading}
+                className="h-10 pl-9 pr-8 rounded-xl bg-[#F7F7FC] border border-[#EFF0F6] text-xs font-bold text-[#14142B] focus:outline-none focus:border-primary cursor-pointer appearance-none transition-colors max-w-[200px] sm:max-w-[260px] truncate"
+              >
+                {branches.length === 0 ? (
+                  <option value="0">Loading stores...</option>
+                ) : (
+                  branches.map(branch => (
+                    <option key={branch._id} value={branch._id}>
+                      🏪 {branch.name}
+                    </option>
+                  ))
+                )}
+              </select>
+              <Store className="w-4 h-4 text-primary absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-[#6E7191] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
           </div>
         </div>
 
-        {/* Store Selector Dropdown */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-[#F7F7FC] border border-[#D9DBE9] rounded-lg px-3 py-1.5">
-            <Store className="w-4 h-4 text-primary shrink-0" />
-            <span className="text-xs font-medium text-[#6E7191] hidden sm:inline">Store:</span>
-            <select
-              value={selectedBranch}
-              onChange={(e) => handleStoreChange(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-[#14142B] focus:outline-none cursor-pointer max-w-[170px] sm:max-w-[220px] truncate"
-            >
-              {branches.map(b => (
-                <option key={b._id} value={b._id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        {/* Right: Actions */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button 
+            onClick={() => selectedBranch && fetchProductsForStore(selectedBranch)}
+            className="w-10 h-10 rounded-xl bg-[#F7F7FC] text-[#6E7191] flex items-center justify-center hover:bg-[#EFF0F6] hover:text-[#14142B] transition-colors"
+            title="Reload Products"
+          >
+            <RefreshCw className={`w-4 h-4 ${loadingProducts ? "animate-spin text-primary" : ""}`} />
+          </button>
 
           <button 
-            onClick={() => setCartOpen(true)}
-            className="lg:hidden flex items-center gap-2 px-3 py-2 rounded-lg bg-primary text-white text-xs font-medium shadow-sm"
+            onClick={toggleFullscreen}
+            className="w-10 h-10 rounded-xl bg-[#F7F7FC] text-[#6E7191] hidden sm:flex items-center justify-center hover:bg-[#EFF0F6] hover:text-[#14142B] transition-colors"
+            title={isFullscreen ? "Exit Fullscreen" : "Fullscreen Mode"}
           >
-            <ShoppingCart className="w-4 h-4" />
-            <span className="font-bold">{cart.length}</span>
-            <span>{formatPrice(total)}</span>
+            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          </button>
+
+          {/* Mobile Cart Toggle Badge */}
+          <button 
+            onClick={() => setCartOpen(!cartOpen)}
+            className="lg:hidden relative w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-md shadow-primary/20"
+          >
+            <ShoppingCart className="w-5 h-5" />
+            {cart.length > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#14142B] text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
+                {cart.reduce((a, b) => a + b.quantity, 0)}
+              </span>
+            )}
           </button>
         </div>
       </header>
 
-      {/* ── MAIN BODY VIEWPORT ──────────────────────────────────────────────── */}
+      {/* ── MAIN WORKSPACE ──────────────────────────────────────────────────── */}
       <div className="flex-1 flex overflow-hidden relative">
         
-        {/* LEFT CATALOG SECTION */}
-        <div className="flex-1 flex flex-col overflow-hidden bg-[#F7F7FC] p-4 sm:p-5">
+        {/* LEFT COLUMN: Catalog (Flex-1) */}
+        <main className="flex-1 flex flex-col min-w-0 bg-[#F7F7FC] overflow-hidden">
           
-          {/* PHP App Style Search Bar */}
-          <form 
-            onSubmit={(e) => e.preventDefault()}
-            className="flex items-center w-full h-[38px] leading-[38px] mb-4 rounded-lg bg-white border border-[#EFF0F6] shrink-0"
-          >
-            <input 
-              type="text" 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by menu item..."
-              className="w-full px-4 rounded-l-lg text-xs placeholder:text-xs placeholder:font-rubik placeholder:text-[#A0A3BD] text-[#2E2F38] focus:outline-none"
-            />
-            {searchTerm && (
-              <button 
-                type="button" 
-                onClick={() => setSearchTerm("")}
-                className="text-xs text-red-500 px-2 hover:opacity-75"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-            <button 
-              type="submit"
-              className="flex-shrink-0 w-[38px] h-full flex items-center justify-center rounded-r-lg bg-primary text-white hover:opacity-90"
-            >
-              <Search className="w-4 h-4 text-white" />
-            </button>
-          </form>
+          {/* Top Search & Category Filter Bar */}
+          <div className="p-4 sm:p-5 bg-white border-b border-[#EFF0F6] shrink-0 space-y-3 shadow-xs">
+            {/* Search Input */}
+            <div className="relative">
+              <input 
+                type="text" 
+                placeholder="Search products by title or scan barcode..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full h-11 pl-11 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm text-[#14142B] placeholder-[#A0A3BD] focus:outline-none focus:border-primary focus:bg-white transition-all"
+              />
+              <Search className="w-5 h-5 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
+              {searchTerm && (
+                <button 
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#A0A3BD] hover:text-[#14142B]"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
 
-          {/* PHP App Style Category Slides */}
-          <div className="flex items-center gap-3 overflow-x-auto pb-3 mb-4 custom-scrollbar shrink-0">
-            <button 
-              onClick={() => setActiveCategory("All")}
-              className={`w-24 sm:w-28 shrink-0 flex flex-col items-center text-center gap-2 py-3 px-2 rounded-lg border-b-2 transition bg-white ${
-                activeCategory === "All" 
-                  ? "border-primary bg-primary-light text-primary shadow-xs font-semibold" 
-                  : "border-transparent hover:bg-primary-light hover:border-primary text-heading"
-              }`}
-            >
-              <span className="text-xl">📦</span>
-              <h3 className="text-xs leading-4 font-medium font-rubik">All Items</h3>
-            </button>
-            {categories.map((category) => (
-              <button 
-                key={category._id}
-                onClick={() => setActiveCategory(category._id)}
-                className={`w-24 sm:w-28 shrink-0 flex flex-col items-center text-center gap-2 py-3 px-2 rounded-lg border-b-2 transition bg-white ${
-                  activeCategory === category._id 
-                    ? "border-primary bg-primary-light text-primary shadow-xs font-semibold" 
-                    : "border-transparent hover:bg-primary-light hover:border-primary text-heading"
+            {/* Horizontal Scrollable Categories */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
+              <button
+                onClick={() => setActiveCategory("All")}
+                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                  activeCategory === "All" 
+                    ? "bg-primary text-white shadow-sm shadow-primary/20" 
+                    : "bg-[#F7F7FC] text-[#6E7191] hover:bg-[#EFF0F6] hover:text-[#14142B]"
                 }`}
               >
-                {category.thumb || category.image ? (
-                  <img src={category.thumb || category.image} alt={category.name} className="h-6 w-6 object-contain" />
-                ) : (
-                  <span className="text-xl">🥦</span>
-                )}
-                <h3 className="text-xs leading-4 font-medium font-rubik truncate w-full px-1">{category.name}</h3>
+                All Groceries ({products.length})
               </button>
-            ))}
+              {categories.map(cat => (
+                <button
+                  key={cat._id}
+                  onClick={() => setActiveCategory(cat._id)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                    activeCategory === cat._id 
+                      ? "bg-primary text-white shadow-sm shadow-primary/20" 
+                      : "bg-[#F7F7FC] text-[#6E7191] hover:bg-[#EFF0F6] hover:text-[#14142B]"
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* PHP App Style Product Cards Grid */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
+          {/* Product Grid (Independently Scrollable) */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
             {loading || loadingProducts ? (
-              <div className="h-full flex flex-col items-center justify-center text-[#6E7191] gap-3">
-                <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                <p className="text-xs font-medium font-rubik">Loading store inventory...</p>
+              <div className="h-64 flex flex-col items-center justify-center text-[#6E7191] gap-2">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <p className="text-xs font-semibold">Loading store inventory...</p>
               </div>
             ) : filteredProducts.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-[#A0A3BD] gap-3">
+              <div className="h-64 flex flex-col items-center justify-center text-[#A0A3BD] gap-2">
                 <ShoppingBag className="w-12 h-12 text-[#D9DBE9]" />
-                <p className="text-sm font-semibold text-[#14142B]">No items available</p>
-                <p className="text-xs text-[#6E7191]">
-                  {searchTerm ? `No matches for "${searchTerm}"` : "This store has no active products."}
-                </p>
+                <p className="text-sm font-bold text-[#14142B]">No products found</p>
+                <p className="text-xs text-[#6E7191]">Try adjusting your search keyword or selected category.</p>
               </div>
             ) : (
-              <div className="grid gap-3 sm:gap-[18px] grid-cols-[repeat(auto-fill,_minmax(140px,_1fr))] sm:grid-cols-[repeat(auto-fill,_minmax(175px,_1fr))]">
-                {filteredProducts.map(item => {
-                  const cartItem = cart.find(c => c.itemId === item._id);
-                  const inCartQty = cartItem?.quantity || 0;
-                  const hasDiscount = item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price);
-                  const displayPrice = hasDiscount ? item.discountPrice : item.price;
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4">
+                {filteredProducts.map(product => {
+                  const hasDiscount = product.discountPrice && Number(product.discountPrice) > 0 && Number(product.discountPrice) < Number(product.price);
+                  const effectivePrice = hasDiscount ? Number(product.discountPrice) : Number(product.price);
+                  const cartItem = cart.find(i => i.itemId === product._id);
 
                   return (
                     <div 
-                      key={item._id}
-                      className="rounded-2xl border transition border-[#EFF0F6] bg-white hover:shadow-xs overflow-hidden flex flex-col justify-between"
+                      key={product._id} 
+                      onClick={() => addToCart(product)}
+                      className="group bg-white rounded-2xl border border-[#EFF0F6] hover:border-primary hover:shadow-md transition-all cursor-pointer flex flex-col overflow-hidden relative"
                     >
-                      <div className="relative">
+                      {/* Image Frame */}
+                      <div className="aspect-square w-full bg-[#FAFAFC] relative overflow-hidden flex items-center justify-center p-3">
                         <img 
-                          className="h-[135px] sm:h-[150px] w-full object-cover rounded-t-2xl" 
-                          src={item.image || "/images/default/item.png"} 
-                          alt={item.name} 
+                          src={product.image || "/images/default/item.png"} 
+                          alt={product.name} 
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                         />
-                        {inCartQty > 0 && (
-                          <span className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center shadow-md">
-                            {inCartQty}
+                        {hasDiscount && (
+                          <span className="absolute top-2 left-2 bg-[#FB4E4E] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
+                            SALE
+                          </span>
+                        )}
+                        {cartItem && (
+                          <span className="absolute top-2 right-2 bg-primary text-white text-xs font-extrabold w-6 h-6 rounded-full flex items-center justify-center shadow-md">
+                            {cartItem.quantity}
                           </span>
                         )}
                       </div>
-                      <div className="py-3 px-3 rounded-b-2xl flex-1 flex flex-col justify-between">
-                        <h3 className="text-xs mb-2 font-medium font-rubik capitalize text-heading line-clamp-2 leading-tight">
-                          {item.name}
-                        </h3>
-                        <div className="flex items-center justify-between gap-2 mt-auto pt-1">
-                          <h4 className="font-rubik text-xs font-semibold text-heading">
-                            {formatPrice(displayPrice)}
-                          </h4>
-                          <button 
-                            type="button"
-                            onClick={() => addToCart(item)}
-                            className="flex items-center gap-1.5 rounded-3xl capitalize text-xs font-medium font-rubik py-1 px-3 shadow-cardCart transition bg-white border border-[#EFF0F6] text-primary hover:bg-primary hover:text-white"
-                          >
-                            <Plus className="w-3 h-3" />
-                            <span>Add</span>
-                          </button>
+
+                      {/* Info Frame */}
+                      <div className="p-3 flex-1 flex flex-col justify-between">
+                        <div>
+                          <h3 className="font-semibold text-xs sm:text-sm text-[#14142B] line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+                            {product.name}
+                          </h3>
+                        </div>
+
+                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#FAFAFC]">
+                          <div className="flex flex-col">
+                            <span className="font-extrabold text-xs sm:text-sm text-primary">
+                              {formatPrice(effectivePrice)}
+                            </span>
+                            {hasDiscount && (
+                              <span className="text-[10px] text-[#A0A3BD] line-through">
+                                {formatPrice(product.price)}
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div className="w-7 h-7 rounded-lg bg-[#F7F7FC] group-hover:bg-primary group-hover:text-white text-[#6E7191] flex items-center justify-center transition-colors">
+                            <Plus className="w-4 h-4" />
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -859,747 +760,833 @@ export default function POSPage() {
               </div>
             )}
           </div>
-        </div>
+        </main>
 
-        {/* ── RIGHT CART SIDEBAR (LOCKED VIEWPORT HEIGHT) ───────────────────── */}
-        {cartOpen && (
-          <div 
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-xs" 
-            onClick={() => setCartOpen(false)} 
-          />
-        )}
+        {/* RIGHT COLUMN: Full Viewport Height Cart & Checkout Sidebar */}
+        <aside 
+          className={`
+            fixed inset-y-0 right-0 z-30 w-full sm:w-[420px] lg:w-[400px] xl:w-[440px] bg-white border-l border-[#EFF0F6] flex flex-col h-full shadow-2xl lg:shadow-none lg:static lg:h-full transition-transform duration-300
+            ${cartOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"}
+          `}
+        >
+          {/* Top Cart Header (shrink-0) */}
+          <div className="p-4 border-b border-[#EFF0F6] bg-white shrink-0 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShoppingCart className="w-5 h-5 text-primary" />
+                <h3 className="font-bold text-base text-[#14142B]">Current Order</h3>
+                <span className="text-xs bg-[#EFF0F6] text-[#6E7191] font-bold px-2 py-0.5 rounded-full">
+                  {cart.length} items
+                </span>
+              </div>
 
-        <aside className={`fixed lg:static inset-y-0 right-0 z-50 w-[340px] sm:w-[360px] lg:w-[370px] xl:w-[390px] bg-white border-l border-[#EFF0F6] flex flex-col h-full transition-transform duration-300 ${
-          cartOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
-        }`}>
-          
-          {/* Top Form Controls: Customer, Token, Order Type */}
-          <div className="p-4 border-b border-[#EFF0F6] shrink-0 space-y-3">
-            
-            {/* Mobile Close Button */}
-            <div className="flex items-center justify-between lg:hidden pb-1">
-              <h3 className="font-semibold text-sm text-[#14142B]">Active Cart</h3>
-              <button onClick={() => setCartOpen(false)} className="text-[#6E7191] hover:text-[#14142B]">
+              <button 
+                onClick={() => setCartOpen(false)}
+                className="lg:hidden p-1.5 text-[#6E7191] hover:text-[#14142B] rounded-lg"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Customer Selection Row */}
-            <div className="flex items-center w-full gap-2">
-              <div className="flex-1">
-                <select 
-                  value={selectedCustomerId}
-                  onChange={(e) => handleCustomerSelect(e.target.value)}
-                  className="w-full h-10 px-3 text-xs rounded-lg appearance-none text-heading border border-[#D9DBE9] bg-white focus:outline-none focus:border-primary"
-                >
-                  <option value="">Walk-in Customer</option>
-                  {customers.map(c => (
-                    <option key={c._id} value={c._id}>
-                      {c.name} {c.phone ? `(${c.phone})` : ""}
-                    </option>
-                  ))}
-                </select>
+            {/* Customer Inputs */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="relative">
+                <input
+                  type="text"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="Customer Name"
+                  className="w-full h-9 pl-7 pr-2 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-xs font-semibold text-[#14142B] focus:outline-none focus:border-primary"
+                />
+                <User className="w-3.5 h-3.5 text-[#A0A3BD] absolute left-2 top-1/2 -translate-y-1/2" />
               </div>
+              <div className="relative">
+                <input
+                  type="tel"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  placeholder="Phone (optional)"
+                  className="w-full h-9 pl-7 pr-2 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-xs font-semibold text-[#14142B] focus:outline-none focus:border-primary"
+                />
+                <Phone className="w-3.5 h-3.5 text-[#A0A3BD] absolute left-2 top-1/2 -translate-y-1/2" />
+              </div>
+            </div>
+
+            {/* Order Type Selector */}
+            <div className="grid grid-cols-2 bg-[#F7F7FC] rounded-xl p-1">
               <button 
-                type="button"
-                onClick={() => {
-                  const custom = prompt("Enter customer name:");
-                  if (custom) setCustomerName(custom);
-                }}
-                className="w-10 h-10 bg-primary text-white rounded-lg flex items-center justify-center hover:opacity-90 transition-opacity"
-                title="Custom Customer Name"
+                onClick={() => { setOrderType("takeaway"); setDeliveryFee(0); }}
+                className={`h-8 rounded-lg font-bold text-xs transition-all ${
+                  orderType === "takeaway" 
+                    ? "bg-white text-[#14142B] shadow-xs" 
+                    : "text-[#6E7191] hover:text-[#14142B]"
+                }`}
               >
-                <Plus className="w-4 h-4" />
+                In-Store / Takeaway
+              </button>
+              <button 
+                onClick={() => {
+                  setOrderType("delivery");
+                  if (currentStore) {
+                    const fallbackFee = currentStore.fixedDeliveryFee || currentStore.deliveryFee || 1500;
+                    setDeliveryFee(fallbackFee);
+                  }
+                }}
+                className={`h-8 rounded-lg font-bold text-xs transition-all ${
+                  orderType === "delivery" 
+                    ? "bg-white text-[#14142B] shadow-xs" 
+                    : "text-[#6E7191] hover:text-[#14142B]"
+                }`}
+              >
+                Local Delivery
               </button>
             </div>
 
-            {/* Token Number Input */}
-            <input 
-              type="text"
-              value={tokenNo}
-              onChange={(e) => setTokenNo(e.target.value)}
-              placeholder="Token / Order Reference No"
-              className="w-full h-10 text-xs rounded-lg border border-[#D9DBE9] px-3 text-heading focus:outline-none focus:border-primary placeholder:text-[#A0A3BD]"
-            />
-
-            {/* PHP App Style Order Type Radio Box */}
-            <div className="p-3 pt-2 rounded-lg border border-[#D9DBE9]">
-              <h4 className="text-xs font-medium mb-2 font-rubik text-heading">Select Order Type</h4>
-              
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setOrderType("takeaway")}
-                  className={`flex-1 py-2 px-3 rounded-lg border text-xs font-medium font-rubik flex items-center justify-center gap-2 transition ${
-                    orderType === "takeaway" 
-                      ? "border-primary bg-primary text-white" 
-                      : "border-[#EFF0F6] bg-[#F7F7FC] text-[#6E7191] hover:bg-gray-100"
-                  }`}
-                >
-                  <span className="w-2 h-2 rounded-full border border-current"></span>
-                  Takeaway
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setOrderType("delivery")}
-                  className={`flex-1 py-2 px-3 rounded-lg border text-xs font-medium font-rubik flex items-center justify-center gap-2 transition ${
-                    orderType === "delivery" 
-                      ? "border-primary bg-primary text-white" 
-                      : "border-[#EFF0F6] bg-[#F7F7FC] text-[#6E7191] hover:bg-gray-100"
-                  }`}
-                >
-                  <span className="w-2 h-2 rounded-full border border-current"></span>
-                  Delivery
-                </button>
-              </div>
-
-              {/* Dynamic Delivery Configuration & Customer Location Calculation */}
-              {orderType === "delivery" && (
-                <div className="mt-3 space-y-2.5 pt-2 border-t border-[#EFF0F6]">
-                  {/* Fulfillment Store Address */}
-                  <div className="p-2 rounded-lg bg-[#F7F7FC] border border-[#EFF0F6] text-[11px] text-[#6E7191] flex items-start gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-semibold text-heading block">Store Fulfillment Origin:</span>
-                      <span className="text-[#14142B] font-medium">{currentStore?.name}</span>
-                      <p className="text-[10px] text-[#6E7191]">{currentStore?.address || "Store Address"}</p>
-                    </div>
-                  </div>
-
-                  {/* Customer Saved Addresses Dropdown (if customer has multiple addresses) */}
-                  {currentCustomer?.addresses && currentCustomer.addresses.length > 0 && (
-                    <div>
-                      <label className="block text-[10px] font-semibold text-[#6E7191] mb-1">
-                        Select Saved Customer Address
-                      </label>
-                      <select
-                        value={selectedCustomerAddressId}
-                        onChange={(e) => handleAddressSelect(e.target.value)}
-                        className="w-full h-8 px-2 text-xs rounded-lg border border-[#D9DBE9] bg-white text-heading focus:outline-none focus:border-primary"
-                      >
-                        {currentCustomer.addresses.map((a: any) => (
-                          <option key={a._id} value={a._id}>
-                            {a.label ? `[${a.label}] ` : ""}{a.address}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-
-                  {/* Delivery Address Text Input */}
-                  <div>
-                    <label className="block text-[10px] font-semibold text-[#6E7191] mb-1">Delivery Destination Address</label>
-                    <input 
-                      type="text"
-                      value={deliveryAddress}
-                      onChange={(e) => setDeliveryAddress(e.target.value)}
-                      placeholder="Enter customer delivery address..."
-                      className="w-full h-8 text-xs rounded-lg border border-[#D9DBE9] px-2.5 text-heading focus:outline-none focus:border-primary placeholder:text-[#A0A3BD]"
-                    />
-                  </div>
-
-                  {/* Distance / Exact Location Indicator */}
-                  <div className="p-2 rounded-lg bg-white border border-[#EFF0F6] space-y-1.5 text-[11px]">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[#6E7191] flex items-center gap-1">
-                        <Navigation className="w-3 h-3 text-primary" />
-                        <span>Distance to Store:</span>
-                      </span>
-                      <div className="flex items-center gap-1">
-                        {deliveryCalculation.hasCoordinates ? (
-                          <span className="font-bold text-[#14142B]">
-                            {deliveryCalculation.distanceKm.toFixed(1)} km
-                          </span>
-                        ) : (
-                          <input 
-                            type="number"
-                            step="0.1"
-                            value={customDistanceKm}
-                            onChange={(e) => setCustomDistanceKm(e.target.value)}
-                            placeholder="Km distance"
-                            className="w-16 h-6 px-1 text-center font-bold text-xs border border-[#D9DBE9] rounded focus:outline-none focus:border-primary"
-                          />
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Out of range alert */}
-                    {deliveryCalculation.isOutOfRange && (
-                      <div className="p-1.5 rounded bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-medium flex items-center gap-1">
-                        <AlertTriangle className="w-3 h-3 shrink-0" />
-                        <span>Address ({deliveryCalculation.distanceKm.toFixed(1)} km) exceeds store radius ({deliveryCalculation.breakdown?.radius} km)</span>
-                      </div>
-                    )}
-
-                    {/* Breakdown breakdown notice */}
-                    {deliveryCalculation.breakdown && (
-                      <div className="pt-1 border-t border-[#EFF0F6] text-[10px] text-[#6E7191] space-y-0.5">
-                        <div className="flex justify-between">
-                          <span>Base Store Fee:</span>
-                          <span className="font-medium text-[#14142B]">{formatPrice(deliveryCalculation.breakdown.baseFee)}</span>
-                        </div>
-                        {deliveryCalculation.breakdown.distanceFee > 0 && (
-                          <div className="flex justify-between">
-                            <span>Distance ({deliveryCalculation.distanceKm.toFixed(1)}km × {formatPrice(deliveryCalculation.breakdown.feePerKm)}):</span>
-                            <span className="font-medium text-[#14142B]">+{formatPrice(deliveryCalculation.breakdown.distanceFee)}</span>
-                          </div>
-                        )}
-                        {deliveryCalculation.breakdown.orderValueFee > 0 && (
-                          <div className="flex justify-between">
-                            <span>Handling Fee:</span>
-                            <span className="font-medium text-[#14142B]">+{formatPrice(deliveryCalculation.breakdown.orderValueFee)}</span>
-                          </div>
-                        )}
-                        {deliveryCalculation.breakdown.largeOrderSurcharge > 0 && (
-                          <div className="flex justify-between text-amber-600 font-semibold">
-                            <span>Large Order Surcharge:</span>
-                            <span>+{formatPrice(deliveryCalculation.breakdown.largeOrderSurcharge)}</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
+            {/* Delivery Location Section vs Token Input */}
+            {orderType === "delivery" ? (
+              <div className="space-y-2 relative">
+                {/* Autocomplete Location Input */}
+                <div className="relative">
+                  <input 
+                    type="text" 
+                    value={addressSearch}
+                    onChange={(e) => handleAddressSearchChange(e.target.value)}
+                    onFocus={() => addressSuggestions.length > 0 && setShowSuggestions(true)}
+                    placeholder="Search delivery address / landmark..." 
+                    className="w-full h-9 pl-8 pr-8 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-xs font-medium text-[#14142B] focus:outline-none focus:border-primary focus:bg-white transition-all truncate"
+                  />
+                  <MapPin className="w-3.5 h-3.5 text-primary absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  {isSearchingAddress ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-[#A0A3BD] absolute right-2.5 top-1/2 -translate-y-1/2" />
+                  ) : addressSearch ? (
+                    <button 
+                      onClick={() => { setAddressSearch(""); setDeliveryAddress(""); setAddressSuggestions([]); }}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  ) : null}
                 </div>
-              )}
-            </div>
-          </div>
 
-          {/* PHP App Style Cart Items Table (Scrollable flex-1) */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
-            {cart.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-[#A0A3BD] p-6 text-center">
-                <ShoppingCart className="w-10 h-10 text-[#D9DBE9] mb-2" />
-                <p className="text-xs font-semibold text-[#14142B]">Your cart is empty</p>
-                <p className="text-[10px] text-[#6E7191] mt-0.5">Click on items to add them to the order.</p>
+                {/* Autocomplete Dropdown Suggestions */}
+                {showSuggestions && addressSuggestions.length > 0 && (
+                  <div className="absolute top-10 left-0 right-0 z-50 bg-white rounded-xl shadow-xl border border-[#EFF0F6] max-h-48 overflow-y-auto custom-scrollbar">
+                    {addressSuggestions.map((item, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleSelectSuggestion(item)}
+                        className="w-full text-left p-2.5 hover:bg-[#F7F7FC] text-xs text-[#14142B] border-b border-[#F7F7FC] last:border-none flex items-start gap-2 transition-colors"
+                      >
+                        <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                        <span className="line-clamp-2 leading-tight">{item.display_name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Delivery Distance & Store Fee Badge */}
+                {deliveryAddress && (
+                  <div className="p-2 bg-[#F0FDF4] border border-[#DCFCE7] rounded-xl flex items-center justify-between text-[11px]">
+                    <div className="flex items-center gap-1.5 truncate max-w-[220px]">
+                      <span className="font-bold text-[#166534]">
+                        {deliveryDistance !== null ? `📍 ${deliveryDistance} km` : "📍 Address Set"}
+                      </span>
+                      <span className="text-[#15803d] truncate font-medium text-[10px]">
+                        (Fee: ₦{deliveryFee.toLocaleString()})
+                      </span>
+                    </div>
+
+                    {/* Store Fixed Delivery Fee Toggle */}
+                    <button
+                      type="button"
+                      onClick={handleToggleFixedFee}
+                      className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#16A34A] text-white hover:bg-[#15803d] transition-colors shrink-0"
+                      title="Toggle Store Fixed Delivery Fee"
+                    >
+                      {useFixedDeliveryFee ? "Using Fixed" : "Use Fixed Fee"}
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
-              <table className="w-full">
-                <thead className="bg-primary-light sticky top-0 z-10">
-                  <tr className="h-8">
-                    <th className="w-7 pl-3 text-left"></th>
-                    <th className="text-left px-2 text-[11px] font-rubik font-medium text-heading">Item</th>
-                    <th className="text-center px-2 text-[11px] font-rubik font-medium text-heading">Qty</th>
-                    <th className="text-right pr-3 text-[11px] font-rubik font-medium text-heading">Price</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#EFF0F6]">
-                  {cart.map((item) => (
-                    <tr key={item.itemId} className="hover:bg-[#FAFAFC] transition-colors">
-                      <td className="pl-3 py-2.5 align-middle">
-                        <button 
-                          onClick={() => removeFromCart(item.itemId)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </td>
-                      <td className="px-2 py-2.5 align-middle">
-                        <h4 className="text-xs font-medium font-rubik text-heading line-clamp-1">{item.name}</h4>
-                        <span className="text-[10px] text-[#6E7191]">{formatPrice(item.price)} each</span>
-                      </td>
-                      <td className="px-2 py-2.5 align-middle">
-                        {/* PHP App Style indec-group */}
-                        <div className="flex items-center justify-center gap-1">
-                          <button 
-                            type="button"
-                            onClick={() => updateQty(item.itemId, -1)}
-                            className="w-[18px] h-[18px] rounded-full border border-primary text-primary flex items-center justify-center hover:bg-primary hover:text-white transition text-[10px]"
-                          >
-                            <Minus className="w-2.5 h-2.5" />
-                          </button>
-                          <input 
-                            type="number" 
-                            value={item.quantity}
-                            onChange={(e) => setExactQty(item.itemId, parseInt(e.target.value, 10))}
-                            className="w-7 text-center text-xs font-semibold text-heading focus:outline-none"
-                          />
-                          <button 
-                            type="button"
-                            onClick={() => updateQty(item.itemId, 1)}
-                            className="w-[18px] h-[18px] rounded-full border border-primary text-primary flex items-center justify-center hover:bg-primary hover:text-white transition text-[10px]"
-                          >
-                            <Plus className="w-2.5 h-2.5" />
-                          </button>
-                        </div>
-                      </td>
-                      <td className="pr-3 py-2.5 text-right font-rubik text-xs font-semibold text-heading align-middle">
-                        {formatPrice(item.price * item.quantity)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <input 
+                type="text" 
+                value={tokenNo}
+                onChange={(e) => setTokenNo(e.target.value)}
+                placeholder="Token / Bill Ref. (Optional)" 
+                className="w-full h-9 px-3 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-xs font-medium text-[#14142B] focus:outline-none focus:border-primary"
+              />
             )}
           </div>
 
-          {/* PHP App Style Bottom Billing Section (Shrink-0) */}
-          <div className="p-4 border-t border-[#EFF0F6] shrink-0 bg-white space-y-3">
-            
-            {/* PHP App Style Discount Bar */}
-            {cart.length > 0 && (
-              <div className="flex h-[38px]">
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setIsDiscountDropdownOpen(!isDiscountDropdownOpen)}
-                    className="flex items-center justify-between w-[110px] h-full text-xs font-rubik rounded-l border border-[#EFF0F6] bg-white px-2.5 text-heading"
+          {/* Middle Section: Scrollable Cart Items (flex-1 overflow-y-auto) */}
+          <div className="flex-1 overflow-y-auto p-4 custom-scrollbar min-h-0 bg-white">
+            {cart.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-[#A0A3BD] py-12">
+                <ShoppingCart className="w-10 h-10 text-[#D9DBE9] mb-2" />
+                <p className="text-sm font-semibold text-[#14142B]">Cart is empty</p>
+                <p className="text-xs text-[#6E7191] text-center mt-1">
+                  Click any product from the catalog on the left to add it to this order.
+                </p>
+              </div>
+            ) : (
+              <ul className="space-y-3">
+                {cart.map(item => (
+                  <li 
+                    key={item.itemId} 
+                    className="flex items-center gap-3 p-2.5 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] hover:border-primary/20 transition-colors"
                   >
-                    <span>{discountType === "percentage" ? "Percent (%)" : "Fixed (₦)"}</span>
-                    <ChevronDown className="w-3 h-3 text-[#6E7191]" />
-                  </button>
+                    {/* Item Image */}
+                    <div className="w-11 h-11 rounded-lg bg-white overflow-hidden shrink-0 border border-[#EFF0F6]">
+                      <img 
+                        src={item.image || "/images/default/item.png"} 
+                        alt={item.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
 
-                  {isDiscountDropdownOpen && (
-                    <div className="absolute bottom-10 left-0 z-20 w-32 bg-white rounded-lg shadow-xl border border-[#EFF0F6] py-1 text-xs">
-                      <button
-                        type="button"
-                        onClick={() => { setDiscountType("percentage"); setIsDiscountDropdownOpen(false); }}
-                        className="w-full text-left px-3 py-1.5 hover:bg-[#F7F7FC] text-heading"
+                    {/* Name & Unit Price */}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-xs text-[#14142B] truncate leading-tight mb-0.5">
+                        {item.name}
+                      </h4>
+                      <p className="font-bold text-xs text-primary">
+                        {formatPrice(item.price * item.quantity)}
+                      </p>
+                    </div>
+
+                    {/* Quantity Stepper */}
+                    <div className="flex items-center gap-1.5 bg-white rounded-lg p-0.5 border border-[#EFF0F6] shrink-0">
+                      <button 
+                        onClick={() => updateQty(item.itemId, -1)} 
+                        className="w-6 h-6 rounded-md hover:bg-gray-100 flex items-center justify-center text-[#6E7191] transition-colors"
                       >
-                        Percent (%)
+                        <Minus className="w-3 h-3" />
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => { setDiscountType("fixed"); setIsDiscountDropdownOpen(false); }}
-                        className="w-full text-left px-3 py-1.5 hover:bg-[#F7F7FC] text-heading"
+                      <span className="text-xs font-bold w-4 text-center text-[#14142B]">
+                        {item.quantity}
+                      </span>
+                      <button 
+                        onClick={() => updateQty(item.itemId, 1)} 
+                        className="w-6 h-6 rounded-md hover:bg-gray-100 flex items-center justify-center text-primary transition-colors"
                       >
-                        Fixed (₦)
+                        <Plus className="w-3 h-3" />
                       </button>
                     </div>
-                  )}
+
+                    {/* Remove button */}
+                    <button 
+                      onClick={() => removeFromCart(item.itemId)} 
+                      className="text-[#A0A3BD] hover:text-[#FB4E4E] p-1 transition-colors shrink-0"
+                      title="Remove item"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* Bottom Section: Pinned Totals, Discount & Checkout (shrink-0) */}
+          <div className="p-4 border-t border-[#EFF0F6] bg-[#FAFAFC] shrink-0 space-y-3 shadow-inner">
+            
+            {/* Discount Section */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[#6E7191] flex items-center gap-1">
+                  <Tag className="w-3 h-3 text-primary" />
+                  Apply Discount
+                </span>
+                {currentDiscount > 0 && (
+                  <button 
+                    onClick={handleRemoveDiscount}
+                    className="text-[11px] font-semibold text-[#FB4E4E] hover:underline"
+                  >
+                    Remove Discount
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                {/* Discount Type Toggle (Fixed vs Percent) */}
+                <div className="flex bg-white rounded-xl border border-[#EFF0F6] p-0.5 shrink-0">
+                  <button
+                    onClick={() => { setDiscountType("fixed"); setAppliedDiscount(0); }}
+                    className={`px-2 py-1.5 rounded-lg text-[11px] font-bold transition-colors ${
+                      discountType === "fixed" ? "bg-primary text-white" : "text-[#6E7191]"
+                    }`}
+                    title="Fixed Amount Discount"
+                  >
+                    ₦ Fix
+                  </button>
+                  <button
+                    onClick={() => { setDiscountType("percent"); setAppliedDiscount(0); }}
+                    className={`px-2 py-1.5 rounded-lg text-[11px] font-bold transition-colors ${
+                      discountType === "percent" ? "bg-primary text-white" : "text-[#6E7191]"
+                    }`}
+                    title="Percentage Discount"
+                  >
+                    % Pct
+                  </button>
                 </div>
 
+                {/* Input */}
                 <input 
-                  type="number"
+                  type="number" 
+                  min="0"
                   value={discountInput}
                   onChange={(e) => setDiscountInput(e.target.value)}
-                  placeholder="Add discount..."
-                  className="flex-1 h-full border-t border-b border-[#EFF0F6] px-3 text-xs font-rubik text-heading focus:outline-none"
+                  placeholder={discountType === "percent" ? "e.g. 10%" : "e.g. 500"} 
+                  className="flex-1 h-9 px-3 rounded-xl border border-[#EFF0F6] bg-white text-xs font-semibold text-[#14142B] focus:outline-none focus:border-primary"
                 />
 
-                <button
-                  type="button"
+                {/* Apply Button */}
+                <button 
                   onClick={handleApplyDiscount}
-                  className="w-16 h-full text-xs font-medium font-rubik capitalize rounded-r text-white bg-[#008BBA] hover:bg-[#00749B] transition"
+                  className="px-3.5 h-9 rounded-xl bg-[#008BBA] text-white text-xs font-bold hover:bg-[#00749b] transition-colors shrink-0 shadow-xs"
                 >
                   Apply
                 </button>
               </div>
-            )}
+            </div>
 
-            {/* Totals Breakdown List */}
-            <ul className="flex flex-col gap-1.5 text-xs font-rubik pt-1">
-              <li className="flex items-center justify-between text-[#6E7191]">
-                <span>Subtotal</span>
-                <span className="text-heading font-medium">{formatPrice(subtotal)}</span>
-              </li>
+            {/* Order Price Breakdown */}
+            <div className="bg-white rounded-xl p-3 border border-[#EFF0F6] space-y-1.5">
+              <div className="flex justify-between text-xs">
+                <span className="text-[#6E7191]">Subtotal</span>
+                <span className="font-semibold text-[#14142B]">{formatPrice(subtotal)}</span>
+              </div>
               
               {currentDiscount > 0 && (
-                <li className="flex items-center justify-between text-rose-500 font-medium">
+                <div className="flex justify-between text-xs text-[#1AB759] font-semibold">
                   <span>Discount</span>
                   <span>-{formatPrice(currentDiscount)}</span>
-                </li>
+                </div>
               )}
 
               {orderType === "delivery" && (
-                <li className="flex items-center justify-between text-emerald-600 font-medium">
+                <div className="flex justify-between text-xs text-[#008BBA] font-semibold">
                   <span>Delivery Charge</span>
-                  <span className="font-bold">+{formatPrice(effectiveDeliveryFee)}</span>
-                </li>
+                  <span>+{formatPrice(activeDeliveryCharge)}</span>
+                </div>
               )}
 
-              <li className="flex items-center justify-between text-sm font-bold text-heading pt-1 border-t border-[#EFF0F6]">
-                <span>Total</span>
-                <span className="text-primary text-base font-bold">{formatPrice(total)}</span>
-              </li>
-            </ul>
-
-            {/* PHP App Style Cancel & Order Action Buttons */}
-            {cart.length > 0 && (
-              <div className="flex items-center gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={resetCart}
-                  className="capitalize text-xs font-medium font-rubik w-full text-center rounded-3xl py-2.5 text-white bg-[#FB4E4E] hover:bg-red-600 transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleOpenPaymentModal}
-                  className="capitalize text-xs font-medium font-rubik w-full text-center rounded-3xl py-2.5 text-white bg-[#1AB759] hover:bg-emerald-600 transition"
-                >
-                  Order
-                </button>
+              <div className="flex justify-between text-sm font-extrabold text-[#14142B] pt-2 border-t border-dashed border-[#EFF0F6]">
+                <span>Total Payable</span>
+                <span className="text-primary text-base font-black">{formatPrice(total)}</span>
               </div>
-            )}
+            </div>
+
+            {/* Action Buttons: Clear Cart & Charge / Open Payment Modal */}
+            <div className="grid grid-cols-3 gap-2">
+              <button 
+                onClick={() => {
+                  setCart([]);
+                  setAppliedDiscount(0);
+                  setDiscountInput("");
+                  setTokenNo("");
+                  setDeliveryAddress("");
+                  setAddressSearch("");
+                  setDeliveryFee(0);
+                  toast.info("Cart cleared");
+                }} 
+                disabled={cart.length === 0}
+                className="h-11 rounded-xl bg-white border border-[#EFF0F6] text-[#FB4E4E] hover:bg-red-50 font-bold text-xs transition-colors flex items-center justify-center gap-1 disabled:opacity-40"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Clear
+              </button>
+
+              <button 
+                onClick={openPaymentModal} 
+                disabled={cart.length === 0}
+                className="col-span-2 h-11 rounded-xl bg-[#1AB759] hover:bg-[#159a4a] text-white font-bold text-xs sm:text-sm transition-all shadow-md shadow-[#1AB759]/20 flex justify-center items-center gap-2 disabled:opacity-50"
+              >
+                <CheckCircle className="w-4 h-4" />
+                <span>Charge {formatPrice(total)}</span>
+              </button>
+            </div>
           </div>
+
         </aside>
       </div>
 
-      {/* ── POS ORDER PAYMENT MODAL (Matching PHP PaymentComponent.vue) ───────── */}
-      {isPaymentModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150 font-rubik">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[430px] overflow-hidden border border-[#D9DBE9] flex flex-col">
+      {/* ── ORDER PAYMENT MODAL (Inspired by PHP App PaymentComponent.vue) ──── */}
+      {paymentModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl p-5 sm:p-6 max-w-[428px] w-full shadow-2xl border border-[#EFF0F6] animate-in fade-in zoom-in-95 duration-200">
             
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#D9DBE9]">
-              <h3 className="capitalize font-medium text-base text-[#1F1F39]">Order Payment</h3>
+            <div className="flex items-center justify-between pb-3 border-b border-[#EFF0F6] mb-4">
+              <h3 className="font-bold text-base text-[#14142B]">Order Payment</h3>
               <button 
-                onClick={() => setIsPaymentModalOpen(false)}
-                className="text-[#6E7191] hover:text-[#1F1F39] transition-colors"
+                onClick={() => setPaymentModalOpen(false)}
+                className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-6 space-y-4">
-              
-              {/* Total Amount Banner */}
-              <div className="flex justify-between items-center h-12 w-full rounded-lg px-4 bg-[#F7F7FC] border border-[#EFF0F6]">
-                <span className="text-sm font-normal text-[#2E2F38]">Total Amount</span>
-                <span className="text-primary text-lg font-bold">{formatPrice(total)}</span>
-              </div>
+            {/* Total Amount Card */}
+            <div className="flex justify-between items-center h-12 w-full rounded-xl py-1.5 px-4 bg-[#F7F7FC] mb-4">
+              <span className="text-xs font-semibold text-[#6E7191]">Total Amount</span>
+              <span className="text-primary text-base font-black">{formatPrice(total)}</span>
+            </div>
 
-              {/* Payment Method Selector Tabs */}
-              <div>
-                <h4 className="capitalize font-medium text-xs text-[#2E2F38] mb-2">Select Payment Method</h4>
-                <div className="grid grid-cols-4 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("cash")}
-                    className={`flex flex-col items-center gap-1.5 py-2.5 px-2 rounded-lg border text-xs font-medium transition ${
-                      paymentMethod === "cash" 
-                        ? "border-primary bg-primary-light text-primary" 
-                        : "border-[#F7F7FC] bg-[#F7F7FC] text-[#6E7191] hover:border-gray-300"
-                    }`}
-                  >
-                    <Banknote className="w-5 h-5" />
-                    <span className="text-[11px]">Cash</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("card")}
-                    className={`flex flex-col items-center gap-1.5 py-2.5 px-2 rounded-lg border text-xs font-medium transition ${
-                      paymentMethod === "card" 
-                        ? "border-primary bg-primary-light text-primary" 
-                        : "border-[#F7F7FC] bg-[#F7F7FC] text-[#6E7191] hover:border-gray-300"
-                    }`}
-                  >
-                    <CreditCard className="w-5 h-5" />
-                    <span className="text-[11px]">Card</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("mobile_banking")}
-                    className={`flex flex-col items-center gap-1.5 py-2.5 px-2 rounded-lg border text-xs font-medium transition ${
-                      paymentMethod === "mobile_banking" 
-                        ? "border-primary bg-primary-light text-primary" 
-                        : "border-[#F7F7FC] bg-[#F7F7FC] text-[#6E7191] hover:border-gray-300"
-                    }`}
-                  >
-                    <Smartphone className="w-5 h-5" />
-                    <span className="text-[11px]">Transfer</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod("other")}
-                    className={`flex flex-col items-center gap-1.5 py-2.5 px-2 rounded-lg border text-xs font-medium transition ${
-                      paymentMethod === "other" 
-                        ? "border-primary bg-primary-light text-primary" 
-                        : "border-[#F7F7FC] bg-[#F7F7FC] text-[#6E7191] hover:border-gray-300"
-                    }`}
-                  >
-                    <FileText className="w-5 h-5" />
-                    <span className="text-[11px]">Other</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Active Payment Tab Details */}
-              {paymentMethod === "cash" && (
-                <div className="space-y-3">
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <label className="text-xs font-medium text-[#2E2F38]">Received Amount</label>
-                      {cashChangeAmount > 0 ? (
-                        <span className="text-xs font-bold text-emerald-600">Change: {formatPrice(cashChangeAmount)}</span>
-                      ) : cashShortageAmount > 0 ? (
-                        <span className="text-xs font-semibold text-rose-500">Shortage: {formatPrice(cashShortageAmount)}</span>
-                      ) : (
-                        <span className="text-xs text-emerald-600 font-medium">Exact Amount</span>
-                      )}
-                    </div>
-                    <input 
-                      type="text"
-                      value={cashReceivedInput}
-                      onChange={(e) => setCashReceivedInput(e.target.value)}
-                      placeholder="Enter amount given by customer..."
-                      className="h-11 w-full rounded-lg border py-1.5 px-4 border-[#D9DBE9] text-base font-semibold text-black focus:outline-none focus:border-primary"
-                    />
-                  </div>
-
-                  {/* PHP App Interactive Numpad */}
-                  <div className="grid grid-cols-4 gap-2 pt-1">
-                    {["1", "2", "3"].map(n => (
-                      <button key={n} type="button" onClick={() => handleNumpadPress(n)} className="bg-[#F7F7FC] rounded-lg h-10 flex items-center justify-center text-sm font-semibold text-[#1F1F39] hover:bg-gray-200">{n}</button>
-                    ))}
-                    <button type="button" onClick={() => handleNumpadPress("back")} className="bg-[#F7F7FC] rounded-lg h-10 flex items-center justify-center text-sm font-semibold text-[#1F1F39] hover:bg-gray-200">
-                      <Delete className="w-4 h-4" />
-                    </button>
-
-                    {["4", "5", "6"].map(n => (
-                      <button key={n} type="button" onClick={() => handleNumpadPress(n)} className="bg-[#F7F7FC] rounded-lg h-10 flex items-center justify-center text-sm font-semibold text-[#1F1F39] hover:bg-gray-200">{n}</button>
-                    ))}
-                    <button type="button" onClick={() => handleNumpadPress("clear")} className="bg-[#F7F7FC] rounded-lg h-10 flex items-center justify-center text-xs font-bold text-[#1F1F39] hover:bg-gray-200">
-                      Clear
-                    </button>
-
-                    {["7", "8", "9"].map(n => (
-                      <button key={n} type="button" onClick={() => handleNumpadPress(n)} className="bg-[#F7F7FC] rounded-lg h-10 flex items-center justify-center text-sm font-semibold text-[#1F1F39] hover:bg-gray-200">{n}</button>
-                    ))}
-                    <button type="button" onClick={() => handleNumpadPress(".")} className="bg-[#F7F7FC] rounded-lg h-10 flex items-center justify-center text-sm font-semibold text-[#1F1F39] hover:bg-gray-200">.</button>
-
-                    {["00", "0"].map(n => (
-                      <button key={n} type="button" onClick={() => handleNumpadPress(n)} className="bg-[#F7F7FC] rounded-lg h-10 flex items-center justify-center text-sm font-semibold text-[#1F1F39] hover:bg-gray-200">{n}</button>
-                    ))}
-                    <button type="button" onClick={() => setCashReceivedInput(String(total))} className="col-span-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg h-10 flex items-center justify-center text-xs font-bold hover:bg-emerald-100">
-                      Exact ({formatPrice(total)})
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {paymentMethod === "card" && (
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-xs font-medium text-[#2E2F38] block mb-1">Enter Card Last 4 Digits / Reference</label>
-                    <input 
-                      type="text"
-                      value={cardDigitsInput}
-                      onChange={(e) => setCardDigitsInput(e.target.value)}
-                      placeholder="e.g. 4023"
-                      maxLength={12}
-                      className="h-11 w-full rounded-lg border py-1.5 px-4 border-[#D9DBE9] text-base font-semibold text-black focus:outline-none focus:border-primary"
-                    />
-                  </div>
-                  {/* Mini Numpad for card */}
-                  <div className="grid grid-cols-4 gap-2 pt-1">
-                    {["1", "2", "3", "4", "5", "6", "7", "8", "9", "00", "0"].map(n => (
-                      <button key={n} type="button" onClick={() => handleNumpadPress(n)} className="bg-[#F7F7FC] rounded-lg h-9 flex items-center justify-center text-xs font-semibold text-[#1F1F39] hover:bg-gray-200">{n}</button>
-                    ))}
-                    <button type="button" onClick={() => handleNumpadPress("clear")} className="bg-[#F7F7FC] rounded-lg h-9 flex items-center justify-center text-xs font-bold text-[#1F1F39] hover:bg-gray-200">Clear</button>
-                  </div>
-                </div>
-              )}
-
-              {paymentMethod === "mobile_banking" && (
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-[#2E2F38] block">Enter Transaction ID / Transfer Reference</label>
-                  <input 
-                    type="text"
-                    value={transferRefInput}
-                    onChange={(e) => setTransferRefInput(e.target.value)}
-                    placeholder="e.g. TXN-948275918"
-                    className="h-11 w-full rounded-lg border py-1.5 px-4 border-[#D9DBE9] text-sm text-black focus:outline-none focus:border-primary"
-                  />
-                  <p className="text-[11px] text-[#6E7191]">Verify payment alert on store account before confirming.</p>
-                </div>
-              )}
-
-              {paymentMethod === "other" && (
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-[#2E2F38] block">Payment Note</label>
-                  <input 
-                    type="text"
-                    value={otherNoteInput}
-                    onChange={(e) => setOtherNoteInput(e.target.value)}
-                    placeholder="e.g. Cheque, Store Voucher, Split payment note..."
-                    className="h-11 w-full rounded-lg border py-1.5 px-4 border-[#D9DBE9] text-sm text-black focus:outline-none focus:border-primary"
-                  />
-                </div>
-              )}
-
-              {/* Action Button: Confirm & Print */}
-              <div className="pt-2">
+            {/* Select Payment Method Tabs (Exact PHP App Enum Layout) */}
+            <div className="mb-4">
+              <h4 className="text-xs font-bold text-[#14142B] mb-2">Select Payment Method</h4>
+              <nav className="grid grid-cols-4 gap-2">
                 <button
                   type="button"
-                  disabled={isSubmitting}
-                  onClick={handleConfirmOrder}
-                  className="rounded-3xl text-sm py-3 px-3 font-medium w-full text-white bg-primary hover:opacity-90 transition flex items-center justify-center gap-2"
+                  onClick={() => { setPosPaymentMethod("cash"); setActiveInputTarget("cash"); }}
+                  className={`flex flex-col items-center justify-center gap-1.5 rounded-xl py-2.5 px-2 border transition-all ${
+                    posPaymentMethod === "cash" 
+                      ? "border-primary bg-primary/5 text-primary font-bold shadow-xs" 
+                      : "border-[#EFF0F6] bg-[#F7F7FC] text-[#6E7191] hover:bg-gray-100"
+                  }`}
                 >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Processing Order...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Printer className="w-4 h-4" />
-                      <span>Confirm & Print Receipt</span>
-                    </>
-                  )}
+                  <Banknote className="w-5 h-5" />
+                  <span className="text-[11px]">Cash</span>
                 </button>
-              </div>
+
+                <button
+                  type="button"
+                  onClick={() => { setPosPaymentMethod("card"); setActiveInputTarget("card"); }}
+                  className={`flex flex-col items-center justify-center gap-1.5 rounded-xl py-2.5 px-2 border transition-all ${
+                    posPaymentMethod === "card" 
+                      ? "border-primary bg-primary/5 text-primary font-bold shadow-xs" 
+                      : "border-[#EFF0F6] bg-[#F7F7FC] text-[#6E7191] hover:bg-gray-100"
+                  }`}
+                >
+                  <CreditCard className="w-5 h-5" />
+                  <span className="text-[11px]">Card</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setPosPaymentMethod("mobile_banking"); setActiveInputTarget("mfs"); }}
+                  className={`flex flex-col items-center justify-center gap-1.5 rounded-xl py-2.5 px-2 border transition-all ${
+                    posPaymentMethod === "mobile_banking" 
+                      ? "border-primary bg-primary/5 text-primary font-bold shadow-xs" 
+                      : "border-[#EFF0F6] bg-[#F7F7FC] text-[#6E7191] hover:bg-gray-100"
+                  }`}
+                >
+                  <Smartphone className="w-5 h-5" />
+                  <span className="text-[11px]">Transfer</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setPosPaymentMethod("other"); setActiveInputTarget("other"); }}
+                  className={`flex flex-col items-center justify-center gap-1.5 rounded-xl py-2.5 px-2 border transition-all ${
+                    posPaymentMethod === "other" 
+                      ? "border-primary bg-primary/5 text-primary font-bold shadow-xs" 
+                      : "border-[#EFF0F6] bg-[#F7F7FC] text-[#6E7191] hover:bg-gray-100"
+                  }`}
+                >
+                  <FileText className="w-5 h-5" />
+                  <span className="text-[11px]">Other</span>
+                </button>
+              </nav>
             </div>
+
+            {/* Dynamic Input depending on selected payment method */}
+            {posPaymentMethod === "cash" && (
+              <div className="mb-4">
+                <div className="flex justify-between items-center mb-1.5">
+                  <span className="text-xs font-bold text-[#14142B]">Received Amount (₦)</span>
+                  {changeDue > 0 ? (
+                    <span className="text-xs font-bold text-[#16A34A] bg-[#DCFCE7] px-2 py-0.5 rounded-md">
+                      Change: ₦{changeDue.toLocaleString()}
+                    </span>
+                  ) : cashReceivedNum > 0 && cashReceivedNum < total ? (
+                    <span className="text-xs font-bold text-[#D97706] bg-[#FEF3C7] px-2 py-0.5 rounded-md">
+                      Due: ₦{(total - cashReceivedNum).toLocaleString()}
+                    </span>
+                  ) : null}
+                </div>
+                <input 
+                  type="number"
+                  step="any"
+                  value={posReceivedAmount}
+                  onChange={(e) => setPosReceivedAmount(e.target.value)}
+                  onFocus={() => setActiveInputTarget("cash")}
+                  placeholder={`Exact Amount: ${total}`}
+                  className="h-11 w-full rounded-xl border border-[#D9DBE9] px-4 text-base font-bold text-[#14142B] focus:outline-none focus:border-primary bg-white"
+                />
+              </div>
+            )}
+
+            {posPaymentMethod === "card" && (
+              <div className="mb-4">
+                <span className="block text-xs font-bold text-[#14142B] mb-1.5">Enter Card Last 4 Digits / Machine Ref</span>
+                <input 
+                  type="text"
+                  value={cardLast4Digits}
+                  onChange={(e) => setCardLast4Digits(e.target.value)}
+                  onFocus={() => setActiveInputTarget("card")}
+                  placeholder="e.g. 4242 or POS-01"
+                  className="h-11 w-full rounded-xl border border-[#D9DBE9] px-4 text-sm font-semibold text-[#14142B] focus:outline-none focus:border-primary bg-white"
+                />
+              </div>
+            )}
+
+            {posPaymentMethod === "mobile_banking" && (
+              <div className="mb-4">
+                <span className="block text-xs font-bold text-[#14142B] mb-1.5">Enter Transaction ID / Reference</span>
+                <input 
+                  type="text"
+                  value={transactionId}
+                  onChange={(e) => setTransactionId(e.target.value)}
+                  onFocus={() => setActiveInputTarget("mfs")}
+                  placeholder="e.g. TXN-9283719"
+                  className="h-11 w-full rounded-xl border border-[#D9DBE9] px-4 text-sm font-semibold text-[#14142B] focus:outline-none focus:border-primary bg-white"
+                />
+              </div>
+            )}
+
+            {posPaymentMethod === "other" && (
+              <div className="mb-4">
+                <span className="block text-xs font-bold text-[#14142B] mb-1.5">Enter Payment Note</span>
+                <input 
+                  type="text"
+                  value={paymentNote}
+                  onChange={(e) => setPaymentNote(e.target.value)}
+                  onFocus={() => setActiveInputTarget("other")}
+                  placeholder="e.g. Store credit or split cash"
+                  className="h-11 w-full rounded-xl border border-[#D9DBE9] px-4 text-sm font-semibold text-[#14142B] focus:outline-none focus:border-primary bg-white"
+                />
+              </div>
+            )}
+
+            {/* Virtual Numeric Touchscreen Keypad (PHP PaymentComponent.vue exact layout) */}
+            <div className="grid grid-cols-4 gap-2 sm:gap-2.5 mb-5">
+              <button 
+                type="button" 
+                onClick={() => handleKeypadPress("1")} 
+                className="h-11 bg-[#F7F7FC] hover:bg-gray-200 active:bg-gray-300 rounded-xl flex items-center justify-center text-base font-bold text-[#1F1F39] transition-colors"
+              >
+                1
+              </button>
+              <button 
+                type="button" 
+                onClick={() => handleKeypadPress("2")} 
+                className="h-11 bg-[#F7F7FC] hover:bg-gray-200 active:bg-gray-300 rounded-xl flex items-center justify-center text-base font-bold text-[#1F1F39] transition-colors"
+              >
+                2
+              </button>
+              <button 
+                type="button" 
+                onClick={() => handleKeypadPress("3")} 
+                className="h-11 bg-[#F7F7FC] hover:bg-gray-200 active:bg-gray-300 rounded-xl flex items-center justify-center text-base font-bold text-[#1F1F39] transition-colors"
+              >
+                3
+              </button>
+              <button 
+                type="button" 
+                onClick={handleKeypadBackspace} 
+                className="bg-[#F7F7FC] hover:bg-red-50 hover:text-red-600 active:bg-red-100 rounded-xl flex items-center justify-center text-[#1F1F39] transition-colors row-span-2" 
+                title="Backspace"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
+                  <line x1="18" y1="9" x2="12" y2="15"></line>
+                  <line x1="12" y1="9" x2="18" y2="15"></line>
+                </svg>
+              </button>
+
+              <button 
+                type="button" 
+                onClick={() => handleKeypadPress("4")} 
+                className="h-11 bg-[#F7F7FC] hover:bg-gray-200 active:bg-gray-300 rounded-xl flex items-center justify-center text-base font-bold text-[#1F1F39] transition-colors"
+              >
+                4
+              </button>
+              <button 
+                type="button" 
+                onClick={() => handleKeypadPress("5")} 
+                className="h-11 bg-[#F7F7FC] hover:bg-gray-200 active:bg-gray-300 rounded-xl flex items-center justify-center text-base font-bold text-[#1F1F39] transition-colors"
+              >
+                5
+              </button>
+              <button 
+                type="button" 
+                onClick={() => handleKeypadPress("6")} 
+                className="h-11 bg-[#F7F7FC] hover:bg-gray-200 active:bg-gray-300 rounded-xl flex items-center justify-center text-base font-bold text-[#1F1F39] transition-colors"
+              >
+                6
+              </button>
+
+              <button 
+                type="button" 
+                onClick={() => handleKeypadPress("7")} 
+                className="h-11 bg-[#F7F7FC] hover:bg-gray-200 active:bg-gray-300 rounded-xl flex items-center justify-center text-base font-bold text-[#1F1F39] transition-colors"
+              >
+                7
+              </button>
+              <button 
+                type="button" 
+                onClick={() => handleKeypadPress("8")} 
+                className="h-11 bg-[#F7F7FC] hover:bg-gray-200 active:bg-gray-300 rounded-xl flex items-center justify-center text-base font-bold text-[#1F1F39] transition-colors"
+              >
+                8
+              </button>
+              <button 
+                type="button" 
+                onClick={() => handleKeypadPress("9")} 
+                className="h-11 bg-[#F7F7FC] hover:bg-gray-200 active:bg-gray-300 rounded-xl flex items-center justify-center text-base font-bold text-[#1F1F39] transition-colors"
+              >
+                9
+              </button>
+
+              <button 
+                type="button" 
+                onClick={handleKeypadClear} 
+                className="bg-[#F7F7FC] hover:bg-red-50 hover:text-[#FB4E4E] active:bg-red-100 rounded-xl flex items-center justify-center text-xs font-bold text-[#FB4E4E] transition-colors row-span-2"
+              >
+                Clear
+              </button>
+
+              <button 
+                type="button" 
+                onClick={() => handleKeypadPress("00")} 
+                className="h-11 bg-[#F7F7FC] hover:bg-gray-200 active:bg-gray-300 rounded-xl flex items-center justify-center text-base font-bold text-[#1F1F39] transition-colors"
+              >
+                00
+              </button>
+              <button 
+                type="button" 
+                onClick={() => handleKeypadPress("0")} 
+                className="h-11 bg-[#F7F7FC] hover:bg-gray-200 active:bg-gray-300 rounded-xl flex items-center justify-center text-base font-bold text-[#1F1F39] transition-colors"
+              >
+                0
+              </button>
+              <button 
+                type="button" 
+                onClick={() => posPaymentMethod === "cash" ? handleKeypadPress(".") : null} 
+                className="h-11 bg-[#F7F7FC] hover:bg-gray-200 active:bg-gray-300 rounded-xl flex items-center justify-center text-base font-bold text-[#1F1F39] transition-colors"
+              >
+                .
+              </button>
+            </div>
+
+            {/* Confirm and Print Button */}
+            <button
+              type="button"
+              onClick={handleConfirmOrder}
+              disabled={isSubmitting}
+              className="rounded-3xl text-sm py-3 px-4 font-bold w-full text-white bg-primary hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Processing Payment...</span>
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4" />
+                  <span>Confirm & Print</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       )}
 
-      {/* ── THERMAL RECEIPT MODAL (Matching PHP ReceiptComponent.vue) ────────── */}
-      {isReceiptModalOpen && completedOrder && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150 font-rubik">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-[380px] overflow-hidden border border-[#D9DBE9] flex flex-col max-h-[90vh]">
+      {/* ── 80MM THERMAL RECEIPT MODAL (Matching PHP ReceiptComponent.vue) ──── */}
+      {receiptOrder && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-[380px] w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             
-            {/* Receipt Modal Controls */}
-            <div className="p-3 border-b border-[#EFF0F6] flex items-center justify-between gap-3 bg-white shrink-0">
-              <button
-                type="button"
-                onClick={() => setIsReceiptModalOpen(false)}
-                className="flex items-center justify-center gap-1.5 py-1.5 px-4 rounded bg-[#FB4E4E] hover:bg-red-600 text-white text-xs font-medium transition"
+            {/* Receipt Action Bar (Hidden during window.print) */}
+            <div className="p-3 bg-[#F7F7FC] border-b border-[#EFF0F6] flex items-center justify-between hidden-print">
+              <button 
+                onClick={() => setReceiptOrder(null)} 
+                className="flex items-center gap-1.5 py-2 px-4 rounded-xl bg-[#FB4E4E] hover:bg-red-600 text-white text-xs font-bold transition-colors"
               >
+                <X className="w-4 h-4" />
                 Close
               </button>
-              <button
-                type="button"
-                onClick={() => window.print()}
-                className="flex items-center justify-center gap-1.5 py-1.5 px-4 rounded bg-[#1AB759] hover:bg-emerald-600 text-white text-xs font-medium transition"
+              <button 
+                onClick={handlePrintReceipt}
+                className="flex items-center gap-1.5 py-2 px-5 rounded-xl bg-[#1AB759] hover:bg-green-600 text-white text-xs font-bold transition-colors shadow-sm"
               >
-                <Printer className="w-3.5 h-3.5" />
-                <span>Print Invoice</span>
+                <Printer className="w-4 h-4" />
+                Print Invoice
               </button>
             </div>
 
-            {/* Printable Thermal Receipt Container */}
-            <div className="p-5 overflow-y-auto custom-scrollbar font-mono text-xs text-[#14142B] bg-white space-y-3">
+            {/* 80mm Thermal Printable Container */}
+            <div id="thermal-receipt" className="p-5 font-mono text-black text-xs leading-relaxed select-text bg-white">
               
-              {/* Header */}
+              {/* Store Header: Store Name on Top */}
               <div className="text-center pb-3 border-b border-dashed border-gray-400">
-                <h2 className="text-lg font-bold text-[#14142B] uppercase tracking-wide">
-                  {completedOrder.storeName}
-                </h2>
-                <p className="text-[11px] text-[#6E7191]">{completedOrder.storeAddress}</p>
-                {completedOrder.storePhone && (
-                  <p className="text-[11px] text-[#6E7191]">Tel: {completedOrder.storePhone}</p>
-                )}
+                <h2 className="text-lg font-extrabold uppercase text-black tracking-tight">{receiptOrder.storeName || "Nectar Groceries"}</h2>
+                {receiptOrder.storeAddress && <p className="text-[11px] text-gray-700 leading-tight mt-0.5">{receiptOrder.storeAddress}</p>}
+                {receiptOrder.storePhone && <p className="text-[11px] text-gray-700 leading-tight">Tel: {receiptOrder.storePhone}</p>}
+                {receiptHeaderTagline && <p className="text-[10px] text-gray-500 italic mt-0.5">{receiptHeaderTagline}</p>}
               </div>
 
-              {/* Order Info */}
-              <div className="text-[11px] space-y-1">
-                <div className="flex justify-between font-bold">
-                  <span>ORDER #{completedOrder.orderSerialNo}</span>
-                  <span className="uppercase text-emerald-700 bg-emerald-50 px-1.5 rounded">{completedOrder.orderType}</span>
-                </div>
-                <div className="flex justify-between text-[#6E7191]">
-                  <span>Date: {completedOrder.date}</span>
-                  <span>Time: {completedOrder.time}</span>
-                </div>
-                <div className="flex justify-between text-[#6E7191]">
-                  <span>Customer: {completedOrder.customer}</span>
-                  {completedOrder.phone && <span>{completedOrder.phone}</span>}
-                </div>
-                {completedOrder.address && (
-                  <div className="text-[10px] text-[#6E7191] border-t border-dashed border-gray-200 pt-1">
-                    <span>Delivery: {completedOrder.address}</span>
-                  </div>
-                )}
-              </div>
+              {/* Order Meta */}
+              <table className="w-full my-2 text-[11px]">
+                <tbody>
+                  <tr>
+                    <td className="text-left py-0.5 font-bold">ORDER #{receiptOrder.orderSerialNo}</td>
+                    <td className="text-right py-0.5">{receiptOrder.orderTime}</td>
+                  </tr>
+                  <tr>
+                    <td className="text-left py-0.5 text-gray-600">{receiptOrder.orderDate}</td>
+                    <td className="text-right py-0.5 text-gray-600">Cashier: Admin</td>
+                  </tr>
+                  <tr>
+                    <td colSpan={2} className="text-left py-0.5 text-gray-800 font-medium">Customer: {receiptOrder.customerName}</td>
+                  </tr>
+                  {receiptOrder.orderType === "delivery" && receiptOrder.deliveryAddress && (
+                    <tr>
+                      <td colSpan={2} className="text-left py-0.5 text-gray-700">Delivery: {receiptOrder.deliveryAddress}</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
 
               {/* Items Table */}
-              <div className="border-t border-b border-dashed border-gray-400 py-2">
-                <table className="w-full text-left text-[11px]">
-                  <thead>
-                    <tr className="border-b border-dashed border-gray-300 text-[#6E7191]">
-                      <th className="py-1 text-left w-6">Qty</th>
-                      <th className="py-1 text-left">Item Description</th>
-                      <th className="py-1 text-right">Price</th>
+              <table className="w-full border-t border-b border-dashed border-gray-400 my-2">
+                <thead>
+                  <tr className="border-b border-dashed border-gray-400">
+                    <th className="py-1 text-left font-bold text-[10px] uppercase w-7">QTY</th>
+                    <th className="py-1 text-left font-bold text-[10px] uppercase">ITEM DESCRIPTION</th>
+                    <th className="py-1 text-right font-bold text-[10px] uppercase">PRICE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {receiptOrder.items?.map((item: any, idx: number) => (
+                    <tr key={idx} className="align-top border-b border-gray-100 last:border-none">
+                      <td className="py-1 text-left font-bold">{item.quantity}</td>
+                      <td className="py-1 text-left capitalize">
+                        <div>{item.name}</div>
+                        {item.variationName && <div className="text-[10px] text-gray-500">{item.variationName}</div>}
+                      </td>
+                      <td className="py-1 text-right font-bold">₦{(item.price * item.quantity).toLocaleString()}</td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-dashed divide-gray-200">
-                    {completedOrder.items.map((item: any, idx: number) => (
-                      <tr key={idx}>
-                        <td className="py-1 align-top">{item.quantity}</td>
-                        <td className="py-1 pr-1">
-                          <span className="font-semibold block">{item.name}</span>
-                        </td>
-                        <td className="py-1 text-right font-medium align-top">
-                          {formatPrice(item.price * item.quantity)}
-                        </td>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* Totals Breakdown */}
+              <div className="py-1 pl-6">
+                <table className="w-full text-[11px]">
+                  <tbody>
+                    <tr>
+                      <td className="text-left py-0.5 uppercase">Subtotal:</td>
+                      <td className="text-right py-0.5">₦{Number(receiptOrder.subtotal || 0).toLocaleString()}</td>
+                    </tr>
+                    {receiptOrder.discountAmount > 0 && (
+                      <tr>
+                        <td className="text-left py-0.5 uppercase text-green-700">Discount:</td>
+                        <td className="text-right py-0.5 text-green-700">-₦{Number(receiptOrder.discountAmount).toLocaleString()}</td>
                       </tr>
-                    ))}
+                    )}
+                    {receiptOrder.orderType === "delivery" && (
+                      <tr>
+                        <td className="text-left py-0.5 uppercase">Delivery Charge:</td>
+                        <td className="text-right py-0.5">₦{Number(receiptOrder.deliveryCharge || 0).toLocaleString()}</td>
+                      </tr>
+                    )}
+                    <tr className="border-t border-dashed border-gray-400 font-extrabold text-xs">
+                      <td className="text-left py-1 uppercase">TOTAL:</td>
+                      <td className="text-right py-1">₦{Number(receiptOrder.totalAmount || 0).toLocaleString()}</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
 
-              {/* Totals Summary */}
-              <div className="space-y-1 text-[11px] pt-1">
-                <div className="flex justify-between">
-                  <span>Subtotal:</span>
-                  <span>{formatPrice(completedOrder.subtotal)}</span>
+              {/* Payment & Order Type Details */}
+              <div className="border-t border-b border-dashed border-gray-400 py-2 my-1 text-[11px]">
+                <div className="flex justify-between py-0.5">
+                  <span>ORDER TYPE:</span>
+                  <span className="font-bold">{receiptOrder.orderType === "delivery" ? "DELIVERY" : "TAKEAWAY / PICKUP"}</span>
                 </div>
-
-                {completedOrder.discount > 0 && (
-                  <div className="flex justify-between text-rose-600">
-                    <span>Discount:</span>
-                    <span>-{formatPrice(completedOrder.discount)}</span>
-                  </div>
-                )}
-
-                {completedOrder.deliveryFee > 0 && (
-                  <div className="flex justify-between text-emerald-700">
-                    <span>Delivery Fee:</span>
-                    <span>+{formatPrice(completedOrder.deliveryFee)}</span>
-                  </div>
-                )}
-
-                <div className="flex justify-between text-sm font-bold border-t border-dashed border-gray-400 pt-1.5 text-[#14142B]">
-                  <span>TOTAL PAYABLE:</span>
-                  <span>{formatPrice(completedOrder.total)}</span>
+                <div className="flex justify-between py-0.5">
+                  <span>PAYMENT TYPE:</span>
+                  <span className="font-bold uppercase">
+                    {receiptOrder.posPaymentMethod === "mobile_banking" ? "TRANSFER" : (receiptOrder.posPaymentMethod || "CASH")}
+                  </span>
                 </div>
-              </div>
-
-              {/* Payment Details */}
-              <div className="border-t border-dashed border-gray-400 pt-2 text-[11px] space-y-0.5">
-                <div className="flex justify-between font-bold">
-                  <span>PAYMENT METHOD:</span>
-                  <span className="uppercase text-primary">{completedOrder.paymentMethod}</span>
-                </div>
-                {completedOrder.paymentMethod === "cash" && (
+                {receiptOrder.posPaymentMethod === "cash" && (
                   <>
-                    <div className="flex justify-between text-[#6E7191]">
-                      <span>Cash Received:</span>
-                      <span>{formatPrice(completedOrder.posReceivedAmount)}</span>
+                    <div className="flex justify-between py-0.5">
+                      <span>CASH RECEIVED:</span>
+                      <span>₦{Number(receiptOrder.posReceivedAmount || receiptOrder.totalAmount).toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between font-semibold text-emerald-700">
-                      <span>Change Returned:</span>
-                      <span>{formatPrice(completedOrder.posChangeAmount)}</span>
+                    <div className="flex justify-between py-0.5 font-bold">
+                      <span>CHANGE:</span>
+                      <span>₦{Number(receiptOrder.cashBackAmount || 0).toLocaleString()}</span>
                     </div>
                   </>
                 )}
-                {completedOrder.paymentReference && (
-                  <div className="text-[10px] text-[#6E7191]">
-                    <span>Reference: {completedOrder.paymentReference}</span>
+                {receiptOrder.posPaymentMethod === "card" && receiptOrder.posPaymentNote && (
+                  <div className="flex justify-between py-0.5">
+                    <span>CARD REF / LAST 4:</span>
+                    <span className="font-bold">{receiptOrder.posPaymentNote}</span>
+                  </div>
+                )}
+                {receiptOrder.posPaymentMethod === "mobile_banking" && receiptOrder.posPaymentNote && (
+                  <div className="flex justify-between py-0.5">
+                    <span>TRANSACTION REF:</span>
+                    <span className="font-bold">{receiptOrder.posPaymentNote}</span>
                   </div>
                 )}
               </div>
 
-              {/* Configurable Powered by Nectar Signature */}
-              <div className="text-center pt-3 border-t border-dashed border-gray-400 space-y-1">
-                <p className="text-[10px] text-[#6E7191]">Thank you for your patronage!</p>
-                {receiptPoweredBy && receiptPoweredBy.trim() !== "" && (
-                  <p className="text-[9px] font-semibold text-[#A0A3BD] tracking-wider uppercase">
-                    {receiptPoweredBy}
-                  </p>
-                )}
+              {/* Thank you note */}
+              <div className="text-center pt-2.5 pb-2 text-[11px] text-gray-700">
+                <p className="font-semibold">Thank you for your patronage!</p>
+                <p>Please come again.</p>
+              </div>
+
+              {/* Footer Signature: Editable by Super Admin */}
+              <div className="pt-2 text-center border-t border-dashed border-gray-300">
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                  {receiptFooterSignature || "Powered by Nectar App"}
+                </p>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Global CSS for standard 80mm thermal receipt printing */}
+      <style jsx global>{`
+        @media print {
+          body * {
+            visibility: hidden !important;
+          }
+          #thermal-receipt, #thermal-receipt * {
+            visibility: visible !important;
+          }
+          #thermal-receipt {
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 80mm !important;
+            max-width: 80mm !important;
+            margin: 0 !important;
+            padding: 5mm 3mm !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            font-family: 'Courier New', Courier, monospace !important;
+            font-size: 11px !important;
+            box-shadow: none !important;
+            border: none !important;
+          }
+          .hidden-print {
+            display: none !important;
+          }
+        }
+      `}</style>
 
     </div>
   );

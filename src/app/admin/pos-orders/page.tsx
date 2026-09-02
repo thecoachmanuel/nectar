@@ -1,28 +1,33 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
 import { 
   Search, 
   Filter, 
-  Download,
+  Download, 
+  Tag, 
+  ShoppingBag, 
+  Store, 
+  Loader2,
   Eye,
   Printer,
-  Loader2,
-  Store,
-  Tag,
-  ShoppingBag
+  X,
+  CreditCard,
+  Banknote,
+  Smartphone,
+  FileText
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
-import { formatPrice } from "@/lib/formatters";
-import Link from "next/link";
 import ExcelJS from "exceljs";
 import { toast } from "sonner";
+import { formatPrice } from "@/lib/formatters";
 
 export default function PosOrdersPage() {
   const [showFilter, setShowFilter] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStoreFilter, setSelectedStoreFilter] = useState<string>("all");
-  const [selectedPaymentFilter, setSelectedPaymentFilter] = useState<string>("all");
+  const [selectedStoreFilter, setSelectedStoreFilter] = useState("all");
+  const [selectedPaymentFilter, setSelectedPaymentFilter] = useState("all");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
@@ -31,7 +36,12 @@ export default function PosOrdersPage() {
   const [stores, setStores] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load stores list
+  // Thermal receipt modal state
+  const [receiptOrder, setReceiptOrder] = useState<any | null>(null);
+  const [receiptFooterSignature, setReceiptFooterSignature] = useState("Powered by Nectar App");
+  const [receiptHeaderTagline, setReceiptHeaderTagline] = useState("");
+
+  // Load stores and receipt settings list
   useEffect(() => {
     fetch("/api/admin/stores")
       .then(res => res.json())
@@ -39,6 +49,17 @@ export default function PosOrdersPage() {
         if (data.status) {
           setStores(data.data || data.stores || []);
         }
+      })
+      .catch(() => {});
+
+    fetch("/api/settings")
+      .then(res => res.json())
+      .then(sData => {
+        const items = sData.data || [];
+        const footerSig = items.find((s: any) => s.key === "receipt_footer_signature");
+        const tagline = items.find((s: any) => s.key === "receipt_header_tagline");
+        if (footerSig && footerSig.payload) setReceiptFooterSignature(footerSig.payload);
+        if (tagline && tagline.payload) setReceiptHeaderTagline(tagline.payload);
       })
       .catch(() => {});
   }, []);
@@ -56,9 +77,6 @@ export default function PosOrdersPage() {
       if (effectiveStore) {
         url += `&storeId=${effectiveStore}`;
       }
-      if (selectedPaymentFilter !== "all") {
-        url += `&paymentMethod=${selectedPaymentFilter}`;
-      }
 
       const res = await fetch(url);
       const data = await res.json();
@@ -75,9 +93,9 @@ export default function PosOrdersPage() {
 
   useEffect(() => {
     fetchOrders();
-  }, [activeAdminStoreId, selectedStoreFilter, selectedPaymentFilter]);
+  }, [activeAdminStoreId, selectedStoreFilter]);
 
-  // Client-side filtering for search & dates
+  // Client-side filtering for search, payment method & dates
   const filteredOrders = useMemo(() => {
     return orders.filter(o => {
       // Search
@@ -87,10 +105,11 @@ export default function PosOrdersPage() {
         (o.customerName && o.customerName.toLowerCase().includes(q)) ||
         (o.customerPhone && o.customerPhone.toLowerCase().includes(q));
 
-      // Payment filter
+      // Payment Method filter
       let matchesPayment = true;
       if (selectedPaymentFilter !== "all") {
-        matchesPayment = o.paymentMethod === selectedPaymentFilter;
+        const pMethod = String(o.posPaymentMethod || o.paymentMethod || "cash").toLowerCase();
+        matchesPayment = pMethod === selectedPaymentFilter.toLowerCase();
       }
 
       // Date Range
@@ -108,7 +127,7 @@ export default function PosOrdersPage() {
     });
   }, [orders, searchQuery, selectedPaymentFilter, fromDate, toDate]);
 
-  // Export to Excel with full payment method & discount columns
+  // Export to Excel with payment method & discount column
   const exportToExcel = async () => {
     if (filteredOrders.length === 0) {
       toast.error("No POS orders to export");
@@ -125,12 +144,12 @@ export default function PosOrdersPage() {
         { header: "Customer Name", key: "customerName", width: 22 },
         { header: "Customer Phone", key: "customerPhone", width: 18 },
         { header: "Store Context", key: "store", width: 22 },
-        { header: "Payment Method", key: "paymentMethod", width: 16 },
-        { header: "Payment Ref / Note", key: "paymentReference", width: 22 },
         { header: "Items Count", key: "itemsCount", width: 14 },
         { header: "Subtotal", key: "subtotal", width: 16 },
         { header: "Discount Amount", key: "discount", width: 16 },
         { header: "Total Paid", key: "totalAmount", width: 16 },
+        { header: "Payment Method", key: "paymentMethod", width: 16 },
+        { header: "Payment Ref/Note", key: "paymentNote", width: 20 },
         { header: "Order Type", key: "orderType", width: 14 },
         { header: "Status", key: "status", width: 14 },
       ];
@@ -145,12 +164,12 @@ export default function PosOrdersPage() {
           customerName: o.customerName || "Walk-in Customer",
           customerPhone: o.customerPhone || "—",
           store: storeName,
-          paymentMethod: (o.paymentMethod || "cash").toUpperCase(),
-          paymentReference: o.paymentReference || "—",
           itemsCount: o.items?.reduce((sum: number, it: any) => sum + (it.quantity || 1), 0) || o.items?.length || 0,
           subtotal: formatPrice(o.subtotal || o.totalAmount || 0),
           discount: discountVal > 0 ? `-${formatPrice(discountVal)}` : "₦0.00",
           totalAmount: formatPrice(o.totalAmount || 0),
+          paymentMethod: String(o.posPaymentMethod || o.paymentMethod || "CASH").toUpperCase(),
+          paymentNote: o.posPaymentNote || "—",
           orderType: o.orderType || "takeaway",
           status: o.orderStatus || "accepted",
         });
@@ -177,6 +196,12 @@ export default function PosOrdersPage() {
   // KPI Calculations
   const totalRevenue = filteredOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
   const totalDiscountsGiven = filteredOrders.reduce((acc, o) => acc + (Number(o.discountAmount || o.couponDiscount || 0)), 0);
+  const cashRevenue = filteredOrders
+    .filter(o => (o.posPaymentMethod || o.paymentMethod || "cash").toLowerCase() === "cash")
+    .reduce((acc, o) => acc + (o.totalAmount || 0), 0);
+  const cardRevenue = filteredOrders
+    .filter(o => (o.posPaymentMethod || o.paymentMethod) && ["card", "mobile_banking"].includes(String(o.posPaymentMethod || o.paymentMethod).toLowerCase()))
+    .reduce((acc, o) => acc + (o.totalAmount || 0), 0);
 
   return (
     <div className="pb-16 font-sans">
@@ -193,7 +218,7 @@ export default function PosOrdersPage() {
               </span>
             </h1>
             <p className="text-xs text-[#6E7191] mt-0.5">
-              Live records of in-store cash, POS, and counter sales across branches
+              Live records of in-store cash, POS card, and counter sales across branches
             </p>
           </div>
           
@@ -205,7 +230,7 @@ export default function PosOrdersPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search Order ID or Name..." 
-                className="h-10 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-xs font-medium focus:outline-none focus:border-primary w-full sm:w-56 transition-colors text-[#14142B]"
+                className="h-10 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-xs font-medium focus:outline-none focus:border-primary w-full sm:w-52 transition-colors text-[#14142B]"
               />
               <Search className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
             </div>
@@ -215,7 +240,7 @@ export default function PosOrdersPage() {
               <select
                 value={selectedStoreFilter}
                 onChange={(e) => setSelectedStoreFilter(e.target.value)}
-                className="h-10 pl-8 pr-8 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-xs font-semibold focus:outline-none focus:border-primary cursor-pointer text-[#14142B] appearance-none"
+                className="h-10 pl-8 pr-7 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-xs font-semibold focus:outline-none focus:border-primary cursor-pointer text-[#14142B] appearance-none"
               >
                 <option value="all">All Stores</option>
                 {stores.map(s => (
@@ -230,14 +255,15 @@ export default function PosOrdersPage() {
               <select
                 value={selectedPaymentFilter}
                 onChange={(e) => setSelectedPaymentFilter(e.target.value)}
-                className="h-10 px-3 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-xs font-semibold focus:outline-none focus:border-primary cursor-pointer text-[#14142B]"
+                className="h-10 pl-8 pr-7 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-xs font-semibold focus:outline-none focus:border-primary cursor-pointer text-[#14142B] appearance-none"
               >
                 <option value="all">All Payments</option>
-                <option value="cash">Cash</option>
-                <option value="card">Card</option>
-                <option value="mobile_banking">Transfer</option>
-                <option value="other">Other</option>
+                <option value="cash">💵 Cash</option>
+                <option value="card">💳 Card</option>
+                <option value="mobile_banking">📱 Transfer</option>
+                <option value="other">📝 Other</option>
               </select>
+              <Banknote className="w-3.5 h-3.5 text-[#008BBA] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
 
             {/* Filter Toggle */}
@@ -257,30 +283,28 @@ export default function PosOrdersPage() {
               className="h-10 px-4 rounded-xl bg-[#008BBA] text-white flex items-center gap-2 hover:bg-[#00749b] transition-colors shadow-sm shadow-[#008BBA]/20 font-bold text-xs"
             >
               <Download className="w-4 h-4" />
-              <span>Export Report</span>
+              <span>Export</span>
             </button>
           </div>
         </div>
 
-        {/* ── KPI Summary Strip ──────────────────────────────────────────────── */}
+        {/* ── KPI Summary Strip with Cash & Card Tracking ────────────────────── */}
         <div className="p-4 sm:px-6 bg-[#FAFAFC] border-b border-[#EFF0F6] grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div>
-            <span className="text-[11px] font-semibold text-[#6E7191] uppercase tracking-wide">Total Sales</span>
+            <span className="text-[11px] font-semibold text-[#6E7191] uppercase tracking-wide">Total POS Sales</span>
             <p className="text-lg font-extrabold text-[#14142B]">{formatPrice(totalRevenue)}</p>
           </div>
           <div>
+            <span className="text-[11px] font-semibold text-[#6E7191] uppercase tracking-wide">💵 Cash Collected</span>
+            <p className="text-lg font-extrabold text-[#16A34A]">{formatPrice(cashRevenue)}</p>
+          </div>
+          <div>
+            <span className="text-[11px] font-semibold text-[#6E7191] uppercase tracking-wide">💳 Card / Transfers</span>
+            <p className="text-lg font-extrabold text-[#7C3AED]">{formatPrice(cardRevenue)}</p>
+          </div>
+          <div>
             <span className="text-[11px] font-semibold text-[#6E7191] uppercase tracking-wide">Discounts Given</span>
-            <p className="text-lg font-extrabold text-[#1AB759]">-{formatPrice(totalDiscountsGiven)}</p>
-          </div>
-          <div>
-            <span className="text-[11px] font-semibold text-[#6E7191] uppercase tracking-wide">Total Orders</span>
-            <p className="text-lg font-extrabold text-[#14142B]">{filteredOrders.length}</p>
-          </div>
-          <div>
-            <span className="text-[11px] font-semibold text-[#6E7191] uppercase tracking-wide">Store Context</span>
-            <p className="text-sm font-bold text-primary truncate">
-              {selectedStoreFilter === "all" ? "All Stores" : (stores.find(s => s._id === selectedStoreFilter)?.name || "Active Store")}
-            </p>
+            <p className="text-lg font-extrabold text-[#FB4E4E]">-{formatPrice(totalDiscountsGiven)}</p>
           </div>
         </div>
 
@@ -293,7 +317,7 @@ export default function PosOrdersPage() {
                 type="date" 
                 value={fromDate}
                 onChange={(e) => setFromDate(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-xs font-medium focus:outline-none focus:border-primary text-[#14142B]" 
+                className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-xs font-medium focus:outline-none focus:border-primary text-[#14142B]"
               />
             </div>
             <div>
@@ -302,15 +326,15 @@ export default function PosOrdersPage() {
                 type="date" 
                 value={toDate}
                 onChange={(e) => setToDate(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-xs font-medium focus:outline-none focus:border-primary text-[#14142B]" 
+                className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-xs font-medium focus:outline-none focus:border-primary text-[#14142B]"
               />
             </div>
             <div className="flex items-end gap-2">
-              <button 
-                onClick={() => { setFromDate(""); setToDate(""); setSearchQuery(""); setSelectedPaymentFilter("all"); }}
-                className="h-10 px-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] hover:bg-gray-100 text-xs font-bold text-[#6E7191] transition-colors w-full"
+              <button
+                onClick={() => { setFromDate(""); setToDate(""); }}
+                className="h-10 px-4 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-xs font-semibold text-[#6E7191] hover:bg-gray-200 transition-colors"
               >
-                Reset Filters
+                Reset Dates
               </button>
             </div>
           </div>
@@ -324,11 +348,11 @@ export default function PosOrdersPage() {
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Order ID</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Customer</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Store Branch</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Payment</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Products</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Subtotal</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider text-green-600">Discount</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Total Paid</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Payment Method</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Date</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider text-right">Action</th>
@@ -353,9 +377,11 @@ export default function PosOrdersPage() {
                   </td>
                 </tr>
               ) : filteredOrders.map((order) => {
-                const storeName = stores.find(s => s._id === order.storeId)?.name || "Main Store";
+                const storeObj = stores.find(s => s._id === order.storeId);
+                const storeName = storeObj?.name || "Main Store";
                 const discountVal = Number(order.discountAmount || order.couponDiscount || 0);
                 const orderSubtotal = order.subtotal || (order.totalAmount + discountVal);
+                const method = String(order.posPaymentMethod || order.paymentMethod || "cash").toLowerCase();
 
                 return (
                   <tr key={order._id} className="hover:bg-[#FAFAFC] transition-colors">
@@ -380,26 +406,6 @@ export default function PosOrdersPage() {
                         <Store className="w-3 h-3 text-[#A0A3BD]" />
                         {storeName}
                       </span>
-                    </td>
-
-                    {/* Payment Method Badge */}
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        order.paymentMethod === 'cash'
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                          : order.paymentMethod === 'card'
-                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                          : order.paymentMethod === 'mobile_banking'
-                          ? 'bg-purple-50 text-purple-700 border border-purple-200'
-                          : 'bg-amber-50 text-amber-700 border border-amber-200'
-                      }`}>
-                        {order.paymentMethod || "cash"}
-                      </span>
-                      {order.paymentReference && (
-                        <span className="block text-[10px] text-[#A0A3BD] font-mono mt-0.5 max-w-[120px] truncate" title={order.paymentReference}>
-                          {order.paymentReference}
-                        </span>
-                      )}
                     </td>
 
                     {/* Products count */}
@@ -431,6 +437,39 @@ export default function PosOrdersPage() {
                       <span className="text-xs font-extrabold text-[#14142B]">{formatPrice(order.totalAmount || 0)}</span>
                     </td>
 
+                    {/* Payment Method Badge */}
+                    <td className="px-6 py-4">
+                      {method === "cash" ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-[#E0FFED] text-[#16A34A]">
+                          <Banknote className="w-3.5 h-3.5" />
+                          <span>Cash</span>
+                          {order.cashBackAmount > 0 && (
+                            <span className="text-[10px] text-gray-500 font-normal ml-0.5">
+                              (Chg: {formatPrice(order.cashBackAmount)})
+                            </span>
+                          )}
+                        </span>
+                      ) : method === "card" ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-[#F3E8FF] text-[#7C3AED]">
+                          <CreditCard className="w-3.5 h-3.5" />
+                          <span>Card</span>
+                          {order.posPaymentNote && (
+                            <span className="text-[10px] font-mono ml-0.5">({order.posPaymentNote})</span>
+                          )}
+                        </span>
+                      ) : method === "mobile_banking" ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-[#EBF3FF] text-[#2F80ED]">
+                          <Smartphone className="w-3.5 h-3.5" />
+                          <span>Transfer</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-[#F7F7FC] text-[#6E7191]">
+                          <FileText className="w-3.5 h-3.5" />
+                          <span className="capitalize">{method}</span>
+                        </span>
+                      )}
+                    </td>
+
                     {/* Date */}
                     <td className="px-6 py-4">
                       <span className="text-xs text-[#6E7191]">{new Date(order.createdAt).toLocaleString()}</span>
@@ -459,10 +498,36 @@ export default function PosOrdersPage() {
                         >
                           <Eye className="w-4 h-4" />
                         </Link>
+                        
+                        {/* Thermal Receipt Print Button */}
                         <button 
-                          onClick={() => window.open(`/order/${order._id}?print=true`, '_blank')} 
+                          onClick={() => {
+                            setReceiptOrder({
+                              orderSerialNo: order.orderSerialNo,
+                              id: order._id,
+                              orderDate: new Date(order.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
+                              orderTime: new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                              storeName: storeName,
+                              storeAddress: storeObj?.address || "",
+                              storePhone: storeObj?.phone || "",
+                              customerName: order.customerName || "Walk-in Customer",
+                              customerPhone: order.customerPhone || "",
+                              orderType: order.orderType || "takeaway",
+                              deliveryAddress: order.deliveryAddress?.address || (typeof order.deliveryAddress === "string" ? order.deliveryAddress : ""),
+                              items: order.items || [],
+                              subtotal: orderSubtotal,
+                              discountAmount: discountVal,
+                              deliveryCharge: order.deliveryCharge || 0,
+                              totalAmount: order.totalAmount,
+                              posPaymentMethod: method,
+                              posReceivedAmount: order.posReceivedAmount,
+                              cashBackAmount: order.cashBackAmount,
+                              posPaymentNote: order.posPaymentNote,
+                              token: order.notes?.replace("Token No: ", "") || ""
+                            });
+                          }} 
                           className="w-8 h-8 rounded-xl bg-[#F7F7FC] text-[#14142B] flex items-center justify-center hover:bg-gray-200 transition-colors" 
-                          title="Print Receipt"
+                          title="Print Thermal Receipt"
                         >
                           <Printer className="w-4 h-4" />
                         </button>
@@ -482,6 +547,190 @@ export default function PosOrdersPage() {
         </div>
 
       </div>
+
+      {/* ── 80MM THERMAL RECEIPT MODAL ──────────────────────────────────────── */}
+      {receiptOrder && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-[380px] w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            
+            {/* Top Action Bar */}
+            <div className="p-3 bg-[#F7F7FC] border-b border-[#EFF0F6] flex items-center justify-between hidden-print">
+              <button 
+                onClick={() => setReceiptOrder(null)} 
+                className="flex items-center gap-1.5 py-2 px-4 rounded-xl bg-[#FB4E4E] hover:bg-red-600 text-white text-xs font-bold transition-colors"
+              >
+                <X className="w-4 h-4" />
+                Close
+              </button>
+              <button 
+                onClick={() => window.print()}
+                className="flex items-center gap-1.5 py-2 px-5 rounded-xl bg-[#1AB759] hover:bg-green-600 text-white text-xs font-bold transition-colors shadow-sm"
+              >
+                <Printer className="w-4 h-4" />
+                Print Invoice
+              </button>
+            </div>
+
+            {/* 80mm Thermal Receipt Content */}
+            <div id="thermal-receipt" className="p-5 font-mono text-black text-xs leading-relaxed select-text bg-white">
+              <div className="text-center pb-3 border-b border-dashed border-gray-400">
+                <h2 className="text-lg font-extrabold uppercase text-black tracking-tight">{receiptOrder.storeName || "Nectar Groceries"}</h2>
+                {receiptOrder.storeAddress && <p className="text-[11px] text-gray-700 leading-tight mt-0.5">{receiptOrder.storeAddress}</p>}
+                {receiptOrder.storePhone && <p className="text-[11px] text-gray-700 leading-tight">Tel: {receiptOrder.storePhone}</p>}
+                {receiptHeaderTagline && <p className="text-[10px] text-gray-500 italic mt-0.5">{receiptHeaderTagline}</p>}
+              </div>
+
+              <table className="w-full my-2 text-[11px]">
+                <tbody>
+                  <tr>
+                    <td className="text-left py-0.5 font-bold">ORDER #{receiptOrder.orderSerialNo}</td>
+                    <td className="text-right py-0.5">{receiptOrder.orderTime}</td>
+                  </tr>
+                  <tr>
+                    <td className="text-left py-0.5 text-gray-600">{receiptOrder.orderDate}</td>
+                    <td className="text-right py-0.5 text-gray-600">Cashier: Admin</td>
+                  </tr>
+                  <tr>
+                    <td colSpan={2} className="text-left py-0.5 text-gray-800 font-medium">Customer: {receiptOrder.customerName}</td>
+                  </tr>
+                  {receiptOrder.orderType === "delivery" && receiptOrder.deliveryAddress && (
+                    <tr>
+                      <td colSpan={2} className="text-left py-0.5 text-gray-700">Delivery: {receiptOrder.deliveryAddress}</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+
+              <table className="w-full border-t border-b border-dashed border-gray-400 my-2">
+                <thead>
+                  <tr className="border-b border-dashed border-gray-400">
+                    <th className="py-1 text-left font-bold text-[10px] uppercase w-7">QTY</th>
+                    <th className="py-1 text-left font-bold text-[10px] uppercase">ITEM DESCRIPTION</th>
+                    <th className="py-1 text-right font-bold text-[10px] uppercase">PRICE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {receiptOrder.items?.map((item: any, idx: number) => (
+                    <tr key={idx} className="align-top border-b border-gray-100 last:border-none">
+                      <td className="py-1 text-left font-bold">{item.quantity}</td>
+                      <td className="py-1 text-left capitalize">
+                        <div>{item.name}</div>
+                        {item.variationName && <div className="text-[10px] text-gray-500">{item.variationName}</div>}
+                      </td>
+                      <td className="py-1 text-right font-bold">₦{(item.price * item.quantity).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <div className="py-1 pl-6">
+                <table className="w-full text-[11px]">
+                  <tbody>
+                    <tr>
+                      <td className="text-left py-0.5 uppercase">Subtotal:</td>
+                      <td className="text-right py-0.5">₦{Number(receiptOrder.subtotal || 0).toLocaleString()}</td>
+                    </tr>
+                    {receiptOrder.discountAmount > 0 && (
+                      <tr>
+                        <td className="text-left py-0.5 uppercase text-green-700">Discount:</td>
+                        <td className="text-right py-0.5 text-green-700">-₦{Number(receiptOrder.discountAmount).toLocaleString()}</td>
+                      </tr>
+                    )}
+                    {receiptOrder.orderType === "delivery" && (
+                      <tr>
+                        <td className="text-left py-0.5 uppercase">Delivery Charge:</td>
+                        <td className="text-right py-0.5">₦{Number(receiptOrder.deliveryCharge || 0).toLocaleString()}</td>
+                      </tr>
+                    )}
+                    <tr className="border-t border-dashed border-gray-400 font-extrabold text-xs">
+                      <td className="text-left py-1 uppercase">TOTAL:</td>
+                      <td className="text-right py-1">₦{Number(receiptOrder.totalAmount || 0).toLocaleString()}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="border-t border-b border-dashed border-gray-400 py-2 my-1 text-[11px]">
+                <div className="flex justify-between py-0.5">
+                  <span>ORDER TYPE:</span>
+                  <span className="font-bold">{receiptOrder.orderType === "delivery" ? "DELIVERY" : "TAKEAWAY / PICKUP"}</span>
+                </div>
+                <div className="flex justify-between py-0.5">
+                  <span>PAYMENT METHOD:</span>
+                  <span className="font-bold uppercase">
+                    {receiptOrder.posPaymentMethod === "mobile_banking" ? "TRANSFER" : (receiptOrder.posPaymentMethod || "CASH")}
+                  </span>
+                </div>
+                {receiptOrder.posPaymentMethod === "cash" && (
+                  <>
+                    <div className="flex justify-between py-0.5">
+                      <span>CASH RECEIVED:</span>
+                      <span>₦{Number(receiptOrder.posReceivedAmount || receiptOrder.totalAmount).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between py-0.5 font-bold">
+                      <span>CHANGE:</span>
+                      <span>₦{Number(receiptOrder.cashBackAmount || 0).toLocaleString()}</span>
+                    </div>
+                  </>
+                )}
+                {receiptOrder.posPaymentMethod === "card" && receiptOrder.posPaymentNote && (
+                  <div className="flex justify-between py-0.5">
+                    <span>CARD REF / LAST 4:</span>
+                    <span className="font-bold">{receiptOrder.posPaymentNote}</span>
+                  </div>
+                )}
+                {receiptOrder.posPaymentMethod === "mobile_banking" && receiptOrder.posPaymentNote && (
+                  <div className="flex justify-between py-0.5">
+                    <span>TRANSACTION REF:</span>
+                    <span className="font-bold">{receiptOrder.posPaymentNote}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="text-center pt-2.5 pb-2 text-[11px] text-gray-700">
+                <p className="font-semibold">Thank you for shopping with us!</p>
+                <p>Please come again.</p>
+              </div>
+
+              <div className="pt-2 text-center border-t border-dashed border-gray-300">
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                  {receiptFooterSignature || "Powered by Nectar App"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Global Thermal Print Stylesheet */}
+      <style jsx global>{`
+        @media print {
+          body * {
+            visibility: hidden !important;
+          }
+          #thermal-receipt, #thermal-receipt * {
+            visibility: visible !important;
+          }
+          #thermal-receipt {
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 80mm !important;
+            max-width: 80mm !important;
+            margin: 0 !important;
+            padding: 5mm 3mm !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            font-family: 'Courier New', Courier, monospace !important;
+            font-size: 11px !important;
+            box-shadow: none !important;
+            border: none !important;
+          }
+          .hidden-print {
+            display: none !important;
+          }
+        }
+      `}</style>
 
     </div>
   );

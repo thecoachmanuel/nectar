@@ -29,6 +29,7 @@ export interface IStore extends Document {
   commissionRate: number;
   deliveryRadius: number;
   deliveryFee?: number;
+  fixedDeliveryFee?: number;
   baseDeliveryFee?: number;
   feePerKm?: number;
   freeDeliveryThreshold?: number;
@@ -71,12 +72,13 @@ const StoreSchema = new Schema<IStore>(
     commissionRate: { type: Number, default: 0 },
     deliveryRadius: { type: Number, default: 10 },
     deliveryFee: { type: Number, default: 0 },
-    baseDeliveryFee: { type: Number },
-    feePerKm: { type: Number },
-    freeDeliveryThreshold: { type: Number },
-    largeOrderThreshold: { type: Number },
-    largeOrderFeePercent: { type: Number },
-    orderValueFeePercent: { type: Number },
+    fixedDeliveryFee: { type: Number, default: 0 },
+    baseDeliveryFee: { type: Number, default: 0 },
+    feePerKm: { type: Number, default: 0 },
+    freeDeliveryThreshold: { type: Number, default: 0 },
+    largeOrderThreshold: { type: Number, default: 0 },
+    largeOrderFeePercent: { type: Number, default: 0 },
+    orderValueFeePercent: { type: Number, default: 0 },
     password: { type: String },
     timeSlots: [TimeSlotSchema],
   },

@@ -28,6 +28,7 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
     longitude: "",
     deliveryRadius: 5,
     deliveryFee: 0,
+    fixedDeliveryFee: 0,
     baseDeliveryFee: 0,
     feePerKm: 0,
     freeDeliveryThreshold: 0,
@@ -69,6 +70,7 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
         longitude: storeToEdit.longitude || "",
         deliveryRadius: storeToEdit.deliveryRadius || 5,
         deliveryFee: storeToEdit.deliveryFee || 0,
+        fixedDeliveryFee: storeToEdit.fixedDeliveryFee || 0,
         baseDeliveryFee: storeToEdit.baseDeliveryFee || 0,
         feePerKm: storeToEdit.feePerKm || 0,
         freeDeliveryThreshold: storeToEdit.freeDeliveryThreshold || 0,
@@ -106,6 +108,7 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
         longitude: "",
         deliveryRadius: 5,
         deliveryFee: 0,
+        fixedDeliveryFee: 0,
         baseDeliveryFee: 0,
         feePerKm: 0,
         freeDeliveryThreshold: 0,
@@ -340,6 +343,17 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-[#14142B] mb-1">Fixed Delivery Fee (₦)</label>
+                  <input 
+                    type="number" 
+                    placeholder="e.g. 1500 (Flat fee)" 
+                    value={formData.fixedDeliveryFee || ""} 
+                    onChange={(e) => setFormData({ ...formData, fixedDeliveryFee: Number(e.target.value) })} 
+                    className="w-full px-3 py-2 border rounded-xl bg-white text-xs outline-none focus:border-primary" 
+                  />
+                </div>
+
                 <div>
                   <label className="block text-xs font-semibold text-[#14142B] mb-1">Base Delivery Fee (₦)</label>
                   <input 

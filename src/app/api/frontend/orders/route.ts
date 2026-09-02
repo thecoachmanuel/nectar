@@ -53,6 +53,10 @@ export async function POST(req: Request) {
       deliveryAddress,
       deliveryTimeSlot,
       paymentMethod,
+      posPaymentMethod,
+      posReceivedAmount,
+      cashBackAmount,
+      posPaymentNote,
       notes,
       isPos
     } = body;
@@ -105,16 +109,7 @@ export async function POST(req: Request) {
     items.forEach((item: any) => {
       const sId = posStoreId || item.storeId || "admin";
       if (!storeGroups[sId]) storeGroups[sId] = [];
-      const itemPrice = Number(item.price || 0);
-      const itemQty = Number(item.quantity || 1);
-      const calculatedTotal = Number(item.itemTotal) || (itemPrice * itemQty);
-      storeGroups[sId].push({ 
-        ...item, 
-        price: itemPrice,
-        quantity: itemQty,
-        itemTotal: calculatedTotal,
-        storeId: sId 
-      });
+      storeGroups[sId].push({ ...item, storeId: sId });
     });
 
     const storeIds = Object.keys(storeGroups);
@@ -202,15 +197,14 @@ export async function POST(req: Request) {
         totalAmount: groupTotal,
         couponCode: groupCouponCode,
         couponDiscount: groupDiscount,
-        deliveryAddress: orderType === "delivery" 
-          ? (typeof deliveryAddress === "string" ? { address: deliveryAddress } : deliveryAddress) 
-          : undefined,
+        deliveryAddress: orderType === "delivery" ? deliveryAddress : undefined,
         deliveryTimeSlot,
-        paymentMethod: paymentMethod || (isPos ? "cash" : "cash_on_delivery"),
-        paymentStatus: (isPos || paymentMethod === "wallet") ? "paid" : (body.paymentStatus || "unpaid"),
-        paymentReference: body.paymentReference || undefined,
-        posReceivedAmount: body.posReceivedAmount ? Number(body.posReceivedAmount) : undefined,
-        posChangeAmount: body.posChangeAmount ? Number(body.posChangeAmount) : undefined,
+        paymentMethod: paymentMethod || (isPos ? (posPaymentMethod || "cash") : "cash_on_delivery"),
+        paymentStatus: paymentMethod === "wallet" || isPos ? "paid" : "unpaid",
+        posPaymentMethod: posPaymentMethod || (isPos ? (paymentMethod || "cash") : undefined),
+        posReceivedAmount: posReceivedAmount !== undefined ? Number(posReceivedAmount) : undefined,
+        cashBackAmount: cashBackAmount !== undefined ? Number(cashBackAmount) : undefined,
+        posPaymentNote: posPaymentNote || undefined,
         orderStatus: isPos ? "accepted" : "pending",
         statusTimeline: [
           { status: isPos ? "accepted" : "pending", timestamp: new Date(), note: isPos ? "POS Order placed" : "Order placed by customer" }

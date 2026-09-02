@@ -58,7 +58,7 @@ export default function SettingsPage() {
       // Map all keys in formData to settings with correct groups
       const allSettings: SettingItem[] = Object.keys(formData).map(key => {
         let group = "Company";
-        if (key.startsWith("site_")) group = "Site";
+        if (key.startsWith("site_") || key.startsWith("receipt_")) group = "Site";
         if (key.startsWith("mail_")) group = "Mail";
         if (key.startsWith("pay_")) group = "Payment Gateway";
         if (key.startsWith("sms_")) group = "SMS Gateway";
@@ -310,19 +310,6 @@ export default function SettingsPage() {
                 <p className="text-xs text-[#6E7191] mt-1.5">Displayed on the Contact Us page and footer info.</p>
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-[#14142B] mb-2">POS Thermal Receipt Footer Signature</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. Powered by Nectar (leave empty to remove)"
-                  value={formData.receipt_powered_by !== undefined ? formData.receipt_powered_by : "Powered by Nectar"} 
-                  onChange={(e) => handleChange("receipt_powered_by", e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
-                />
-                <p className="text-xs text-[#6E7191] mt-1.5">
-                  Customizes or removes the bottom signature on printed POS receipts. Set to &quot;Powered by Nectar&quot; by default, or edit/clear it to match your preference.
-                </p>
-              </div>
-              <div className="md:col-span-2">
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">About Us Story / Description</label>
                 <textarea 
                   rows={5} 
@@ -379,6 +366,34 @@ export default function SettingsPage() {
                   <option value="Africa/Lagos">Africa/Lagos</option>
                   <option value="UTC">UTC</option>
                 </select>
+              </div>
+              <div className="md:col-span-2 pt-4 border-t border-[#EFF0F6]">
+                <h4 className="font-bold text-sm text-[#14142B] mb-1">POS & Thermal Receipt Configuration</h4>
+                <p className="text-xs text-[#6E7191] mb-4">Customize the receipt footer signature printed across all POS stores and terminals.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-[#14142B] mb-2">Receipt Footer Signature</label>
+                    <input 
+                      type="text" 
+                      placeholder="Powered by Nectar App"
+                      value={formData.receipt_footer_signature || ""} 
+                      onChange={(e) => handleChange("receipt_footer_signature", e.target.value)}
+                      className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                    />
+                    <p className="text-xs text-[#6E7191] mt-1.5">Printed at the bottom of customer receipts (default: Powered by Nectar App).</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#14142B] mb-2">Receipt Header Tagline (Optional)</label>
+                    <input 
+                      type="text" 
+                      placeholder="Fresh Groceries Delivered Daily"
+                      value={formData.receipt_header_tagline || ""} 
+                      onChange={(e) => handleChange("receipt_header_tagline", e.target.value)}
+                      className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
+                    />
+                    <p className="text-xs text-[#6E7191] mt-1.5">Optional subtitle shown under the store name on receipts.</p>
+                  </div>
+                </div>
               </div>
             </div>
           )}

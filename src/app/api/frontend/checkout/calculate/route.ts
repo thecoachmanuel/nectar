@@ -15,18 +15,18 @@ function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   const R = 6371; // Earth's radius in km
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
 
 export async function POST(req: Request) {
   try {
     await connectToDatabase();
-    
+
     const body = await req.json();
     const { items, deliveryAddress, orderType, couponCode, customerPhone, customerEmail, userId } = body;
 
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
         if (payload.email) resolvedEmail = payload.email;
         if (payload.phone) resolvedPhone = payload.phone;
       }
-    } catch {}
+    } catch { }
 
     let subtotal = 0;
     const storeIds = new Set<string>();
@@ -65,19 +65,23 @@ export async function POST(req: Request) {
     if (orderType === "delivery" && deliveryAddress && deliveryAddress.latitude !== undefined && deliveryAddress.longitude !== undefined) {
       const userLat = parseFloat(deliveryAddress.latitude);
       const userLng = parseFloat(deliveryAddress.longitude);
-      
-      const settings = await Setting.find({ key: { $in: [
-        "baseDeliveryFee", 
-        "feePerKm", 
-        "multiStoreExtraFee", 
-        "freeDeliveryThreshold", 
-        "company_latitude", 
-        "company_longitude",
-        "orderValueFeePercent",
-        "largeOrderThreshold",
-        "largeOrderFeePercent"
-      ] } }).lean();
-      
+
+      const settings = await Setting.find({
+        key: {
+          $in: [
+            "baseDeliveryFee",
+            "feePerKm",
+            "multiStoreExtraFee",
+            "freeDeliveryThreshold",
+            "company_latitude",
+            "company_longitude",
+            "orderValueFeePercent",
+            "largeOrderThreshold",
+            "largeOrderFeePercent"
+          ]
+        }
+      }).lean();
+
       let baseFee = 1500;
       let feePerKm = 100;
       let multiStoreExtraFee = 0;
@@ -107,7 +111,7 @@ export async function POST(req: Request) {
         let validStoresCount = 0;
         let outOfRangeStoreIds: string[] = [];
         let outOfRangeStoreNames: string[] = [];
-        
+
         let hasAdminItems = false;
         items.forEach((item: any) => {
           if (!item.storeId || item.storeId === "admin" || item.storeId === "0") {
@@ -117,7 +121,7 @@ export async function POST(req: Request) {
 
         if (storeIds.size > 0) {
           const stores = await Store.find({ _id: { $in: Array.from(storeIds) } }).lean();
-          
+
           // Apply store-level delivery terms override when single store order
           if (stores.length === 1) {
             const singleStore = stores[0];
@@ -173,9 +177,9 @@ export async function POST(req: Request) {
         }
 
         if (outOfRangeStoreIds.length > 0) {
-          return NextResponse.json({ 
-            status: false, 
-            message: "Your address is out of delivery range for one or more items.", 
+          return NextResponse.json({
+            status: false,
+            message: "Your address is out of delivery range for one or more items.",
             outOfRangeStoreIds,
             outOfRangeStoreNames
           }, { status: 400 });
@@ -209,7 +213,7 @@ export async function POST(req: Request) {
 
     if (couponCode) {
       const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), status: true });
-      
+
       if (!coupon) {
         return NextResponse.json({ status: false, message: "Invalid or inactive coupon code" }, { status: 400 });
       }
@@ -327,12 +331,12 @@ export async function POST(req: Request) {
           discountAmount = subtotal;
         }
       }
-      
+
       appliedCoupon = coupon.code;
     }
 
-    return NextResponse.json({ 
-      status: true, 
+    return NextResponse.json({
+      status: true,
       data: {
         subtotal,
         deliveryCharge: Math.round(deliveryCharge * 100) / 100,

@@ -23,7 +23,7 @@ export interface IOrder extends Document {
   customerName: string;
   customerEmail?: string;
   customerPhone: string;
-  orderType: "delivery" | "pickup" | "takeaway" | "dine_in";
+  orderType: "delivery" | "pickup" | "dine_in";
   storeId: mongoose.Types.ObjectId | string;
   deliveryBoyId?: mongoose.Types.ObjectId | string;
   items: IOrderItem[];
@@ -48,13 +48,15 @@ export interface IOrder extends Document {
   paymentMethod: string; // paystack, stripe, cod, etc.
   paymentStatus: "paid" | "unpaid" | "failed";
   paymentReference?: string;
+  posPaymentMethod?: "cash" | "card" | "mobile_banking" | "other" | string;
+  posReceivedAmount?: number;
+  cashBackAmount?: number;
+  posPaymentNote?: string;
   orderStatus: "pending" | "accepted" | "preparing" | "ready" | "out_for_delivery" | "delivered" | "canceled";
   statusTimeline: IStatusTimeline[];
   tableNumber?: string;
   notes?: string;
   isPos?: boolean;
-  posReceivedAmount?: number;
-  posChangeAmount?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -67,7 +69,7 @@ const OrderItemSchema = new Schema<IOrderItem>({
   variationName: { type: String },
   extras: [{ name: String, price: Number }],
   addons: [{ name: String, price: Number }],
-  itemTotal: { type: Number, required: true, default: 0 },
+  itemTotal: { type: Number, required: true },
 });
 
 const StatusTimelineSchema = new Schema<IStatusTimeline>({
@@ -83,7 +85,7 @@ const OrderSchema = new Schema<IOrder>(
     customerName: { type: String, required: true },
     customerEmail: { type: String },
     customerPhone: { type: String, required: true },
-    orderType: { type: String, enum: ["delivery", "pickup", "takeaway", "dine_in"], required: true },
+    orderType: { type: String, enum: ["delivery", "pickup", "dine_in"], required: true },
     storeId: { type: Schema.Types.Mixed, required: true },
     deliveryBoyId: { type: Schema.Types.Mixed },
     items: [OrderItemSchema],
@@ -112,6 +114,10 @@ const OrderSchema = new Schema<IOrder>(
       default: "unpaid",
     },
     paymentReference: { type: String },
+    posPaymentMethod: { type: String },
+    posReceivedAmount: { type: Number },
+    cashBackAmount: { type: Number },
+    posPaymentNote: { type: String },
     orderStatus: {
       type: String,
       enum: ["pending", "accepted", "preparing", "ready", "out_for_delivery", "delivered", "canceled"],
@@ -121,8 +127,6 @@ const OrderSchema = new Schema<IOrder>(
     tableNumber: { type: String },
     notes: { type: String },
     isPos: { type: Boolean, default: false },
-    posReceivedAmount: { type: Number },
-    posChangeAmount: { type: Number },
   },
   { timestamps: true }
 );
