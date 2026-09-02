@@ -7,6 +7,7 @@ import {
   ShoppingBag, 
   ShoppingCart, 
   Users, 
+  Apple,
   Utensils, 
   Calendar,
   Clock,
@@ -181,7 +182,7 @@ export default function AdminDashboardPage() {
             className="p-3 rounded-xl bg-blue-50 hover:bg-blue-100/80 border border-blue-100 text-blue-700 transition-all flex flex-col items-center text-center gap-1.5 group"
           >
             <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm text-blue-600 group-hover:scale-110 transition-transform">
-              <Utensils className="w-4 h-4" />
+              <Apple className="w-4 h-4" />
             </div>
             <span className="text-xs font-bold truncate">Products</span>
           </Link>
@@ -262,7 +263,7 @@ export default function AdminDashboardPage() {
           
           <div className="p-4 rounded-2xl flex items-center gap-3 bg-[#A953FF] shadow-md shadow-[#A953FF]/20">
             <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white shrink-0">
-              <Utensils className="w-5 h-5 text-[#A953FF]" />
+              <Apple className="w-5 h-5 text-[#A953FF]" />
             </div>
             <div>
               <h3 className="font-medium text-white text-[11px] uppercase tracking-wide">Total Products</h3>
