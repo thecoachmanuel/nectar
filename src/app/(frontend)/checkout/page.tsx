@@ -357,9 +357,9 @@ export default function CheckoutPage() {
       
       <section className="pt-6 pb-24 sm:pt-8 sm:pb-16 bg-[#f7f7fc] min-h-screen">
         <div className="container mx-auto px-4 sm:px-6 max-w-[965px]">
-          <Link href="/" className="text-xs font-medium inline-flex mb-3 items-center gap-2 text-primary hover:text-rose-600 transition-colors">
+          <Link href="/cart" className="text-xs font-medium inline-flex mb-3 items-center gap-2 text-primary hover:text-rose-600 transition-colors">
             <Undo2 className="w-4 h-4" />
-            <span>Back to Home</span>
+            <span>Back to Cart</span>
           </Link>
           
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
