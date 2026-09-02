@@ -342,13 +342,7 @@ async function connectToWhatsApp() {
         }
 
         const rawJid = msg.key?.remoteJid || "";
-        if (
-          !rawJid ||
-          rawJid.includes("status@broadcast") ||
-          rawJid.endsWith("@g.us") ||
-          rawJid.endsWith("@newsletter") ||
-          rawJid.endsWith("@lid") // LIDs are internal WhatsApp device IDs, NOT real phone numbers
-        ) {
+        if (!rawJid || rawJid.includes("status@broadcast") || rawJid.endsWith("@g.us") || rawJid.endsWith("@newsletter")) {
           continue;
         }
 
@@ -379,11 +373,6 @@ async function connectToWhatsApp() {
           }
 
           const customerPhone = cleanJid.replace(/@.+$/, "");
-          // Skip if the derived phone looks like a WhatsApp LID, not a real phone
-          const cPhoneDigits = customerPhone.replace(/\D/g, "").length;
-          if (cPhoneDigits > 13 && !customerPhone.startsWith("2340")) {
-            continue;
-          }
           const msgText = String(
             msg.message?.conversation ||
             msg.message?.extendedTextMessage?.text ||
@@ -402,14 +391,7 @@ async function connectToWhatsApp() {
           continue; // Never route outgoing (fromMe) messages through the bot handler
         }
 
-        // Extract real E.164 phone from the JID (e.g. "2348100918189@s.whatsapp.net" -> "2348100918189")
-        // Guard against any LID-like digits that slipped through (>13 digits, not a valid 2340... Nigerian format)
-        let senderPhone = cleanJid.replace(/@.+$/, "");
-        const senderDigitCount = senderPhone.replace(/\D/g, "").length;
-        if (senderDigitCount > 13 && !senderPhone.startsWith("2340")) {
-          console.warn(`⚠️ Skipping message from suspected LID / non-phone JID: ${rawJid}`);
-          continue;
-        }
+        const senderPhone = cleanJid.replace(/@.+$/, "");
         console.log(`💬 [INCOMING] From: ${cleanJid} (${senderPhone}) | Content: "${typeof messageContent === "string" ? messageContent.slice(0, 50) : "Location Pin"}" | fromMe: ${Boolean(msg.key?.fromMe)}`);
 
         // Record incoming customer message to chat history

@@ -385,7 +385,13 @@ async function handleWishlistFinalize(db, appUrl, session, text, phone, sendFn) 
   try {
     const shoppingWishlists = db.collection("shoppingwishlists");
     const customerName = session.customerName || (session.isKnownUser ? "Registered Customer" : "WhatsApp Customer");
-    const customerPhone = session.customerPhone || userService.normalizeCustomerPhone(phone);
+
+    // Use session phone (already validated in identification step); fallback to normalized phone only if it isn't a LID
+    let customerPhone = session.customerPhone;
+    if (!customerPhone) {
+      const normalized = userService.normalizeCustomerPhone(phone);
+      customerPhone = normalized !== "N/A" ? normalized : `WA:${phone}`; // WA: prefix marks LID-sourced key
+    }
 
     let userObjId = null;
     if (session.userId && ObjectId.isValid(session.userId)) {
@@ -421,13 +427,18 @@ async function handleWishlistFinalize(db, appUrl, session, text, phone, sendFn) 
         const itemsListStr = items.map((it, idx) => `${idx + 1}. *${it.name}*`).join("\n");
         const dateStr = new Date().toLocaleString("en-NG", { dateStyle: "medium", timeStyle: "short" });
 
-        const cleanCustomerPhone = String(customerPhone).replace(/^\+/, "").replace(/\D/g, "");
+        // Only build wa.me link for real phone numbers (not LID-sourced WA: keys)
+        const isRealPhone = !String(customerPhone).startsWith("WA:") && !String(customerPhone).startsWith("N/A");
+        const cleanCustomerPhone = isRealPhone ? String(customerPhone).replace(/^\+/, "").replace(/\D/g, "") : "";
+        const phoneDisplay = isRealPhone ? `+${cleanCustomerPhone}` : "Unknown (privacy-protected)";
+        const waLinkLine = isRealPhone ? `💬 *WhatsApp:* https://wa.me/${cleanCustomerPhone}\n` : "";
+
         const adminAlertText =
           `📝 *NEW CUSTOMER SHOPPING WISHLIST!* 🛒✨\n` +
           `━━━━━━━━━━━━━━━━━━━━━\n` +
           `👤 *Customer:* ${customerName}\n` +
-          `📱 *Phone:* +${cleanCustomerPhone}\n` +
-          `💬 *WhatsApp:* https://wa.me/${cleanCustomerPhone}\n` +
+          `📱 *Phone:* ${phoneDisplay}\n` +
+          waLinkLine +
           `📅 *Date:* ${dateStr}\n\n` +
           `🛍️ *ITEMS REQUESTED (${items.length}):*\n` +
           `${itemsListStr}\n` +
@@ -547,10 +558,11 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
     } catch (userErr) {
       console.warn("⚠️ User lookup failed:", userErr.message);
     }
-    // Always capture the WhatsApp-derived phone, even for unregistered guests.
-    // This ensures wishlist/order admin alerts always have a valid customer phone.
+    // Capture phone for admin alerts — skip if it's a WhatsApp LID (not a real phone)
     if (!session.customerPhone) {
-      session.customerPhone = userService.normalizeCustomerPhone(phone);
+      const normalized = userService.normalizeCustomerPhone(phone);
+      // normalizeCustomerPhone returns "N/A" for LIDs; only store a real number
+      session.customerPhone = normalized !== "N/A" ? normalized : null;
     }
     session.userIdentified = true;
   }
