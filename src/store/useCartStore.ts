@@ -27,6 +27,7 @@ export interface CartItem {
 
 interface CartState {
   items: CartItem[];
+  isCartOpen: boolean;
 
   orderType: "delivery" | "takeaway";
   couponCode: string;
@@ -35,7 +36,9 @@ interface CartState {
   selectedAddressId?: string;
 
   // Actions
-
+  openCart: () => void;
+  closeCart: () => void;
+  setCartOpen: (open: boolean) => void;
   setOrderType: (orderType: "delivery" | "takeaway") => void;
   addItem: (item: Omit<CartItem, "id" | "itemTotal">) => void;
   updateQuantity: (id: string, delta: number) => void;
@@ -56,6 +59,7 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      isCartOpen: false,
 
       orderType: "delivery",
       couponCode: "",
@@ -63,8 +67,9 @@ export const useCartStore = create<CartState>()(
       deliveryTimeSlot: "As soon as possible",
       selectedAddressId: undefined,
 
-
-
+      openCart: () => set({ isCartOpen: true }),
+      closeCart: () => set({ isCartOpen: false }),
+      setCartOpen: (open) => set({ isCartOpen: open }),
       setOrderType: (orderType) => set({ orderType }),
       setItems: (items) => set({ items }),
 

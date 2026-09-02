@@ -8,18 +8,20 @@ import MobileBottomNav from "@/components/frontend/MobileBottomNav";
 import CookiesConsent from "@/components/frontend/CookiesConsent";
 import PwaInstallPrompt from "@/components/frontend/PwaInstallPrompt";
 
+import { useCartStore } from "@/store/useCartStore";
+
 export default function FrontendLayout({ children }: { children: React.ReactNode }) {
-  const [cartOpen, setCartOpen] = useState(false);
+  const { isCartOpen, openCart, closeCart } = useCartStore();
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f7f7fc]">
-      <Navbar onCartOpen={() => setCartOpen(true)} />
+      <Navbar onCartOpen={openCart} />
       <main className="flex-1">
         {children}
       </main>
       <Footer />
-      <MobileBottomNav onCartOpen={() => setCartOpen(true)} />
-      <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} />
+      <MobileBottomNav onCartOpen={openCart} />
+      <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
       <PwaInstallPrompt />
       <CookiesConsent />
     </div>
