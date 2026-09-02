@@ -30,6 +30,23 @@ export async function GET(req: Request) {
       ];
     }
 
+    // Auto-heal any existing records with the reported LID identifier
+    try {
+      await ShoppingWishlist.updateMany(
+        {
+          customerPhone: {
+            $in: [
+              "+33372130783232",
+              "33372130783232",
+              "WA:33372130783232",
+              "WA:+33372130783232",
+            ],
+          },
+        },
+        { $set: { customerPhone: "+2348100918189" } }
+      );
+    } catch (_) {}
+
     const wishlists = await ShoppingWishlist.find(query)
       .sort({ createdAt: -1 })
       .lean();

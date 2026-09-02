@@ -376,7 +376,67 @@ async function handleWishlistFinalize(db, appUrl, session, text, phone, sendFn) 
   if (!["DONE", "1", "NO", "SUBMIT", "OK", "FINISH", "NONE", "CONFIRM"].includes(upper)) {
     additionalNotes = text.trim();
   }
+  session.wishlistAdditionalNotes = additionalNotes;
 
+  // Clean dirty LID phone if previously stored
+  if (session.customerPhone && (userService.isLid(session.customerPhone) || String(session.customerPhone).startsWith("WA:"))) {
+    session.customerPhone = null;
+  }
+
+  // Check if we already have a genuine verified customer phone
+  const isRealPhone =
+    session.customerPhone &&
+    !userService.isLid(session.customerPhone) &&
+    !String(session.customerPhone).startsWith("WA:") &&
+    session.customerPhone !== "N/A";
+
+  if (!isRealPhone) {
+    session.step = "WISHLIST_PHONE";
+    return sendFn(
+      phone,
+      `📱 *Almost done!*\n\nPlease reply with your *WhatsApp or Phone Number* so our store team can notify you as soon as your items are stocked:\n_(e.g. 08012345678)_`
+    );
+  }
+
+  return saveAndNotifyWishlist(db, appUrl, session, additionalNotes, phone, sendFn);
+}
+
+async function handleWishlistPhoneInput(db, appUrl, session, text, phone, sendFn) {
+  const upper = text.toUpperCase();
+  if (["CANCEL", "EXIT", "MENU"].includes(upper)) {
+    sessionManager.resetToMenu(phone);
+    return sendFn(phone, `Wishlist cancelled.\n\n` + buildWelcomeMenu(session));
+  }
+
+  const digits = userService.cleanDigits(text);
+  if (digits.length < 10 || digits.length > 14) {
+    return sendFn(
+      phone,
+      `⚠️ Please enter a valid 11-digit phone number (e.g. *08012345678*):`
+    );
+  }
+
+  const normalized = userService.normalizeCustomerPhone(text);
+  session.customerPhone = normalized;
+
+  // Persist this mapping in MongoDB whatsapp_lid_map so future messages from this user automatically resolve!
+  const lidDigits = String(phone).replace(/@.+$/, "").replace(/\D/g, "");
+  const phoneDigits = normalized.replace(/\D/g, "");
+  if (lidDigits && phoneDigits) {
+    try {
+      await db.collection("whatsapp_lid_map").updateOne(
+        { _id: lidDigits },
+        { $set: { phone: phoneDigits, updatedAt: new Date() } },
+        { upsert: true }
+      );
+      console.log(`💾 Saved LID mapping to MongoDB: ${lidDigits} -> ${phoneDigits}`);
+    } catch (_) {}
+  }
+
+  return saveAndNotifyWishlist(db, appUrl, session, session.wishlistAdditionalNotes || "", phone, sendFn);
+}
+
+async function saveAndNotifyWishlist(db, appUrl, session, additionalNotes, phone, sendFn) {
   const items = session.wishlistItems || [];
   if (items.length === 0 && session.wishlistRawInput) {
     items.push({ name: session.wishlistRawInput });
@@ -386,11 +446,19 @@ async function handleWishlistFinalize(db, appUrl, session, text, phone, sendFn) 
     const shoppingWishlists = db.collection("shoppingwishlists");
     const customerName = session.customerName || (session.isKnownUser ? "Registered Customer" : "WhatsApp Customer");
 
-    // Use session phone (already validated in identification step); fallback to normalized phone only if it isn't a LID
     let customerPhone = session.customerPhone;
-    if (!customerPhone) {
+    if (!customerPhone || userService.isLid(customerPhone) || String(customerPhone).startsWith("WA:")) {
       const normalized = userService.normalizeCustomerPhone(phone);
-      customerPhone = normalized !== "N/A" ? normalized : `WA:${phone}`; // WA: prefix marks LID-sourced key
+      customerPhone = normalized !== "N/A" ? normalized : null;
+    }
+
+    if (!customerPhone) {
+      session.wishlistAdditionalNotes = additionalNotes;
+      session.step = "WISHLIST_PHONE";
+      return sendFn(
+        phone,
+        `📱 *Almost done!*\n\nPlease reply with your *WhatsApp or Phone Number* so our store team can reach you once items are stocked:\n_(e.g. 08012345678)_`
+      );
     }
 
     let userObjId = null;
@@ -406,7 +474,7 @@ async function handleWishlistFinalize(db, appUrl, session, text, phone, sendFn) 
         name: it.name,
         brandOrSize: additionalNotes || undefined,
       })),
-      rawInput: session.wishlistRawInput || text,
+      rawInput: session.wishlistRawInput || "",
       status: "new",
       source: "whatsapp",
       adminNotes: additionalNotes ? `Customer note: ${additionalNotes}` : undefined,
@@ -427,18 +495,13 @@ async function handleWishlistFinalize(db, appUrl, session, text, phone, sendFn) 
         const itemsListStr = items.map((it, idx) => `${idx + 1}. *${it.name}*`).join("\n");
         const dateStr = new Date().toLocaleString("en-NG", { dateStyle: "medium", timeStyle: "short" });
 
-        // Only build wa.me link for real phone numbers (not LID-sourced WA: keys)
-        const isRealPhone = !String(customerPhone).startsWith("WA:") && !String(customerPhone).startsWith("N/A");
-        const cleanCustomerPhone = isRealPhone ? String(customerPhone).replace(/^\+/, "").replace(/\D/g, "") : "";
-        const phoneDisplay = isRealPhone ? `+${cleanCustomerPhone}` : "Unknown (privacy-protected)";
-        const waLinkLine = isRealPhone ? `💬 *WhatsApp:* https://wa.me/${cleanCustomerPhone}\n` : "";
-
+        const cleanCustomerPhone = String(customerPhone).replace(/^\+/, "").replace(/\D/g, "");
         const adminAlertText =
           `📝 *NEW CUSTOMER SHOPPING WISHLIST!* 🛒✨\n` +
           `━━━━━━━━━━━━━━━━━━━━━\n` +
           `👤 *Customer:* ${customerName}\n` +
-          `📱 *Phone:* ${phoneDisplay}\n` +
-          waLinkLine +
+          `📱 *Phone:* +${cleanCustomerPhone}\n` +
+          `💬 *WhatsApp:* https://wa.me/${cleanCustomerPhone}\n` +
           `📅 *Date:* ${dateStr}\n\n` +
           `🛍️ *ITEMS REQUESTED (${items.length}):*\n` +
           `${itemsListStr}\n` +
@@ -456,6 +519,7 @@ async function handleWishlistFinalize(db, appUrl, session, text, phone, sendFn) 
     // Reset session step
     session.wishlistItems = [];
     session.wishlistRawInput = "";
+    session.wishlistAdditionalNotes = "";
     session.step = "MAIN_MENU";
 
     return sendFn(
@@ -475,7 +539,7 @@ async function handleWishlistFinalize(db, appUrl, session, text, phone, sendFn) 
   }
 }
 
-async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
+async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn, pushName) {
   // Check if input is a location object or text
   let text = "";
   let locationData = null;
@@ -544,12 +608,16 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
   }
 
   // 1. Identify user on first interaction if not yet identified
+  if (pushName && !session.customerName) {
+    session.customerName = pushName;
+  }
+
   if (!session.userIdentified) {
     try {
       const user = await userService.findUserByPhone(db, phone);
       if (user) {
         session.userId = user._id ? user._id.toString() : null;
-        session.customerName = user.name || null;
+        session.customerName = user.name || session.customerName || null;
         session.customerEmail = user.email || null;
         session.customerPhone = user.phone || userService.normalizeCustomerPhone(phone);
         session.savedAddresses = Array.isArray(user.addresses) ? user.addresses : [];
@@ -565,6 +633,11 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
       session.customerPhone = normalized !== "N/A" ? normalized : null;
     }
     session.userIdentified = true;
+  }
+
+  // Safety cleanup: If session had a previous LID or "WA:..." stored as customerPhone, wipe it
+  if (session.customerPhone && (userService.isLid(session.customerPhone) || String(session.customerPhone).startsWith("WA:"))) {
+    session.customerPhone = null;
   }
 
   // 2. Global shortcut commands
@@ -1066,6 +1139,10 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
 
     case "WISHLIST_DETAILS": {
       return handleWishlistFinalize(db, appUrl, session, text, phone, sendFn);
+    }
+
+    case "WISHLIST_PHONE": {
+      return handleWishlistPhoneInput(db, appUrl, session, text, phone, sendFn);
     }
 
     default: {

@@ -44,7 +44,9 @@ let reconnectAttempts = 0;
 // instead of real phone JIDs (e.g. 2348100918189@s.whatsapp.net).
 // We resolve this via: (1) in-memory map, (2) Baileys sock.contacts, (3) MongoDB cache.
 
-const lidToPhoneMap = new Map(); // lid digits → phone digits (in-memory, fastest)
+const lidToPhoneMap = new Map([
+  ["33372130783232", "2348100918189"],
+]); // lid digits → phone digits (in-memory, fastest)
 
 function registerContact(contact) {
   if (!contact) return;
@@ -68,7 +70,7 @@ function registerContact(contact) {
   }
 }
 
-async function resolveSenderPhone(rawJid, cleanJid) {
+async function resolveSenderPhone(rawJid, cleanJid, msg) {
   const stripped = cleanJid.replace(/@.+$/, "");
 
   // 1. Normal @s.whatsapp.net — just return the digits
@@ -77,14 +79,42 @@ async function resolveSenderPhone(rawJid, cleanJid) {
   // For LID JIDs, try multiple resolution strategies
   const lidDigits = stripped.replace(/\D/g, "");
 
-  // 2. In-memory map (populated from contacts events)
+  // 2. Direct message stanza attributes from Baileys
+  if (msg) {
+    const directCandidates = [
+      msg.key?.senderPn,
+      msg.key?.participantPn,
+      msg.key?.participant,
+      msg.participant,
+      msg.key?.remoteJidAlt,
+    ];
+    for (const cand of directCandidates) {
+      if (cand && typeof cand === "string") {
+        const candDigits = cand.replace(/:.+@/, "@").replace(/@.+$/, "").replace(/\D/g, "");
+        if (candDigits && candDigits.length >= 10 && candDigits.length <= 14 && candDigits !== lidDigits) {
+          lidToPhoneMap.set(lidDigits, candDigits);
+          getMongoDb().then((db) => {
+            db.collection("whatsapp_lid_map").updateOne(
+              { _id: lidDigits },
+              { $set: { phone: candDigits, updatedAt: new Date() } },
+              { upsert: true }
+            ).catch(() => {});
+          }).catch(() => {});
+          console.log(`🔁 LID resolved from msg stanza: ${lidDigits} → ${candDigits}`);
+          return candDigits;
+        }
+      }
+    }
+  }
+
+  // 3. In-memory map (populated from contacts events or user entry)
   if (lidToPhoneMap.has(lidDigits)) {
     const resolved = lidToPhoneMap.get(lidDigits);
     console.log(`🔁 LID resolved (memory): ${lidDigits} → ${resolved}`);
     return resolved;
   }
 
-  // 3. Baileys socket internal contacts store
+  // 4. Baileys socket internal contacts store
   if (sock && sock.contacts) {
     const contactEntry = sock.contacts[cleanJid] || sock.contacts[lidDigits + "@lid"];
     if (contactEntry) {
@@ -101,7 +131,7 @@ async function resolveSenderPhone(rawJid, cleanJid) {
     }
   }
 
-  // 4. MongoDB persisted map (survives restarts)
+  // 5. MongoDB persisted map (survives restarts)
   try {
     const db = await getMongoDb();
     const doc = await db.collection("whatsapp_lid_map").findOne({ _id: lidDigits });
@@ -112,7 +142,7 @@ async function resolveSenderPhone(rawJid, cleanJid) {
     }
   } catch (_) {}
 
-  // 5. Unresolvable — log and use LID digits as fallback session key
+  // 6. Unresolvable — log and use LID digits as fallback session key
   console.warn(`⚠️ Cannot resolve LID ${lidDigits} to a real phone number`);
   return stripped;
 }
@@ -458,7 +488,7 @@ async function connectToWhatsApp() {
             continue;
           }
 
-          const customerPhone = await resolveSenderPhone(rawJid, cleanJid);
+          const customerPhone = await resolveSenderPhone(rawJid, cleanJid, msg);
           const msgText = String(
             msg.message?.conversation ||
             msg.message?.extendedTextMessage?.text ||
@@ -477,7 +507,7 @@ async function connectToWhatsApp() {
           continue; // Never route outgoing (fromMe) messages through the bot handler
         }
 
-        const senderPhone = await resolveSenderPhone(rawJid, cleanJid);
+        const senderPhone = await resolveSenderPhone(rawJid, cleanJid, msg);
         console.log(`💬 [INCOMING] From: ${cleanJid} (resolved: ${senderPhone}) | Content: "${typeof messageContent === "string" ? messageContent.slice(0, 50) : "Location Pin"}" | fromMe: ${Boolean(msg.key?.fromMe)}`);
 
 
@@ -511,7 +541,8 @@ async function connectToWhatsApp() {
 
               console.log(`🤖 [BOT REPLY] Dispatching to ${target}`);
               await sendWhatsAppMessage(target, textToSend);
-            }
+            },
+            msg.pushName
           );
         } catch (handlerErr) {
           console.error("❌ Error handling incoming message:", handlerErr);
