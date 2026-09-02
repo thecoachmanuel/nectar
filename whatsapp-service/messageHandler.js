@@ -607,32 +607,38 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn, pushNa
     console.log(`▶️  Customer actively checking out or used command — bot auto-resumed for ${phone}.`);
   }
 
-  // 1. Identify user on first interaction if not yet identified
-  if (pushName && !session.customerName) {
-    session.customerName = pushName;
-  }
-
-  if (!session.userIdentified) {
-    try {
-      const user = await userService.findUserByPhone(db, phone);
-      if (user) {
-        session.userId = user._id ? user._id.toString() : null;
-        session.customerName = user.name || session.customerName || null;
-        session.customerEmail = user.email || null;
-        session.customerPhone = user.phone || userService.normalizeCustomerPhone(phone);
-        session.savedAddresses = Array.isArray(user.addresses) ? user.addresses : [];
-        session.isKnownUser = true;
+  // 1. Dynamic User Identification & Profile Sync from MongoDB
+  // Always synchronize the customer's profile from the database on every message so that:
+  // (a) First-time chatters with an existing profile on the app are IMMEDIATELY recognized.
+  // (b) Customers who updated their name, phone, or address on the app get their NEW name immediately.
+  // (c) The database profile name ALWAYS takes precedence over pushName or stale cached names.
+  try {
+    const user = await userService.findUserByPhone(db, phone);
+    if (user) {
+      session.userId = user._id ? user._id.toString() : null;
+      if (user.name && user.name.trim()) {
+        session.customerName = user.name.trim(); // Always use latest name from DB!
       }
-    } catch (userErr) {
-      console.warn("⚠️ User lookup failed:", userErr.message);
+      if (user.email) session.customerEmail = user.email;
+      if (user.phone) session.customerPhone = user.phone;
+      if (Array.isArray(user.addresses) && user.addresses.length > 0) {
+        session.savedAddresses = user.addresses;
+      }
+      session.isKnownUser = true;
+      session.userIdentified = true;
+    } else {
+      // Not yet registered on app: use WhatsApp pushName if available as a friendly fallback name
+      if (pushName && (!session.customerName || !session.isKnownUser)) {
+        session.customerName = pushName.trim();
+      }
+      // If we don't have a normalized phone yet, compute it (skipping LIDs)
+      if (!session.customerPhone) {
+        const normalized = userService.normalizeCustomerPhone(phone);
+        session.customerPhone = normalized !== "N/A" ? normalized : null;
+      }
     }
-    // Capture phone for admin alerts — skip if it's a WhatsApp LID (not a real phone)
-    if (!session.customerPhone) {
-      const normalized = userService.normalizeCustomerPhone(phone);
-      // normalizeCustomerPhone returns "N/A" for LIDs; only store a real number
-      session.customerPhone = normalized !== "N/A" ? normalized : null;
-    }
-    session.userIdentified = true;
+  } catch (userErr) {
+    console.warn("⚠️ User profile sync failed:", userErr.message);
   }
 
   // Safety cleanup: If session had a previous LID or "WA:..." stored as customerPhone, wipe it

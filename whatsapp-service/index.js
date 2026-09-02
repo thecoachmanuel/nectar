@@ -264,14 +264,13 @@ async function recordChatMessage(phone, sender, text, messageId, db, isBotPaused
       createdAt: timestamp,
     });
 
-    // 2. Lookup customer name if available
+    // 2. Lookup latest customer profile name if available
     let customerName = "Customer";
-    if (cleanPhone.length >= 7) {
-      const user = await mongo.collection("users").findOne({
-        phone: { $regex: cleanPhone.slice(-9), $options: "i" },
-      });
+    try {
+      const userService = require("./userService");
+      const user = await userService.findUserByPhone(mongo, cleanPhone);
       if (user?.name) customerName = user.name;
-    }
+    } catch (_) {}
 
     // 3. Upsert conversation document
     await mongo.collection("whatsapp_conversations").updateOne(
@@ -445,6 +444,11 @@ async function connectToWhatsApp() {
     });
     sock.ev.on("contacts.update", (updates) => {
       for (const c of updates) registerContact(c);
+    });
+    sock.ev.on("messaging-history.set", ({ contacts }) => {
+      if (Array.isArray(contacts)) {
+        for (const c of contacts) registerContact(c);
+      }
     });
 
     // Store messages in memory for retry resolution and process customer ordering
