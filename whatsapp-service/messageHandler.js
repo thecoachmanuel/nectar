@@ -421,11 +421,13 @@ async function handleWishlistFinalize(db, appUrl, session, text, phone, sendFn) 
         const itemsListStr = items.map((it, idx) => `${idx + 1}. *${it.name}*`).join("\n");
         const dateStr = new Date().toLocaleString("en-NG", { dateStyle: "medium", timeStyle: "short" });
 
+        const cleanCustomerPhone = String(customerPhone).replace(/^\+/, "").replace(/\D/g, "");
         const adminAlertText =
           `📝 *NEW CUSTOMER SHOPPING WISHLIST!* 🛒✨\n` +
           `━━━━━━━━━━━━━━━━━━━━━\n` +
           `👤 *Customer:* ${customerName}\n` +
-          `📱 *Phone:* +${customerPhone.replace(/^\+/, "")}\n` +
+          `📱 *Phone:* +${cleanCustomerPhone}\n` +
+          `💬 *WhatsApp:* https://wa.me/${cleanCustomerPhone}\n` +
           `📅 *Date:* ${dateStr}\n\n` +
           `🛍️ *ITEMS REQUESTED (${items.length}):*\n` +
           `${itemsListStr}\n` +
@@ -544,6 +546,11 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn) {
       }
     } catch (userErr) {
       console.warn("⚠️ User lookup failed:", userErr.message);
+    }
+    // Always capture the WhatsApp-derived phone, even for unregistered guests.
+    // This ensures wishlist/order admin alerts always have a valid customer phone.
+    if (!session.customerPhone) {
+      session.customerPhone = userService.normalizeCustomerPhone(phone);
     }
     session.userIdentified = true;
   }
