@@ -118,6 +118,31 @@ export async function POST(req: Request) {
         if (storeIds.size > 0) {
           const stores = await Store.find({ _id: { $in: Array.from(storeIds) } }).lean();
           
+          // Apply store-level delivery terms override when single store order
+          if (stores.length === 1) {
+            const singleStore = stores[0];
+            if (singleStore.baseDeliveryFee && singleStore.baseDeliveryFee > 0) {
+              baseFee = singleStore.baseDeliveryFee;
+            } else if (singleStore.deliveryFee && singleStore.deliveryFee > 0) {
+              baseFee = singleStore.deliveryFee;
+            }
+            if (singleStore.feePerKm !== undefined && singleStore.feePerKm > 0) {
+              feePerKm = singleStore.feePerKm;
+            }
+            if (singleStore.freeDeliveryThreshold !== undefined && singleStore.freeDeliveryThreshold > 0) {
+              freeThreshold = singleStore.freeDeliveryThreshold;
+            }
+            if (singleStore.largeOrderThreshold !== undefined && singleStore.largeOrderThreshold > 0) {
+              largeOrderThreshold = singleStore.largeOrderThreshold;
+            }
+            if (singleStore.largeOrderFeePercent !== undefined && singleStore.largeOrderFeePercent >= 0) {
+              largeOrderFeePercent = singleStore.largeOrderFeePercent;
+            }
+            if (singleStore.orderValueFeePercent !== undefined && singleStore.orderValueFeePercent >= 0) {
+              orderValueFeePercent = singleStore.orderValueFeePercent;
+            }
+          }
+
           stores.forEach((store: any) => {
             if (store.latitude !== undefined && store.longitude !== undefined) {
               const dist = haversineDistance(userLat, userLng, store.latitude, store.longitude);

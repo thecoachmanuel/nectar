@@ -28,6 +28,12 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
     longitude: "",
     deliveryRadius: 5,
     deliveryFee: 0,
+    baseDeliveryFee: 0,
+    feePerKm: 0,
+    freeDeliveryThreshold: 0,
+    largeOrderThreshold: 0,
+    largeOrderFeePercent: 0,
+    orderValueFeePercent: 0,
     commissionRate: 0,
     password: "",
     taxAmount: 0,
@@ -63,6 +69,12 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
         longitude: storeToEdit.longitude || "",
         deliveryRadius: storeToEdit.deliveryRadius || 5,
         deliveryFee: storeToEdit.deliveryFee || 0,
+        baseDeliveryFee: storeToEdit.baseDeliveryFee || 0,
+        feePerKm: storeToEdit.feePerKm || 0,
+        freeDeliveryThreshold: storeToEdit.freeDeliveryThreshold || 0,
+        largeOrderThreshold: storeToEdit.largeOrderThreshold || 0,
+        largeOrderFeePercent: storeToEdit.largeOrderFeePercent || 0,
+        orderValueFeePercent: storeToEdit.orderValueFeePercent || 0,
         commissionRate: storeToEdit.commissionRate || 0,
         password: "", // Don't pre-fill password on edit
         taxAmount: storeToEdit.taxAmount || 0,
@@ -94,6 +106,12 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
         longitude: "",
         deliveryRadius: 5,
         deliveryFee: 0,
+        baseDeliveryFee: 0,
+        feePerKm: 0,
+        freeDeliveryThreshold: 0,
+        largeOrderThreshold: 0,
+        largeOrderFeePercent: 0,
+        orderValueFeePercent: 0,
         commissionRate: 0,
         password: "",
         taxAmount: 0,
@@ -295,23 +313,8 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
               </div>
             </div>
 
-            {/* Configs */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Custom Delivery Fee (₦)</label>
-                <input 
-                  type="number" 
-                  placeholder="0 (Admin rate)" 
-                  value={formData.deliveryFee || ""} 
-                  onChange={(e) => setFormData({ ...formData, deliveryFee: Number(e.target.value) })} 
-                  className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary" 
-                />
-                <span className="text-[10px] text-[#6E7191]">0 = default admin fee</span>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Delivery Radius (km)</label>
-                <input type="number" value={formData.deliveryRadius} onChange={(e) => setFormData({ ...formData, deliveryRadius: Number(e.target.value) })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary" />
-              </div>
+            {/* General Configs */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Est. Delivery Time</label>
                 <input type="text" placeholder="e.g. 20-30 mins" value={formData.estimatedDeliveryTime} onChange={(e) => setFormData({ ...formData, estimatedDeliveryTime: e.target.value })} className="w-full px-3 py-2 border rounded-xl outline-none focus:border-primary" />
@@ -326,6 +329,82 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
                   <option value="true">Active</option>
                   <option value="false">Inactive</option>
                 </select>
+              </div>
+            </div>
+
+            {/* Store Dynamic Delivery Fee Configuration */}
+            <div className="border border-[#EFF0F6] rounded-xl p-4 bg-[#FAFAFC] mt-3 space-y-3">
+              <div>
+                <h4 className="font-semibold text-sm text-[#14142B]">Store Delivery Terms & Rates</h4>
+                <p className="text-xs text-[#6E7191]">Values set here override global admin rates for orders fulfilled by this store.</p>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-[#14142B] mb-1">Base Delivery Fee (₦)</label>
+                  <input 
+                    type="number" 
+                    placeholder="e.g. 1500 (Admin rate)" 
+                    value={formData.baseDeliveryFee || ""} 
+                    onChange={(e) => setFormData({ ...formData, baseDeliveryFee: Number(e.target.value) })} 
+                    className="w-full px-3 py-2 border rounded-xl bg-white text-xs outline-none focus:border-primary" 
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#14142B] mb-1">Charge Per Km (₦/km)</label>
+                  <input 
+                    type="number" 
+                    placeholder="e.g. 100 (Admin rate)" 
+                    value={formData.feePerKm || ""} 
+                    onChange={(e) => setFormData({ ...formData, feePerKm: Number(e.target.value) })} 
+                    className="w-full px-3 py-2 border rounded-xl bg-white text-xs outline-none focus:border-primary" 
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#14142B] mb-1">Delivery Radius (km)</label>
+                  <input 
+                    type="number" 
+                    placeholder="e.g. 10" 
+                    value={formData.deliveryRadius} 
+                    onChange={(e) => setFormData({ ...formData, deliveryRadius: Number(e.target.value) })} 
+                    className="w-full px-3 py-2 border rounded-xl bg-white text-xs outline-none focus:border-primary" 
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#14142B] mb-1">Free Delivery Over (₦)</label>
+                  <input 
+                    type="number" 
+                    placeholder="Subtotal for ₦0 fee" 
+                    value={formData.freeDeliveryThreshold || ""} 
+                    onChange={(e) => setFormData({ ...formData, freeDeliveryThreshold: Number(e.target.value) })} 
+                    className="w-full px-3 py-2 border rounded-xl bg-white text-xs outline-none focus:border-primary" 
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#14142B] mb-1">Large Order Over (₦)</label>
+                  <input 
+                    type="number" 
+                    placeholder="e.g. 20000" 
+                    value={formData.largeOrderThreshold || ""} 
+                    onChange={(e) => setFormData({ ...formData, largeOrderThreshold: Number(e.target.value) })} 
+                    className="w-full px-3 py-2 border rounded-xl bg-white text-xs outline-none focus:border-primary" 
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#14142B] mb-1">Large Order Surcharge (%)</label>
+                  <input 
+                    type="number" 
+                    placeholder="e.g. 3" 
+                    value={formData.largeOrderFeePercent || ""} 
+                    onChange={(e) => setFormData({ ...formData, largeOrderFeePercent: Number(e.target.value) })} 
+                    className="w-full px-3 py-2 border rounded-xl bg-white text-xs outline-none focus:border-primary" 
+                  />
+                </div>
               </div>
             </div>
 

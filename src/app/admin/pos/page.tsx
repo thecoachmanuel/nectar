@@ -15,22 +15,32 @@ import {
   Store,
   Printer,
   X,
-  Maximize2,
-  Minimize2,
   ShoppingBag,
   CreditCard,
   Banknote,
   Smartphone,
   FileText,
-  CheckCircle2,
-  User,
-  Phone,
   MapPin,
   Delete,
-  CornerDownLeft
+  Navigation,
+  AlertTriangle,
+  Info
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { formatPrice } from "@/lib/formatters";
+
+// Exact Haversine formula for distance in kilometers
+function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
 
 export default function POSPage() {
   const { activeAdminStoreId, setActiveAdminStoreId } = useAuthStore();
@@ -38,7 +48,6 @@ export default function POSPage() {
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [cartOpen, setCartOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Settings and Master Data
   const [categories, setCategories] = useState<any[]>([]);
@@ -48,8 +57,15 @@ export default function POSPage() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
 
-  // Store delivery & company settings
+  // Dynamic admin delivery settings (fallbacks)
   const [adminDeliveryFee, setAdminDeliveryFee] = useState<number>(1500);
+  const [adminFeePerKm, setAdminFeePerKm] = useState<number>(100);
+  const [adminFreeThreshold, setAdminFreeThreshold] = useState<number | undefined>(undefined);
+  const [adminLargeOrderThreshold, setAdminLargeOrderThreshold] = useState<number>(20000);
+  const [adminLargeOrderFeePercent, setAdminLargeOrderFeePercent] = useState<number>(3);
+  const [adminOrderValueFeePercent, setAdminOrderValueFeePercent] = useState<number>(2);
+
+  // Company settings
   const [companyName, setCompanyName] = useState<string>("Nectar");
   const [receiptPoweredBy, setReceiptPoweredBy] = useState<string>("Powered by Nectar");
 
@@ -58,7 +74,13 @@ export default function POSPage() {
   const [customerName, setCustomerName] = useState("Walk-in Customer");
   const [customerPhone, setCustomerPhone] = useState("");
   const [tokenNo, setTokenNo] = useState("");
+
+  // Customer Location & Address State
   const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [customerLat, setCustomerLat] = useState<number | null>(null);
+  const [customerLng, setCustomerLng] = useState<number | null>(null);
+  const [selectedCustomerAddressId, setSelectedCustomerAddressId] = useState<string>("");
+  const [customDistanceKm, setCustomDistanceKm] = useState<string>("");
 
   // Discount state
   const [discountType, setDiscountType] = useState<"percentage" | "fixed">("percentage");
@@ -122,6 +144,21 @@ export default function POSPage() {
             const baseFeeSetting = sData.data.find((s: any) => s.key === "baseDeliveryFee" || s.key === "order_setup_basic_delivery_charge");
             if (baseFeeSetting?.payload) setAdminDeliveryFee(Number(baseFeeSetting.payload) || 1500);
 
+            const feeKmSetting = sData.data.find((s: any) => s.key === "feePerKm");
+            if (feeKmSetting?.payload) setAdminFeePerKm(Number(feeKmSetting.payload) || 100);
+
+            const freeThreshSetting = sData.data.find((s: any) => s.key === "freeDeliveryThreshold");
+            if (freeThreshSetting?.payload) setAdminFreeThreshold(Number(freeThreshSetting.payload));
+
+            const largeThreshSetting = sData.data.find((s: any) => s.key === "largeOrderThreshold");
+            if (largeThreshSetting?.payload) setAdminLargeOrderThreshold(Number(largeThreshSetting.payload) || 20000);
+
+            const largePercentSetting = sData.data.find((s: any) => s.key === "largeOrderFeePercent");
+            if (largePercentSetting?.payload) setAdminLargeOrderFeePercent(Number(largePercentSetting.payload) || 3);
+
+            const orderValPercentSetting = sData.data.find((s: any) => s.key === "orderValueFeePercent");
+            if (orderValPercentSetting?.payload) setAdminOrderValueFeePercent(Number(orderValPercentSetting.payload) || 2);
+
             const compSetting = sData.data.find((s: any) => s.key === "company_name");
             if (compSetting?.payload) setCompanyName(compSetting.payload);
 
@@ -145,14 +182,10 @@ export default function POSPage() {
     return branches.find(b => String(b._id) === String(selectedBranch)) || null;
   }, [branches, selectedBranch]);
 
-  // Delivery fee resolution: Store deliveryFee strictly overrides Admin baseDeliveryFee
-  const effectiveDeliveryFee = useMemo(() => {
-    if (orderType !== "delivery") return 0;
-    if (currentStore && currentStore.deliveryFee !== undefined && currentStore.deliveryFee !== null && Number(currentStore.deliveryFee) > 0) {
-      return Number(currentStore.deliveryFee);
-    }
-    return adminDeliveryFee || 1500;
-  }, [orderType, currentStore, adminDeliveryFee]);
+  // Active customer object (if selected)
+  const currentCustomer = useMemo(() => {
+    return customers.find(c => String(c._id) === String(selectedCustomerId)) || null;
+  }, [customers, selectedCustomerId]);
 
   // 2. Fetch products whenever selectedBranch changes
   const fetchProductsForStore = useCallback(async (storeId: string) => {
@@ -192,9 +225,14 @@ export default function POSPage() {
   // Handle customer dropdown selection
   const handleCustomerSelect = (customerId: string) => {
     setSelectedCustomerId(customerId);
+    setSelectedCustomerAddressId("");
     if (!customerId) {
       setCustomerName("Walk-in Customer");
       setCustomerPhone("");
+      setDeliveryAddress("");
+      setCustomerLat(null);
+      setCustomerLng(null);
+      setCustomDistanceKm("");
       return;
     }
     const found = customers.find(c => String(c._id) === String(customerId));
@@ -202,7 +240,37 @@ export default function POSPage() {
       setCustomerName(found.name || "Customer");
       setCustomerPhone(found.phone || "");
       if (found.addresses && Array.isArray(found.addresses) && found.addresses.length > 0) {
-        setDeliveryAddress(found.addresses[0].address || "");
+        const defaultAddr = found.addresses.find((a: any) => a.isDefault) || found.addresses[0];
+        setDeliveryAddress(defaultAddr.address || "");
+        if (defaultAddr.latitude !== undefined && defaultAddr.longitude !== undefined) {
+          setCustomerLat(parseFloat(defaultAddr.latitude));
+          setCustomerLng(parseFloat(defaultAddr.longitude));
+        } else {
+          setCustomerLat(null);
+          setCustomerLng(null);
+        }
+        setSelectedCustomerAddressId(defaultAddr._id || "");
+      } else {
+        setDeliveryAddress("");
+        setCustomerLat(null);
+        setCustomerLng(null);
+      }
+    }
+  };
+
+  // Handle customer address selection
+  const handleAddressSelect = (addrId: string) => {
+    setSelectedCustomerAddressId(addrId);
+    if (!currentCustomer || !currentCustomer.addresses) return;
+    const addr = currentCustomer.addresses.find((a: any) => String(a._id) === String(addrId));
+    if (addr) {
+      setDeliveryAddress(addr.address || "");
+      if (addr.latitude !== undefined && addr.longitude !== undefined) {
+        setCustomerLat(parseFloat(addr.latitude));
+        setCustomerLng(parseFloat(addr.longitude));
+      } else {
+        setCustomerLat(null);
+        setCustomerLng(null);
       }
     }
   };
@@ -215,13 +283,24 @@ export default function POSPage() {
     setCart(prev => {
       const existing = prev.find(item => item.itemId === product._id);
       if (existing) {
-        return prev.map(item => item.itemId === product._id ? { ...item, quantity: item.quantity + 1 } : item);
+        return prev.map(item => {
+          if (item.itemId === product._id) {
+            const newQty = item.quantity + 1;
+            return { 
+              ...item, 
+              quantity: newQty,
+              itemTotal: newQty * item.price 
+            };
+          }
+          return item;
+        });
       }
       return [...prev, { 
         itemId: product._id, 
         name: product.name, 
         price: effectivePrice, 
         quantity: 1,
+        itemTotal: effectivePrice * 1,
         image: product.image,
         storeId: selectedBranch || product.storeId || undefined
       }];
@@ -232,7 +311,11 @@ export default function POSPage() {
     setCart(prev => prev.map(item => {
       if (item.itemId === itemId) {
         const newQty = item.quantity + delta;
-        return newQty > 0 ? { ...item, quantity: newQty } : item;
+        return newQty > 0 ? { 
+          ...item, 
+          quantity: newQty,
+          itemTotal: newQty * item.price 
+        } : item;
       }
       return item;
     }));
@@ -240,7 +323,11 @@ export default function POSPage() {
 
   const setExactQty = (itemId: string, qty: number) => {
     if (isNaN(qty) || qty < 1) return;
-    setCart(prev => prev.map(item => item.itemId === itemId ? { ...item, quantity: qty } : item));
+    setCart(prev => prev.map(item => item.itemId === itemId ? { 
+      ...item, 
+      quantity: qty,
+      itemTotal: qty * item.price 
+    } : item));
   };
 
   const removeFromCart = (itemId: string) => {
@@ -253,6 +340,9 @@ export default function POSPage() {
     setDiscountInput("");
     setTokenNo("");
     setDeliveryAddress("");
+    setCustomerLat(null);
+    setCustomerLng(null);
+    setCustomDistanceKm("");
     toast.info("Cart cleared");
   };
 
@@ -267,6 +357,131 @@ export default function POSPage() {
     return 0;
   }, [appliedDiscount, subtotal]);
 
+  // ── DYNAMIC DELIVERY FEE CALCULATION (Exact app logic with store overrides) ──
+  const deliveryCalculation = useMemo(() => {
+    if (orderType !== "delivery") {
+      return { 
+        deliveryFee: 0, 
+        distanceKm: 0, 
+        isOutOfRange: false, 
+        hasCoordinates: false,
+        breakdown: null 
+      };
+    }
+
+    // 1. Resolve Store vs Admin Delivery Parameters (Store strictly overrides Admin)
+    const baseFee = (currentStore?.baseDeliveryFee !== undefined && currentStore.baseDeliveryFee > 0)
+      ? Number(currentStore.baseDeliveryFee)
+      : (currentStore?.deliveryFee !== undefined && currentStore.deliveryFee > 0
+        ? Number(currentStore.deliveryFee)
+        : (adminDeliveryFee || 1500));
+
+    const feePerKm = (currentStore?.feePerKm !== undefined && currentStore.feePerKm > 0)
+      ? Number(currentStore.feePerKm)
+      : (adminFeePerKm || 100);
+
+    const radius = Number(currentStore?.deliveryRadius) || 10;
+
+    const freeThreshold = (currentStore?.freeDeliveryThreshold !== undefined && currentStore.freeDeliveryThreshold > 0)
+      ? Number(currentStore.freeDeliveryThreshold)
+      : adminFreeThreshold;
+
+    const largeOrderThreshold = (currentStore?.largeOrderThreshold !== undefined && currentStore.largeOrderThreshold > 0)
+      ? Number(currentStore.largeOrderThreshold)
+      : (adminLargeOrderThreshold || 20000);
+
+    const largeOrderFeePercent = (currentStore?.largeOrderFeePercent !== undefined && currentStore.largeOrderFeePercent >= 0)
+      ? Number(currentStore.largeOrderFeePercent)
+      : (adminLargeOrderFeePercent || 3);
+
+    const orderValueFeePercent = (currentStore?.orderValueFeePercent !== undefined && currentStore.orderValueFeePercent >= 0)
+      ? Number(currentStore.orderValueFeePercent)
+      : (adminOrderValueFeePercent || 2);
+
+    // 2. Free Delivery Check
+    if (freeThreshold !== undefined && freeThreshold > 0 && subtotal >= freeThreshold) {
+      return {
+        deliveryFee: 0,
+        distanceKm: 0,
+        isOutOfRange: false,
+        hasCoordinates: false,
+        breakdown: {
+          baseFee,
+          feePerKm,
+          radius,
+          distanceFee: 0,
+          orderValueFee: 0,
+          largeOrderSurcharge: 0,
+          freeThresholdApplied: true,
+          freeThreshold
+        }
+      };
+    }
+
+    // 3. Distance determination via Haversine or manual distance
+    let distance = 0;
+    let hasCoords = false;
+
+    if (customDistanceKm && !isNaN(parseFloat(customDistanceKm)) && parseFloat(customDistanceKm) >= 0) {
+      distance = parseFloat(customDistanceKm);
+      hasCoords = true;
+    } else if (
+      customerLat !== null && customerLng !== null &&
+      currentStore?.latitude !== undefined && currentStore?.longitude !== undefined
+    ) {
+      distance = haversineDistance(customerLat, customerLng, currentStore.latitude, currentStore.longitude);
+      hasCoords = true;
+    }
+
+    const isOutOfRange = hasCoords && distance > radius;
+
+    // 4. Dynamic Fee Formula:
+    // rawDistanceFee = baseFee + (distance * feePerKm)
+    const distanceFee = Math.round(distance * feePerKm);
+    const rawDistanceFee = baseFee + distanceFee;
+
+    // Order Value Handling Fee (% of subtotal)
+    const orderValueFee = Math.round((subtotal * orderValueFeePercent) / 100);
+
+    // Large Order Surcharge (% applied when subtotal >= largeOrderThreshold)
+    const largeOrderSurcharge = (largeOrderThreshold > 0 && subtotal >= largeOrderThreshold)
+      ? Math.round((subtotal * largeOrderFeePercent) / 100)
+      : 0;
+
+    const finalFee = Math.max(0, rawDistanceFee + orderValueFee + largeOrderSurcharge);
+
+    return {
+      deliveryFee: finalFee,
+      distanceKm: distance,
+      isOutOfRange,
+      hasCoordinates: hasCoords,
+      breakdown: {
+        baseFee,
+        feePerKm,
+        radius,
+        distanceFee,
+        orderValueFee,
+        largeOrderSurcharge,
+        largeOrderThreshold,
+        freeThresholdApplied: false
+      }
+    };
+  }, [
+    orderType,
+    currentStore,
+    customerLat,
+    customerLng,
+    customDistanceKm,
+    subtotal,
+    adminDeliveryFee,
+    adminFeePerKm,
+    adminFreeThreshold,
+    adminLargeOrderThreshold,
+    adminLargeOrderFeePercent,
+    adminOrderValueFeePercent
+  ]);
+
+  const effectiveDeliveryFee = deliveryCalculation.deliveryFee;
   const total = Math.max(0, subtotal - currentDiscount + effectiveDeliveryFee);
 
   // Apply discount button
@@ -303,6 +518,11 @@ export default function POSPage() {
     }
     if (orderType === "delivery" && !deliveryAddress.trim()) {
       return toast.error("Please enter a delivery address for delivery orders.");
+    }
+    if (orderType === "delivery" && deliveryCalculation.isOutOfRange) {
+      if (!confirm(`Warning: Customer distance (${deliveryCalculation.distanceKm.toFixed(1)} km) exceeds store delivery radius (${deliveryCalculation.breakdown?.radius} km). Proceed anyway?`)) {
+        return;
+      }
     }
     // Set default cash received to exact total
     setCashReceivedInput(String(total));
@@ -353,15 +573,23 @@ export default function POSPage() {
       else if (paymentMethod === "mobile_banking") paymentRef = transferRefInput ? `Transfer Ref: ${transferRefInput}` : "Mobile Transfer";
       else if (paymentMethod === "other") paymentRef = otherNoteInput || "Other Payment";
 
+      // Formulate delivery address object or string
+      const deliveryAddressPayload = orderType === "delivery" ? {
+        address: deliveryAddress.trim(),
+        latitude: customerLat !== null ? customerLat : undefined,
+        longitude: customerLng !== null ? customerLng : undefined,
+      } : undefined;
+
       const orderPayload = {
         customerName: customerName.trim() || "Walk-in Customer",
         customerPhone: customerPhone.trim() || undefined,
-        orderType,
+        orderType: orderType === "delivery" ? "delivery" : "takeaway",
         branchId: selectedBranch,
         storeId: selectedBranch,
         items: cart.map(item => ({
           ...item,
-          storeId: selectedBranch
+          storeId: selectedBranch,
+          itemTotal: item.price * item.quantity
         })),
         subtotal,
         discountAmount: currentDiscount,
@@ -375,7 +603,7 @@ export default function POSPage() {
         posReceivedAmount: paymentMethod === "cash" ? cashReceivedAmount : total,
         posChangeAmount: paymentMethod === "cash" ? cashChangeAmount : 0,
         orderStatus: "accepted",
-        deliveryAddress: orderType === "delivery" ? deliveryAddress : "POS Store Takeaway / Pickup",
+        deliveryAddress: deliveryAddressPayload,
         notes: tokenNo ? `Token: ${tokenNo}` : undefined,
         isPos: true
       };
@@ -396,6 +624,7 @@ export default function POSPage() {
           subtotal: subtotal,
           discount: currentDiscount,
           deliveryFee: effectiveDeliveryFee,
+          distanceKm: deliveryCalculation.distanceKm,
           paymentMethod: paymentMethod,
           paymentReference: paymentRef,
           posReceivedAmount: paymentMethod === "cash" ? cashReceivedAmount : total,
@@ -419,6 +648,9 @@ export default function POSPage() {
         setDiscountInput("");
         setTokenNo("");
         setDeliveryAddress("");
+        setCustomerLat(null);
+        setCustomerLng(null);
+        setCustomDistanceKm("");
         setCartOpen(false);
         setIsPaymentModalOpen(false);
         setIsReceiptModalOpen(true);
@@ -637,7 +869,7 @@ export default function POSPage() {
           />
         )}
 
-        <aside className={`fixed lg:static inset-y-0 right-0 z-50 w-[330px] sm:w-[350px] lg:w-[360px] xl:w-[380px] bg-white border-l border-[#EFF0F6] flex flex-col h-full transition-transform duration-300 ${
+        <aside className={`fixed lg:static inset-y-0 right-0 z-50 w-[340px] sm:w-[360px] lg:w-[370px] xl:w-[390px] bg-white border-l border-[#EFF0F6] flex flex-col h-full transition-transform duration-300 ${
           cartOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
         }`}>
           
@@ -722,40 +954,112 @@ export default function POSPage() {
                 </button>
               </div>
 
-              {/* Delivery Info & Override Conditions */}
+              {/* Dynamic Delivery Configuration & Customer Location Calculation */}
               {orderType === "delivery" && (
-                <div className="mt-3 space-y-2 pt-2 border-t border-[#EFF0F6]">
+                <div className="mt-3 space-y-2.5 pt-2 border-t border-[#EFF0F6]">
                   {/* Fulfillment Store Address */}
                   <div className="p-2 rounded-lg bg-[#F7F7FC] border border-[#EFF0F6] text-[11px] text-[#6E7191] flex items-start gap-1.5">
                     <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-semibold text-heading block">Fulfilling from Store:</span>
+                      <span className="font-semibold text-heading block">Store Fulfillment Origin:</span>
                       <span className="text-[#14142B] font-medium">{currentStore?.name}</span>
-                      <p className="text-[10px] text-[#6E7191]">{currentStore?.address || "Store Address Available"}</p>
+                      <p className="text-[10px] text-[#6E7191]">{currentStore?.address || "Store Address"}</p>
                     </div>
                   </div>
 
-                  {/* Delivery Fee Notice (Store rate vs Admin rate) */}
-                  <div className="flex items-center justify-between text-[11px] px-1">
-                    <span className="text-[#6E7191]">Store Delivery Fee:</span>
-                    <span className="font-bold text-emerald-600">
-                      {formatPrice(effectiveDeliveryFee)}
-                      {currentStore?.deliveryFee && Number(currentStore.deliveryFee) > 0 ? (
-                        <span className="text-[9px] text-[#A0A3BD] font-normal ml-1">(Store Set)</span>
-                      ) : (
-                        <span className="text-[9px] text-[#A0A3BD] font-normal ml-1">(Admin Rate)</span>
-                      )}
-                    </span>
+                  {/* Customer Saved Addresses Dropdown (if customer has multiple addresses) */}
+                  {currentCustomer?.addresses && currentCustomer.addresses.length > 0 && (
+                    <div>
+                      <label className="block text-[10px] font-semibold text-[#6E7191] mb-1">
+                        Select Saved Customer Address
+                      </label>
+                      <select
+                        value={selectedCustomerAddressId}
+                        onChange={(e) => handleAddressSelect(e.target.value)}
+                        className="w-full h-8 px-2 text-xs rounded-lg border border-[#D9DBE9] bg-white text-heading focus:outline-none focus:border-primary"
+                      >
+                        {currentCustomer.addresses.map((a: any) => (
+                          <option key={a._id} value={a._id}>
+                            {a.label ? `[${a.label}] ` : ""}{a.address}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Delivery Address Text Input */}
+                  <div>
+                    <label className="block text-[10px] font-semibold text-[#6E7191] mb-1">Delivery Destination Address</label>
+                    <input 
+                      type="text"
+                      value={deliveryAddress}
+                      onChange={(e) => setDeliveryAddress(e.target.value)}
+                      placeholder="Enter customer delivery address..."
+                      className="w-full h-8 text-xs rounded-lg border border-[#D9DBE9] px-2.5 text-heading focus:outline-none focus:border-primary placeholder:text-[#A0A3BD]"
+                    />
                   </div>
 
-                  {/* Customer Delivery Address Input */}
-                  <input 
-                    type="text"
-                    value={deliveryAddress}
-                    onChange={(e) => setDeliveryAddress(e.target.value)}
-                    placeholder="Enter customer delivery address..."
-                    className="w-full h-9 text-xs rounded-lg border border-[#D9DBE9] px-3 text-heading focus:outline-none focus:border-primary placeholder:text-[#A0A3BD]"
-                  />
+                  {/* Distance / Exact Location Indicator */}
+                  <div className="p-2 rounded-lg bg-white border border-[#EFF0F6] space-y-1.5 text-[11px]">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#6E7191] flex items-center gap-1">
+                        <Navigation className="w-3 h-3 text-primary" />
+                        <span>Distance to Store:</span>
+                      </span>
+                      <div className="flex items-center gap-1">
+                        {deliveryCalculation.hasCoordinates ? (
+                          <span className="font-bold text-[#14142B]">
+                            {deliveryCalculation.distanceKm.toFixed(1)} km
+                          </span>
+                        ) : (
+                          <input 
+                            type="number"
+                            step="0.1"
+                            value={customDistanceKm}
+                            onChange={(e) => setCustomDistanceKm(e.target.value)}
+                            placeholder="Km distance"
+                            className="w-16 h-6 px-1 text-center font-bold text-xs border border-[#D9DBE9] rounded focus:outline-none focus:border-primary"
+                          />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Out of range alert */}
+                    {deliveryCalculation.isOutOfRange && (
+                      <div className="p-1.5 rounded bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-medium flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3 shrink-0" />
+                        <span>Address ({deliveryCalculation.distanceKm.toFixed(1)} km) exceeds store radius ({deliveryCalculation.breakdown?.radius} km)</span>
+                      </div>
+                    )}
+
+                    {/* Breakdown breakdown notice */}
+                    {deliveryCalculation.breakdown && (
+                      <div className="pt-1 border-t border-[#EFF0F6] text-[10px] text-[#6E7191] space-y-0.5">
+                        <div className="flex justify-between">
+                          <span>Base Store Fee:</span>
+                          <span className="font-medium text-[#14142B]">{formatPrice(deliveryCalculation.breakdown.baseFee)}</span>
+                        </div>
+                        {deliveryCalculation.breakdown.distanceFee > 0 && (
+                          <div className="flex justify-between">
+                            <span>Distance ({deliveryCalculation.distanceKm.toFixed(1)}km × {formatPrice(deliveryCalculation.breakdown.feePerKm)}):</span>
+                            <span className="font-medium text-[#14142B]">+{formatPrice(deliveryCalculation.breakdown.distanceFee)}</span>
+                          </div>
+                        )}
+                        {deliveryCalculation.breakdown.orderValueFee > 0 && (
+                          <div className="flex justify-between">
+                            <span>Handling Fee:</span>
+                            <span className="font-medium text-[#14142B]">+{formatPrice(deliveryCalculation.breakdown.orderValueFee)}</span>
+                          </div>
+                        )}
+                        {deliveryCalculation.breakdown.largeOrderSurcharge > 0 && (
+                          <div className="flex justify-between text-amber-600 font-semibold">
+                            <span>Large Order Surcharge:</span>
+                            <span>+{formatPrice(deliveryCalculation.breakdown.largeOrderSurcharge)}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -900,7 +1204,7 @@ export default function POSPage() {
               {orderType === "delivery" && (
                 <li className="flex items-center justify-between text-emerald-600 font-medium">
                   <span>Delivery Charge</span>
-                  <span>+{formatPrice(effectiveDeliveryFee)}</span>
+                  <span className="font-bold">+{formatPrice(effectiveDeliveryFee)}</span>
                 </li>
               )}
 

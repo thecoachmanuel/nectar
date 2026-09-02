@@ -105,7 +105,16 @@ export async function POST(req: Request) {
     items.forEach((item: any) => {
       const sId = posStoreId || item.storeId || "admin";
       if (!storeGroups[sId]) storeGroups[sId] = [];
-      storeGroups[sId].push({ ...item, storeId: sId });
+      const itemPrice = Number(item.price || 0);
+      const itemQty = Number(item.quantity || 1);
+      const calculatedTotal = Number(item.itemTotal) || (itemPrice * itemQty);
+      storeGroups[sId].push({ 
+        ...item, 
+        price: itemPrice,
+        quantity: itemQty,
+        itemTotal: calculatedTotal,
+        storeId: sId 
+      });
     });
 
     const storeIds = Object.keys(storeGroups);
@@ -193,7 +202,9 @@ export async function POST(req: Request) {
         totalAmount: groupTotal,
         couponCode: groupCouponCode,
         couponDiscount: groupDiscount,
-        deliveryAddress: orderType === "delivery" ? deliveryAddress : undefined,
+        deliveryAddress: orderType === "delivery" 
+          ? (typeof deliveryAddress === "string" ? { address: deliveryAddress } : deliveryAddress) 
+          : undefined,
         deliveryTimeSlot,
         paymentMethod: paymentMethod || (isPos ? "cash" : "cash_on_delivery"),
         paymentStatus: (isPos || paymentMethod === "wallet") ? "paid" : (body.paymentStatus || "unpaid"),
