@@ -182,6 +182,100 @@ export default function OrderDetailsModal({
     }
   };
 
+  // ── Thermal Receipt Print ──────────────────────────────────────────────
+  // Opens a fresh window with ONLY the receipt HTML — no fixed overlays,
+  // no visibility hacks, no duplicate-page bugs on any paper size.
+  const handlePrint = () => {
+    const el = document.getElementById('thermal-receipt');
+    if (!el) return;
+
+    const w = window.open('', '_blank', 'width=400,height=650,scrollbars=yes');
+    if (!w) { window.print(); return; } // fallback if popup is blocked
+
+    w.document.write(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Order Invoice</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 10.5pt;
+    line-height: 1.45;
+    color: #000;
+    background: #fff;
+    width: 100%;
+    max-width: 80mm;
+    margin: 0 auto;
+    padding: 3mm 4mm;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  .text-center { text-align: center; }
+  .text-right  { text-align: right; }
+  .text-left   { text-align: left; }
+  .font-bold      { font-weight: 700; }
+  .font-extrabold { font-weight: 900; }
+  .font-semibold  { font-weight: 600; }
+  .font-medium    { font-weight: 500; }
+  .font-mono { font-family: 'Courier New', Courier, monospace; }
+  .uppercase  { text-transform: uppercase; }
+  .capitalize { text-transform: capitalize; }
+  .italic { font-style: italic; }
+  .tracking-tight   { letter-spacing: -0.025em; }
+  .tracking-wider   { letter-spacing: 0.05em; }
+  .tracking-widest  { letter-spacing: 0.1em; }
+  .leading-tight    { line-height: 1.25; }
+  .leading-relaxed  { line-height: 1.625; }
+  .text-lg   { font-size: 1.1rem; }
+  .text-base { font-size: 1rem; }
+  .text-sm   { font-size: 0.875rem; }
+  .text-xs   { font-size: 0.78rem; }
+  .text-black     { color: #000; }
+  .text-gray-500  { color: #6b7280; }
+  .text-gray-600  { color: #4b5563; }
+  .text-gray-700  { color: #374151; }
+  .text-gray-800  { color: #1f2937; }
+  .text-green-700 { color: #15803d; }
+  .text-green-800 { color: #166534; }
+  .text-amber-700 { color: #b45309; }
+  .border-t { border-top: 1px solid; }
+  .border-b { border-bottom: 1px solid; }
+  .border-2 { border-width: 2px; border-style: solid; }
+  .border-dashed  { border-style: dashed !important; }
+  .border-gray-400 { border-color: #9ca3af; }
+  .border-gray-300 { border-color: #d1d5db; }
+  .border-gray-100 { border-color: #f3f4f6; }
+  .border-black    { border-color: #000; }
+  .p-5  { padding: 1.25rem; }
+  .pb-2 { padding-bottom: 0.5rem; }
+  .pb-3 { padding-bottom: 0.75rem; }
+  .pt-2 { padding-top: 0.5rem; }
+  .pt-2\.5 { padding-top: 0.625rem; }
+  .pl-6 { padding-left: 1.5rem; }
+  .py-0\.5 { padding-top: 2px;    padding-bottom: 2px; }
+  .py-1    { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+  .py-2    { padding-top: 0.5rem;  padding-bottom: 0.5rem; }
+  .my-1    { margin-top: 0.25rem;  margin-bottom: 0.25rem; }
+  .my-2    { margin-top: 0.5rem;   margin-bottom: 0.5rem; }
+  .mt-0\.5 { margin-top: 2px; }
+  .mt-1    { margin-top: 0.25rem; }
+  .w-full  { width: 100%; }
+  .w-7     { width: 1.75rem; }
+  .flex    { display: flex; justify-content: space-between; align-items: flex-start; }
+  .align-top { vertical-align: top; }
+  @page { size: auto; margin: 4mm 0; }
+</style>
+</head>
+<body>
+${el.innerHTML}
+</body>
+</html>`);
+    w.document.close();
+    w.focus();
+    setTimeout(() => { w.print(); setTimeout(() => w.close(), 500); }, 350);
+  };
+
   if (!isOpen) return null;
 
   // ── Thermal receipt derived values ─────────────────────────────────────
@@ -564,7 +658,7 @@ export default function OrderDetailsModal({
                 Close
               </button>
               <button 
-                onClick={() => window.print()}
+                onClick={handlePrint}
                 className="flex items-center gap-1.5 py-2 px-5 rounded-xl bg-[#1AB759] hover:bg-green-600 text-white text-xs font-bold transition-colors shadow-sm"
               >
                 <Printer className="w-4 h-4" />
@@ -736,52 +830,8 @@ export default function OrderDetailsModal({
           </div>
         </div>
       )}
-
-      {/* Global Thermal Print Stylesheet — matches POS orders */}
-      <style jsx global>{`
-        @media print {
-          /* Hide everything on the page except the receipt */
-          body * {
-            visibility: hidden !important;
-          }
-          #thermal-receipt, #thermal-receipt * {
-            visibility: visible !important;
-          }
-
-          /* Receipt container — auto-adapts to paper:
-             - 80mm thermal printer  → fills full width (100% ≤ 80mm)
-             - A4 / Letter printer   → centered 80mm column with auto side margins
-          */
-          #thermal-receipt {
-            position: relative !important;
-            display: block !important;
-            width: 100% !important;
-            max-width: 80mm !important;
-            margin: 0 auto !important;
-            padding: 4mm 4mm !important;
-            background: #ffffff !important;
-            color: #000000 !important;
-            font-family: 'Courier New', Courier, monospace !important;
-            font-size: 10.5pt !important;
-            line-height: 1.45 !important;
-            box-shadow: none !important;
-            border: none !important;
-            overflow: visible !important;
-          }
-
-          .hidden-print {
-            display: none !important;
-          }
-
-          /* Let the browser use whatever paper the printer has loaded.
-             'auto' page size = thermal roll OR A4 OR Letter, all supported. */
-          @page {
-            size: auto;
-            margin: 6mm 0;
-          }
-        }
-      `}</style>
     </>
   );
 }
+
 
