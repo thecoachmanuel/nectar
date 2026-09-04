@@ -50,10 +50,10 @@ export default function OnlineOrdersPage() {
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch("/api/admin/orders");
+      const res = await fetch("/api/admin/orders?isPos=false");
       const data = await res.json();
       if (data.status) {
-        setOrders(data.data);
+        setOrders((data.data || []).filter((o: any) => !o.isPos));
       }
     } catch (error) {
       toast.error("Failed to fetch orders");
@@ -137,8 +137,10 @@ export default function OnlineOrdersPage() {
   };
 
   const filteredOrders = orders.filter(order => 
-    order.orderSerialNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.customerName?.toLowerCase().includes(searchTerm.toLowerCase())
+    !order.isPos && (
+      order.orderSerialNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customerName?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
   );
 
   return (

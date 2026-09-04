@@ -22,6 +22,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import ExcelJS from "exceljs";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
+import OrderDetailsModal from "@/components/admin/OrderDetailsModal";
 
 export default function PosOrdersPage() {
   const [showFilter, setShowFilter] = useState(false);
@@ -40,6 +41,9 @@ export default function PosOrdersPage() {
   const [receiptOrder, setReceiptOrder] = useState<any | null>(null);
   const [receiptFooterSignature, setReceiptFooterSignature] = useState("Powered by Nectar App");
   const [receiptHeaderTagline, setReceiptHeaderTagline] = useState("");
+
+  // POS Order Details modal state
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   // Load stores and receipt settings list
   useEffect(() => {
@@ -599,13 +603,13 @@ ${el.innerHTML}
                     {/* Actions */}
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        <Link 
-                          href={`/order/${order._id}`} 
+                        <button 
+                          onClick={() => setSelectedOrderId(order._id)} 
                           className="w-8 h-8 rounded-xl bg-[#F7F7FC] text-[#567DFF] flex items-center justify-center hover:bg-[#e5ebff] transition-colors" 
-                          title="View Order Details"
+                          title="View POS Sale Details"
                         >
                           <Eye className="w-4 h-4" />
-                        </Link>
+                        </button>
                         
                         {/* Thermal Receipt Print Button */}
                         <button 
@@ -809,6 +813,14 @@ ${el.innerHTML}
           </div>
         </div>
       )}
+
+      {/* ── POS ORDER DETAILS MODAL (Matching PHP PosOrderShowComponent) ── */}
+      <OrderDetailsModal
+        isOpen={!!selectedOrderId}
+        onClose={() => setSelectedOrderId(null)}
+        orderId={selectedOrderId}
+        onOrderUpdated={fetchOrders}
+      />
 
     </div>
   );

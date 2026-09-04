@@ -31,7 +31,7 @@ export default function OrdersPage() {
   const { execute: updateOrder } = useApi();
 
   const fetchOrders = () => {
-    execute("/api/admin/orders");
+    execute("/api/admin/orders?isPos=false");
   };
 
   // Load sound preference from localStorage
@@ -150,6 +150,7 @@ export default function OrdersPage() {
   };
 
   const filteredOrders = orders?.filter((order: any) => {
+    if (order.isPos) return false;
     if (activeTab === "All") return true;
     return order.orderStatus === activeTab;
   });

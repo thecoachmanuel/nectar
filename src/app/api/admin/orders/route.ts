@@ -18,7 +18,7 @@ export async function GET(req: Request) {
     const paymentMethod = searchParams.get("paymentMethod");
 
     const query: any = {};
-    if (storeId) query.storeId = storeId;
+    if (storeId && storeId !== "all") query.storeId = storeId;
     if (status) query.orderStatus = status;
     if (isPos === "true") query.isPos = true;
     if (isPos === "false") query.isPos = { $ne: true };

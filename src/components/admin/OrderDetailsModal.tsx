@@ -318,7 +318,19 @@ ${el.innerHTML}
             {/* Top Bar Status & Print */}
             <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-[#FAFAFC] border border-[#EFF0F6] rounded-2xl">
               <div>
-                <p className="text-xs text-[#6E7191]">Order Serial No</p>
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <p className="text-xs text-[#6E7191]">Order Serial No</p>
+                  {(order.isPos || order.posPaymentMethod) && (
+                    <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 tracking-wider">
+                      POS Sale
+                    </span>
+                  )}
+                  {(order.token || order.notes?.includes("Token")) && (
+                    <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                      Token #{order.token || order.notes?.replace("Token No: ", "")}
+                    </span>
+                  )}
+                </div>
                 <h4 className="text-lg font-bold text-primary">#{order.orderSerialNo}</h4>
                 <p className="text-xs text-[#A0A3BD] mt-0.5">{new Date(order.createdAt).toLocaleString()}</p>
               </div>
@@ -509,22 +521,38 @@ ${el.innerHTML}
                     {order.items?.map((item: any, idx: number) => (
                       <tr key={idx} className="hover:bg-[#FAFAFC]">
                         <td className="p-3">
-                          <p className="font-semibold text-[#14142B]">{item.name}</p>
-                          {item.variationName && (
-                            <span className="text-[11px] text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded font-medium mr-2">
-                              Variation: {item.variationName}
-                            </span>
-                          )}
-                          {item.extras?.length > 0 && (
-                            <p className="text-[11px] text-[#6E7191] mt-0.5">
-                              Extras: {item.extras.map((ex: any) => `${ex.name} (+${formatPrice(ex.price)})`).join(", ")}
-                            </p>
-                          )}
-                          {item.addons?.length > 0 && (
-                            <p className="text-[11px] text-[#6E7191] mt-0.5">
-                              Addons: {item.addons.map((ad: any) => `${ad.name} (+${formatPrice(ad.price)})`).join(", ")}
-                            </p>
-                          )}
+                          <div className="flex items-center gap-3">
+                            {item.image && (
+                              <img 
+                                src={item.image} 
+                                alt={item.name} 
+                                className="w-10 h-10 rounded-lg object-cover shrink-0 border border-[#EFF0F6]" 
+                              />
+                            )}
+                            <div>
+                              <p className="font-semibold text-[#14142B]">{item.name}</p>
+                              {item.variationName && (
+                                <span className="text-[11px] text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded font-medium mr-2">
+                                  Variation: {item.variationName}
+                                </span>
+                              )}
+                              {item.extras?.length > 0 && (
+                                <p className="text-[11px] text-[#6E7191] mt-0.5">
+                                  Extras: {item.extras.map((ex: any) => `${ex.name} (+${formatPrice(ex.price)})`).join(", ")}
+                                </p>
+                              )}
+                              {item.addons?.length > 0 && (
+                                <p className="text-[11px] text-[#6E7191] mt-0.5">
+                                  Addons: {item.addons.map((ad: any) => `${ad.name} (+${formatPrice(ad.price)})`).join(", ")}
+                                </p>
+                              )}
+                              {item.instruction && (
+                                <p className="text-[11px] text-amber-700 italic mt-0.5">
+                                  Note: {item.instruction}
+                                </p>
+                              )}
+                            </div>
+                          </div>
                         </td>
                         <td className="p-3 text-[#14142B] font-medium">{formatPrice(item.price)}</td>
                         <td className="p-3 text-center font-bold text-[#14142B]">{item.quantity}</td>
@@ -547,12 +575,42 @@ ${el.innerHTML}
                 <div className="flex items-center justify-between">
                   <span className="text-[#6E7191]">Payment Method:</span>
                   <span className={`font-semibold text-[#14142B] uppercase flex items-center gap-1.5`}>
-                    {order.paymentMethod === "whatsapp" && (
-                      <span className="text-[10px] font-bold bg-[#1AB759] text-white px-1.5 py-0.5 rounded">WA</span>
+                    {order.posPaymentMethod ? (
+                      order.posPaymentMethod === "mobile_banking" ? "Transfer / Mobile Banking" : order.posPaymentMethod
+                    ) : order.paymentMethod === "whatsapp" ? (
+                      <>
+                        <span className="text-[10px] font-bold bg-[#1AB759] text-white px-1.5 py-0.5 rounded">WA</span>
+                        WhatsApp Order
+                      </>
+                    ) : (
+                      order.paymentMethod || "Paystack"
                     )}
-                    {order.paymentMethod || "Paystack"}
                   </span>
                 </div>
+                {order.posPaymentMethod === "cash" && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#6E7191]">Cash Received:</span>
+                      <span className="font-semibold text-[#14142B]">
+                        ₦{Number(order.posReceivedAmount || order.totalAmount).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#6E7191]">Change Due:</span>
+                      <span className="font-bold text-green-700">
+                        ₦{Number(order.cashBackAmount || 0).toLocaleString()}
+                      </span>
+                    </div>
+                  </>
+                )}
+                {order.posPaymentNote && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#6E7191]">
+                      {order.posPaymentMethod === "card" ? "Card Ref / Last 4:" : "Payment Ref:"}
+                    </span>
+                    <span className="font-mono font-bold text-[#14142B]">{order.posPaymentNote}</span>
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
                   <span className="text-[#6E7191]">Payment Status:</span>
                   <span className={`font-bold px-2.5 py-0.5 rounded-full capitalize text-[11px] ${
@@ -725,6 +783,15 @@ ${el.innerHTML}
                       </td>
                     </tr>
                   )}
+                  {(order.token || order.notes?.includes("Token")) && (
+                    <tr>
+                      <td colSpan={2} className="py-1">
+                        <div className="border-2 border-black text-center font-extrabold text-base py-1 mt-1 tracking-widest">
+                          TOKEN NO: #{order.token || order.notes?.replace("Token No: ", "")}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
 
@@ -802,8 +869,36 @@ ${el.innerHTML}
                 </div>
                 <div className="flex justify-between py-0.5">
                   <span>PAYMENT METHOD:</span>
-                  <span className="font-bold uppercase">{order.paymentMethod || "ONLINE"}</span>
+                  <span className="font-bold uppercase">
+                    {order.posPaymentMethod === "mobile_banking" 
+                      ? "TRANSFER" 
+                      : (order.posPaymentMethod || order.paymentMethod || "ONLINE")}
+                  </span>
                 </div>
+                {order.posPaymentMethod === "cash" && (
+                  <>
+                    <div className="flex justify-between py-0.5">
+                      <span>CASH RECEIVED:</span>
+                      <span>₦{Number(order.posReceivedAmount || order.totalAmount).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between py-0.5 font-bold">
+                      <span>CHANGE:</span>
+                      <span>₦{Number(order.cashBackAmount || 0).toLocaleString()}</span>
+                    </div>
+                  </>
+                )}
+                {order.posPaymentMethod === "card" && order.posPaymentNote && (
+                  <div className="flex justify-between py-0.5">
+                    <span>CARD REF / LAST 4:</span>
+                    <span className="font-bold">{order.posPaymentNote}</span>
+                  </div>
+                )}
+                {order.posPaymentMethod === "mobile_banking" && order.posPaymentNote && (
+                  <div className="flex justify-between py-0.5">
+                    <span>TRANSACTION REF:</span>
+                    <span className="font-bold">{order.posPaymentNote}</span>
+                  </div>
+                )}
                 <div className="flex justify-between py-0.5">
                   <span>PAYMENT STATUS:</span>
                   <span className={`font-bold uppercase ${order.paymentStatus === "paid" ? "text-green-800" : "text-amber-700"}`}>
