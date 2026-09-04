@@ -52,12 +52,13 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f7fc] flex">
+    <div className="min-h-screen bg-[#f7f7fc] flex overflow-hidden">
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} user={user} />
       
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? "lg:ml-[260px]" : "lg:ml-[260px]"}`}>
+      {/* Main content — on mobile takes full width; on lg+ shifts right by sidebar width */}
+      <div className="flex-1 flex flex-col w-full min-w-0 lg:ml-[260px]">
         <Navbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} user={user} />
-        <main className="flex-1 p-4 sm:p-6 overflow-x-hidden">
+        <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-x-hidden min-w-0">
           {children}
         </main>
       </div>

@@ -550,8 +550,8 @@ export default function PosOrdersPage() {
 
       {/* ── 80MM THERMAL RECEIPT MODAL ──────────────────────────────────────── */}
       {receiptOrder && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-[380px] w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-[340px] mx-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-8">
             
             {/* Top Action Bar */}
             <div className="p-3 bg-[#F7F7FC] border-b border-[#EFF0F6] flex items-center justify-between hidden-print">
@@ -572,7 +572,7 @@ export default function PosOrdersPage() {
             </div>
 
             {/* 80mm Thermal Receipt Content */}
-            <div id="thermal-receipt" className="p-5 font-mono text-black text-xs leading-relaxed select-text bg-white">
+            <div id="thermal-receipt" className="p-5 font-mono text-black text-xs leading-relaxed select-text bg-white mx-auto" style={{ width: '100%', maxWidth: '340px' }}>
               <div className="text-center pb-3 border-b border-dashed border-gray-400">
                 <h2 className="text-lg font-extrabold uppercase text-black tracking-tight">{receiptOrder.storeName || "Nectar Groceries"}</h2>
                 {receiptOrder.storeAddress && <p className="text-[11px] text-gray-700 leading-tight mt-0.5">{receiptOrder.storeAddress}</p>}
@@ -705,29 +705,44 @@ export default function PosOrdersPage() {
       {/* Global Thermal Print Stylesheet */}
       <style jsx global>{`
         @media print {
+          /* Hide everything on the page except the receipt */
           body * {
             visibility: hidden !important;
           }
           #thermal-receipt, #thermal-receipt * {
             visibility: visible !important;
           }
+
+          /* Receipt container — auto-adapts to paper:
+             - 80mm thermal printer  → fills full width (100% ≤ 80mm)
+             - A4 / Letter printer   → centered 80mm column with auto side margins
+          */
           #thermal-receipt {
-            position: fixed !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 80mm !important;
+            position: relative !important;
+            display: block !important;
+            width: 100% !important;
             max-width: 80mm !important;
-            margin: 0 !important;
-            padding: 5mm 3mm !important;
+            margin: 0 auto !important;
+            padding: 4mm 4mm !important;
             background: #ffffff !important;
             color: #000000 !important;
             font-family: 'Courier New', Courier, monospace !important;
-            font-size: 11px !important;
+            font-size: 10.5pt !important;
+            line-height: 1.45 !important;
             box-shadow: none !important;
             border: none !important;
+            overflow: visible !important;
           }
+
           .hidden-print {
             display: none !important;
+          }
+
+          /* Let the browser use whatever paper the printer has loaded.
+             'auto' page size = thermal roll OR A4 OR Letter, all supported. */
+          @page {
+            size: auto;
+            margin: 6mm 0;
           }
         }
       `}</style>

@@ -484,8 +484,42 @@ body {
 
 /* =====================
    BODY PADDING FOR MOBILE NAV
+   (only applies to frontend, not admin pages)
    ===================== */
 @media (max-width: 1023px) {
-  body { padding-bottom: 4.5rem; }
+  body:not(.admin-page) { padding-bottom: 4.5rem; }
 }
 
+/* =====================
+   HIDE SCROLLBAR UTILITY
+   ===================== */
+.hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+
+/* =====================
+   CUSTOM SCROLLBAR
+   ===================== */
+.custom-scrollbar { scrollbar-width: thin; scrollbar-color: #e0e0e0 transparent; }
+.custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #d9dbe9; border-radius: 999px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a0a3bd; }
+
+/* =====================
+   ADMIN TABLE MOBILE — responsive card fallback
+   ===================== */
+@media (max-width: 639px) {
+  /* Tables inside .admin-table-mobile-cards hide on xs, show card stack instead */
+  .admin-table-mobile-cards table { display: none; }
+  .admin-table-mobile-cards .mobile-cards { display: flex; flex-direction: column; gap: 0.75rem; padding: 0.75rem; }
+}
+@media (min-width: 640px) {
+  .admin-table-mobile-cards .mobile-cards { display: none; }
+}
+
+/* =====================
+   ADMIN PAGE — remove frontend bottom nav body padding
+   ===================== */
+.admin-layout {
+  min-height: 100dvh;
+}

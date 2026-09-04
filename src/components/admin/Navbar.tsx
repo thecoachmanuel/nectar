@@ -59,11 +59,11 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
   };
 
   return (
-    <header className="h-[70px] bg-white border-b border-[#EFF0F6] flex items-center justify-between px-4 sm:px-6 z-30 sticky top-0">
-      <div className="flex items-center gap-4">
+    <header className="h-[70px] bg-white border-b border-[#EFF0F6] flex items-center justify-between px-3 sm:px-6 z-30 sticky top-0 min-w-0">
+      <div className="flex items-center gap-2 sm:gap-4 min-w-0 shrink-0">
         <button 
           onClick={toggleSidebar}
-          className="w-10 h-10 rounded-xl bg-[#F7F7FC] text-primary flex items-center justify-center hover:bg-[#fff5f9] transition-colors lg:hidden"
+          className="w-10 h-10 rounded-xl bg-[#F7F7FC] text-primary flex items-center justify-center hover:bg-[#fff5f9] transition-colors lg:hidden shrink-0"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -82,11 +82,11 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
               <div className="w-10 h-10 rounded-xl bg-[#fff5f9] text-primary flex items-center justify-center">
                 <Store className="w-5 h-5" />
               </div>
-              <div className="text-left">
+              <div className="text-left hidden md:block">
                 <span className="block text-[10px] text-[#6E7191] uppercase tracking-wider font-semibold">
                   {user?.role === "store_manager" ? "My Store" : "Store Context"}
                 </span>
-                <span className="block text-xs font-bold text-[#14142B] -mt-0.5 whitespace-nowrap">
+                <span className="block text-xs font-bold text-[#14142B] -mt-0.5 whitespace-nowrap max-w-[140px] truncate">
                   {activeStoreName}
                 </span>
               </div>
@@ -123,16 +123,16 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
         )}
       </div>
 
-      <div className="flex items-center gap-3 sm:gap-4">
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         {/* Quick Navigate to Main Live Storefront */}
         <Link
           href="/"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 h-10 px-3 sm:px-3.5 rounded-xl bg-primary/10 hover:bg-primary text-primary hover:text-white transition-all text-xs font-bold shadow-sm"
+          className="inline-flex items-center gap-1.5 h-9 sm:h-10 px-2.5 sm:px-3.5 rounded-xl bg-primary/10 hover:bg-primary text-primary hover:text-white transition-all text-xs font-bold shadow-sm"
           title="Open Main Storefront"
         >
-          <ExternalLink className="w-3.5 h-3.5" />
+          <ExternalLink className="w-3.5 h-3.5 shrink-0" />
           <span className="hidden sm:inline">Live Store</span>
         </Link>
         
@@ -146,10 +146,10 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
         <div className="relative">
           <button 
             onClick={() => { setLangOpen(!langOpen); setProfileOpen(false); setStoreOpen(false); }}
-            className="flex items-center gap-2 h-10 px-3 rounded-xl bg-[#fff5f9] text-primary hover:bg-rose-100 transition-colors"
+            className="flex items-center gap-1.5 h-9 sm:h-10 px-2.5 sm:px-3 rounded-xl bg-[#fff5f9] text-primary hover:bg-rose-100 transition-colors"
           >
             <Globe className="w-4 h-4" />
-            <span className="text-xs font-semibold uppercase">EN</span>
+            <span className="text-xs font-semibold uppercase hidden xs:inline">EN</span>
           </button>
         </div>
 
@@ -160,9 +160,9 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
             className="flex items-center gap-2"
           >
             {user?.image && user.image !== "/images/default/user.png" ? (
-              <img src={user.image} alt="User" className="w-10 h-10 rounded-xl object-cover bg-gray-100" />
+              <img src={user.image} alt="User" className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-cover bg-gray-100" />
             ) : (
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white font-bold text-lg">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary flex items-center justify-center text-white font-bold text-lg">
                 {user?.name?.[0]?.toUpperCase() || "U"}
               </div>
             )}
