@@ -200,15 +200,23 @@ export default function OrderDetailsModal({
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
+    background: #fff;
+    color: #000;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    text-align: -webkit-center;
+  }
+  #receipt-wrapper {
     font-family: 'Courier New', Courier, monospace;
     font-size: 10.5pt;
     line-height: 1.45;
-    color: #000;
-    background: #fff;
     width: 100%;
     max-width: 80mm;
-    margin: 0 auto;
+    margin: 0 auto !important;
     padding: 3mm 4mm;
+    text-align: left;
+    box-sizing: border-box;
   }
   table { width: 100%; border-collapse: collapse; }
   .text-center { text-align: center; }
@@ -253,12 +261,12 @@ export default function OrderDetailsModal({
   .pt-2 { padding-top: 0.5rem; }
   .pt-2\.5 { padding-top: 0.625rem; }
   .pl-6 { padding-left: 1.5rem; }
-  .py-0\.5 { padding-top: 2px;    padding-bottom: 2px; }
+  .py-0.5 { padding-top: 2px;    padding-bottom: 2px; }
   .py-1    { padding-top: 0.25rem; padding-bottom: 0.25rem; }
   .py-2    { padding-top: 0.5rem;  padding-bottom: 0.5rem; }
   .my-1    { margin-top: 0.25rem;  margin-bottom: 0.25rem; }
   .my-2    { margin-top: 0.5rem;   margin-bottom: 0.5rem; }
-  .mt-0\.5 { margin-top: 2px; }
+  .mt-0.5 { margin-top: 2px; }
   .mt-1    { margin-top: 0.25rem; }
   .w-full  { width: 100%; }
   .w-7     { width: 1.75rem; }
@@ -268,7 +276,9 @@ export default function OrderDetailsModal({
 </style>
 </head>
 <body>
+<div id="receipt-wrapper">
 ${el.innerHTML}
+</div>
 </body>
 </html>`);
     w.document.close();

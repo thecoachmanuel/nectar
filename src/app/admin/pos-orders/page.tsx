@@ -210,16 +210,28 @@ export default function PosOrdersPage() {
 <title>POS Receipt</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  /* body takes full paper width — centering is handled by #receipt-wrapper below */
   body {
+    background: #fff;
+    color: #000;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    text-align: -webkit-center;
+  }
+  /* This wrapper centres the receipt on any paper size:
+     - 80mm thermal  → fills full width (wrapper = 100% ≤ 80mm)
+     - A4 / Letter   → centred 80mm column with equal side margins  */
+  #receipt-wrapper {
     font-family: 'Courier New', Courier, monospace;
     font-size: 10.5pt;
     line-height: 1.45;
-    color: #000;
-    background: #fff;
     width: 100%;
     max-width: 80mm;
-    margin: 0 auto;
+    margin: 0 auto !important;
     padding: 3mm 4mm;
+    text-align: left;
+    box-sizing: border-box;
   }
   table { width: 100%; border-collapse: collapse; }
   .text-center { text-align: center; }
@@ -279,7 +291,9 @@ export default function PosOrdersPage() {
 </style>
 </head>
 <body>
+<div id="receipt-wrapper">
 ${el.innerHTML}
+</div>
 </body>
 </html>`);
     w.document.close();
@@ -796,6 +810,6 @@ ${el.innerHTML}
         </div>
       )}
 
-
+    </div>
   );
 }
