@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from "react";
 import Modal from "./Modal";
 import { useApi } from "@/hooks/useApi";
-import { Sparkles, Truck, Users, Lock, Calendar } from "lucide-react";
+import { Sparkles, Truck, Users, Lock, Calendar, Zap, CheckCircle2 } from "lucide-react";
 
 interface CouponModalProps {
   isOpen: boolean;
   onClose: () => void;
   coupon?: any;
   onSuccess: () => void;
+  applyPreset?: string | null;
 }
 
-export default function CouponModal({ isOpen, onClose, coupon, onSuccess }: CouponModalProps) {
+export default function CouponModal({ isOpen, onClose, coupon, onSuccess, applyPreset }: CouponModalProps) {
   const { execute, loading } = useApi();
   
   const [formData, setFormData] = useState({
@@ -65,6 +66,38 @@ export default function CouponModal({ isOpen, onClose, coupon, onSuccess }: Coup
     }
   }, [coupon, isOpen]);
 
+  const applyFirstTimeFreeDeliveryPreset = () => {
+    const today = new Date();
+    const endDate = new Date(today);
+    endDate.setDate(endDate.getDate() + 365); // 1 year validity
+    // Generate a unique-ish code
+    const suffix = Math.random().toString(36).slice(2, 5).toUpperCase();
+    setFormData({
+      name: "First Order Free Delivery",
+      code: `FIRSTFREE${suffix}`,
+      discountType: "free_delivery",
+      discount: 0,
+      minimumOrderAmount: 0,
+      maximumDiscount: 0,
+      limitPerUser: 1,
+      oneTimePerUser: true,
+      onlyForNewCustomers: true,
+      totalLimit: 10000,
+      startDate: today.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0],
+      status: true,
+    });
+  };
+
+  // Trigger preset auto-fill when requested from parent
+  useEffect(() => {
+    if (isOpen && !coupon && applyPreset === "first_time_free_delivery") {
+      // Small delay so base useEffect runs first, then we override
+      const t = setTimeout(() => applyFirstTimeFreeDeliveryPreset(), 50);
+      return () => clearTimeout(t);
+    }
+  }, [isOpen, applyPreset]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -94,6 +127,11 @@ export default function CouponModal({ isOpen, onClose, coupon, onSuccess }: Coup
     }
   };
 
+  const isFirstTimeFreeDelivery =
+    formData.discountType === "free_delivery" &&
+    formData.onlyForNewCustomers === true &&
+    formData.oneTimePerUser === true;
+
   return (
     <Modal 
       isOpen={isOpen} 
@@ -101,6 +139,44 @@ export default function CouponModal({ isOpen, onClose, coupon, onSuccess }: Coup
       title={coupon ? "Edit Coupon" : "Add New Coupon"}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Quick Templates — only shown when creating */}
+        {!coupon && (
+          <div className="p-3 bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200 rounded-xl">
+            <div className="flex items-center gap-2 mb-2">
+              <Zap className="w-3.5 h-3.5 text-violet-600" />
+              <span className="text-xs font-bold uppercase tracking-wider text-violet-700">Quick Templates</span>
+            </div>
+            <button
+              type="button"
+              onClick={applyFirstTimeFreeDeliveryPreset}
+              className="w-full flex items-center gap-3 px-4 py-3 bg-white border-2 border-dashed border-emerald-300 rounded-xl hover:border-emerald-500 hover:bg-emerald-50 transition-all group text-left"
+            >
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0 group-hover:bg-emerald-200 transition-colors">
+                <span className="text-xl">🚚</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="block text-sm font-bold text-[#14142B]">First-Time Free Delivery</span>
+                <span className="block text-xs text-[#6E7191] mt-0.5">100% free shipping · New customers only · One use per user</span>
+              </div>
+              <span className="text-xs font-semibold text-emerald-600 bg-emerald-100 px-2 py-1 rounded-lg shrink-0 group-hover:bg-emerald-200 transition-colors">Auto-fill →</span>
+            </button>
+          </div>
+        )}
+
+        {/* First-Time Free Delivery Confirmation Banner */}
+        {isFirstTimeFreeDelivery && (
+          <div className="flex items-start gap-3 p-3.5 bg-emerald-50 border border-emerald-300 rounded-xl">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-bold text-emerald-800">✅ First-Time Free Delivery Coupon</p>
+              <p className="text-xs text-emerald-700 mt-0.5">
+                This coupon waives the delivery fee entirely for new customers on their very first order.
+                It can only be redeemed once per user account.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Basic Details */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>

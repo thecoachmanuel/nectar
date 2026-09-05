@@ -19,6 +19,7 @@ export default function CouponsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedCoupon, setSelectedCoupon] = useState<any>(null);
+  const [applyPreset, setApplyPreset] = useState<string | null>(null);
   
   const { execute, data: coupons, loading } = useApi();
   const { execute: deleteCoupon } = useApi();
@@ -33,6 +34,13 @@ export default function CouponsPage() {
 
   const handleAdd = () => {
     setSelectedCoupon(null);
+    setApplyPreset(null);
+    setIsModalOpen(true);
+  };
+
+  const handleCreateFirstTimeFreeDelivery = () => {
+    setSelectedCoupon(null);
+    setApplyPreset("first_time_free_delivery");
     setIsModalOpen(true);
   };
 
@@ -60,6 +68,29 @@ export default function CouponsPage() {
   return (
     <div className="pb-16">
       
+      {/* First-Time Free Delivery Quick Action Card */}
+      <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl shadow-lg shadow-emerald-500/20 mb-6 overflow-hidden">
+        <div className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0 text-2xl">
+              🚚
+            </div>
+            <div>
+              <h3 className="font-bold text-white text-base">First-Time Free Delivery Coupon</h3>
+              <p className="text-emerald-100 text-xs mt-0.5">
+                Give new customers free delivery on their first order — one-time use, auto-configured.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleCreateFirstTimeFreeDelivery}
+            className="shrink-0 h-10 px-5 rounded-xl bg-white text-emerald-700 font-bold text-sm flex items-center gap-2 hover:bg-emerald-50 transition-colors shadow-md"
+          >
+            <Plus className="w-4 h-4" />
+            Create Now
+          </button>
+        </div>
+      </div>
       {/* Header */}
       <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] mb-6">
         <div className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EFF0F6]">
@@ -239,9 +270,10 @@ export default function CouponsPage() {
 
       <CouponModal 
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => { setIsModalOpen(false); setApplyPreset(null); }}
         coupon={selectedCoupon}
         onSuccess={fetchCoupons}
+        applyPreset={applyPreset}
       />
 
       <DeleteConfirmationModal 
