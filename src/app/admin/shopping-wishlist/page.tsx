@@ -21,11 +21,162 @@ import { useApi } from "@/hooks/useApi";
 import { toast } from "sonner";
 import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
 
+// ─── Notify via WhatsApp Bot Modal ───────────────────────────────────────────
+function NotifyModal({
+  wishlist,
+  onClose,
+  onSuccess,
+}: {
+  wishlist: any;
+  onClose: () => void;
+  onSuccess: (id: string) => void;
+}) {
+  const buildDefaultMessage = (wl: any) => {
+    const name = wl.customerName || "there";
+    const items = (wl.items || [])
+      .map((i: any) => (i.brandOrSize ? `${i.name} (${i.brandOrSize})` : i.name))
+      .slice(0, 5)
+      .join(", ");
+    return `Hello ${name}! 👋 Great news! The items you requested on your shopping wishlist${items ? ` — *${items}*` : ""} — are now available in our store. 🛒\n\nVisit our app to order them now or simply reply here and we'll assist you right away! 🚀`;
+  };
+
+  const [message, setMessage] = useState(buildDefaultMessage(wishlist));
+  const [sending, setSending] = useState(false);
+
+  const rawPhone = wishlist.customerPhone || "";
+  const cleanPhone = rawPhone.replace(/[^0-9]/g, "");
+  const intlPhone = cleanPhone.startsWith("0") ? `234${cleanPhone.slice(1)}` : cleanPhone;
+
+  const handleSend = async () => {
+    if (!message.trim()) return;
+    setSending(true);
+    try {
+      const res = await fetch(
+        `/api/admin/whatsapp/conversations/${encodeURIComponent(cleanPhone)}/send`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: message.trim() }),
+        }
+      );
+      const data = await res.json();
+      if (data.status) {
+        toast.success(`✅ WhatsApp notification sent to ${wishlist.customerName || cleanPhone}!`);
+        onSuccess(wishlist._id);
+        onClose();
+      } else {
+        const encoded = encodeURIComponent(message.trim());
+        toast.error(`Bot unavailable: ${data.message || "Service error"}. Opening WhatsApp Web as fallback.`, { duration: 5000 });
+        window.open(`https://wa.me/${intlPhone}?text=${encoded}`, "_blank");
+        onClose();
+      }
+    } catch {
+      const encoded = encodeURIComponent(message.trim());
+      toast.warning("Bot service unreachable. Opening WhatsApp Web as fallback.", { duration: 5000 });
+      window.open(`https://wa.me/${intlPhone}?text=${encoded}`, "_blank");
+      onClose();
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-center gap-3 p-5 border-b border-[#EFF0F6] bg-gradient-to-r from-[#1AB759]/10 to-emerald-50">
+          <div className="w-10 h-10 rounded-xl bg-[#1AB759] flex items-center justify-center shrink-0">
+            <MessageSquare className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="font-bold text-[#14142B]">Send WhatsApp Notification</h3>
+            <p className="text-xs text-[#6E7191] mt-0.5">Message will be sent via the WhatsApp bot directly</p>
+          </div>
+        </div>
+
+        <div className="p-5 space-y-4">
+          {/* Recipient */}
+          <div className="flex items-center gap-3 p-3 bg-[#F7F7FC] rounded-xl border border-[#EFF0F6]">
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <User className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-[#14142B]">{wishlist.customerName || "Customer"}</p>
+              <p className="text-xs text-[#6E7191] font-mono flex items-center gap-1 mt-0.5">
+                <Phone className="w-3 h-3" />
+                {rawPhone} → <span className="text-emerald-700 font-bold">+{intlPhone}</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Wishlist items summary */}
+          {(wishlist.items || []).length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-[#6E7191] mb-1.5">Requested Items</p>
+              <div className="flex flex-wrap gap-1.5">
+                {(wishlist.items || []).map((item: any, idx: number) => (
+                  <span key={idx} className="px-2 py-0.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold">
+                    {item.name}{item.brandOrSize ? ` · ${item.brandOrSize}` : ""}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Message editor */}
+          <div>
+            <label className="block text-sm font-semibold text-[#14142B] mb-1.5">
+              Notification Message <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={6}
+              className="w-full px-4 py-3 rounded-xl border border-[#EFF0F6] text-sm text-[#14142B] focus:outline-none focus:border-[#1AB759] transition-colors resize-none leading-relaxed"
+              placeholder="Type your message..."
+            />
+            <p className="text-[11px] text-[#A0A3BD] mt-1">Supports WhatsApp formatting: *bold*, _italic_, ~strikethrough~</p>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="p-5 border-t border-[#EFF0F6] flex items-center justify-between gap-3">
+          <a
+            href={`https://wa.me/${intlPhone}?text=${encodeURIComponent(message)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-[#6E7191] underline hover:text-[#14142B] flex items-center gap-1"
+          >
+            <ExternalLink className="w-3 h-3" />
+            Open in WhatsApp Web instead
+          </a>
+          <div className="flex items-center gap-2">
+            <button onClick={onClose} className="px-4 h-10 rounded-xl border border-[#EFF0F6] text-[#6E7191] text-sm font-medium hover:bg-[#F7F7FC] transition-colors">Cancel</button>
+            <button
+              onClick={handleSend}
+              disabled={sending || !message.trim()}
+              className="px-5 h-10 rounded-xl bg-[#1AB759] text-white text-sm font-bold flex items-center gap-2 hover:bg-[#159a4a] transition-colors disabled:opacity-60 shadow-md shadow-[#1AB759]/20"
+            >
+              {sending ? (
+                <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />Sending...</>
+              ) : (
+                <><MessageSquare className="w-4 h-4" />Send via Bot</>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function ShoppingWishlistPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedWishlist, setSelectedWishlist] = useState<any>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [notifyWishlist, setNotifyWishlist] = useState<any>(null);
 
   const { execute, data: wishlists, loading } = useApi();
   const { execute: updateWishlist } = useApi();
@@ -71,6 +222,18 @@ export default function ShoppingWishlistPage() {
       .join(", ");
     navigator.clipboard.writeText(text);
     toast.success("Items copied to clipboard!");
+  };
+
+  // Auto-mark wishlist as actioned after bot notification sent
+  const handleNotifySuccess = async (id: string) => {
+    try {
+      await fetch(`/api/admin/shopping-wishlist/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "actioned" }),
+      });
+      fetchWishlists();
+    } catch {}
   };
 
   const filteredWishlists = useMemo(() => {
