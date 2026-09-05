@@ -102,22 +102,6 @@ export default function ShoppingWishlistPage() {
   const reviewedCount = wishlists?.filter((w: any) => w.status === "reviewed").length || 0;
   const actionedCount = wishlists?.filter((w: any) => w.status === "actioned").length || 0;
 
-  const getWhatsAppLink = (wl: any) => {
-    const rawPhone = wl.customerPhone || "";
-    const cleanPhone = rawPhone.replace(/[^0-9]/g, "");
-    const formattedPhone = cleanPhone.startsWith("0") ? `234${cleanPhone.slice(1)}` : cleanPhone;
-    
-    const itemsPreview = (wl.items || [])
-      .map((i: any) => i.name)
-      .slice(0, 3)
-      .join(", ");
-
-    const msg = encodeURIComponent(
-      `Hello ${wl.customerName || "there"}! 👋 Thank you for sharing your shopping list with Nectar Groceries. We've added items you requested (${itemsPreview || "groceries"}) to our store inventory! Check them out on our app or reply here to order.`
-    );
-    return `https://wa.me/${formattedPhone}?text=${msg}`;
-  };
-
   return (
     <div className="pb-16 space-y-6">
       {/* Metric Cards Header */}
@@ -374,16 +358,14 @@ export default function ShoppingWishlistPage() {
 
                           {/* WhatsApp Notify Button */}
                           {wl.customerPhone && (
-                            <a
-                              href={getWhatsAppLink(wl)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="h-8 px-2.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold flex items-center gap-1.5 transition-colors"
-                              title="Message Customer on WhatsApp"
+                            <button
+                              onClick={() => setNotifyWishlist(wl)}
+                              className="h-8 px-2.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold flex items-center gap-1.5 transition-colors border border-emerald-200"
+                              title="Send WhatsApp notification via bot"
                             >
                               <MessageSquare className="w-3.5 h-3.5" />
                               <span>Notify</span>
-                            </a>
+                            </button>
                           )}
 
                           {/* Delete */}
@@ -413,6 +395,14 @@ export default function ShoppingWishlistPage() {
         title="Delete Shopping Wishlist"
         message={`Are you sure you want to delete this wishlist submission for ${selectedWishlist?.customerName || selectedWishlist?.customerPhone}?`}
       />
+
+      {notifyWishlist && (
+        <NotifyModal
+          wishlist={notifyWishlist}
+          onClose={() => setNotifyWishlist(null)}
+          onSuccess={handleNotifySuccess}
+        />
+      )}
     </div>
   );
 }
