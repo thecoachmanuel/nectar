@@ -3,50 +3,91 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import Script from "next/script";
 
-export const metadata: Metadata = {
-  title: {
-    default: "Errandshop - Online Groceries Delivery & WhatsApp Ordering",
-    template: "%s | Errandshop",
-  },
-  applicationName: "Errandshop",
-  description: "Errandshop - Online Groceries Delivery & WhatsApp Ordering. Order your favourite fresh groceries and food online with instant delivery.",
-  manifest: "/manifest.webmanifest",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "Errandshop",
-  },
-  formatDetection: { telephone: false },
-  icons: {
-    icon: [
-      { url: "/images/theme/theme-favicon-logo.png?v=3", sizes: "192x192", type: "image/png" },
-    ],
-    apple: [
-      { url: "/images/theme/theme-favicon-logo.png?v=3", sizes: "192x192", type: "image/png" },
-    ],
-  },
-  other: {
-    "application-name": "Errandshop",
-    "mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-status-bar-style": "default",
-    "apple-mobile-web-app-title": "Errandshop",
-    "msapplication-TileImage": "/images/theme/theme-favicon-logo.png?v=3",
-    "msapplication-TileColor": "#ff006b",
-    "theme-color": "#ff006b",
-    // iOS splash screens
-    "apple-touch-startup-image-640x1136": "/images/icons/splash-640x1136.png?v=3",
-    "apple-touch-startup-image-750x1334": "/images/icons/splash-750x1334.png?v=3",
-    "apple-touch-startup-image-828x1792": "/images/icons/splash-828x1792.png?v=3",
-    "apple-touch-startup-image-1125x2436": "/images/icons/splash-1125x2436.png?v=3",
-    "apple-touch-startup-image-1242x2208": "/images/icons/splash-1242x2208.png?v=3",
-    "apple-touch-startup-image-1242x2688": "/images/icons/splash-1242x2688.png?v=3",
-    "apple-touch-startup-image-1536x2048": "/images/icons/splash-1536x2048.png?v=3",
-    "apple-touch-startup-image-1668x2224": "/images/icons/splash-1668x2224.png?v=3",
-    "apple-touch-startup-image-1668x2388": "/images/icons/splash-1668x2388.png?v=3",
-    "apple-touch-startup-image-2048x2732": "/images/icons/splash-2048x2732.png?v=3",
-  },
-};
+import dbConnect from "@/lib/dbConnect";
+import Setting from "@/models/Setting";
+import { normalizeImageUrl } from "@/lib/imageUtils";
+import { SettingsProvider } from "@/context/SettingsContext";
+import ClientThemeSetter from "@/components/ClientThemeSetter";
+import NotificationListener from "@/components/NotificationListener";
+import OfflineDetector from "@/components/OfflineDetector";
+import HorizontalMouseScroll from "@/components/HorizontalMouseScroll";
+
+export async function generateMetadata(): Promise<Metadata> {
+  let faviconUrl = "/images/theme/theme-favicon-logo.png?v=3";
+  let siteTitle = "Errandshop - Online Groceries Delivery & WhatsApp Ordering";
+  let themeColor = "#ff006b";
+
+  try {
+    await dbConnect();
+    const settings = await Setting.find({
+      key: { $in: ["theme_favicon", "site_favicon", "site_title", "company_name", "theme_primary_color"] },
+    }).lean();
+
+    const map: Record<string, any> = {};
+    settings.forEach((s: any) => { map[s.key] = s.payload; });
+
+    const rawFavicon = map.theme_favicon || map.site_favicon;
+    if (rawFavicon) {
+      faviconUrl = normalizeImageUrl(rawFavicon);
+    }
+    if (map.site_title || map.company_name) {
+      siteTitle = `${map.site_title || map.company_name} - Online Groceries Delivery & WhatsApp Ordering`;
+    }
+    if (map.theme_primary_color) {
+      themeColor = map.theme_primary_color;
+    }
+  } catch (err) {
+    console.error("Error generating dynamic metadata:", err);
+  }
+
+  return {
+    title: {
+      default: siteTitle,
+      template: "%s | Errandshop",
+    },
+    applicationName: "Errandshop",
+    description: "Errandshop - Online Groceries Delivery & WhatsApp Ordering. Order your favourite fresh groceries and food online with instant delivery.",
+    manifest: "/manifest.webmanifest",
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: "Errandshop",
+    },
+    formatDetection: { telephone: false },
+    icons: {
+      icon: [
+        { url: faviconUrl, sizes: "192x192", type: "image/png" },
+      ],
+      apple: [
+        { url: faviconUrl, sizes: "192x192", type: "image/png" },
+      ],
+      shortcut: [
+        { url: faviconUrl },
+      ],
+    },
+    other: {
+      "application-name": "Errandshop",
+      "mobile-web-app-capable": "yes",
+      "apple-mobile-web-app-capable": "yes",
+      "apple-mobile-web-app-status-bar-style": "default",
+      "apple-mobile-web-app-title": "Errandshop",
+      "msapplication-TileImage": faviconUrl,
+      "msapplication-TileColor": themeColor,
+      "theme-color": themeColor,
+      // iOS splash screens
+      "apple-touch-startup-image-640x1136": "/images/icons/splash-640x1136.png?v=3",
+      "apple-touch-startup-image-750x1334": "/images/icons/splash-750x1334.png?v=3",
+      "apple-touch-startup-image-828x1792": "/images/icons/splash-828x1792.png?v=3",
+      "apple-touch-startup-image-1125x2436": "/images/icons/splash-1125x2436.png?v=3",
+      "apple-touch-startup-image-1242x2208": "/images/icons/splash-1242x2208.png?v=3",
+      "apple-touch-startup-image-1242x2688": "/images/icons/splash-1242x2688.png?v=3",
+      "apple-touch-startup-image-1536x2048": "/images/icons/splash-1536x2048.png?v=3",
+      "apple-touch-startup-image-1668x2224": "/images/icons/splash-1668x2224.png?v=3",
+      "apple-touch-startup-image-1668x2388": "/images/icons/splash-1668x2388.png?v=3",
+      "apple-touch-startup-image-2048x2732": "/images/icons/splash-2048x2732.png?v=3",
+    },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#ff006b",
@@ -59,36 +100,13 @@ export const viewport: Viewport = {
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-import dbConnect from "@/lib/dbConnect";
-import Setting from "@/models/Setting";
-import ClientThemeSetter from "@/components/ClientThemeSetter";
-import NotificationListener from "@/components/NotificationListener";
-import OfflineDetector from "@/components/OfflineDetector";
-import HorizontalMouseScroll from "@/components/HorizontalMouseScroll";
-
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   let themeColor = "#ff006b";
   const initialSettings: Record<string, any> = {};
 
   try {
     await dbConnect();
-    const settingsDocs = await Setting.find({
-      key: {
-        $in: [
-          "theme_primary_color",
-          "theme_logo",
-          "theme_footer_logo",
-          "site_logo",
-          "site_footer_logo",
-          "theme_favicon",
-          "site_favicon",
-          "site_title",
-          "company_name",
-          "company_email",
-          "company_phone",
-        ],
-      },
-    }).lean();
+    const settingsDocs = await Setting.find({}).lean();
 
     settingsDocs.forEach((doc: any) => {
       initialSettings[doc.key] = doc.payload;
@@ -101,9 +119,25 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     console.error("Failed to load settings in RootLayout", err);
   }
 
+  const rawLogo = initialSettings.theme_logo || initialSettings.site_logo;
+  const preloadLogoUrl = rawLogo ? normalizeImageUrl(rawLogo) : null;
+
+  const rawFavicon = initialSettings.theme_favicon || initialSettings.site_favicon;
+  const activeFaviconUrl = rawFavicon ? normalizeImageUrl(rawFavicon) : "/images/theme/theme-favicon-logo.png?v=3";
+
   return (
     <html lang="en">
       <head>
+        {/* Dynamic Favicon rendered directly on SSR server output with zero flicker */}
+        <link rel="icon" href={activeFaviconUrl} sizes="any" />
+        <link rel="apple-touch-icon" href={activeFaviconUrl} />
+        <link rel="shortcut icon" href={activeFaviconUrl} />
+
+        {/* Preload admin uploaded favicon to eliminate network latency */}
+        {rawFavicon && (
+          <link rel="preload" as="image" href={activeFaviconUrl} fetchPriority="high" />
+        )}
+
         {/* iOS splash screen link tags */}
         <link rel="apple-touch-startup-image" href="/images/icons/splash-640x1136.png?v=3" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" />
         <link rel="apple-touch-startup-image" href="/images/icons/splash-750x1334.png?v=3" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" />
@@ -116,6 +150,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
         <meta httpEquiv="Pragma" content="no-cache" />
         <meta httpEquiv="Expires" content="0" />
+        {/* Preload admin uploaded logo to eliminate network latency */}
+        {preloadLogoUrl && (
+          <link rel="preload" as="image" href={preloadLogoUrl} fetchPriority="high" />
+        )}
         {/* Synchronous bootstrap script ensuring zero-flicker logo/theme rendering */}
         <script
           id="errandshop-initial-settings"
@@ -136,12 +174,14 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         `}} />
       </head>
       <body className="antialiased bg-white text-[#14142b]" style={{ fontFamily: "'Rubik', sans-serif" }}>
-        <ClientThemeSetter initialSettings={initialSettings} />
-        <NotificationListener />
-        <OfflineDetector />
-        <HorizontalMouseScroll />
-        <Toaster position="top-right" richColors />
-        {children}
+        <SettingsProvider initialSettings={initialSettings}>
+          <ClientThemeSetter initialSettings={initialSettings} />
+          <NotificationListener />
+          <OfflineDetector />
+          <HorizontalMouseScroll />
+          <Toaster position="top-right" richColors />
+          {children}
+        </SettingsProvider>
 
         {/* OneSignal SDK */}
         <Script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" strategy="afterInteractive" />

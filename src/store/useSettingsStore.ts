@@ -33,7 +33,7 @@ export const useSettingsStore = create<SettingsState>()(
       error: null,
 
       setAllSettings: (settingsMap: Record<string, any>) => {
-        set((state) => ({
+        set((state: SettingsState) => ({
           settings: { ...state.settings, ...settingsMap },
         }));
       },
@@ -56,7 +56,7 @@ export const useSettingsStore = create<SettingsState>()(
               settingsMap[item.key] = item.payload;
             });
             
-            set((state) => ({ 
+            set((state: SettingsState) => ({ 
               settings: { ...state.settings, ...settingsMap }, 
               isLoading: false 
             }));
@@ -117,6 +117,18 @@ export const useSettingsStore = create<SettingsState>()(
       name: 'errandshop_app_settings_cache', // localStorage key
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ settings: state.settings }), // Only cache settings map
+      merge: (persistedState: any, currentState: any) => {
+        const persisted = (persistedState as any)?.settings || {};
+        const current = (currentState as any)?.settings || {};
+        return {
+          ...currentState,
+          ...persistedState,
+          settings: {
+            ...persisted,
+            ...current, // Fresh settings from server take precedence
+          },
+        };
+      },
     }
   )
 );

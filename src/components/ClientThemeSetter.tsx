@@ -40,14 +40,21 @@ export default function ClientThemeSetter({ initialSettings }: ClientThemeSetter
       setThemeColor(color);
     }
 
-    // Dynamic Favicon sync from MongoDB if available
+    // Dynamic Favicon sync from MongoDB or real-time admin update
     const customFavicon = settings.theme_favicon || settings.site_favicon;
-    if (customFavicon) {
-      const faviconUrl = normalizeImageUrl(customFavicon);
-      const iconLink = document.querySelector<HTMLLinkElement>("link[rel*='icon']");
-      if (iconLink) {
-        iconLink.href = faviconUrl;
-      }
+    const faviconUrl = customFavicon ? normalizeImageUrl(customFavicon) : "/images/theme/theme-favicon-logo.png?v=3";
+    const iconLinks = document.querySelectorAll<HTMLLinkElement>(
+      "link[rel*='icon'], link[rel='apple-touch-icon'], link[rel='shortcut icon']"
+    );
+    if (iconLinks.length > 0) {
+      iconLinks.forEach((link) => {
+        link.href = faviconUrl;
+      });
+    } else {
+      const newLink = document.createElement("link");
+      newLink.rel = "icon";
+      newLink.href = faviconUrl;
+      document.head.appendChild(newLink);
     }
 
     // Enforce brand page title

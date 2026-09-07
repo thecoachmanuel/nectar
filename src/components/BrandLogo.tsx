@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { useSettingsStore, getHeaderLogo, getFooterLogo } from "@/store/useSettingsStore";
+import { useSettings } from "@/context/SettingsContext";
+import { getHeaderLogo, getFooterLogo } from "@/store/useSettingsStore";
 
 interface BrandLogoProps {
   variant?: "header" | "footer" | "admin";
@@ -19,32 +20,30 @@ export default function BrandLogo({
   imageClassName = "",
   alt = "Errandshop",
 }: BrandLogoProps) {
-  const { settings } = useSettingsStore();
+  const { headerLogo, footerLogo, settings } = useSettings();
 
   // Determine current logo source based on variant
   const currentLogoUrl =
     variant === "footer"
-      ? getFooterLogo(settings)
-      : getHeaderLogo(settings);
+      ? (footerLogo || getFooterLogo(settings))
+      : (headerLogo || getHeaderLogo(settings));
 
-  const [imgSrc, setImgSrc] = useState<string>(currentLogoUrl);
-  const [hasError, setHasError] = useState(false);
-
-  // Keep in sync when settings change
-  useEffect(() => {
-    if (currentLogoUrl) {
-      setImgSrc(currentLogoUrl);
-      setHasError(false);
-    }
-  }, [currentLogoUrl]);
-
-  // Default dimensions and styling based on variant
-  let defaultContainerClass = "flex items-center shrink-0 transition-opacity duration-200";
-  let defaultImgClass = "h-auto object-contain max-h-full";
-  let defaultFallbackImg =
+  const defaultFallbackImg =
     variant === "footer"
       ? "/images/theme/theme-footer-logo.png"
       : "/images/theme/theme-logo.png?v=2";
+
+  // Track if currentLogoUrl failed to load in browser
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+
+  const isFailed = failedUrl === currentLogoUrl;
+  const isDefaultFailed = failedUrl === defaultFallbackImg;
+  const displaySrc = isFailed ? defaultFallbackImg : (currentLogoUrl || defaultFallbackImg);
+  const showTextFallback = isDefaultFailed || (isFailed && !defaultFallbackImg);
+
+  // Default dimensions and styling based on variant
+  let defaultContainerClass = "flex items-center shrink-0";
+  let defaultImgClass = "h-auto object-contain max-h-full";
 
   if (variant === "header") {
     defaultContainerClass += " w-24 sm:w-32 h-9 sm:h-10";
@@ -58,23 +57,21 @@ export default function BrandLogo({
   }
 
   const handleError = () => {
-    if (!hasError && imgSrc !== defaultFallbackImg) {
-      // Fallback to static asset if MongoDB uploaded image fails to load
-      setImgSrc(defaultFallbackImg);
-      setHasError(true);
+    if (!failedUrl) {
+      setFailedUrl(currentLogoUrl);
     } else {
-      // Both failed, render text fallback
-      setHasError(true);
+      setFailedUrl(defaultFallbackImg);
     }
   };
 
   const content = (
     <div className={`${defaultContainerClass} ${className}`}>
-      {!hasError ? (
+      {!showTextFallback ? (
         <img
-          src={imgSrc}
+          src={displaySrc}
           alt={alt}
           loading="eager"
+          decoding="sync"
           onError={handleError}
           className={`${defaultImgClass} ${imageClassName}`}
         />
@@ -101,3 +98,4 @@ export default function BrandLogo({
 
   return content;
 }
+

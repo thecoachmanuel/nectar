@@ -33,11 +33,12 @@ export default function SettingsPage() {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [uploadingHeaderLogo, setUploadingHeaderLogo] = useState(false);
   const [uploadingFooterLogo, setUploadingFooterLogo] = useState(false);
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogoUpload = async (file: File, fieldKey: "theme_logo" | "theme_footer_logo") => {
-    const isFooter = fieldKey === "theme_footer_logo";
-    if (isFooter) setUploadingFooterLogo(true);
+  const handleLogoUpload = async (file: File, fieldKey: "theme_logo" | "theme_footer_logo" | "theme_favicon") => {
+    if (fieldKey === "theme_favicon") setUploadingFavicon(true);
+    else if (fieldKey === "theme_footer_logo") setUploadingFooterLogo(true);
     else setUploadingHeaderLogo(true);
 
     const body = new FormData();
@@ -49,10 +50,16 @@ export default function SettingsPage() {
         setFormData(prev => ({ 
           ...prev, 
           [fieldKey]: data.url,
-          ...(fieldKey === "theme_logo" ? { site_logo: data.url } : { site_footer_logo: data.url })
+          ...(fieldKey === "theme_logo" 
+            ? { site_logo: data.url } 
+            : fieldKey === "theme_footer_logo" 
+            ? { site_footer_logo: data.url } 
+            : { site_favicon: data.url })
         }));
         toast.success(
-          isFooter 
+          fieldKey === "theme_favicon"
+            ? "Site favicon uploaded! Click 'Save Changes' to update sitewide."
+            : fieldKey === "theme_footer_logo" 
             ? "Footer logo uploaded! Click 'Save Changes' to update sitewide." 
             : "Navbar logo uploaded! Click 'Save Changes' to update sitewide."
         );
@@ -63,19 +70,26 @@ export default function SettingsPage() {
       console.error("Upload error", err);
       toast.error("Upload failed: " + err.message);
     } finally {
-      if (isFooter) setUploadingFooterLogo(false);
+      if (fieldKey === "theme_favicon") setUploadingFavicon(false);
+      else if (fieldKey === "theme_footer_logo") setUploadingFooterLogo(false);
       else setUploadingHeaderLogo(false);
     }
   };
 
-  const handleRemoveLogo = (fieldKey: "theme_logo" | "theme_footer_logo") => {
+  const handleRemoveLogo = (fieldKey: "theme_logo" | "theme_footer_logo" | "theme_favicon") => {
     setFormData(prev => ({
       ...prev,
       [fieldKey]: "",
-      ...(fieldKey === "theme_logo" ? { site_logo: "" } : { site_footer_logo: "" })
+      ...(fieldKey === "theme_logo" 
+        ? { site_logo: "" } 
+        : fieldKey === "theme_footer_logo" 
+        ? { site_footer_logo: "" } 
+        : { site_favicon: "" })
     }));
     toast.info(
-      fieldKey === "theme_footer_logo"
+      fieldKey === "theme_favicon"
+        ? "Site favicon reset to default. Click 'Save Changes' to apply."
+        : fieldKey === "theme_footer_logo"
         ? "Footer logo reset to fallback. Click 'Save Changes' to apply."
         : "Navbar logo reset to default. Click 'Save Changes' to apply."
     );
@@ -170,7 +184,7 @@ export default function SettingsPage() {
         });
       }
 
-      // Sync logo settings across Theme and Site tabs so MongoDB has both keys
+      // Sync logo and favicon settings across Theme and Site tabs so MongoDB has both keys
       if (activeTab === "Theme" || activeTab === "Site") {
         if (formData.theme_logo !== undefined) {
           tabSettings = tabSettings.filter(s => s.key !== "theme_logo" && s.key !== "site_logo");
@@ -181,6 +195,11 @@ export default function SettingsPage() {
           tabSettings = tabSettings.filter(s => s.key !== "theme_footer_logo" && s.key !== "site_footer_logo");
           tabSettings.push({ key: "theme_footer_logo", group: "Theme", payload: formData.theme_footer_logo });
           tabSettings.push({ key: "site_footer_logo", group: "Site", payload: formData.theme_footer_logo });
+        }
+        if (formData.theme_favicon !== undefined) {
+          tabSettings = tabSettings.filter(s => s.key !== "theme_favicon" && s.key !== "site_favicon");
+          tabSettings.push({ key: "theme_favicon", group: "Theme", payload: formData.theme_favicon });
+          tabSettings.push({ key: "site_favicon", group: "Site", payload: formData.theme_favicon });
         }
       }
 
@@ -448,10 +467,10 @@ export default function SettingsPage() {
                   <div>
                     <h4 className="font-bold text-sm text-[#14142B] mb-0.5 flex items-center gap-2">
                       <ImageIcon className="w-4 h-4 text-primary" />
-                      <span>Brand Logos (Navbar & Footer)</span>
+                      <span>Brand Assets (Navbar, Footer & Favicon)</span>
                     </h4>
                     <p className="text-xs text-[#6E7191]">
-                      Quickly manage or preview the logos shown on your navbar and footer.
+                      Quickly manage or preview the logos and browser favicon shown across your app.
                     </p>
                   </div>
                   <button
@@ -463,7 +482,7 @@ export default function SettingsPage() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {/* Navbar Logo */}
                   <div className="p-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] flex flex-col justify-between">
                     <div>
@@ -518,6 +537,33 @@ export default function SettingsPage() {
                         disabled={uploadingFooterLogo}
                         onChange={(e) => {
                           if (e.target.files && e.target.files[0]) handleLogoUpload(e.target.files[0], "theme_footer_logo");
+                        }}
+                      />
+                    </label>
+                  </div>
+
+                  {/* Browser Favicon */}
+                  <div className="p-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] flex flex-col justify-between">
+                    <div>
+                      <span className="block text-xs font-bold text-[#14142B] mb-2">Browser Favicon</span>
+                      <div className="h-16 w-full bg-white rounded-lg border border-[#EFF0F6] flex items-center justify-center p-2 mb-3">
+                        {formData.theme_favicon ? (
+                          <img src={normalizeImageUrl(formData.theme_favicon)} alt="Favicon" className="max-h-8 max-w-full object-contain" />
+                        ) : (
+                          <img src="/images/theme/theme-favicon-logo.png?v=3" alt="Default Favicon" className="max-h-8 max-w-full object-contain opacity-75" />
+                        )}
+                      </div>
+                    </div>
+                    <label className="h-9 px-3 rounded-lg bg-white border border-[#EFF0F6] hover:border-primary text-xs font-semibold text-[#14142B] hover:text-primary flex items-center justify-center gap-1.5 cursor-pointer transition-colors">
+                      {uploadingFavicon ? <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" /> : <Upload className="w-3.5 h-3.5 text-primary" />}
+                      <span>{uploadingFavicon ? "Uploading..." : "Upload Favicon"}</span>
+                      <input
+                        type="file"
+                        accept="image/png,image/x-icon,image/svg+xml,image/jpeg,image/webp"
+                        className="hidden"
+                        disabled={uploadingFavicon}
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) handleLogoUpload(e.target.files[0], "theme_favicon");
                         }}
                       />
                     </label>
@@ -812,7 +858,7 @@ export default function SettingsPage() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   {/* Navbar / Header Logo */}
                   <div className="bg-[#FAFAFC] p-5 rounded-2xl border border-[#EFF0F6] flex flex-col justify-between">
                     <div>
@@ -955,6 +1001,81 @@ export default function SettingsPage() {
                           onClick={() => handleRemoveLogo("theme_footer_logo")}
                           className="h-11 px-3 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-colors flex items-center justify-center"
                           title="Reset footer logo"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Browser Favicon */}
+                  <div className="bg-[#FAFAFC] p-5 rounded-2xl border border-[#EFF0F6] flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-sm font-bold text-[#14142B]">Browser Favicon</label>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-white border border-[#EFF0F6] text-[#6E7191] uppercase tracking-wider">
+                          Tab & PWA Icon
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#6E7191] mb-4">
+                        Displayed in browser tabs, bookmarks, and PWA shortcuts. Square PNG, ICO, or SVG recommended (approx. 192×192px).
+                      </p>
+
+                      {/* Simulated Browser Tab Preview */}
+                      <div className="w-full h-24 bg-white rounded-xl border border-[#EFF0F6] flex flex-col justify-center px-4 mb-4 shadow-2xs relative">
+                        <div className="flex items-center gap-2 max-w-full bg-[#EFF0F6]/80 px-3 py-2 rounded-lg border border-[#D9DBE9]/60">
+                          <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                            {formData.theme_favicon ? (
+                              <img 
+                                src={normalizeImageUrl(formData.theme_favicon)} 
+                                alt="Favicon Preview" 
+                                className="w-4 h-4 object-contain rounded-xs" 
+                              />
+                            ) : (
+                              <img 
+                                src="/images/theme/theme-favicon-logo.png?v=3" 
+                                alt="Default Favicon" 
+                                className="w-4 h-4 object-contain opacity-80" 
+                              />
+                            )}
+                          </div>
+                          <span className="text-xs font-medium text-[#14142B] truncate">
+                            {formData.site_title || formData.company_name || "Errandshop - Groceries"}
+                          </span>
+                        </div>
+                        <span className="absolute bottom-1.5 right-2 text-[10px] font-medium text-[#A0A3BD] bg-white/90 px-1.5 py-0.5 rounded">
+                          {formData.theme_favicon ? "Custom (MongoDB)" : "Default Asset"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <label className="flex-1 h-11 px-4 rounded-xl bg-white border border-[#EFF0F6] hover:border-primary text-[#14142B] hover:text-primary text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-2xs">
+                        {uploadingFavicon ? (
+                          <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                        ) : (
+                          <Upload className="w-4 h-4 text-primary" />
+                        )}
+                        <span>{uploadingFavicon ? "Uploading..." : "Upload Favicon"}</span>
+                        <input
+                          type="file"
+                          accept="image/png,image/x-icon,image/svg+xml,image/jpeg,image/webp"
+                          className="hidden"
+                          disabled={uploadingFavicon}
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              handleLogoUpload(e.target.files[0], "theme_favicon");
+                            }
+                          }}
+                        />
+                      </label>
+
+                      {formData.theme_favicon && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveLogo("theme_favicon")}
+                          className="h-11 px-3 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-colors flex items-center justify-center"
+                          title="Reset to default favicon"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>

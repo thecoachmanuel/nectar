@@ -40,6 +40,29 @@ interface SettingState {
   formatPrice: (amount: number | string) => string;
 }
 
+const getInitialLogo = () => {
+  if (typeof window !== "undefined" && (window as any).__INITIAL_SETTINGS__) {
+    const s = (window as any).__INITIAL_SETTINGS__;
+    if (s.theme_logo || s.site_logo) {
+      return normalizeImageUrl(s.theme_logo || s.site_logo);
+    }
+  }
+  return "/images/theme/theme-logo.png?v=2";
+};
+
+const getInitialFooterLogo = () => {
+  if (typeof window !== "undefined" && (window as any).__INITIAL_SETTINGS__) {
+    const s = (window as any).__INITIAL_SETTINGS__;
+    if (s.theme_footer_logo || s.site_footer_logo) {
+      return normalizeImageUrl(s.theme_footer_logo || s.site_footer_logo);
+    }
+    if (s.theme_logo || s.site_logo) {
+      return normalizeImageUrl(s.theme_logo || s.site_logo);
+    }
+  }
+  return "/images/theme/theme-footer-logo.png";
+};
+
 export const useSettingStore = create<SettingState>()(
   persist(
     (set, get) => ({
@@ -52,8 +75,8 @@ export const useSettingStore = create<SettingState>()(
 
       menuViewMode: "grid",
       themeColor: "#FF4D4F",
-      logoUrl: "/images/theme/theme-logo.png?v=2",
-      footerLogoUrl: "/images/theme/theme-footer-logo.png",
+      logoUrl: getInitialLogo(),
+      footerLogoUrl: getInitialFooterLogo(),
 
       setCurrency: (currencySymbol, currencyCode) => set({ currencySymbol, currencyCode }),
       setMultiStore: (isMultiStore) => set({ isMultiStore }),
