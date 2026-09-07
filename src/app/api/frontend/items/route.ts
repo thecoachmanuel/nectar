@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 import Item from "@/models/Item";
 import ItemCategory from "@/models/ItemCategory";
+import { normalizeImageUrl } from "@/lib/imageUtils";
 
 export const dynamic = "force-dynamic";
 
@@ -85,14 +86,18 @@ export async function GET(req: Request) {
       items = items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
 
-    // Map store name
+    // Map store name and normalize image URL
     items = items.map(item => {
       let storeName = stores.length > 0 ? stores[0].name : "Main Store"; // Default for unassigned / global
       if (item.storeId && item.storeId !== "0" && item.storeId !== "admin") {
         const store = stores.find((s: any) => s._id.toString() === item.storeId.toString());
         if (store) storeName = store.name;
       }
-      return { ...item, storeName };
+      return { 
+        ...item, 
+        storeName,
+        image: item.image ? normalizeImageUrl(item.image) : item.image 
+      };
     });
 
     return NextResponse.json({ status: true, data: items });

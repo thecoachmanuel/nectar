@@ -14,6 +14,7 @@ import {
 import PwaInstallModal from "./PwaInstallModal";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
+import BrandLogo from "@/components/BrandLogo";
 
 interface NavbarProps { onCartOpen?: () => void; }
 export default function Navbar({ onCartOpen }: NavbarProps) {
@@ -86,20 +87,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
           {/* Top Row: Logo + Search + Actions */}
           <div className="flex items-center justify-between h-[74px] gap-4">
             {/* Logo */}
-            <Link href="/" className="flex-shrink-0">
-              <img
-                src="/images/theme/theme-logo.png?v=2"
-                alt="Nectar"
-                className="w-24 sm:w-32 h-auto"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                  (e.target as HTMLImageElement).nextElementSibling?.removeAttribute("style");
-                }}
-              />
-              <span className="hidden text-2xl font-black" style={{ color: "var(--primary-hex)" }}>
-                Nectar
-              </span>
-            </Link>
+            <BrandLogo variant="header" href="/" />
 
             {/* Desktop Nav Links */}
             <nav className="hidden lg:flex items-center gap-6">

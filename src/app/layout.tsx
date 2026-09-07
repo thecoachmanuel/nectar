@@ -68,14 +68,37 @@ import HorizontalMouseScroll from "@/components/HorizontalMouseScroll";
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   let themeColor = "#ff006b";
+  const initialSettings: Record<string, any> = {};
+
   try {
     await dbConnect();
-    const setting = await Setting.findOne({ key: "theme_primary_color" });
-    if (setting && setting.payload) {
-      themeColor = setting.payload;
+    const settingsDocs = await Setting.find({
+      key: {
+        $in: [
+          "theme_primary_color",
+          "theme_logo",
+          "theme_footer_logo",
+          "site_logo",
+          "site_footer_logo",
+          "theme_favicon",
+          "site_favicon",
+          "site_title",
+          "company_name",
+          "company_email",
+          "company_phone",
+        ],
+      },
+    }).lean();
+
+    settingsDocs.forEach((doc: any) => {
+      initialSettings[doc.key] = doc.payload;
+    });
+
+    if (initialSettings.theme_primary_color) {
+      themeColor = initialSettings.theme_primary_color;
     }
   } catch (err) {
-    console.error("Failed to load theme setting", err);
+    console.error("Failed to load settings in RootLayout", err);
   }
 
   return (
@@ -93,6 +116,13 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
         <meta httpEquiv="Pragma" content="no-cache" />
         <meta httpEquiv="Expires" content="0" />
+        {/* Synchronous bootstrap script ensuring zero-flicker logo/theme rendering */}
+        <script
+          id="nectar-initial-settings"
+          dangerouslySetInnerHTML={{
+            __html: `window.__INITIAL_SETTINGS__ = ${JSON.stringify(initialSettings).replace(/</g, "\\u003c")};`,
+          }}
+        />
         <style dangerouslySetInnerHTML={{ __html: `
           :root {
             --primary-hex: ${themeColor};
@@ -106,7 +136,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         `}} />
       </head>
       <body className="antialiased bg-white text-[#14142b]" style={{ fontFamily: "'Rubik', sans-serif" }}>
-        <ClientThemeSetter />
+        <ClientThemeSetter initialSettings={initialSettings} />
         <NotificationListener />
         <OfflineDetector />
         <HorizontalMouseScroll />

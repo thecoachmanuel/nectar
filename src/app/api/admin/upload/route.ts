@@ -57,9 +57,10 @@ export async function POST(req: Request) {
         const reqUrl = new URL(req.url);
         return `${reqUrl.protocol}//${reqUrl.host}`;
       })();
-    const url = `${baseUrl}/api/files/${fileId}`;
+    const relativeUrl = `/api/files/${fileId}`;
+    const fullUrl = `${baseUrl}/api/files/${fileId}`;
 
-    return NextResponse.json({ url, fileId });
+    return NextResponse.json({ url: relativeUrl, fullUrl, fileId });
   } catch (error: any) {
     console.error("Upload error:", error);
     return NextResponse.json({ error: "Upload failed: " + error.message }, { status: 500 });

@@ -28,6 +28,7 @@ import {
   ClipboardList,
   ListPlus
 } from "lucide-react";
+import BrandLogo from "@/components/BrandLogo";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -130,16 +131,7 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
         className={`fixed inset-y-0 left-0 z-50 w-[260px] bg-white border-r border-[#EFF0F6] transition-transform duration-300 lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"} flex flex-col`}
       >
         <div className="flex items-center justify-between h-[70px] px-5 border-b border-[#EFF0F6]">
-          <Link href="/admin/dashboard" className="flex items-center gap-2">
-            <img 
-              src="/images/theme/theme-logo.png?v=2" 
-              alt="Nectar" 
-              className="h-8 w-auto object-contain" 
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = "none";
-              }}
-            />
-          </Link>
+          <BrandLogo variant="admin" href="/admin/dashboard" />
           <button 
             onClick={() => setIsOpen(false)}
             className="lg:hidden text-[#6E7191] hover:text-[#14142B] transition-colors"

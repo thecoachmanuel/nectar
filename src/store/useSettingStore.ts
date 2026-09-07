@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { normalizeImageUrl } from "@/lib/imageUtils";
 
 export interface StoreInfo {
   _id: string;
@@ -24,6 +25,8 @@ interface SettingState {
 
   menuViewMode: "grid" | "list"; // Grid vs List view mode
   themeColor: string; // Primary brand color
+  logoUrl: string; // Dynamic header logo URL
+  footerLogoUrl: string; // Dynamic footer logo URL
 
   setCurrency: (symbol: string, code: string) => void;
   setMultiStore: (isMulti: boolean) => void;
@@ -32,7 +35,9 @@ interface SettingState {
 
   setMenuViewMode: (mode: "grid" | "list") => void;
   setThemeColor: (color: string) => void;
-  formatPrice: (amount: number) => string;
+  setLogoUrl: (url: string) => void;
+  setFooterLogoUrl: (url: string) => void;
+  formatPrice: (amount: number | string) => string;
 }
 
 export const useSettingStore = create<SettingState>()(
@@ -47,6 +52,8 @@ export const useSettingStore = create<SettingState>()(
 
       menuViewMode: "grid",
       themeColor: "#FF4D4F",
+      logoUrl: "/images/theme/theme-logo.png?v=2",
+      footerLogoUrl: "/images/theme/theme-footer-logo.png",
 
       setCurrency: (currencySymbol, currencyCode) => set({ currencySymbol, currencyCode }),
       setMultiStore: (isMultiStore) => set({ isMultiStore }),
@@ -55,6 +62,8 @@ export const useSettingStore = create<SettingState>()(
 
       setMenuViewMode: (menuViewMode) => set({ menuViewMode }),
       setThemeColor: (themeColor) => set({ themeColor }),
+      setLogoUrl: (logoUrl) => set({ logoUrl: normalizeImageUrl(logoUrl) }),
+      setFooterLogoUrl: (footerLogoUrl) => set({ footerLogoUrl: normalizeImageUrl(footerLogoUrl) }),
 
       formatPrice: (amount: number | string) => {
         const symbol = get().currencySymbol || "₦";
@@ -72,3 +81,28 @@ export const useSettingStore = create<SettingState>()(
     }
   )
 );
+
+// Synchronize with broadcast updates from admin or other tabs
+if (typeof window !== "undefined") {
+  window.addEventListener("nectar:settings-updated", (event: any) => {
+    const data = event.detail;
+    if (data) {
+      const updates: Partial<SettingState> = {};
+      if (data.theme_logo || data.site_logo) {
+        updates.logoUrl = normalizeImageUrl(data.theme_logo || data.site_logo);
+      }
+      if (data.theme_footer_logo || data.site_footer_logo) {
+        updates.footerLogoUrl = normalizeImageUrl(data.theme_footer_logo || data.site_footer_logo);
+      }
+      if (data.theme_primary_color) {
+        updates.themeColor = data.theme_primary_color;
+      }
+      if (data.site_title || data.company_name) {
+        updates.siteName = data.site_title || data.company_name;
+      }
+      if (Object.keys(updates).length > 0) {
+        useSettingStore.setState(updates);
+      }
+    }
+  });
+}

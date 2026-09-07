@@ -30,6 +30,7 @@ const YoutubeIcon = () => (
 );
 import { toast } from "sonner";
 import { useSettingsStore } from "@/store/useSettingsStore";
+import BrandLogo from "@/components/BrandLogo";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
@@ -76,21 +77,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 md:gap-6">
           {/* Brand Column */}
           <div>
-            <Link href="/">
-              <img
-                src="/images/theme/theme-footer-logo.png"
-                alt="Nectar"
-                className="mb-8 w-36 h-auto"
-                onError={(e) => {
-                  const el = e.target as HTMLImageElement;
-                  el.style.display = "none";
-                  const fallback = document.createElement("span");
-                  fallback.className = "text-2xl font-black text-white";
-                  fallback.textContent = "Nectar";
-                  el.parentNode?.appendChild(fallback);
-                }}
-              />
-            </Link>
+            <BrandLogo variant="footer" href="/" />
             <p className="text-xs mb-3 text-white opacity-90">
               Subscribe to our newsletter for exclusive deals and updates.
             </p>

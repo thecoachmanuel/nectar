@@ -13,10 +13,16 @@ import {
   Save,
   Loader2,
   Eye,
-  EyeOff
+  EyeOff,
+  Upload,
+  Trash2,
+  Image as ImageIcon,
+  RotateCcw,
+  Check
 } from "lucide-react";
 import { useSettingsStore, SettingItem } from "@/store/useSettingsStore";
 import { toast } from "sonner";
+import { normalizeImageUrl } from "@/lib/imageUtils";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("Company");
@@ -25,8 +31,55 @@ export default function SettingsPage() {
   
   // Local state to hold form changes before saving
   const [formData, setFormData] = useState<Record<string, any>>({});
-  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingHeaderLogo, setUploadingHeaderLogo] = useState(false);
+  const [uploadingFooterLogo, setUploadingFooterLogo] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const handleLogoUpload = async (file: File, fieldKey: "theme_logo" | "theme_footer_logo") => {
+    const isFooter = fieldKey === "theme_footer_logo";
+    if (isFooter) setUploadingFooterLogo(true);
+    else setUploadingHeaderLogo(true);
+
+    const body = new FormData();
+    body.append("file", file);
+    try {
+      const res = await fetch("/api/admin/upload", { method: "POST", body });
+      const data = await res.json();
+      if (data.url) {
+        setFormData(prev => ({ 
+          ...prev, 
+          [fieldKey]: data.url,
+          ...(fieldKey === "theme_logo" ? { site_logo: data.url } : { site_footer_logo: data.url })
+        }));
+        toast.success(
+          isFooter 
+            ? "Footer logo uploaded! Click 'Save Changes' to update sitewide." 
+            : "Navbar logo uploaded! Click 'Save Changes' to update sitewide."
+        );
+      } else {
+        toast.error(data.error || "Failed to upload image");
+      }
+    } catch (err: any) {
+      console.error("Upload error", err);
+      toast.error("Upload failed: " + err.message);
+    } finally {
+      if (isFooter) setUploadingFooterLogo(false);
+      else setUploadingHeaderLogo(false);
+    }
+  };
+
+  const handleRemoveLogo = (fieldKey: "theme_logo" | "theme_footer_logo") => {
+    setFormData(prev => ({
+      ...prev,
+      [fieldKey]: "",
+      ...(fieldKey === "theme_logo" ? { site_logo: "" } : { site_footer_logo: "" })
+    }));
+    toast.info(
+      fieldKey === "theme_footer_logo"
+        ? "Footer logo reset to fallback. Click 'Save Changes' to apply."
+        : "Navbar logo reset to default. Click 'Save Changes' to apply."
+    );
+  };
 
   useEffect(() => {
     fetchSettings();
@@ -117,6 +170,20 @@ export default function SettingsPage() {
         });
       }
 
+      // Sync logo settings across Theme and Site tabs so MongoDB has both keys
+      if (activeTab === "Theme" || activeTab === "Site") {
+        if (formData.theme_logo !== undefined) {
+          tabSettings = tabSettings.filter(s => s.key !== "theme_logo" && s.key !== "site_logo");
+          tabSettings.push({ key: "theme_logo", group: "Theme", payload: formData.theme_logo });
+          tabSettings.push({ key: "site_logo", group: "Site", payload: formData.theme_logo });
+        }
+        if (formData.theme_footer_logo !== undefined) {
+          tabSettings = tabSettings.filter(s => s.key !== "theme_footer_logo" && s.key !== "site_footer_logo");
+          tabSettings.push({ key: "theme_footer_logo", group: "Theme", payload: formData.theme_footer_logo });
+          tabSettings.push({ key: "site_footer_logo", group: "Site", payload: formData.theme_footer_logo });
+        }
+      }
+
       if (tabSettings.length === 0) {
         toast.info("No settings to save for this tab.");
         return;
@@ -124,6 +191,13 @@ export default function SettingsPage() {
 
       await updateSettings(tabSettings);
       toast.success(`${activeTab} Settings saved successfully!`);
+
+      // Real-time broadcast so active tabs, navbar and footer update instantly
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("nectar:settings-updated", { detail: formData })
+        );
+      }
     } catch (error: any) {
       toast.error(`Failed to save: ${error.message}`);
     }
@@ -367,6 +441,90 @@ export default function SettingsPage() {
                   <option value="UTC">UTC</option>
                 </select>
               </div>
+
+              {/* Brand Logos */}
+              <div className="md:col-span-2 pt-4 border-t border-[#EFF0F6]">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h4 className="font-bold text-sm text-[#14142B] mb-0.5 flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4 text-primary" />
+                      <span>Brand Logos (Navbar & Footer)</span>
+                    </h4>
+                    <p className="text-xs text-[#6E7191]">
+                      Quickly manage or preview the logos shown on your navbar and footer.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("Theme")}
+                    className="text-xs font-semibold text-primary hover:underline"
+                  >
+                    Theme & Colors Settings →
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Navbar Logo */}
+                  <div className="p-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] flex flex-col justify-between">
+                    <div>
+                      <span className="block text-xs font-bold text-[#14142B] mb-2">Main / Navbar Logo</span>
+                      <div className="h-16 w-full bg-white rounded-lg border border-[#EFF0F6] flex items-center justify-center p-2 mb-3">
+                        {formData.theme_logo ? (
+                          <img src={normalizeImageUrl(formData.theme_logo)} alt="Logo" className="max-h-12 max-w-full object-contain" />
+                        ) : (
+                          <img src="/images/theme/theme-logo.png?v=2" alt="Default Logo" className="max-h-12 max-w-full object-contain opacity-75" />
+                        )}
+                      </div>
+                    </div>
+                    <label className="h-9 px-3 rounded-lg bg-white border border-[#EFF0F6] hover:border-primary text-xs font-semibold text-[#14142B] hover:text-primary flex items-center justify-center gap-1.5 cursor-pointer transition-colors">
+                      {uploadingHeaderLogo ? <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" /> : <Upload className="w-3.5 h-3.5 text-primary" />}
+                      <span>{uploadingHeaderLogo ? "Uploading..." : "Upload Navbar Logo"}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploadingHeaderLogo}
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) handleLogoUpload(e.target.files[0], "theme_logo");
+                        }}
+                      />
+                    </label>
+                  </div>
+
+                  {/* Footer Logo */}
+                  <div className="p-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] flex flex-col justify-between">
+                    <div>
+                      <span className="block text-xs font-bold text-[#14142B] mb-2">Footer Logo</span>
+                      <div 
+                        className="h-16 w-full rounded-lg border border-black/10 flex items-center justify-center p-2 mb-3"
+                        style={{ backgroundColor: formData.theme_primary_color || "var(--primary-hex)" }}
+                      >
+                        {formData.theme_footer_logo ? (
+                          <img src={normalizeImageUrl(formData.theme_footer_logo)} alt="Footer Logo" className="max-h-12 max-w-full object-contain" />
+                        ) : formData.theme_logo ? (
+                          <img src={normalizeImageUrl(formData.theme_logo)} alt="Fallback Logo" className="max-h-12 max-w-full object-contain" />
+                        ) : (
+                          <img src="/images/theme/theme-footer-logo.png" alt="Default Footer Logo" className="max-h-12 max-w-full object-contain opacity-90" />
+                        )}
+                      </div>
+                    </div>
+                    <label className="h-9 px-3 rounded-lg bg-white border border-[#EFF0F6] hover:border-primary text-xs font-semibold text-[#14142B] hover:text-primary flex items-center justify-center gap-1.5 cursor-pointer transition-colors">
+                      {uploadingFooterLogo ? <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" /> : <Upload className="w-3.5 h-3.5 text-primary" />}
+                      <span>{uploadingFooterLogo ? "Uploading..." : "Upload Footer Logo"}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploadingFooterLogo}
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) handleLogoUpload(e.target.files[0], "theme_footer_logo");
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
               <div className="md:col-span-2 pt-4 border-t border-[#EFF0F6]">
                 <h4 className="font-bold text-sm text-[#14142B] mb-1">POS & Thermal Receipt Configuration</h4>
                 <p className="text-xs text-[#6E7191] mb-4">Customize the receipt footer signature printed across all POS stores and terminals.</p>
@@ -619,52 +777,190 @@ export default function SettingsPage() {
 
           {/* Theme */}
           {activeTab === "Theme" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-semibold text-[#14142B] mb-2">Primary Color</label>
-                <div className="flex gap-2 items-center">
-                  <input 
-                    type="color" 
-                    value={formData.theme_primary_color || "#ff006b"} 
-                    onChange={(e) => handleChange("theme_primary_color", e.target.value)}
-                    className="h-12 w-12 rounded-xl border border-[#EFF0F6] cursor-pointer" 
-                  />
-                  <input 
-                    type="text" 
-                    value={formData.theme_primary_color || "#ff006b"} 
-                    onChange={(e) => handleChange("theme_primary_color", e.target.value)}
-                    className="flex-1 h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
-                  />
+            <div className="space-y-8">
+              {/* Primary Theme Color */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-[#14142B] mb-2">Primary Brand Color</label>
+                  <div className="flex gap-2 items-center">
+                    <input 
+                      type="color" 
+                      value={formData.theme_primary_color || "#ff006b"} 
+                      onChange={(e) => handleChange("theme_primary_color", e.target.value)}
+                      className="h-12 w-12 rounded-xl border border-[#EFF0F6] cursor-pointer" 
+                    />
+                    <input 
+                      type="text" 
+                      value={formData.theme_primary_color || "#ff006b"} 
+                      onChange={(e) => handleChange("theme_primary_color", e.target.value)}
+                      className="flex-1 h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary font-mono" 
+                    />
+                  </div>
+                  <p className="text-xs text-[#6E7191] mt-1.5">Primary button, accent color, and footer background.</p>
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-[#14142B] mb-2">Logo</label>
-                <div className="flex items-center gap-4">
-                  {formData.theme_logo && (
-                    <img src={formData.theme_logo} alt="Site Logo" className="h-12 w-auto object-contain rounded-lg border border-[#EFF0F6]" />
-                  )}
-                  <input 
-                    type="file" 
-                    accept="image/*"
-                    onChange={async (e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setUploadingLogo(true);
-                        const file = e.target.files[0];
-                        const body = new FormData();
-                        body.append("file", file);
-                        try {
-                          const res = await fetch("/api/admin/upload", { method: "POST", body });
-                          const data = await res.json();
-                          if (data.url) setFormData({...formData, theme_logo: data.url});
-                        } catch (err) {
-                          console.error("Upload error", err);
-                        }
-                        setUploadingLogo(false);
-                      }
-                    }}
-                    className="flex-1 h-12 px-4 py-2.5 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" 
-                  />
-                  {uploadingLogo && <span className="w-5 h-5 border-2 border-primary/40 border-t-[#ff006b] rounded-full animate-spin"></span>}
+
+              {/* Sitewide Brand Logos */}
+              <div className="pt-6 border-t border-[#EFF0F6]">
+                <div className="mb-6">
+                  <h3 className="font-bold text-base text-[#14142B] mb-1 flex items-center gap-2">
+                    <ImageIcon className="w-5 h-5 text-primary" />
+                    <span>Sitewide Brand Logos</span>
+                  </h3>
+                  <p className="text-xs text-[#6E7191]">
+                    Changes here take effect sitewide across the customer storefront, mobile navigation, footer, and admin portal in real time.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Navbar / Header Logo */}
+                  <div className="bg-[#FAFAFC] p-5 rounded-2xl border border-[#EFF0F6] flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-sm font-bold text-[#14142B]">Main / Navbar Logo</label>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-white border border-[#EFF0F6] text-[#6E7191] uppercase tracking-wider">
+                          Header & Admin
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#6E7191] mb-4">
+                        Shown on the website top navbar, mobile menu, and admin sidebar. Recommended: transparent PNG or WebP (approx. 240×60px).
+                      </p>
+
+                      {/* Preview Box */}
+                      <div className="w-full h-24 bg-white rounded-xl border border-[#EFF0F6] flex items-center justify-center p-3 mb-4 shadow-2xs relative">
+                        {formData.theme_logo ? (
+                          <img 
+                            src={normalizeImageUrl(formData.theme_logo)} 
+                            alt="Navbar Logo Preview" 
+                            className="max-h-16 max-w-full object-contain" 
+                          />
+                        ) : (
+                          <img 
+                            src="/images/theme/theme-logo.png?v=2" 
+                            alt="Default Navbar Logo" 
+                            className="max-h-16 max-w-full object-contain opacity-75" 
+                          />
+                        )}
+                        <span className="absolute bottom-1.5 right-2 text-[10px] font-medium text-[#A0A3BD] bg-white/90 px-1.5 py-0.5 rounded">
+                          {formData.theme_logo ? "Custom (MongoDB)" : "Default Asset"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <label className="flex-1 h-11 px-4 rounded-xl bg-white border border-[#EFF0F6] hover:border-primary text-[#14142B] hover:text-primary text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-2xs">
+                        {uploadingHeaderLogo ? (
+                          <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                        ) : (
+                          <Upload className="w-4 h-4 text-primary" />
+                        )}
+                        <span>{uploadingHeaderLogo ? "Uploading..." : "Upload Navbar Logo"}</span>
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                          className="hidden"
+                          disabled={uploadingHeaderLogo}
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              handleLogoUpload(e.target.files[0], "theme_logo");
+                            }
+                          }}
+                        />
+                      </label>
+
+                      {formData.theme_logo && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveLogo("theme_logo")}
+                          className="h-11 px-3 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-colors flex items-center justify-center"
+                          title="Reset to default logo"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Footer Logo */}
+                  <div className="bg-[#FAFAFC] p-5 rounded-2xl border border-[#EFF0F6] flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-sm font-bold text-[#14142B]">Footer Logo</label>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-white border border-[#EFF0F6] text-[#6E7191] uppercase tracking-wider">
+                          Dark / Brand BG
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#6E7191] mb-4">
+                        Shown on the bottom brand-colored footer. A white or light transparent PNG is recommended. Falls back to Main Logo if left empty.
+                      </p>
+
+                      {/* Preview Box with live Primary Brand BG */}
+                      <div 
+                        className="w-full h-24 rounded-xl border border-black/10 flex items-center justify-center p-3 mb-4 shadow-2xs relative"
+                        style={{ backgroundColor: formData.theme_primary_color || "var(--primary-hex)" }}
+                      >
+                        {formData.theme_footer_logo ? (
+                          <img 
+                            src={normalizeImageUrl(formData.theme_footer_logo)} 
+                            alt="Footer Logo Preview" 
+                            className="max-h-16 max-w-full object-contain" 
+                          />
+                        ) : formData.theme_logo ? (
+                          <img 
+                            src={normalizeImageUrl(formData.theme_logo)} 
+                            alt="Navbar Logo Fallback Preview" 
+                            className="max-h-16 max-w-full object-contain" 
+                          />
+                        ) : (
+                          <img 
+                            src="/images/theme/theme-footer-logo.png" 
+                            alt="Default Footer Logo" 
+                            className="max-h-16 max-w-full object-contain opacity-90" 
+                          />
+                        )}
+                        <span className="absolute bottom-1.5 right-2 text-[10px] font-medium text-white/85 bg-black/30 px-1.5 py-0.5 rounded">
+                          {formData.theme_footer_logo 
+                            ? "Custom (MongoDB)" 
+                            : formData.theme_logo 
+                            ? "Using Main Logo" 
+                            : "Default Asset"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <label className="flex-1 h-11 px-4 rounded-xl bg-white border border-[#EFF0F6] hover:border-primary text-[#14142B] hover:text-primary text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-2xs">
+                        {uploadingFooterLogo ? (
+                          <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                        ) : (
+                          <Upload className="w-4 h-4 text-primary" />
+                        )}
+                        <span>{uploadingFooterLogo ? "Uploading..." : "Upload Footer Logo"}</span>
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                          className="hidden"
+                          disabled={uploadingFooterLogo}
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              handleLogoUpload(e.target.files[0], "theme_footer_logo");
+                            }
+                          }}
+                        />
+                      </label>
+
+                      {formData.theme_footer_logo && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveLogo("theme_footer_logo")}
+                          className="h-11 px-3 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-colors flex items-center justify-center"
+                          title="Reset footer logo"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

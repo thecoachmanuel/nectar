@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { normalizeImageUrl } from '@/lib/imageUtils';
 
 export interface SettingItem {
   key: string;
@@ -11,31 +12,62 @@ interface SettingsState {
   settings: Record<string, any>;
   isLoading: boolean;
   error: string | null;
-  fetchSettings: () => Promise<void>;
+  fetchSettings: (force?: boolean) => Promise<void>;
   updateSettings: (newSettings: SettingItem[]) => Promise<void>;
+  setAllSettings: (settingsMap: Record<string, any>) => void;
 }
+
+// Read bootstrap settings injected into HTML from MongoDB during SSR (eliminates hydration flicker)
+const getBootstrapSettings = (): Record<string, any> => {
+  if (typeof window !== 'undefined' && (window as any).__INITIAL_SETTINGS__) {
+    return (window as any).__INITIAL_SETTINGS__;
+  }
+  return {};
+};
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
-      settings: {},
+      settings: getBootstrapSettings(),
       isLoading: false,
       error: null,
 
-      fetchSettings: async () => {
-        set({ isLoading: true, error: null });
+      setAllSettings: (settingsMap: Record<string, any>) => {
+        set((state) => ({
+          settings: { ...state.settings, ...settingsMap },
+        }));
+      },
+
+      fetchSettings: async (force = false) => {
+        // If we already have settings and not forced, keep existing to avoid re-renders
+        if (!force && Object.keys(get().settings).length > 0) {
+          // fetch in background silently without turning on full-page loading spinner
+        } else {
+          set({ isLoading: true, error: null });
+        }
+
         try {
-          const res = await fetch('/api/settings');
+          const res = await fetch('/api/settings', { cache: 'no-store' });
           const data = await res.json();
           
           if (data.success) {
-            // Convert array of settings to a key-value map for easier UI access
             const settingsMap: Record<string, any> = {};
             data.data.forEach((item: any) => {
               settingsMap[item.key] = item.payload;
             });
             
-            set({ settings: settingsMap, isLoading: false });
+            set((state) => ({ 
+              settings: { ...state.settings, ...settingsMap }, 
+              isLoading: false 
+            }));
+
+            // Sync with global bootstrap window object
+            if (typeof window !== 'undefined') {
+              (window as any).__INITIAL_SETTINGS__ = {
+                ...((window as any).__INITIAL_SETTINGS__ || {}),
+                ...settingsMap,
+              };
+            }
           } else {
             set({ error: data.message, isLoading: false });
           }
@@ -55,7 +87,7 @@ export const useSettingsStore = create<SettingsState>()(
           const data = await res.json();
           
           if (data.success) {
-            // Optimistically update local state
+            // Optimistically update local state immediately
             const currentSettings = get().settings;
             const updatedSettings = { ...currentSettings };
             newSettings.forEach(setting => {
@@ -63,6 +95,14 @@ export const useSettingsStore = create<SettingsState>()(
             });
             
             set({ settings: updatedSettings, isLoading: false });
+
+            // Broadcast update event so all open pages/tabs and components update without page reload
+            if (typeof window !== 'undefined') {
+              (window as any).__INITIAL_SETTINGS__ = updatedSettings;
+              window.dispatchEvent(
+                new CustomEvent('nectar:settings-updated', { detail: updatedSettings })
+              );
+            }
           } else {
             set({ error: data.message, isLoading: false });
             throw new Error(data.message);
@@ -80,3 +120,35 @@ export const useSettingsStore = create<SettingsState>()(
     }
   )
 );
+
+// Listen for settings-updated events across components or other tabs
+if (typeof window !== 'undefined') {
+  window.addEventListener('nectar:settings-updated', (event: any) => {
+    if (event.detail) {
+      useSettingsStore.getState().setAllSettings(event.detail);
+    }
+  });
+}
+
+/**
+ * Helper to get the active header/navbar logo URL with fallback
+ */
+export function getHeaderLogo(settings?: Record<string, any>): string {
+  const custom = settings?.theme_logo || settings?.site_logo;
+  return normalizeImageUrl(custom, '/images/theme/theme-logo.png?v=2');
+}
+
+/**
+ * Helper to get the active footer logo URL with fallback to header logo or default footer logo
+ */
+export function getFooterLogo(settings?: Record<string, any>): string {
+  const footerCustom = settings?.theme_footer_logo || settings?.site_footer_logo;
+  if (footerCustom) {
+    return normalizeImageUrl(footerCustom);
+  }
+  const headerCustom = settings?.theme_logo || settings?.site_logo;
+  if (headerCustom) {
+    return normalizeImageUrl(headerCustom);
+  }
+  return '/images/theme/theme-footer-logo.png';
+}
