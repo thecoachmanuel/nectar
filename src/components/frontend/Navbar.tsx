@@ -6,7 +6,6 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useCartStore } from "@/store/useCartStore";
 import { useSettingStore } from "@/store/useSettingStore";
-import { useSettingsStore } from "@/store/useSettingsStore";
 import {
   Search, ShoppingBag, User, LogOut, MapPin, MessageCircle,
   Lock, ClipboardList, Menu, X, ChevronDown, Leaf, Drumstick,
@@ -23,10 +22,6 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
   const { user, token, logout } = useAuthStore();
   const { items: cartItems } = useCartStore();
   const { menuViewMode, setMenuViewMode } = useSettingStore();
-  const { settings } = useSettingsStore();
-
-  // Resolve logo: admin-saved logo takes top priority, then fallback to static file
-  const siteLogo = settings?.theme_logo || "/images/theme/theme-logo.png?v=2";
 
   const [scrolled, setScrolled] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -93,18 +88,12 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
             {/* Logo */}
             <Link href="/" className="flex-shrink-0">
               <img
-                src={siteLogo}
+                src="/images/theme/theme-logo.png?v=2"
                 alt="Nectar"
                 className="w-24 sm:w-32 h-auto"
                 onError={(e) => {
-                  const img = e.target as HTMLImageElement;
-                  // Fallback to static file if custom logo URL fails
-                  if (!img.src.includes("/images/theme/theme-logo.png")) {
-                    img.src = "/images/theme/theme-logo.png";
-                  } else {
-                    img.style.display = "none";
-                    (img.nextElementSibling as HTMLElement)?.removeAttribute("style");
-                  }
+                  (e.target as HTMLImageElement).style.display = "none";
+                  (e.target as HTMLImageElement).nextElementSibling?.removeAttribute("style");
                 }}
               />
               <span className="hidden text-2xl font-black" style={{ color: "var(--primary-hex)" }}>

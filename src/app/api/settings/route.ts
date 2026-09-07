@@ -14,9 +14,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: true, data: settings }, { 
       status: 200,
       headers: {
-        // Never cache settings — changes (logo, theme, etc.) must reflect immediately
-        "Cache-Control": "no-store, no-cache, must-revalidate",
-        "Pragma": "no-cache",
+        "Cache-Control": "public, s-maxage=10, stale-while-revalidate=60",
       }
     });
   } catch (error: any) {

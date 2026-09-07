@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSettingsStore } from "@/store/useSettingsStore";
 import { 
   LayoutDashboard, 
   Settings, 
@@ -39,10 +38,6 @@ interface SidebarProps {
 export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
   const pathname = usePathname();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
-  const { settings } = useSettingsStore();
-
-  // Resolve logo: admin-saved logo takes priority, then fallback to static file
-  const siteLogo = settings?.theme_logo || "/images/theme/theme-logo.png?v=2";
 
   const role = user?.role || "admin";
 
@@ -137,17 +132,11 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
         <div className="flex items-center justify-between h-[70px] px-5 border-b border-[#EFF0F6]">
           <Link href="/admin/dashboard" className="flex items-center gap-2">
             <img 
-              src={siteLogo}
-              alt="Site Logo" 
+              src="/images/theme/theme-logo.png?v=2" 
+              alt="Nectar" 
               className="h-8 w-auto object-contain" 
               onError={(e) => {
-                // If custom logo fails, fall back to static
-                const img = e.target as HTMLImageElement;
-                if (img.src !== window.location.origin + "/images/theme/theme-logo.png") {
-                  img.src = "/images/theme/theme-logo.png";
-                } else {
-                  img.style.display = "none";
-                }
+                (e.target as HTMLImageElement).style.display = "none";
               }}
             />
           </Link>

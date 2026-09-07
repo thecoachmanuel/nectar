@@ -25,9 +25,7 @@ export const useSettingsStore = create<SettingsState>()(
       fetchSettings: async () => {
         set({ isLoading: true, error: null });
         try {
-          // force: 'no-store' ensures Next.js / browser never serves a cached response —
-          // critical so logo/theme changes appear immediately after admin saves
-          const res = await fetch('/api/settings', { cache: 'no-store' });
+          const res = await fetch('/api/settings');
           const data = await res.json();
           
           if (data.success) {
