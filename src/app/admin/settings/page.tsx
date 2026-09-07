@@ -26,6 +26,7 @@ export default function SettingsPage() {
   // Local state to hold form changes before saving
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
@@ -48,6 +49,36 @@ export default function SettingsPage() {
       setFormData(initialForm);
     }
   }, [settings]);
+
+  // Reusable logo upload helper
+  const handleLogoUpload = async (file: File) => {
+    if (!file) return;
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"];
+    if (!allowed.includes(file.type)) {
+      toast.error("Unsupported file type. Use JPG, PNG, WebP, GIF, or SVG.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File too large. Max 5 MB.");
+      return;
+    }
+    setUploadingLogo(true);
+    const body = new FormData();
+    body.append("file", file);
+    try {
+      const res = await fetch("/api/admin/upload", { method: "POST", body });
+      const data = await res.json();
+      if (data.url) {
+        setFormData(prev => ({ ...prev, theme_logo: data.url }));
+        toast.success("Logo uploaded! Click \"Save Changes\" to apply.");
+      } else {
+        toast.error(data.error || "Upload failed.");
+      }
+    } catch (err) {
+      toast.error("Upload failed. Check your connection.");
+    }
+    setUploadingLogo(false);
+  };
 
   const handleChange = (key: string, value: any) => {
     setFormData(prev => ({ ...prev, [key]: value }));
@@ -124,6 +155,14 @@ export default function SettingsPage() {
 
       await updateSettings(tabSettings);
       toast.success(`${activeTab} Settings saved successfully!`);
+
+      // After saving Theme settings, also immediately push logo to the Zustand
+      // store so Sidebar + Navbar update without a page reload or re-fetch.
+      if (activeTab === "Theme" && formData.theme_logo !== undefined) {
+        useSettingsStore.setState(state => ({
+          settings: { ...state.settings, theme_logo: formData.theme_logo }
+        }));
+      }
     } catch (error: any) {
       toast.error(`Failed to save: ${error.message}`);
     }
@@ -637,35 +676,85 @@ export default function SettingsPage() {
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-[#14142B] mb-2">Logo</label>
-                <div className="flex items-center gap-4">
-                  {formData.theme_logo && (
-                    <img src={formData.theme_logo} alt="Site Logo" className="h-12 w-auto object-contain rounded-lg border border-[#EFF0F6]" />
+              {/* Logo Upload — premium drag-and-drop card */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold text-[#14142B] mb-3">Site Logo</label>
+                <div
+                  onDragEnter={(e) => { e.preventDefault(); setDragActive(true); }}
+                  onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+                  onDragLeave={(e) => { e.preventDefault(); setDragActive(false); }}
+                  onDrop={async (e) => {
+                    e.preventDefault();
+                    setDragActive(false);
+                    const file = e.dataTransfer.files?.[0];
+                    if (file) await handleLogoUpload(file);
+                  }}
+                  className={`relative flex flex-col items-center justify-center gap-4 p-8 rounded-2xl border-2 border-dashed transition-all cursor-pointer ${
+                    dragActive
+                      ? "border-primary bg-primary/5"
+                      : "border-[#EFF0F6] hover:border-primary/50 hover:bg-[#FAFAFC]"
+                  }`}
+                >
+                  {/* Logo preview */}
+                  {formData.theme_logo ? (
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-40 h-20 flex items-center justify-center bg-white rounded-xl border border-[#EFF0F6] shadow-sm p-3">
+                        <img
+                          src={formData.theme_logo}
+                          alt="Site Logo Preview"
+                          className="max-h-full max-w-full object-contain"
+                        />
+                      </div>
+                      <p className="text-xs text-[#6E7191] text-center max-w-xs break-all">{formData.theme_logo}</p>
+                    </div>
+                  ) : (
+                    <div className="w-40 h-20 flex items-center justify-center bg-[#F7F7FC] rounded-xl border border-dashed border-[#D9DBE9]">
+                      <span className="text-[#A0A3BD] text-xs">No logo yet</span>
+                    </div>
                   )}
-                  <input 
-                    type="file" 
-                    accept="image/*"
-                    onChange={async (e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setUploadingLogo(true);
-                        const file = e.target.files[0];
-                        const body = new FormData();
-                        body.append("file", file);
-                        try {
-                          const res = await fetch("/api/admin/upload", { method: "POST", body });
-                          const data = await res.json();
-                          if (data.url) setFormData({...formData, theme_logo: data.url});
-                        } catch (err) {
-                          console.error("Upload error", err);
-                        }
-                        setUploadingLogo(false);
-                      }
-                    }}
-                    className="flex-1 h-12 px-4 py-2.5 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" 
-                  />
-                  {uploadingLogo && <span className="w-5 h-5 border-2 border-primary/40 border-t-[#ff006b] rounded-full animate-spin"></span>}
+
+                  <div className="flex flex-col items-center gap-2">
+                    <label
+                      htmlFor="logo-upload-input"
+                      className="h-10 px-5 rounded-xl bg-primary text-white text-sm font-semibold flex items-center gap-2 cursor-pointer hover:bg-[#e60060] transition-colors shadow-sm shadow-primary/20"
+                    >
+                      {uploadingLogo ? (
+                        <>
+                          <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                          Uploading…
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4m0 0l-3 3m3-3l3 3" /></svg>
+                          {formData.theme_logo ? "Replace Logo" : "Upload Logo"}
+                        </>
+                      )}
+                    </label>
+                    <input
+                      id="logo-upload-input"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) await handleLogoUpload(file);
+                        e.target.value = "";
+                      }}
+                    />
+                    <p className="text-xs text-[#A0A3BD] text-center">or drag & drop here · JPG, PNG, WebP, SVG · max 5 MB</p>
+                  </div>
+
+                  {formData.theme_logo && (
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, theme_logo: "" }))}
+                      className="text-xs text-red-400 hover:text-red-600 transition-colors underline"
+                    >
+                      Remove logo (revert to default)
+                    </button>
+                  )}
                 </div>
+                <p className="text-xs text-[#A0A3BD] mt-2">After uploading, click <strong>Save Changes</strong> to apply site-wide.</p>
               </div>
             </div>
           )}
