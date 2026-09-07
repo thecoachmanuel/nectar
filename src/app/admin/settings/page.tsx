@@ -555,7 +555,11 @@ export default function SettingsPage() {
                       </div>
                     </div>
                     <label className="h-9 px-3 rounded-lg bg-white border border-[#EFF0F6] hover:border-primary text-xs font-semibold text-[#14142B] hover:text-primary flex items-center justify-center gap-1.5 cursor-pointer transition-colors">
-                      {uploadingFavicon ? <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" /> : <Upload className="w-3.5 h-3.5 text-primary" />}
+                      {uploadingFavicon ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+                      ) : (
+                        <Upload className="w-3.5 h-3.5 text-primary" />
+                      )}
                       <span>{uploadingFavicon ? "Uploading..." : "Upload Favicon"}</span>
                       <input
                         type="file"
@@ -563,7 +567,9 @@ export default function SettingsPage() {
                         className="hidden"
                         disabled={uploadingFavicon}
                         onChange={(e) => {
-                          if (e.target.files && e.target.files[0]) handleLogoUpload(e.target.files[0], "theme_favicon");
+                          if (e.target.files && e.target.files[0]) {
+                            handleLogoUpload(e.target.files[0], "theme_favicon");
+                          }
                         }}
                       />
                     </label>
