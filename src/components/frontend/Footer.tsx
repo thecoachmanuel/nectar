@@ -42,6 +42,13 @@ export default function Footer() {
   const instagramUrl = settings?.instagramUrl || "#";
   const youtubeUrl = settings?.youtubeUrl || "#";
 
+  // Footer logo: admin-set footer logo takes priority, then falls back to
+  // the main site logo, then the static footer file.
+  const footerLogo =
+    settings?.theme_footer_logo ||
+    settings?.theme_logo ||
+    "/images/theme/theme-footer-logo.png";
+
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) { toast.error("Please enter your email."); return; }
@@ -78,16 +85,21 @@ export default function Footer() {
           <div>
             <Link href="/">
               <img
-                src="/images/theme/theme-footer-logo.png"
+                src={footerLogo}
                 alt="Nectar"
                 className="mb-8 w-36 h-auto"
                 onError={(e) => {
-                  const el = e.target as HTMLImageElement;
-                  el.style.display = "none";
-                  const fallback = document.createElement("span");
-                  fallback.className = "text-2xl font-black text-white";
-                  fallback.textContent = "Nectar";
-                  el.parentNode?.appendChild(fallback);
+                  const img = e.target as HTMLImageElement;
+                  // If custom footer logo fails, try the static fallback
+                  if (!img.src.includes("/images/theme/theme-footer-logo.png")) {
+                    img.src = "/images/theme/theme-footer-logo.png";
+                  } else {
+                    img.style.display = "none";
+                    const fallback = document.createElement("span");
+                    fallback.className = "text-2xl font-black text-white";
+                    fallback.textContent = "Nectar";
+                    img.parentNode?.appendChild(fallback);
+                  }
                 }}
               />
             </Link>

@@ -26,7 +26,9 @@ export default function SettingsPage() {
   // Local state to hold form changes before saving
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingFooterLogo, setUploadingFooterLogo] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [dragFooterActive, setDragFooterActive] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
@@ -50,8 +52,8 @@ export default function SettingsPage() {
     }
   }, [settings]);
 
-  // Reusable logo upload helper
-  const handleLogoUpload = async (file: File) => {
+  // Reusable logo upload helper — settingKey determines which form field to update
+  const handleLogoUpload = async (file: File, settingKey: string = "theme_logo") => {
     if (!file) return;
     const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"];
     if (!allowed.includes(file.type)) {
@@ -62,14 +64,15 @@ export default function SettingsPage() {
       toast.error("File too large. Max 5 MB.");
       return;
     }
-    setUploadingLogo(true);
+    if (settingKey === "theme_footer_logo") setUploadingFooterLogo(true);
+    else setUploadingLogo(true);
     const body = new FormData();
     body.append("file", file);
     try {
       const res = await fetch("/api/admin/upload", { method: "POST", body });
       const data = await res.json();
       if (data.url) {
-        setFormData(prev => ({ ...prev, theme_logo: data.url }));
+        setFormData(prev => ({ ...prev, [settingKey]: data.url }));
         toast.success("Logo uploaded! Click \"Save Changes\" to apply.");
       } else {
         toast.error(data.error || "Upload failed.");
@@ -77,7 +80,8 @@ export default function SettingsPage() {
     } catch (err) {
       toast.error("Upload failed. Check your connection.");
     }
-    setUploadingLogo(false);
+    if (settingKey === "theme_footer_logo") setUploadingFooterLogo(false);
+    else setUploadingLogo(false);
   };
 
   const handleChange = (key: string, value: any) => {
@@ -156,11 +160,15 @@ export default function SettingsPage() {
       await updateSettings(tabSettings);
       toast.success(`${activeTab} Settings saved successfully!`);
 
-      // After saving Theme settings, also immediately push logo to the Zustand
-      // store so Sidebar + Navbar update without a page reload or re-fetch.
-      if (activeTab === "Theme" && formData.theme_logo !== undefined) {
+      // After saving Theme settings, immediately push logos to the Zustand store
+      // so Sidebar, Navbar & Footer update without a page reload.
+      if (activeTab === "Theme") {
         useSettingsStore.setState(state => ({
-          settings: { ...state.settings, theme_logo: formData.theme_logo }
+          settings: {
+            ...state.settings,
+            ...(formData.theme_logo !== undefined && { theme_logo: formData.theme_logo }),
+            ...(formData.theme_footer_logo !== undefined && { theme_footer_logo: formData.theme_footer_logo }),
+          }
         }));
       }
     } catch (error: any) {
@@ -751,6 +759,94 @@ export default function SettingsPage() {
                       className="text-xs text-red-400 hover:text-red-600 transition-colors underline"
                     >
                       Remove logo (revert to default)
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-[#A0A3BD] mt-2">After uploading, click <strong>Save Changes</strong> to apply site-wide.</p>
+              </div>
+
+              {/* Footer Logo Upload */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold text-[#14142B] mb-1">Footer Logo</label>
+                <p className="text-xs text-[#6E7191] mb-3">
+                  Shown in the site footer. If not set, falls back to the main site logo above.
+                </p>
+                <div
+                  onDragEnter={(e) => { e.preventDefault(); setDragFooterActive(true); }}
+                  onDragOver={(e) => { e.preventDefault(); setDragFooterActive(true); }}
+                  onDragLeave={(e) => { e.preventDefault(); setDragFooterActive(false); }}
+                  onDrop={async (e) => {
+                    e.preventDefault();
+                    setDragFooterActive(false);
+                    const file = e.dataTransfer.files?.[0];
+                    if (file) await handleLogoUpload(file, "theme_footer_logo");
+                  }}
+                  className={`relative flex flex-col items-center justify-center gap-4 p-8 rounded-2xl border-2 border-dashed transition-all cursor-pointer ${
+                    dragFooterActive
+                      ? "border-primary bg-primary/5"
+                      : "border-[#EFF0F6] hover:border-primary/50 hover:bg-[#FAFAFC]"
+                  }`}
+                >
+                  {/* Footer logo preview — shown on a dark bg to match real footer */}
+                  {formData.theme_footer_logo ? (
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-40 h-20 flex items-center justify-center rounded-xl p-3" style={{ backgroundColor: "var(--primary-hex)" }}>
+                        <img
+                          src={formData.theme_footer_logo}
+                          alt="Footer Logo Preview"
+                          className="max-h-full max-w-full object-contain"
+                        />
+                      </div>
+                      <p className="text-xs text-[#6E7191] text-center max-w-xs break-all">{formData.theme_footer_logo}</p>
+                    </div>
+                  ) : (
+                    <div
+                      className="w-40 h-20 flex flex-col items-center justify-center rounded-xl border border-dashed border-[#D9DBE9] gap-1"
+                      style={{ backgroundColor: "var(--primary-hex, #ff006b)" }}
+                    >
+                      <span className="text-white/60 text-xs">No footer logo</span>
+                      <span className="text-white/40 text-[10px]">uses main logo</span>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col items-center gap-2">
+                    <label
+                      htmlFor="footer-logo-upload-input"
+                      className="h-10 px-5 rounded-xl bg-primary text-white text-sm font-semibold flex items-center gap-2 cursor-pointer hover:bg-[#e60060] transition-colors shadow-sm shadow-primary/20"
+                    >
+                      {uploadingFooterLogo ? (
+                        <>
+                          <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                          Uploading…
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4m0 0l-3 3m3-3l3 3" /></svg>
+                          {formData.theme_footer_logo ? "Replace Footer Logo" : "Upload Footer Logo"}
+                        </>
+                      )}
+                    </label>
+                    <input
+                      id="footer-logo-upload-input"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) await handleLogoUpload(file, "theme_footer_logo");
+                        e.target.value = "";
+                      }}
+                    />
+                    <p className="text-xs text-[#A0A3BD] text-center">or drag & drop here · JPG, PNG, WebP, SVG · max 5 MB</p>
+                  </div>
+
+                  {formData.theme_footer_logo && (
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, theme_footer_logo: "" }))}
+                      className="text-xs text-red-400 hover:text-red-600 transition-colors underline"
+                    >
+                      Remove footer logo (use main logo)
                     </button>
                   )}
                 </div>
