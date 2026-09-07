@@ -118,7 +118,7 @@ export async function POST(req: Request) {
             });
             const adminTargetPhone = adminPhoneSetting?.payload ? String(adminPhoneSetting.payload).trim() : null;
             if (adminTargetPhone && adminTargetPhone.length >= 7) {
-              const appOrigin = process.env.NEXT_PUBLIC_APP_URL || "https://nectar-groceries.vercel.app";
+              const appOrigin = process.env.NEXT_PUBLIC_APP_URL || "https://errandshop-groceries.vercel.app";
               fetch(`${waServiceUrl}/send`, {
                 method: "POST",
                 headers: {

@@ -1,6 +1,6 @@
-# Deploying Nectar to Vercel
+# Deploying Errandshop to Vercel
 
-Follow these simple steps to deploy your fullstack **Nectar** Next.js 16 + MongoDB application to **Vercel**:
+Follow these simple steps to deploy your fullstack **Errandshop** Next.js 16 + MongoDB application to **Vercel**:
 
 ---
 
@@ -8,7 +8,7 @@ Follow these simple steps to deploy your fullstack **Nectar** Next.js 16 + Mongo
 1. Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) and create a free or paid database cluster.
 2. Under **Database Access**, create a user with read/write permissions.
 3. Under **Network Access**, add `0.0.0.0/0` (allow access from anywhere) so Vercel serverless functions can connect.
-4. Copy your connection string (`mongodb+srv://<username>:<password>@cluster.mongodb.net/nectar?retryWrites=true&w=majority`).
+4. Copy your connection string (`mongodb+srv://<username>:<password>@cluster.mongodb.net/errandshop?retryWrites=true&w=majority`).
 
 ---
 
@@ -22,11 +22,11 @@ Follow these simple steps to deploy your fullstack **Nectar** Next.js 16 + Mongo
 
 | Key | Example Value |
 | :--- | :--- |
-| `MONGODB_URI` | `mongodb+srv://user:pass@cluster.mongodb.net/nectar` |
+| `MONGODB_URI` | `mongodb+srv://user:pass@cluster.mongodb.net/errandshop` |
 | `JWT_SECRET` | `your_secret_jwt_key_here_minimum_32_chars` |
 | `PAYSTACK_SECRET_KEY` | `sk_live_xxxx...` |
 | `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` | `pk_live_xxxx...` |
-| `NEXT_PUBLIC_APP_URL` | `https://your-nectar.vercel.app` |
+| `NEXT_PUBLIC_APP_URL` | `https://your-errandshop.vercel.app` |
 
 6. Click **Deploy**. Vercel will automatically build and publish your application.
 

@@ -359,7 +359,7 @@ export default function OrderStatusScreenPage() {
                 <Sparkles className="w-3.5 h-3.5 text-primary" />
                 Freshly prepared to order • Listen for your token number
               </span>
-              <span className="text-[10px] font-bold text-primary">Nectar POS</span>
+              <span className="text-[10px] font-bold text-primary">Errandshop POS</span>
             </div>
 
           </div>

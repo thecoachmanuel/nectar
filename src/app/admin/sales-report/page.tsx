@@ -335,7 +335,7 @@ export default function SalesReportPage() {
         {/* Pagination footer */}
         <div className="p-4 sm:p-6 border-t border-[#EFF0F6] flex items-center justify-between text-xs text-[#6E7191]">
           <span>Showing {filteredOrders.length} entries</span>
-          <span className="font-semibold text-primary">Nectar Sales Reporting</span>
+          <span className="font-semibold text-primary">Errandshop Sales Reporting</span>
         </div>
 
       </div>

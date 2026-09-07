@@ -122,7 +122,7 @@ export async function POST(req: Request) {
         url: url || "/",
         image,
         targetRole,
-        tag: `nectar-broadcast-${Date.now()}`,
+        tag: `errandshop-broadcast-${Date.now()}`,
       });
     }
 

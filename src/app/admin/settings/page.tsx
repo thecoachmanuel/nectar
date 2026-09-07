@@ -195,7 +195,7 @@ export default function SettingsPage() {
       // Real-time broadcast so active tabs, navbar and footer update instantly
       if (typeof window !== "undefined") {
         window.dispatchEvent(
-          new CustomEvent("nectar:settings-updated", { detail: formData })
+          new CustomEvent("errandshop:settings-updated", { detail: formData })
         );
       }
     } catch (error: any) {
@@ -309,7 +309,7 @@ export default function SettingsPage() {
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Company / Head Office Address</label>
                 <textarea 
                   rows={3} 
-                  placeholder="e.g. 123 Nectar Fresh Market Way, Victoria Island (Leave blank to hide head office on contact page)"
+                  placeholder="e.g. 123 Errandshop Fresh Market Way, Victoria Island (Leave blank to hide head office on contact page)"
                   value={formData.company_address || ""} 
                   onChange={(e) => handleChange("company_address", e.target.value)}
                   className="w-full p-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary resize-none"
@@ -533,12 +533,12 @@ export default function SettingsPage() {
                     <label className="block text-sm font-semibold text-[#14142B] mb-2">Receipt Footer Signature</label>
                     <input 
                       type="text" 
-                      placeholder="Powered by Nectar App"
+                      placeholder="Powered by Errandshop App"
                       value={formData.receipt_footer_signature || ""} 
                       onChange={(e) => handleChange("receipt_footer_signature", e.target.value)}
                       className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                     />
-                    <p className="text-xs text-[#6E7191] mt-1.5">Printed at the bottom of customer receipts (default: Powered by Nectar App).</p>
+                    <p className="text-xs text-[#6E7191] mt-1.5">Printed at the bottom of customer receipts (default: Powered by Errandshop App).</p>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-[#14142B] mb-2">Receipt Header Tagline (Optional)</label>
@@ -1114,7 +1114,7 @@ export default function SettingsPage() {
                   <label className="block text-sm font-semibold text-[#14142B] mb-2">Account Name <span className="text-red-500">*</span></label>
                   <input 
                     type="text" 
-                    placeholder="e.g. Nectar Groceries Ltd"
+                    placeholder="e.g. Errandshop Groceries Ltd"
                     value={formData.wa_account_name || ""} 
                     onChange={(e) => {
                       const newAccName = e.target.value;

@@ -267,7 +267,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
               >
                 <div className="flex items-center gap-2.5">
                   <Smartphone className="w-4.5 h-4.5 text-white" />
-                  <span>Download Nectar App</span>
+                  <span>Download Errandshop App</span>
                 </div>
                 <span className="text-[10px] uppercase font-extrabold bg-white text-primary px-2 py-0.5 rounded-full shadow-2xs">PWA</span>
               </button>

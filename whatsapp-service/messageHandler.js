@@ -1,5 +1,5 @@
 // ─── Message Handler ───────────────────────────────────────────────────────
-// Conversational ordering bot state machine for Nectar Groceries with Product Variations, GPS Location, and Order Tracking
+// Conversational ordering bot state machine for Errandshop Groceries with Product Variations, GPS Location, and Order Tracking
 
 const { ObjectId } = require("mongodb");
 const sessionManager = require("./sessionManager");
@@ -26,7 +26,7 @@ function buildCartSummary(cart) {
   const subtotal = cart.reduce((sum, item) => sum + item.itemTotal, 0);
 
   return (
-    `🛍️ *Your Nectar Cart*\n\n` +
+    `🛍️ *Your Errandshop Cart*\n\n` +
     lines.join("\n") +
     `\n\n*Subtotal: ₦${formatPrice(subtotal)}*`
   );
@@ -41,9 +41,9 @@ function buildWelcomeMenu(session) {
       session.savedAddresses && session.savedAddresses.length > 0
         ? `\n📍 _Saved delivery address available_`
         : "";
-    greeting = `👋 Welcome back, *${session.customerName}*! ✨\n🌿 Ready to restock your fresh groceries with *Nectar*?${addressHint}`;
+    greeting = `👋 Welcome back, *${session.customerName}*! ✨\n🌿 Ready to restock your fresh groceries with *Errandshop*?${addressHint}`;
   } else {
-    greeting = `🌿 *Welcome to Nectar Groceries!* 🥦\n\nFresh groceries delivered straight to your door.`;
+    greeting = `🌿 *Welcome to Errandshop Groceries!* 🥦\n\nFresh groceries delivered straight to your door.`;
   }
 
   const profileOption = isKnown ? `5️⃣ *My Profile & Addresses* 👤\n` : "";
@@ -295,7 +295,7 @@ async function showCustomerProfileCard(db, session, phone, sendFn) {
 
   return sendFn(
     phone,
-    `👤 *Your Nectar Profile*\n\n` +
+    `👤 *Your Errandshop Profile*\n\n` +
       `• *Name:* ${session.customerName || "Valued Customer"}\n` +
       `• *Phone:* ${session.customerPhone || "+" + phone}\n` +
       (session.customerEmail ? `• *Email:* ${session.customerEmail}\n` : "") +
@@ -316,7 +316,7 @@ function startWishlistFlow(session, phone, sendFn) {
   return sendFn(
     phone,
     `📝 *Submit Your Shopping Wishlist* 🛍️\n\n` +
-      `Hi${nameGreeting}! We want to make sure Nectar stocks all the grocery items and brands you buy frequently.\n\n` +
+      `Hi${nameGreeting}! We want to make sure Errandshop stocks all the grocery items and brands you buy frequently.\n\n` +
       `Please tell us what products you buy often and would love to see on the app:\n\n` +
       `✍️ *Examples:*\n` +
       `• _Indomie Chicken 70g (Carton)_\n` +
@@ -704,7 +704,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn, pushNa
   if (["HELP", "COMMANDS"].includes(upper)) {
     return sendFn(
       phone,
-      `🌿 *Nectar WhatsApp Assistant*\n\n` +
+      `🌿 *Errandshop WhatsApp Assistant*\n\n` +
         `Here are the commands you can use anytime:\n` +
         `• *MENU* — Main store menu\n` +
         `• *TRACK* — Track your order status 🚚\n` +
@@ -764,7 +764,7 @@ async function handleIncomingMessage(db, appUrl, phone, rawInput, sendFn, pushNa
         session.step = "SEARCH_QUERY";
         return sendFn(
           phone,
-          `🔍 *Search Nectar Groceries*\n\n` +
+          `🔍 *Search Errandshop Groceries*\n\n` +
             `What item are you looking for?\n` +
             `(e.g. "tomatoes", "milk", "avocado", "bread")\n\n` +
             `_Type *MENU* to go back_`
@@ -1338,7 +1338,7 @@ async function processOrderPlacement(db, appUrl, session, phone, paymentMethod, 
             `Please click the secure link below to complete your payment:\n` +
             `👉 ${psResult.authorizationUrl}\n\n` +
             `Once paid, our store team will confirm and dispatch your groceries! 🥦🚚\n\n` +
-            `_Thank you for choosing Nectar!_`
+            `_Thank you for choosing Errandshop!_`
         );
       }
     }

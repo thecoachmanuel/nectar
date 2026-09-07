@@ -28,7 +28,7 @@ async function getFrontendAppUrl(db) {
   }
 
   // 3. Fallback to configured or typical Vercel app URL
-  return (process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://nectar-app.vercel.app").replace(/\/+$/, "");
+  return (process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "https://errandshop-app.vercel.app").replace(/\/+$/, "");
 }
 
 async function getBankAccountDetails(db) {
@@ -43,7 +43,7 @@ async function getBankAccountDetails(db) {
         return {
           bankName: p.bankName,
           accountNumber: p.accountNumber,
-          accountName: p.accountName || "Nectar Groceries",
+          accountName: p.accountName || "Errandshop Groceries",
         };
       }
     }
@@ -55,7 +55,7 @@ async function getBankAccountDetails(db) {
       return {
         bankName: p.bankName || "Access Bank",
         accountNumber: p.accountNumber || "0123456789",
-        accountName: p.accountName || "Nectar Groceries Ltd",
+        accountName: p.accountName || "Errandshop Groceries Ltd",
       };
     }
   } catch (err) {
@@ -66,7 +66,7 @@ async function getBankAccountDetails(db) {
   return {
     bankName: "Guaranty Trust Bank (GTBank)",
     accountNumber: "Contact Admin for Account",
-    accountName: "Nectar Groceries",
+    accountName: "Errandshop Groceries",
   };
 }
 
@@ -128,7 +128,7 @@ async function initializePaystackPayment(db, appUrlOverride, order) {
 
     const payload = {
       amount: amountInKobo,
-      email: order.customerEmail || "customer@nectargroceries.com",
+      email: order.customerEmail || "customer@errandshopgroceries.com",
       reference: reference,
       callback_url: `${frontendUrl}/order/${order._id}?payment=paystack&ref=${reference}`,
       metadata: {

@@ -53,7 +53,7 @@ export default function LoginPage() {
   };
 
   const handleGuestLogin = () => {
-    setGuest({ name: "Guest", email: "guest@nectar.com", phone: "" });
+    setGuest({ name: "Guest", email: "guest@errandshop.com", phone: "" });
     toast.success("Continuing as guest.");
     router.push("/");
   };

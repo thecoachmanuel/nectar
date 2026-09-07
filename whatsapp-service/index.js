@@ -303,24 +303,24 @@ function buildStatusMessage(orderSerialNo, status, customerName, totalAmount) {
   const amount = totalAmount ? ` (₦${Number(totalAmount).toLocaleString()})` : "";
 
   const templates = {
-    pending: `🌿 *Nectar Groceries*\n\n👋 Hi *${name}*!\n\nWe've received your grocery order *#${orderSerialNo}*${amount} and it is currently *pending confirmation*.\n\nOur team is reviewing your items, and we'll update you the moment it is confirmed! 🛒✨\n\n_Thank you for choosing Nectar!_`,
+    pending: `🌿 *Errandshop Groceries*\n\n👋 Hi *${name}*!\n\nWe've received your grocery order *#${orderSerialNo}*${amount} and it is currently *pending confirmation*.\n\nOur team is reviewing your items, and we'll update you the moment it is confirmed! 🛒✨\n\n_Thank you for choosing Errandshop!_`,
 
-    accepted: `🌿 *Nectar Groceries*\n\n✅ Great news, *${name}*!\n\nYour grocery order *#${orderSerialNo}* has been *confirmed*! 🎉\n\nOur store team is now getting your fresh items ready for packing. 🥦🍎\n\n_— Team Nectar_`,
+    accepted: `🌿 *Errandshop Groceries*\n\n✅ Great news, *${name}*!\n\nYour grocery order *#${orderSerialNo}* has been *confirmed*! 🎉\n\nOur store team is now getting your fresh items ready for packing. 🥦🍎\n\n_— Team Errandshop_`,
 
-    preparing: `🌿 *Nectar Groceries*\n\n🛍️ Hey *${name}*!\n\nYour order *#${orderSerialNo}* is now being carefully *picked & packed*. 🥑📦\n\nWe ensure only the freshest groceries are selected for your package. Sit tight — it'll be ready shortly! ✨`,
+    preparing: `🌿 *Errandshop Groceries*\n\n🛍️ Hey *${name}*!\n\nYour order *#${orderSerialNo}* is now being carefully *picked & packed*. 🥑📦\n\nWe ensure only the freshest groceries are selected for your package. Sit tight — it'll be ready shortly! ✨`,
 
-    ready: `🌿 *Nectar Groceries*\n\n🎁 *${name}*, your grocery package *#${orderSerialNo}* is *all packed and ready!* 🛍️\n\nOur dispatch team is assigned and about to pick it up for delivery. 🚀`,
+    ready: `🌿 *Errandshop Groceries*\n\n🎁 *${name}*, your grocery package *#${orderSerialNo}* is *all packed and ready!* 🛍️\n\nOur dispatch team is assigned and about to pick it up for delivery. 🚀`,
 
-    out_for_delivery: `🌿 *Nectar Groceries*\n\n🚚 Exciting news, *${name}*!\n\nYour grocery order *#${orderSerialNo}* is now *out for delivery!* 🛵💨\n\nOur rider is heading your way with your fresh package. Please be available to receive it.\n\n_— Team Nectar_`,
+    out_for_delivery: `🌿 *Errandshop Groceries*\n\n🚚 Exciting news, *${name}*!\n\nYour grocery order *#${orderSerialNo}* is now *out for delivery!* 🛵💨\n\nOur rider is heading your way with your fresh package. Please be available to receive it.\n\n_— Team Errandshop_`,
 
-    delivered: `🌿 *Nectar Groceries*\n\n🎉 *${name}*, your grocery order *#${orderSerialNo}* has been *successfully delivered!* 🏠📦\n\nThank you for shopping with Nectar! We hope you love your fresh groceries. 🍎🥑🥛\n\n_Enjoy your fresh items & see you on your next order!_ ⭐`,
+    delivered: `🌿 *Errandshop Groceries*\n\n🎉 *${name}*, your grocery order *#${orderSerialNo}* has been *successfully delivered!* 🏠📦\n\nThank you for shopping with Errandshop! We hope you love your fresh groceries. 🍎🥑🥛\n\n_Enjoy your fresh items & see you on your next order!_ ⭐`,
 
-    canceled: `🌿 *Nectar Groceries*\n\n😔 *${name}*, your grocery order *#${orderSerialNo}* has been *canceled*.\n\nIf you have any questions or need assistance, simply reply directly to this chat or reach out to our customer care.\n\n_We apologize for any inconvenience! 🙏_`,
+    canceled: `🌿 *Errandshop Groceries*\n\n😔 *${name}*, your grocery order *#${orderSerialNo}* has been *canceled*.\n\nIf you have any questions or need assistance, simply reply directly to this chat or reach out to our customer care.\n\n_We apologize for any inconvenience! 🙏_`,
   };
 
   return (
     templates[status] ||
-    `🌿 *Nectar Groceries*\n\nHi *${name}*, your order *#${orderSerialNo}* status has been updated to: *${status.replace("_", " ")}*.\n\n_— Team Nectar_`
+    `🌿 *Errandshop Groceries*\n\nHi *${name}*, your order *#${orderSerialNo}* status has been updated to: *${status.replace("_", " ")}*.\n\n_— Team Errandshop_`
   );
 }
 
@@ -852,7 +852,7 @@ app.post("/bot-mode", auth, (req, res) => {
 // GET / — Health check
 app.get("/", (req, res) => {
   res.json({
-    service: "Nectar WhatsApp Bot",
+    service: "Errandshop WhatsApp Bot",
     version: "1.0.0",
     connection: connectionStatus,
     endpoints: ["/status", "/qr", "/send (POST)", "/logout (POST)", "/bot-mode (POST)"],
@@ -871,7 +871,7 @@ app.listen(PORT, () => {
 });
 
 // ─── Self-Keepalive Ping (Prevents Render Free-Tier Sleep) ──────────────────
-const KEEP_ALIVE_URL = process.env.KEEP_ALIVE_URL || "https://nectar-58qj.onrender.com/status";
+const KEEP_ALIVE_URL = process.env.KEEP_ALIVE_URL || "https://errandshop-58qj.onrender.com/status";
 const PING_INTERVAL_MS = 8 * 60 * 1000; // Ping every 8 minutes (Render sleep timeout is 15 mins)
 
 function startKeepAlive() {

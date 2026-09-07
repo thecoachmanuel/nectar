@@ -47,7 +47,7 @@ export default function OrderDetailsModal({
 
   // Thermal receipt state — same pattern as POS orders
   const [showReceipt, setShowReceipt] = useState(false);
-  const [receiptFooterSignature, setReceiptFooterSignature] = useState("Powered by Nectar App");
+  const [receiptFooterSignature, setReceiptFooterSignature] = useState("Powered by Errandshop App");
   const [receiptHeaderTagline, setReceiptHeaderTagline] = useState("");
 
   useEffect(() => {
@@ -928,7 +928,7 @@ ${el.innerHTML}
               {/* Footer Signature */}
               <div className="pt-2 text-center border-t border-dashed border-gray-300">
                 <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                  {receiptFooterSignature || "Powered by Nectar App"}
+                  {receiptFooterSignature || "Powered by Errandshop App"}
                 </p>
               </div>
             </div>

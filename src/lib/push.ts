@@ -10,7 +10,7 @@ function getVapidKeys() {
     process.env.VAPID_PRIVATE_KEY ||
     "NiBv88ZQBBUNRjH9IbeTyukTU1UQro6RN_TDi6Axv_w";
   const appUrl =
-    process.env.NEXT_PUBLIC_APP_URL || "https://nectar-app.vercel.app";
+    process.env.NEXT_PUBLIC_APP_URL || "https://errandshop-app.vercel.app";
   return { publicKey, privateKey, appUrl };
 }
 
@@ -50,7 +50,7 @@ export async function sendBulkWebPush(
     image: data?.image,
     data: data || {},
     requireInteraction: true,
-    tag: data?.tag || `nectar-push-${Date.now()}`,
+    tag: data?.tag || `errandshop-push-${Date.now()}`,
     renotify: true,
   });
 

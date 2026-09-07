@@ -36,7 +36,7 @@ export default function Footer() {
   const [email, setEmail] = useState("");
   const { settings } = useSettingsStore();
 
-  const contactEmail = settings?.company_email || settings?.contactEmail || "info@nectar.com";
+  const contactEmail = settings?.company_email || settings?.contactEmail || "info@errandshop.com";
   const contactPhone = settings?.company_phone || settings?.contactPhone || "+1 800 123 4567";
   const facebookUrl = settings?.facebookUrl || "#";
   const twitterUrl = settings?.twitterUrl || "#";
@@ -158,7 +158,7 @@ export default function Footer() {
       {/* Copyright Bar */}
       <div className="py-8 mt-8 border-t border-white/20">
         <p className="text-sm text-center text-white opacity-90">
-          © {new Date().getFullYear()} Nectar. All rights reserved.
+          © {new Date().getFullYear()} Errandshop. All rights reserved.
         </p>
       </div>
     </footer>

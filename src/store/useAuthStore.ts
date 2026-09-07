@@ -88,7 +88,15 @@ export const useAuthStore = create<AuthState>()(
       logout: () => set({ token: null, user: null, isGuest: false, guestInfo: null, activeAdminStoreId: "0" }),
     }),
     {
-      name: "nectar_auth_storage",
+      name: "errandshop_auth_storage",
     }
   )
 );
+
+if (typeof window !== "undefined") {
+  try {
+    if (!localStorage.getItem("errandshop_auth_storage") && localStorage.getItem("nectar_auth_storage")) {
+      localStorage.setItem("errandshop_auth_storage", localStorage.getItem("nectar_auth_storage")!);
+    }
+  } catch {}
+}

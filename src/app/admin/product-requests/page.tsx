@@ -108,7 +108,7 @@ export default function ProductRequestsPage() {
     const cleanPhone = phone.replace(/[^0-9]/g, "");
     const formattedPhone = cleanPhone.startsWith("0") ? `234${cleanPhone.slice(1)}` : cleanPhone;
     const msg = encodeURIComponent(
-      `Hello! Regarding your request for "${productName}" on Nectar, we are pleased to let you know that it is now stocked and available for order!`
+      `Hello! Regarding your request for "${productName}" on Errandshop, we are pleased to let you know that it is now stocked and available for order!`
     );
     return `https://wa.me/${formattedPhone}?text=${msg}`;
   };

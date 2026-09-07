@@ -39,7 +39,7 @@ export default function PosOrdersPage() {
 
   // Thermal receipt modal state
   const [receiptOrder, setReceiptOrder] = useState<any | null>(null);
-  const [receiptFooterSignature, setReceiptFooterSignature] = useState("Powered by Nectar App");
+  const [receiptFooterSignature, setReceiptFooterSignature] = useState("Powered by Errandshop App");
   const [receiptHeaderTagline, setReceiptHeaderTagline] = useState("");
 
   // POS Order Details modal state
@@ -655,7 +655,7 @@ ${el.innerHTML}
         {/* Footer info */}
         <div className="p-4 sm:px-6 border-t border-[#EFF0F6] flex items-center justify-between text-xs text-[#6E7191]">
           <span>Showing {filteredOrders.length} of {orders.length} entries</span>
-          <span className="font-semibold text-primary">Nectar POS Reporting</span>
+          <span className="font-semibold text-primary">Errandshop POS Reporting</span>
         </div>
 
       </div>
@@ -686,7 +686,7 @@ ${el.innerHTML}
             {/* 80mm Thermal Receipt Content */}
             <div id="thermal-receipt" className="p-5 font-mono text-black text-xs leading-relaxed select-text bg-white mx-auto" style={{ width: '100%', maxWidth: '340px' }}>
               <div className="text-center pb-3 border-b border-dashed border-gray-400">
-                <h2 className="text-lg font-extrabold uppercase text-black tracking-tight">{receiptOrder.storeName || "Nectar Groceries"}</h2>
+                <h2 className="text-lg font-extrabold uppercase text-black tracking-tight">{receiptOrder.storeName || "Errandshop Groceries"}</h2>
                 {receiptOrder.storeAddress && <p className="text-[11px] text-gray-700 leading-tight mt-0.5">{receiptOrder.storeAddress}</p>}
                 {receiptOrder.storePhone && <p className="text-[11px] text-gray-700 leading-tight">Tel: {receiptOrder.storePhone}</p>}
                 {receiptHeaderTagline && <p className="text-[10px] text-gray-500 italic mt-0.5">{receiptHeaderTagline}</p>}
@@ -806,7 +806,7 @@ ${el.innerHTML}
 
               <div className="pt-2 text-center border-t border-dashed border-gray-300">
                 <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                  {receiptFooterSignature || "Powered by Nectar App"}
+                  {receiptFooterSignature || "Powered by Errandshop App"}
                 </p>
               </div>
             </div>

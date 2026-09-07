@@ -2,9 +2,9 @@ import { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Nectar - Online Groceries Delivery & WhatsApp Ordering",
-    short_name: "Nectar",
-    description: "Nectar - Online Groceries Delivery & WhatsApp Ordering with POS and instant home delivery.",
+    name: "Errandshop - Online Groceries Delivery & WhatsApp Ordering",
+    short_name: "Errandshop",
+    description: "Errandshop - Online Groceries Delivery & WhatsApp Ordering with POS and instant home delivery.",
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",

@@ -77,7 +77,7 @@ export default function AdminLoginPage() {
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
-                placeholder="admin@nectar.com"
+                placeholder="admin@errandshop.com"
                 className="w-full h-12 pl-12 pr-4 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] text-sm focus:outline-none focus:border-primary transition-colors"
               />
               <Mail className="w-5 h-5 text-[#A0A3BD] absolute left-4 top-1/2 -translate-y-1/2" />

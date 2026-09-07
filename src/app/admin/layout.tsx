@@ -33,7 +33,7 @@ export default function AdminLayout({
 
     if (!user) {
       // Fallback check if state not hydrated yet
-      const authStorage = localStorage.getItem("nectar_auth_storage");
+      const authStorage = localStorage.getItem("errandshop_auth_storage") || localStorage.getItem("nectar_auth_storage");
       if (!authStorage) {
         router.push("/admin/login");
       }

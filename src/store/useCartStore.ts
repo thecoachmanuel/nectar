@@ -158,7 +158,17 @@ export const useCartStore = create<CartState>()(
       },
     }),
     {
-      name: "nectar_cart_storage",
+      name: "errandshop_cart_storage",
     }
   )
 );
+
+// Backward-compatible local storage migration
+if (typeof window !== "undefined") {
+  try {
+    const legacyCart = localStorage.getItem("nectar_cart_storage");
+    if (legacyCart && !localStorage.getItem("errandshop_cart_storage")) {
+      localStorage.setItem("errandshop_cart_storage", legacyCart);
+    }
+  } catch {}
+}

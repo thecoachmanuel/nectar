@@ -45,7 +45,7 @@ export const useSettingStore = create<SettingState>()(
     (set, get) => ({
       currencySymbol: "₦",
       currencyCode: "NGN",
-      siteName: "Nectar",
+      siteName: "Errandshop",
       isMultiStore: true,
       defaultStoreId: "",
       activeStore: null,
@@ -77,14 +77,24 @@ export const useSettingStore = create<SettingState>()(
       },
     }),
     {
-      name: "nectar_settings_storage",
+      name: "errandshop_settings_storage",
     }
   )
 );
 
+// Backward-compatible local storage migration
+if (typeof window !== "undefined") {
+  try {
+    const legacySettings = localStorage.getItem("nectar_settings_storage");
+    if (legacySettings && !localStorage.getItem("errandshop_settings_storage")) {
+      localStorage.setItem("errandshop_settings_storage", legacySettings);
+    }
+  } catch {}
+}
+
 // Synchronize with broadcast updates from admin or other tabs
 if (typeof window !== "undefined") {
-  window.addEventListener("nectar:settings-updated", (event: any) => {
+  const handleSettingsUpdate = (event: any) => {
     const data = event.detail;
     if (data) {
       const updates: Partial<SettingState> = {};
@@ -104,5 +114,8 @@ if (typeof window !== "undefined") {
         useSettingStore.setState(updates);
       }
     }
-  });
+  };
+
+  window.addEventListener("errandshop:settings-updated", handleSettingsUpdate);
+  window.addEventListener("nectar:settings-updated", handleSettingsUpdate);
 }

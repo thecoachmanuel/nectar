@@ -7,7 +7,7 @@ export default function CookiesConsent() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const accepted = localStorage.getItem("nectar_cookies_accepted");
+    const accepted = localStorage.getItem("errandshop_cookies_accepted");
     if (!accepted) {
       const timer = setTimeout(() => setVisible(true), 2000);
       return () => clearTimeout(timer);
@@ -15,7 +15,7 @@ export default function CookiesConsent() {
   }, []);
 
   const accept = () => {
-    localStorage.setItem("nectar_cookies_accepted", "true");
+    localStorage.setItem("errandshop_cookies_accepted", "true");
     setVisible(false);
   };
 

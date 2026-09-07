@@ -7,7 +7,7 @@ import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "nectar_secret_key_default_2026"
+  process.env.JWT_SECRET || "errandshop_secret_key_default_2026"
 );
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {

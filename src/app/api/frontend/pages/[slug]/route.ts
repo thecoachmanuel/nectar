@@ -7,17 +7,17 @@ export const dynamic = "force-dynamic";
 
 const defaultPages: Record<string, any> = {
   "about-us": {
-    title: "About Nectar Groceries",
+    title: "About Errandshop Groceries",
     slug: "about-us",
     template_id: 0,
     description: `
       <h2>Fresh Groceries Delivered Right to Your Doorstep</h2>
-      <p>Welcome to <strong>Nectar</strong> — your premier online grocery and fresh food delivery destination. We connect local shoppers with the freshest farm-to-table produce, pantry staples, dairy, beverages, and daily household essentials, delivered in under 30 minutes.</p>
+      <p>Welcome to <strong>Errandshop</strong> — your premier online grocery and fresh food delivery destination. We connect local shoppers with the freshest farm-to-table produce, pantry staples, dairy, beverages, and daily household essentials, delivered in under 30 minutes.</p>
       
       <h3>Our Mission</h3>
-      <p>At Nectar, our mission is simple: to make healthy, top-quality groceries accessible and affordable for every household, backed by seamless online and WhatsApp ordering.</p>
+      <p>At Errandshop, our mission is simple: to make healthy, top-quality groceries accessible and affordable for every household, backed by seamless online and WhatsApp ordering.</p>
       
-      <h3>Why Choose Nectar?</h3>
+      <h3>Why Choose Errandshop?</h3>
       <ul>
         <li><strong>100% Farm Fresh Quality:</strong> Hand-picked organic fruits, crisp vegetables, and premium cuts selected daily.</li>
         <li><strong>Lightning-Fast Delivery:</strong> Order online or via WhatsApp and receive your delivery right at your door.</li>
@@ -40,7 +40,7 @@ const defaultPages: Record<string, any> = {
     template_id: 0,
     description: `
       <h2>Terms & Conditions</h2>
-      <p>Welcome to Nectar. By accessing our platform, placing orders, or using our WhatsApp ordering service, you agree to comply with and be bound by the following terms and conditions.</p>
+      <p>Welcome to Errandshop. By accessing our platform, placing orders, or using our WhatsApp ordering service, you agree to comply with and be bound by the following terms and conditions.</p>
       <h3>1. Order Placement & Acceptance</h3>
       <p>All orders placed through our website, PWA app, or WhatsApp bot are subject to product availability and confirmation of the order price.</p>
       <h3>2. Delivery & Fulfillment</h3>
@@ -55,7 +55,7 @@ const defaultPages: Record<string, any> = {
     template_id: 0,
     description: `
       <h2>Privacy Policy</h2>
-      <p>At Nectar, we are committed to protecting your personal privacy. We collect minimal customer information necessary to process your orders, deliver products to your specified address, and communicate order updates.</p>
+      <p>At Errandshop, we are committed to protecting your personal privacy. We collect minimal customer information necessary to process your orders, deliver products to your specified address, and communicate order updates.</p>
       <h3>Data Security</h3>
       <p>We implement robust encryption and security standards to ensure your personal details, payment records, and address information are fully secure and never shared with unauthorized third parties.</p>
     `,
@@ -81,7 +81,7 @@ export async function GET(
       if (customAboutSetting && customAboutSetting.payload) {
         if (!page) {
           page = {
-            title: "About Nectar Groceries",
+            title: "About Errandshop Groceries",
             slug: "about-us",
             description: customAboutSetting.payload,
             template_id: 0,

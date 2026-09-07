@@ -92,7 +92,7 @@ async function triggerOsNotification(
           image: options.image,
           vibrate: [200, 100, 200],
           data: { url: options.url || "/", body: options.body, title },
-          tag: options.tag || `nectar-${Date.now()}`,
+          tag: options.tag || `errandshop-${Date.now()}`,
           renotify: true,
           requireInteraction: true,
         } as any);
@@ -120,7 +120,7 @@ async function triggerOsNotification(
 }
 
 // ── Global event key for showing notification detail modal ──────────────────
-export const NOTIF_MODAL_EVENT = "nectar:show-notification";
+export const NOTIF_MODAL_EVENT = "errandshop:show-notification";
 
 export default function NotificationListener() {
   const lastAdminOrderSerialRef = useRef<string | null>(null);
@@ -171,7 +171,7 @@ export default function NotificationListener() {
           if (u._id) userId = u._id;
           if (u.role) userRole = u.role;
         } else {
-          const authStorage = localStorage.getItem("nectar_auth_storage");
+          const authStorage = localStorage.getItem("errandshop_auth_storage");
           if (authStorage) {
             const parsed = JSON.parse(authStorage);
             if (parsed?.state?.user?._id) userId = parsed.state.user._id;
@@ -197,9 +197,9 @@ export default function NotificationListener() {
         }),
       });
 
-      console.log("✅ [Nectar] Web Push subscription successfully synced with server");
+      console.log("✅ [Errandshop] Web Push subscription successfully synced with server");
     } catch (err) {
-      console.warn("[Nectar] Web Push subscription sync warning:", err);
+      console.warn("[Errandshop] Web Push subscription sync warning:", err);
     }
   };
 
@@ -211,7 +211,7 @@ export default function NotificationListener() {
       navigator.serviceWorker
         .register("/sw.js")
         .then(async (reg) => {
-          console.log("✅ [Nectar] Service Worker active:", reg.scope);
+          console.log("✅ [Errandshop] Service Worker active:", reg.scope);
 
           // If permission already granted, subscribe immediately
           if ("Notification" in window && Notification.permission === "granted") {
@@ -219,7 +219,7 @@ export default function NotificationListener() {
           }
         })
         .catch((err) => {
-          console.warn("⚠️ [Nectar] SW registration skipped:", err.message);
+          console.warn("⚠️ [Errandshop] SW registration skipped:", err.message);
         });
 
       // Listen for messages from Service Worker (e.g. notification was tapped)
@@ -233,14 +233,14 @@ export default function NotificationListener() {
 
     // Check if there's a pending notification stored from when app was closed
     try {
-      const pending = localStorage.getItem("nectar_pending_tap_notification");
+      const pending = localStorage.getItem("errandshop_pending_tap_notification");
       if (pending) {
         const parsed: PushNotificationData = JSON.parse(pending);
         // Only show if recent (within 5 minutes)
         if (parsed.receivedAt && Date.now() - parsed.receivedAt < 5 * 60 * 1000) {
           openModal(parsed);
         }
-        localStorage.removeItem("nectar_pending_tap_notification");
+        localStorage.removeItem("errandshop_pending_tap_notification");
       }
     } catch {
       // ignore
@@ -281,7 +281,7 @@ export default function NotificationListener() {
       if ("Notification" in window && Notification.permission === "default") {
         const perm = await Notification.requestPermission();
         if (perm === "granted") {
-          console.log("✅ [Nectar] Push notification permission granted");
+          console.log("✅ [Errandshop] Push notification permission granted");
           await subscribeToWebPush();
         }
       } else if ("Notification" in window && Notification.permission === "granted") {
@@ -314,7 +314,7 @@ export default function NotificationListener() {
 
           if (bData.status && Array.isArray(bData.data) && bData.data.length > 0) {
             const seenMap: Record<string, boolean> = JSON.parse(
-              localStorage.getItem("nectar_seen_broadcasts") || "{}"
+              localStorage.getItem("errandshop_seen_broadcasts") || "{}"
             );
 
             bData.data.forEach((broadcast: any) => {
@@ -350,7 +350,7 @@ export default function NotificationListener() {
               }
             });
 
-            localStorage.setItem("nectar_seen_broadcasts", JSON.stringify(seenMap));
+            localStorage.setItem("errandshop_seen_broadcasts", JSON.stringify(seenMap));
           }
           isInitialBroadcastRef.current = false;
         } catch {
@@ -419,7 +419,7 @@ export default function NotificationListener() {
                 if (currentStatus === "accepted") { statusLabel = "Accepted by Store"; emoji = "✅"; }
                 if (currentStatus === "preparing") { statusLabel = "Being Prepared"; emoji = "👨‍🍳"; }
                 if (currentStatus === "out_for_delivery") { statusLabel = "Out for Delivery"; emoji = "🚚"; }
-                if (currentStatus === "delivered") { statusLabel = "Delivered! Thank you for ordering with Nectar."; emoji = "🎉"; }
+                if (currentStatus === "delivered") { statusLabel = "Delivered! Thank you for ordering with Errandshop."; emoji = "🎉"; }
                 if (currentStatus === "canceled") { statusLabel = "Canceled"; emoji = "❌"; }
 
                 const title = `${emoji} Order #${order.orderSerialNo} Update`;

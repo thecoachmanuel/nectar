@@ -100,7 +100,7 @@ export const useSettingsStore = create<SettingsState>()(
             if (typeof window !== 'undefined') {
               (window as any).__INITIAL_SETTINGS__ = updatedSettings;
               window.dispatchEvent(
-                new CustomEvent('nectar:settings-updated', { detail: updatedSettings })
+                new CustomEvent('errandshop:settings-updated', { detail: updatedSettings })
               );
             }
           } else {
@@ -114,20 +114,28 @@ export const useSettingsStore = create<SettingsState>()(
       }
     }),
     {
-      name: 'nectar_app_settings_cache', // localStorage key
+      name: 'errandshop_app_settings_cache', // localStorage key
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ settings: state.settings }), // Only cache settings map
     }
   )
 );
 
-// Listen for settings-updated events across components or other tabs
+// Listen for settings-updated events across components or other tabs with legacy fallback
 if (typeof window !== 'undefined') {
-  window.addEventListener('nectar:settings-updated', (event: any) => {
+  try {
+    if (!localStorage.getItem("errandshop_app_settings_cache") && localStorage.getItem("nectar_app_settings_cache")) {
+      localStorage.setItem("errandshop_app_settings_cache", localStorage.getItem("nectar_app_settings_cache")!);
+    }
+  } catch {}
+
+  const handleUpdate = (event: any) => {
     if (event.detail) {
       useSettingsStore.getState().setAllSettings(event.detail);
     }
-  });
+  };
+  window.addEventListener('errandshop:settings-updated', handleUpdate);
+  window.addEventListener('nectar:settings-updated', handleUpdate);
 }
 
 /**

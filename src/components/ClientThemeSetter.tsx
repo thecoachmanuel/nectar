@@ -55,14 +55,14 @@ export default function ClientThemeSetter({ initialSettings }: ClientThemeSetter
       settings.site_title ||
       settings.company_name ||
       settings.company_title ||
-      "Nectar - Online Groceries Delivery & WhatsApp Ordering";
+      "Errandshop - Online Groceries Delivery & WhatsApp Ordering";
 
     if (
       typeof document !== "undefined" &&
       (document.title.toLowerCase().includes("foodappi") ||
         document.title.toLowerCase().includes("fast food") ||
         !document.title ||
-        document.title === "Nectar")
+        document.title === "Errandshop")
     ) {
       document.title = appTitle;
     }

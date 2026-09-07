@@ -86,7 +86,7 @@ export async function POST(
           url: notification.url || "/",
           targetRole: notification.targetRole,
           image: notification.image,
-          tag: `nectar-broadcast-${Date.now()}`,
+          tag: `errandshop-broadcast-${Date.now()}`,
         }
       );
     }

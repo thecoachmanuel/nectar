@@ -220,13 +220,13 @@ export default function SendPushNotificationModal({
             <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 shadow-sm border border-[#EFF0F6]">
               <img
                 src="/images/theme/theme-favicon-logo.png"
-                alt="Nectar"
+                alt="Errandshop"
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="flex-1 min-w-0">
               <h4 className="text-xs font-bold text-[#14142B] truncate">
-                {title || "Nectar Notification Title"}
+                {title || "Errandshop Notification Title"}
               </h4>
               <p className="text-[11px] text-[#6E7191] line-clamp-2 mt-0.5">
                 {description || "Your custom notification message will appear on user devices."}

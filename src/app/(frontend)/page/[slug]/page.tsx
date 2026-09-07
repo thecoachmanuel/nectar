@@ -50,7 +50,7 @@ export default function DynamicPage() {
     return <AboutPage />;
   }
 
-  const contactEmail = settings?.company_email || settings?.contactEmail || "info@nectar.com";
+  const contactEmail = settings?.company_email || settings?.contactEmail || "info@errandshop.com";
   const contactPhone = settings?.company_phone || settings?.contactPhone || "+1 800 123 4567";
 
   return (

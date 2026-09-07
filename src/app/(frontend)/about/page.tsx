@@ -37,7 +37,7 @@ export default function AboutPage() {
       .finally(() => setLoading(false));
   }, [fetchSettings]);
 
-  const contactEmail = settings?.company_email || settings?.contactEmail || "info@nectar.com";
+  const contactEmail = settings?.company_email || settings?.contactEmail || "info@errandshop.com";
   const contactPhone = settings?.company_phone || settings?.contactPhone || "+1 800 123 4567";
 
   const pillars = [
@@ -81,13 +81,13 @@ export default function AboutPage() {
           <div className="max-w-3xl">
             <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary mb-4">
               <Sparkles className="w-3.5 h-3.5" />
-              Nectar Groceries Story
+              Errandshop Groceries Story
             </span>
             <h1 className="text-3xl sm:text-5xl font-black text-[#14142B] tracking-tight leading-[1.15]">
               Redefining Online Groceries with Freshness & Speed
             </h1>
             <p className="text-base sm:text-lg text-[#6E7191] mt-4 leading-relaxed">
-              We started Nectar with a singular mission: to make farm-fresh groceries and household essentials easily accessible to every family with instant on-demand delivery.
+              We started Errandshop with a singular mission: to make farm-fresh groceries and household essentials easily accessible to every family with instant on-demand delivery.
             </p>
           </div>
         </div>
@@ -118,7 +118,7 @@ export default function AboutPage() {
         <div>
           <div className="text-center max-w-2xl mx-auto mb-10">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-[#14142B]">
-              Why Shoppers Love Nectar
+              Why Shoppers Love Errandshop
             </h2>
             <p className="text-sm text-[#6E7191] mt-2">
               Built from the ground up for convenience, transparency, and top-tier farm freshness.
@@ -168,7 +168,7 @@ export default function AboutPage() {
               ) : (
                 <div className="text-[#6E7191] text-sm leading-relaxed space-y-3">
                   <p>
-                    At Nectar, we handpick every fruit, vegetable, and grocery item with the same care and attention you would give when shopping for your own family.
+                    At Errandshop, we handpick every fruit, vegetable, and grocery item with the same care and attention you would give when shopping for your own family.
                   </p>
                   <p>
                     From crisp seasonal greens to dairy, beverages, and pantry essentials, our state-of-the-art temperature-controlled fulfillment hubs keep products in pristine condition until they reach your kitchen.

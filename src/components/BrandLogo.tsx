@@ -17,7 +17,7 @@ export default function BrandLogo({
   href = variant === "admin" ? "/admin/dashboard" : "/",
   className = "",
   imageClassName = "",
-  alt = "Nectar",
+  alt = "Errandshop",
 }: BrandLogoProps) {
   const { settings } = useSettingsStore();
 

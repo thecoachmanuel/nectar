@@ -138,7 +138,7 @@ export default function WalletPage() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Nectar Card (Wallet Balance) */}
+        {/* Errandshop Card (Wallet Balance) */}
         <div className="bg-gradient-to-br from-[#14142B] to-[#2B2B4F] rounded-2xl p-6 text-white shadow-lg relative overflow-hidden flex flex-col justify-between min-h-[180px]">
           <div className="absolute top-[-40px] right-[-40px] w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
           <div className="absolute bottom-[-20px] left-[-20px] w-24 h-24 bg-primary/30 rounded-full blur-xl"></div>

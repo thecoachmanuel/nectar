@@ -8,7 +8,7 @@ import { jwtVerify } from "jose";
 import { sendPushNotification } from "@/lib/push";
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "nectar_secret_key_default_2026"
+  process.env.JWT_SECRET || "errandshop_secret_key_default_2026"
 );
 
 async function getUserFromToken(req: Request) {
@@ -325,7 +325,7 @@ export async function POST(req: Request) {
 
         // 2. Notify Admin on WhatsApp (Custom order notification with full details)
         if (adminTargetPhone && adminTargetPhone.length >= 7) {
-          const appOrigin = process.env.NEXT_PUBLIC_APP_URL || "https://nectar-groceries.vercel.app";
+          const appOrigin = process.env.NEXT_PUBLIC_APP_URL || "https://errandshop-groceries.vercel.app";
           const adminAlertText = buildCustomAdminOrderNotification(order, appOrigin, phone || resolvedCustomerPhone);
 
           console.log(`[Admin Alert Dispatch] Sending custom new order alert to Admin (${adminTargetPhone}) for #${order.orderSerialNo}`);

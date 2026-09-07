@@ -44,7 +44,7 @@ export default function ContactPage() {
   }, [fetchSettings]);
 
   // Live Contact Info from Admin Settings (matching site footer)
-  const contactEmail = settings?.company_email || settings?.contactEmail || "info@nectar.com";
+  const contactEmail = settings?.company_email || settings?.contactEmail || "info@errandshop.com";
   const contactPhone = settings?.company_phone || settings?.contactPhone || "+1 800 123 4567";
   const companyAddress = settings?.company_address ?? settings?.contactAddress ?? "";
   const workingHours = settings?.company_working_hours || "Mon - Sun: 8:00 AM - 10:00 PM";
@@ -111,7 +111,7 @@ export default function ContactPage() {
 
             {waPhone && (
               <a
-                href={`https://wa.me/${waPhone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent("Hello Nectar, I need help with an order.")}`}
+                href={`https://wa.me/${waPhone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent("Hello Errandshop, I need help with an order.")}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[#1AB759] hover:bg-[#159a4a] text-white font-bold text-sm transition-all shadow-md shadow-[#1AB759]/20 shrink-0"
@@ -287,7 +287,7 @@ export default function ContactPage() {
             <div className="bg-gradient-to-br from-primary to-[#ff006b] rounded-3xl p-6 sm:p-8 text-white shadow-lg shadow-primary/20">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-xs font-bold mb-4 border border-white/20">
                 <Sparkles className="w-3.5 h-3.5" />
-                Nectar Fresh Guarantee
+                Errandshop Fresh Guarantee
               </div>
               <h3 className="text-xl sm:text-2xl font-black leading-snug mb-3">
                 Quality Groceries, On Time, Every Time.

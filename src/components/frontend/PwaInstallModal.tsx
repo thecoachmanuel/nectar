@@ -59,16 +59,16 @@ export default function PwaInstallModal({ isOpen, onClose, deferredPrompt }: Pwa
             <Smartphone className="w-8 h-8" />
           </div>
 
-          <h3 className="text-xl font-bold text-slate-800">Download Nectar App</h3>
+          <h3 className="text-xl font-bold text-slate-800">Download Errandshop App</h3>
           <p className="text-xs text-slate-500 mt-1 max-w-[240px]">
-            Install Nectar on your phone for instant grocery delivery, fast checkout & live order tracking.
+            Install Errandshop on your phone for instant grocery delivery, fast checkout & live order tracking.
           </p>
         </div>
 
         {isStandalone || installed ? (
           <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-2xl flex items-center gap-3 text-green-700">
             <CheckCircle className="w-5 h-5 shrink-0" />
-            <p className="text-xs font-semibold">Nectar App is already installed on your device!</p>
+            <p className="text-xs font-semibold">Errandshop App is already installed on your device!</p>
           </div>
         ) : isIos ? (
           /* iOS Step-by-Step Installation Instructions */
@@ -102,7 +102,7 @@ export default function PwaInstallModal({ isOpen, onClose, deferredPrompt }: Pwa
                 className="w-full h-12 rounded-2xl bg-primary text-white font-bold text-sm hover:bg-[#e60060] transition-colors shadow-lg shadow-primary/25 flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" />
-                Install Nectar App Now
+                Install Errandshop App Now
               </button>
             ) : (
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs text-slate-600 space-y-2">

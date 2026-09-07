@@ -78,7 +78,7 @@ export default function PwaInstallPrompt() {
           <div className="flex items-start gap-4">
             <img src="/images/theme/theme-favicon-logo.png" alt="App Icon" className="w-12 h-12 rounded-xl shadow-sm object-cover" />
             <div className="flex-1">
-              <h3 className="text-[15px] font-bold text-[#14142B] mb-1">Install {siteName || "Nectar"} App</h3>
+              <h3 className="text-[15px] font-bold text-[#14142B] mb-1">Install {siteName || "Errandshop"} App</h3>
               <p className="text-[13px] text-[#4E4B66] leading-snug">
                 Install this application on your home screen for quick and easy access.
               </p>
@@ -118,7 +118,7 @@ export default function PwaInstallPrompt() {
           <div className="flex items-start gap-3 mb-3">
             <img src="/images/theme/theme-favicon-logo.png" alt="App Icon" className="w-8 h-8 rounded-lg flex-shrink-0 shadow-sm object-cover" />
             <h3 className="text-sm flex-auto text-[#008BBA] font-medium leading-tight">
-              Add {siteName || "Nectar"} app to your home screen ?
+              Add {siteName || "Errandshop"} app to your home screen ?
             </h3>
           </div>
           <div className="flex items-center justify-end gap-2">

@@ -5,16 +5,16 @@ import Script from "next/script";
 
 export const metadata: Metadata = {
   title: {
-    default: "Nectar - Online Groceries Delivery & WhatsApp Ordering",
-    template: "%s | Nectar",
+    default: "Errandshop - Online Groceries Delivery & WhatsApp Ordering",
+    template: "%s | Errandshop",
   },
-  applicationName: "Nectar",
-  description: "Nectar - Online Groceries Delivery & WhatsApp Ordering. Order your favourite fresh groceries and food online with instant delivery.",
+  applicationName: "Errandshop",
+  description: "Errandshop - Online Groceries Delivery & WhatsApp Ordering. Order your favourite fresh groceries and food online with instant delivery.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Nectar",
+    title: "Errandshop",
   },
   formatDetection: { telephone: false },
   icons: {
@@ -26,11 +26,11 @@ export const metadata: Metadata = {
     ],
   },
   other: {
-    "application-name": "Nectar",
+    "application-name": "Errandshop",
     "mobile-web-app-capable": "yes",
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "default",
-    "apple-mobile-web-app-title": "Nectar",
+    "apple-mobile-web-app-title": "Errandshop",
     "msapplication-TileImage": "/images/theme/theme-favicon-logo.png?v=3",
     "msapplication-TileColor": "#ff006b",
     "theme-color": "#ff006b",
@@ -118,7 +118,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <meta httpEquiv="Expires" content="0" />
         {/* Synchronous bootstrap script ensuring zero-flicker logo/theme rendering */}
         <script
-          id="nectar-initial-settings"
+          id="errandshop-initial-settings"
           dangerouslySetInnerHTML={{
             __html: `window.__INITIAL_SETTINGS__ = ${JSON.stringify(initialSettings).replace(/</g, "\\u003c")};`,
           }}

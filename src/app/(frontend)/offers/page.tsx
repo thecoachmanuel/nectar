@@ -39,7 +39,7 @@ export default function OffersPage() {
     <>
       {loading && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/80 backdrop-blur-sm">
-          <div className="nectar-loader"></div>
+          <div className="errandshop-loader"></div>
         </div>
       )}
 

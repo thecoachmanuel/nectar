@@ -1,7 +1,7 @@
 {
   "name": "whatsapp-service",
   "version": "1.0.0",
-  "description": "WhatsApp bot sidecar for Nectar order status notifications",
+  "description": "WhatsApp bot sidecar for Errandshop order status notifications",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

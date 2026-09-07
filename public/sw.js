@@ -1,5 +1,5 @@
-// ── Nectar Service Worker for Background Notifications & Offline PWA ──────
-const CACHE_NAME = "nectar-cache-v4";
+// ── Errandshop Service Worker for Background Notifications & Offline PWA ──────
+const CACHE_NAME = "errandshop-cache-v4";
 const OFFLINE_URL = "/offline.html";
 
 const PRECACHE_ASSETS = [
@@ -99,7 +99,7 @@ self.addEventListener("push", (event) => {
 
   try {
     const data = event.data.json();
-    const title = data.title || "Nectar Groceries";
+    const title = data.title || "Errandshop Groceries";
     const options = {
       body: data.body || "You have a new update!",
       icon: data.icon || "/images/theme/theme-favicon-logo.png",
@@ -113,7 +113,7 @@ self.addEventListener("push", (event) => {
         image: data.image,
         ...data.data,
       },
-      tag: data.tag || `nectar-notif-${Date.now()}`,
+      tag: data.tag || `errandshop-notif-${Date.now()}`,
       renotify: true,
       requireInteraction: data.requireInteraction ?? true,
       actions: data.actions || [],
@@ -123,7 +123,7 @@ self.addEventListener("push", (event) => {
   } catch (err) {
     const text = event.data.text();
     event.waitUntil(
-      self.registration.showNotification("Nectar Notification", {
+      self.registration.showNotification("Errandshop Notification", {
         body: text,
         icon: "/images/theme/theme-favicon-logo.png",
         badge: "/images/theme/theme-favicon-logo.png",
@@ -139,7 +139,7 @@ self.addEventListener("notificationclick", (event) => {
 
   const notifData = event.notification.data || {};
   const targetUrl = notifData.url || "/";
-  const title = event.notification.title || "Nectar Notification";
+  const title = event.notification.title || "Errandshop Notification";
   const body = event.notification.body || "";
   const image = notifData.image;
 

@@ -29,7 +29,7 @@ export async function PUT(request: Request) {
     await dbConnect();
     const body = await request.json();
     
-    // Expects an array of settings: [{ key: 'company_name', group: 'Company', payload: 'Nectar' }]
+    // Expects an array of settings: [{ key: 'company_name', group: 'Company', payload: 'Errandshop' }]
     const { settings } = body;
 
     if (!Array.isArray(settings)) {

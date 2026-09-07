@@ -44,7 +44,7 @@ function SearchContent() {
     <>
       {loading && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/80 backdrop-blur-sm">
-          <div className="nectar-loader"></div>
+          <div className="errandshop-loader"></div>
         </div>
       )}
       
@@ -195,7 +195,7 @@ function SearchContent() {
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={<div className="flex justify-center p-8"><div className="nectar-loader"></div></div>}>
+    <Suspense fallback={<div className="flex justify-center p-8"><div className="errandshop-loader"></div></div>}>
       <SearchContent />
     </Suspense>
   );
