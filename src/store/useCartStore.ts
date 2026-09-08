@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { toast } from "sonner";
 
 export interface CartExtra {
   name: string;
@@ -23,6 +24,9 @@ export interface CartItem {
   extras: CartExtra[];
   addons: CartAddon[];
   itemTotal: number;
+  manageStock?: boolean;
+  stockQuantity?: number;
+  isOutOfStock?: boolean;
 }
 
 interface CartState {
@@ -49,6 +53,7 @@ interface CartState {
   setDeliveryTimeSlot: (slot: string) => void;
   setSelectedAddressId: (addressId: string) => void;
   setItems: (items: CartItem[]) => void;
+  getItemTotalInCart: (itemId: string) => number;
 
   // Calculations
   getSubtotal: () => number;
@@ -73,30 +78,68 @@ export const useCartStore = create<CartState>()(
       setOrderType: (orderType) => set({ orderType }),
       setItems: (items) => set({ items }),
 
+      getItemTotalInCart: (itemId: string) => {
+        return get().items
+          .filter((item) => item.itemId === itemId)
+          .reduce((sum, item) => sum + item.quantity, 0);
+      },
+
       addItem: (newItem) => {
+        // Check if item is marked out of stock
+        if (newItem.isOutOfStock || (newItem.manageStock && (newItem.stockQuantity ?? 0) <= 0)) {
+          toast.error(`"${newItem.name}" is currently out of stock.`);
+          return;
+        }
+
+        const currentItems = get().items;
+        const currentQtyForProduct = currentItems
+          .filter((item) => item.itemId === newItem.itemId)
+          .reduce((sum, item) => sum + item.quantity, 0);
+
+        let allowedToAdd = newItem.quantity;
+
+        if (newItem.manageStock) {
+          const maxStock = Math.max(0, Number(newItem.stockQuantity ?? 0));
+          const remainingStock = Math.max(0, maxStock - currentQtyForProduct);
+
+          if (remainingStock <= 0) {
+            toast.error(`Cannot add more. You already have the maximum available stock (${maxStock}) in your cart.`);
+            return;
+          }
+
+          if (newItem.quantity > remainingStock) {
+            allowedToAdd = remainingStock;
+            toast.warning(`Only ${remainingStock} unit(s) left in stock. Added ${remainingStock} to cart.`);
+          }
+        }
+
         const extrasHash = newItem.extras.map((e) => e.name).sort().join(",");
         const addonsHash = newItem.addons.map((a) => a.name).sort().join(",");
         const id = `${newItem.itemId}_${newItem.storeId || "admin"}_${newItem.variationName || "default"}_${extrasHash}_${addonsHash}`;
 
-        const existingIndex = get().items.findIndex((item) => item.id === id);
+        const existingIndex = currentItems.findIndex((item) => item.id === id);
 
-        const extraTotal = newItem.extras.reduce((acc, e) => acc + e.price, 0);
-        const addonTotal = newItem.addons.reduce((acc, a) => acc + a.price, 0);
-        const unitPrice = newItem.price + extraTotal + addonTotal;
+        const extraTotal = newItem.extras.reduce((acc, e) => acc + (Number(e.price) || 0), 0);
+        const addonTotal = newItem.addons.reduce((acc, a) => acc + (Number(a.price) || 0), 0);
+        const unitPrice = (Number(newItem.price) || 0) + extraTotal + addonTotal;
 
         if (existingIndex > -1) {
-          const updatedItems = [...get().items];
-          const newQty = updatedItems[existingIndex].quantity + newItem.quantity;
+          const updatedItems = [...currentItems];
+          const newQty = updatedItems[existingIndex].quantity + allowedToAdd;
           updatedItems[existingIndex].quantity = newQty;
           updatedItems[existingIndex].itemTotal = unitPrice * newQty;
+          if (newItem.manageStock !== undefined) updatedItems[existingIndex].manageStock = newItem.manageStock;
+          if (newItem.stockQuantity !== undefined) updatedItems[existingIndex].stockQuantity = newItem.stockQuantity;
+          if (newItem.isOutOfStock !== undefined) updatedItems[existingIndex].isOutOfStock = newItem.isOutOfStock;
           set({ items: updatedItems });
         } else {
           const cartItem: CartItem = {
             ...newItem,
+            quantity: allowedToAdd,
             id,
-            itemTotal: unitPrice * newItem.quantity,
+            itemTotal: unitPrice * allowedToAdd,
           };
-          set({ items: [...get().items, cartItem] });
+          set({ items: [...currentItems, cartItem] });
         }
       },
 
@@ -104,6 +147,18 @@ export const useCartStore = create<CartState>()(
         const currentItems = get().items;
         const target = currentItems.find((item) => item.id === id);
         if (!target) return;
+
+        if (delta > 0 && target.manageStock) {
+          const maxStock = Math.max(0, Number(target.stockQuantity ?? 0));
+          const currentTotalForProduct = currentItems
+            .filter((item) => item.itemId === target.itemId)
+            .reduce((sum, item) => sum + item.quantity, 0);
+
+          if (currentTotalForProduct + delta > maxStock) {
+            toast.error(`Cannot add more. Only ${maxStock} available in stock.`);
+            return;
+          }
+        }
 
         const newQty = target.quantity + delta;
         if (newQty <= 0) {

@@ -138,18 +138,23 @@ export default function StoreDetailsPage() {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
               {items.map((item) => {
-                const hasDiscount = Boolean(item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price));
+                const isOutOfStock = Boolean(item.isOutOfStock) || (Boolean(item.manageStock) && Number(item.stockQuantity ?? 0) <= 0);
+                const hasDiscount = Boolean(!isOutOfStock && item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price));
                 return (
-                  <div key={item._id} onClick={() => openModal(item)} className="product-card-grid cursor-pointer group overflow-hidden w-full min-w-0">
+                  <div key={item._id} onClick={() => openModal(item)} className={`product-card-grid cursor-pointer group overflow-hidden w-full min-w-0 ${isOutOfStock ? "opacity-80" : ""}`}>
                     <div className="relative pt-[75%] bg-[#f7f7fc] rounded-t-2xl overflow-hidden">
                       <img src={item.image || "/images/item/thumb.png"} alt={item.name}
-                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className={`absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${isOutOfStock ? "grayscale-[40%]" : ""}`}
                         onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
-                      {hasDiscount && (
+                      {isOutOfStock ? (
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/85 text-white text-[9px] font-black shadow-md z-10">
+                          OUT OF STOCK
+                        </div>
+                      ) : hasDiscount ? (
                         <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-black shadow-md z-10">
                           -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}%
                         </div>
-                      )}
+                      ) : null}
                     </div>
                     <div className="p-2.5 sm:p-3 flex-1 min-w-0 flex flex-col justify-between">
                       <div className="min-w-0 mb-1">
@@ -173,11 +178,17 @@ export default function StoreDetailsPage() {
                             </span>
                           )}
                         </div>
-                        <button onClick={(e) => { e.stopPropagation(); openModal(item); }}
-                          className="product-card-grid-cart-btn shrink-0">
-                          <Plus className="w-3.5 h-3.5" />
-                          <span className="text-[10px]">Add</span>
-                        </button>
+                        {isOutOfStock ? (
+                          <span className="text-[9px] sm:text-[10px] font-bold text-gray-500 bg-gray-100 border border-gray-200 px-2 py-1 rounded-full shrink-0">
+                            Out
+                          </span>
+                        ) : (
+                          <button onClick={(e) => { e.stopPropagation(); openModal(item); }}
+                            className="product-card-grid-cart-btn shrink-0">
+                            <Plus className="w-3.5 h-3.5" />
+                            <span className="text-[10px]">Add</span>
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

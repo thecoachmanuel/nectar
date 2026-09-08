@@ -34,6 +34,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ status: false, message: "Cart is empty" }, { status: 400 });
     }
 
+    // Validate inventory stock availability before computing checkout
+    const { checkStockAvailability } = await import("@/lib/inventoryService");
+    const stockCheck = await checkStockAvailability(items);
+    if (!stockCheck.available) {
+      return NextResponse.json({ status: false, message: stockCheck.message }, { status: 400 });
+    }
+
     // Resolve User Identity for coupon qualification
     let resolvedUserId = userId || null;
     let resolvedEmail = customerEmail || null;

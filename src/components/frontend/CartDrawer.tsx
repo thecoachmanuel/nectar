@@ -160,57 +160,84 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               </button>
             </div>
           ) : (
-            items.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-start gap-3 p-3 bg-white rounded-2xl border border-[#eff0f6] shadow-sm hover:border-[#e2e8f0] transition-colors"
-              >
-                {/* Image */}
-                <img
-                  src={item.image || "/images/item/thumb.png"}
-                  alt={item.name}
-                  className="w-16 h-16 rounded-xl object-cover flex-shrink-0 bg-[#f7f7fc]"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "/images/item/thumb.png";
-                  }}
-                />
+            items.map((item) => {
+              const totalInCartForThisItem = items
+                .filter((i) => i.itemId === item.itemId)
+                .reduce((s, i) => s + i.quantity, 0);
+              const maxStock = Math.max(0, Number(item.stockQuantity ?? 0));
+              const isAtMaxStock = Boolean(item.manageStock) && totalInCartForThisItem >= maxStock;
 
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-semibold text-[#14142b] truncate capitalize">{item.name}</h4>
-                  {item.variationName && (
-                    <p className="text-xs text-primary font-medium mt-0.5">{item.variationName}</p>
-                  )}
-                  {item.extras && item.extras.length > 0 && (
-                    <p className="text-xs text-[#6e7191] mt-0.5">+ {item.extras.map((e) => e.name).join(", ")}</p>
-                  )}
-                  <div className="flex items-center justify-between mt-2.5">
-                    <span className="text-sm font-bold text-[#14142b]">{formatPrice(item.itemTotal)}</span>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        onClick={() => updateQuantity(item.id, -1)}
-                        className="w-7 h-7 rounded-full border border-[#e2e8f0] flex items-center justify-center hover:border-primary hover:text-primary transition-all text-[#6e7191] active:scale-95"
-                      >
-                        <Minus className="w-3.5 h-3.5" />
-                      </button>
-                      <span className="text-sm font-bold text-[#14142b] w-6 text-center">{item.quantity}</span>
-                      <button
-                        onClick={() => updateQuantity(item.id, 1)}
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-white transition-all active:scale-95 shadow-sm"
-                        style={{ backgroundColor: "var(--primary-hex)" }}
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => removeItem(item.id)}
-                        className="w-7 h-7 rounded-full bg-red-50 flex items-center justify-center text-red-500 hover:bg-red-100 transition-all ml-1.5"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+              return (
+                <div
+                  key={item.id}
+                  className="flex items-start gap-3 p-3 bg-white rounded-2xl border border-[#eff0f6] shadow-sm hover:border-[#e2e8f0] transition-colors"
+                >
+                  {/* Image */}
+                  <img
+                    src={item.image || "/images/item/thumb.png"}
+                    alt={item.name}
+                    className="w-16 h-16 rounded-xl object-cover flex-shrink-0 bg-[#f7f7fc]"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/images/item/thumb.png";
+                    }}
+                  />
+
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-semibold text-[#14142b] truncate capitalize">{item.name}</h4>
+                    {item.variationName && (
+                      <p className="text-xs text-primary font-medium mt-0.5">{item.variationName}</p>
+                    )}
+                    {item.extras && item.extras.length > 0 && (
+                      <p className="text-xs text-[#6e7191] mt-0.5">+ {item.extras.map((e) => e.name).join(", ")}</p>
+                    )}
+                    {item.manageStock && (
+                      <div className="mt-1">
+                        {isAtMaxStock ? (
+                          <span className="inline-block px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-200">
+                            Max stock reached ({maxStock})
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-[#6e7191] font-medium">
+                            Stock: {maxStock} available
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between mt-2.5">
+                      <span className="text-sm font-bold text-[#14142b]">{formatPrice(item.itemTotal)}</span>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => updateQuantity(item.id, -1)}
+                          className="w-7 h-7 rounded-full border border-[#e2e8f0] flex items-center justify-center hover:border-primary hover:text-primary transition-all text-[#6e7191] active:scale-95 cursor-pointer"
+                        >
+                          <Minus className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="text-sm font-bold text-[#14142b] w-6 text-center">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item.id, 1)}
+                          disabled={isAtMaxStock}
+                          title={isAtMaxStock ? `Max available stock reached (${maxStock})` : "Increase quantity"}
+                          className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+                            isAtMaxStock
+                              ? "bg-gray-200 text-gray-400 cursor-not-allowed opacity-60"
+                              : "text-white active:scale-95 shadow-sm hover:opacity-90 cursor-pointer"
+                          }`}
+                          style={{ backgroundColor: isAtMaxStock ? undefined : "var(--primary-hex)" }}
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => removeItem(item.id)}
+                          className="w-7 h-7 rounded-full bg-red-50 flex items-center justify-center text-red-500 hover:bg-red-100 transition-all ml-1.5 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 

@@ -60,49 +60,75 @@ export default function CartPage() {
           ) : (
             <div className="space-y-6">
               <div className="divide-y divide-[#eff0f6]">
-                {items.map((item) => (
-                  <div key={item.id} className="py-4 flex items-center justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-semibold text-[#14142B] truncate">{item.name}</h4>
-                      {item.variationName && (
-                        <p className="text-xs text-[#6E7191] mt-0.5">{item.variationName}</p>
-                      )}
-                      <p className="text-xs font-bold text-primary mt-1">{formatPrice(item.price)} each</p>
-                    </div>
+                {items.map((item) => {
+                  const totalInCartForThisItem = items
+                    .filter((i) => i.itemId === item.itemId)
+                    .reduce((s, i) => s + i.quantity, 0);
+                  const maxStock = Math.max(0, Number(item.stockQuantity ?? 0));
+                  const isAtMaxStock = Boolean(item.manageStock) && totalInCartForThisItem >= maxStock;
 
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center border border-[#eff0f6] rounded-xl overflow-hidden bg-slate-50">
-                        <button
-                          onClick={() => updateQuantity(item.id, -1)}
-                          className="p-2 hover:bg-white text-slate-600 transition"
-                          title="Decrease"
-                        >
-                          <Minus className="w-3.5 h-3.5" />
-                        </button>
-                        <span className="px-3 text-xs font-bold text-[#14142B]">{item.quantity}</span>
-                        <button
-                          onClick={() => updateQuantity(item.id, 1)}
-                          className="p-2 hover:bg-white text-slate-600 transition"
-                          title="Increase"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                        </button>
+                  return (
+                    <div key={item.id} className="py-4 flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-semibold text-[#14142B] truncate">{item.name}</h4>
+                        {item.variationName && (
+                          <p className="text-xs text-[#6E7191] mt-0.5">{item.variationName}</p>
+                        )}
+                        <p className="text-xs font-bold text-primary mt-1">{formatPrice(item.price)} each</p>
+                        {item.manageStock && (
+                          <div className="mt-1">
+                            {isAtMaxStock ? (
+                              <span className="inline-block px-2 py-0.5 rounded bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-200">
+                                Max stock reached ({maxStock})
+                              </span>
+                            ) : (
+                              <span className="text-[11px] text-[#6E7191] font-medium">
+                                Stock: {maxStock} available
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
 
-                      <span className="text-sm font-bold text-[#14142B] w-20 text-right">
-                        {formatPrice(item.itemTotal)}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center border border-[#eff0f6] rounded-xl overflow-hidden bg-slate-50">
+                          <button
+                            onClick={() => updateQuantity(item.id, -1)}
+                            className="p-2 hover:bg-white text-slate-600 transition cursor-pointer"
+                            title="Decrease"
+                          >
+                            <Minus className="w-3.5 h-3.5" />
+                          </button>
+                          <span className="px-3 text-xs font-bold text-[#14142B]">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.id, 1)}
+                            disabled={isAtMaxStock}
+                            className={`p-2 transition ${
+                              isAtMaxStock
+                                ? "text-slate-300 cursor-not-allowed bg-slate-100"
+                                : "hover:bg-white text-slate-600 cursor-pointer"
+                            }`}
+                            title={isAtMaxStock ? `Max available stock reached (${maxStock})` : "Increase"}
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
 
-                      <button
-                        onClick={() => removeItem(item.id)}
-                        className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg transition cursor-pointer"
-                        title="Remove item"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                        <span className="text-sm font-bold text-[#14142B] w-20 text-right">
+                          {formatPrice(item.itemTotal)}
+                        </span>
+
+                        <button
+                          onClick={() => removeItem(item.id)}
+                          className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg transition cursor-pointer"
+                          title="Remove item"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="border-t border-[#eff0f6] pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">

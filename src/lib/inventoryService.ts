@@ -116,26 +116,49 @@ export async function restoreOrderInventory(orderInput: string | IOrder | any) {
 export async function checkStockAvailability(items: { itemId: string; quantity: number; name?: string }[]) {
   try {
     await connectToDatabase();
+    if (!Array.isArray(items) || items.length === 0) {
+      return { available: true };
+    }
+
+    // Aggregate requested quantity by itemId across cart lines (e.g. multiple variations)
+    const aggregatedQuantities: Record<string, { totalQty: number; name?: string }> = {};
     for (const itm of items) {
       if (!itm.itemId) continue;
-      const itemDoc = await Item.findById(itm.itemId).lean();
+      const idStr = String(itm.itemId);
+      const qty = Math.max(1, Number(itm.quantity) || 1);
+      if (!aggregatedQuantities[idStr]) {
+        aggregatedQuantities[idStr] = { totalQty: qty, name: itm.name };
+      } else {
+        aggregatedQuantities[idStr].totalQty += qty;
+        if (!aggregatedQuantities[idStr].name && itm.name) {
+          aggregatedQuantities[idStr].name = itm.name;
+        }
+      }
+    }
+
+    for (const [itemId, info] of Object.entries(aggregatedQuantities)) {
+      const itemDoc = await Item.findById(itemId).lean();
       if (itemDoc && itemDoc.manageStock) {
-        if (itemDoc.isOutOfStock || (itemDoc.stockQuantity || 0) <= 0) {
+        const availableStock = Math.max(0, Number(itemDoc.stockQuantity) || 0);
+        const itemName = itemDoc.name || info.name || "Product";
+
+        if (itemDoc.isOutOfStock || availableStock <= 0) {
           return {
             available: false,
-            message: `"${itemDoc.name}" is currently out of stock.`,
-            itemName: itemDoc.name,
+            message: `"${itemName}" is currently out of stock.`,
+            itemName,
             availableStock: 0,
-            requested: itm.quantity
+            requested: info.totalQty,
           };
         }
-        if ((itemDoc.stockQuantity || 0) < itm.quantity) {
+
+        if (availableStock < info.totalQty) {
           return {
             available: false,
-            message: `Only ${itemDoc.stockQuantity} unit(s) of "${itemDoc.name}" available in stock.`,
-            itemName: itemDoc.name,
-            availableStock: itemDoc.stockQuantity,
-            requested: itm.quantity
+            message: `Only ${availableStock} unit(s) of "${itemName}" available in stock (you requested ${info.totalQty}).`,
+            itemName,
+            availableStock,
+            requested: info.totalQty,
           };
         }
       }

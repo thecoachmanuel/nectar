@@ -14,13 +14,22 @@ interface ItemModalProps {
 }
 
 export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
-  const { addItem } = useCartStore();
+  const { items, addItem } = useCartStore();
   const { currencySymbol } = useSettingStore();
 
   const [quantity, setQuantity] = useState(1);
   const [selectedVariation, setSelectedVariation] = useState<any>(null);
   const [selectedExtras, setSelectedExtras] = useState<any[]>([]);
   const [selectedAddons, setSelectedAddons] = useState<any[]>([]);
+
+  const isOutOfStock = Boolean(item?.isOutOfStock) || (Boolean(item?.manageStock) && Number(item?.stockQuantity ?? 0) <= 0);
+  const totalStock = item?.manageStock ? Math.max(0, Number(item?.stockQuantity ?? 0)) : 999;
+  const alreadyInCart = items
+    .filter((cartItem) => cartItem.itemId === item?._id)
+    .reduce((sum, cartItem) => sum + cartItem.quantity, 0);
+  const remainingStock = item?.manageStock ? Math.max(0, totalStock - alreadyInCart) : 999;
+  const isMaxInCart = Boolean(item?.manageStock) && !isOutOfStock && remainingStock <= 0;
+  const isLowStock = Boolean(item?.manageStock) && !isOutOfStock && remainingStock <= (Number(item?.lowStockThreshold) || 5);
 
   // Initialize variation selection on item change
   useEffect(() => {
@@ -76,13 +85,13 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
     }
   };
 
-  const isOutOfStock = Boolean(item?.isOutOfStock) || (Boolean(item?.manageStock) && Number(item?.stockQuantity ?? 0) <= 0);
-  const maxAvailableStock = item?.manageStock ? Math.max(0, Number(item?.stockQuantity ?? 0)) : 999;
-  const isLowStock = Boolean(item?.manageStock) && !isOutOfStock && maxAvailableStock <= (Number(item?.lowStockThreshold) || 5);
-
   const handleAddToCart = () => {
     if (isOutOfStock) {
       toast.error("Sorry, this item is currently out of stock.");
+      return;
+    }
+    if (isMaxInCart) {
+      toast.error(`You already have the maximum available stock (${totalStock}) in your cart.`);
       return;
     }
     addItem({
@@ -95,6 +104,9 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
       variationName: selectedVariation ? selectedVariation.name : undefined,
       extras: selectedExtras,
       addons: selectedAddons,
+      manageStock: item.manageStock,
+      stockQuantity: item.stockQuantity,
+      isOutOfStock: item.isOutOfStock,
     });
 
     toast.success(`Added ${quantity}x ${item.name} to cart!`);
@@ -192,10 +204,19 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
                 <XCircle className="w-4 h-4 text-red-500 shrink-0" />
                 <span>This product is currently out of stock and cannot be ordered.</span>
               </div>
+            ) : isMaxInCart ? (
+              <div className="px-3.5 py-2.5 mt-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-2 text-xs font-bold text-amber-800">
+                <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+                <span>You already have the maximum available stock ({totalStock}) in your cart.</span>
+              </div>
             ) : isLowStock ? (
               <div className="px-3.5 py-2.5 mt-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-2 text-xs font-bold text-amber-800">
                 <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
-                <span>Hurry! Only {maxAvailableStock} left in stock.</span>
+                <span>Hurry! Only {remainingStock} left in stock{alreadyInCart > 0 ? ` (${alreadyInCart} already in cart)` : ""}.</span>
+              </div>
+            ) : alreadyInCart > 0 && item?.manageStock ? (
+              <div className="px-3.5 py-2 mt-4 bg-blue-50 border border-blue-200 rounded-2xl flex items-center gap-2 text-xs font-semibold text-blue-800">
+                <span>You have {alreadyInCart} in your cart. Remaining available: {remainingStock}.</span>
               </div>
             ) : null}
           </div>
@@ -345,7 +366,7 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
               type="button"
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
               className="w-8 h-8 rounded-xl bg-[#F7F7FC] hover:bg-[#EFF0F6] text-[#4E4B66] flex items-center justify-center transition-colors active:scale-95 disabled:opacity-40 cursor-pointer"
-              disabled={quantity <= 1 || isOutOfStock}
+              disabled={quantity <= 1 || isOutOfStock || isMaxInCart}
               aria-label="Decrease quantity"
             >
               <Minus className="w-3.5 h-3.5" />
@@ -353,9 +374,9 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
             <span className="w-7 text-center font-bold text-sm text-[#14142B]">{quantity}</span>
             <button
               type="button"
-              onClick={() => setQuantity(Math.min(maxAvailableStock, quantity + 1))}
+              onClick={() => setQuantity(Math.min(remainingStock, quantity + 1))}
               className="w-8 h-8 rounded-xl bg-[#F7F7FC] hover:bg-[#EFF0F6] text-[#4E4B66] flex items-center justify-center transition-colors active:scale-95 disabled:opacity-40 cursor-pointer"
-              disabled={isOutOfStock || quantity >= maxAvailableStock}
+              disabled={isOutOfStock || isMaxInCart || quantity >= remainingStock}
               aria-label="Increase quantity"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -371,6 +392,15 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
             >
               <XCircle className="w-4 h-4" />
               <span>Out of Stock</span>
+            </button>
+          ) : isMaxInCart ? (
+            <button
+              type="button"
+              disabled
+              className="flex-1 bg-amber-50 border border-amber-300 text-amber-800 font-bold h-11 px-4 sm:px-5 rounded-2xl transition-all flex items-center justify-center gap-2 cursor-not-allowed text-xs sm:text-sm"
+            >
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>Max Stock in Cart ({alreadyInCart}/{totalStock})</span>
             </button>
           ) : (
             <button

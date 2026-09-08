@@ -68,16 +68,21 @@ export default function OfferDetailsPage() {
             menuViewMode === "grid" ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 lg:gap-6">
                 {items.map(item => {
-                  const hasDiscount = Boolean(item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price));
+                  const isOutOfStock = Boolean(item.isOutOfStock) || (Boolean(item.manageStock) && Number(item.stockQuantity ?? 0) <= 0);
+                  const hasDiscount = Boolean(!isOutOfStock && item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price));
                   return (
-                    <div key={item._id} className="product-card-grid cursor-pointer overflow-hidden w-full min-w-0" onClick={() => { setSelectedItem(item); setIsModalOpen(true); }}>
+                    <div key={item._id} className={`product-card-grid cursor-pointer overflow-hidden w-full min-w-0 ${isOutOfStock ? "opacity-80" : ""}`} onClick={() => { setSelectedItem(item); setIsModalOpen(true); }}>
                       <div className="relative w-full pt-[75%] bg-[#f7f7fc] overflow-hidden">
-                        <img className="absolute inset-0 w-full h-full object-cover rounded-t-2xl" src={item.image || "/images/item/thumb.png"} alt={item.name} />
-                        {hasDiscount && (
+                        <img className={`absolute inset-0 w-full h-full object-cover rounded-t-2xl ${isOutOfStock ? "grayscale-[40%]" : ""}`} src={item.image || "/images/item/thumb.png"} alt={item.name} />
+                        {isOutOfStock ? (
+                          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/85 text-white text-[9px] font-black shadow-md z-10">
+                            OUT OF STOCK
+                          </div>
+                        ) : hasDiscount ? (
                           <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-black shadow-md z-10">
                             -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}%
                           </div>
-                        )}
+                        ) : null}
                       </div>
                       <div className="p-2.5 sm:p-3.5 rounded-b-2xl flex-1 flex flex-col justify-between min-w-0">
                         <div className="min-w-0 mb-1.5">
@@ -95,10 +100,16 @@ export default function OfferDetailsPage() {
                               <h4 className="text-xs sm:text-base font-semibold text-[#14142b] truncate min-w-0">{formatPrice(item.price)}</h4>
                             )}
                           </div>
-                          <button className="product-card-grid-cart-btn shrink-0">
-                            <Plus className="w-3.5 h-3.5" />
-                            <span className="text-[10px] sm:text-xs">Add</span>
-                          </button>
+                          {isOutOfStock ? (
+                            <span className="text-[9px] sm:text-[10px] font-bold text-gray-500 bg-gray-100 border border-gray-200 px-2 py-1 rounded-full shrink-0">
+                              Out
+                            </span>
+                          ) : (
+                            <button className="product-card-grid-cart-btn shrink-0">
+                              <Plus className="w-3.5 h-3.5" />
+                              <span className="text-[10px] sm:text-xs">Add</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -108,16 +119,21 @@ export default function OfferDetailsPage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
                 {items.map(item => {
-                  const hasDiscount = Boolean(item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price));
+                  const isOutOfStock = Boolean(item.isOutOfStock) || (Boolean(item.manageStock) && Number(item.stockQuantity ?? 0) <= 0);
+                  const hasDiscount = Boolean(!isOutOfStock && item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price));
                   return (
-                    <div key={item._id} className="relative flex items-center rounded-2xl border border-[#eff0f6] bg-white transition hover:shadow-xl cursor-pointer overflow-hidden w-full min-w-0" onClick={() => { setSelectedItem(item); setIsModalOpen(true); }}>
+                    <div key={item._id} className={`relative flex items-center rounded-2xl border border-[#eff0f6] bg-white transition hover:shadow-xl cursor-pointer overflow-hidden w-full min-w-0 ${isOutOfStock ? "opacity-80" : ""}`} onClick={() => { setSelectedItem(item); setIsModalOpen(true); }}>
                       <div className="relative shrink-0">
-                        <img className="w-24 sm:w-28 h-24 sm:h-28 object-cover rounded-l-2xl shrink-0" src={item.image || "/images/item/thumb.png"} alt={item.name} />
-                        {hasDiscount && (
+                        <img className={`w-24 sm:w-28 h-24 sm:h-28 object-cover rounded-l-2xl shrink-0 ${isOutOfStock ? "grayscale-[40%]" : ""}`} src={item.image || "/images/item/thumb.png"} alt={item.name} />
+                        {isOutOfStock ? (
+                          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/85 text-white text-[9px] font-black shadow-md z-10">
+                            OUT OF STOCK
+                          </div>
+                        ) : hasDiscount ? (
                           <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-black shadow-md z-10">
                             -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}%
                           </div>
-                        )}
+                        ) : null}
                       </div>
                       <div className="p-3 sm:p-4 flex-1 min-w-0 flex flex-col justify-between h-full">
                         <div className="min-w-0 mb-1">
@@ -135,11 +151,17 @@ export default function OfferDetailsPage() {
                               <h4 className="text-sm sm:text-base font-semibold text-[#14142b] truncate min-w-0">{formatPrice(item.price)}</h4>
                             )}
                           </div>
-                          <button className="flex items-center gap-1 rounded-3xl capitalize text-xs font-semibold h-7 px-3.5 shadow-sm transition text-white hover:opacity-90 shrink-0"
-                            style={{ backgroundColor: "var(--primary-hex)" }}>
-                            <Plus className="w-3.5 h-3.5" />
-                            <span className="text-[10px] sm:text-xs">Add</span>
-                          </button>
+                          {isOutOfStock ? (
+                            <span className="text-[10px] font-bold text-gray-500 bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-3xl shrink-0">
+                              Out of Stock
+                            </span>
+                          ) : (
+                            <button className="flex items-center gap-1 rounded-3xl capitalize text-xs font-semibold h-7 px-3.5 shadow-sm transition text-white hover:opacity-90 shrink-0"
+                              style={{ backgroundColor: "var(--primary-hex)" }}>
+                              <Plus className="w-3.5 h-3.5" />
+                              <span className="text-[10px] sm:text-xs">Add</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
