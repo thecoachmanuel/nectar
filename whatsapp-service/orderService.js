@@ -78,9 +78,14 @@ async function calculateDeliveryFee(db, { cart, subtotal, latitude, longitude, a
   let largeOrderThreshold = 20000; // Default ₦20,000 threshold
   let largeOrderFeePercent = 3; // Default 3% extra for large orders
 
+  let globalFixedDeliveryFee;
   try {
     const allSettings = await settingsCollection.find({}).toArray();
     for (const s of allSettings) {
+      if (s.key === "fixedDeliveryFee" && s.payload) {
+        const val = parseFloat(s.payload);
+        if (!isNaN(val) && val > 0) globalFixedDeliveryFee = val;
+      }
       if (s.key === "baseDeliveryFee") baseFee = parseFloat(s.payload) || 1500;
       if (s.key === "feePerKm") feePerKm = parseFloat(s.payload) || 100;
       if (s.key === "multiStoreExtraFee") multiStoreExtraFee = parseFloat(s.payload) || 0;
@@ -139,6 +144,9 @@ async function calculateDeliveryFee(db, { cart, subtotal, latitude, longitude, a
   }
 
   let rawDeliveryFee = baseFee + (maxDistance * feePerKm);
+  if (globalFixedDeliveryFee !== undefined && globalFixedDeliveryFee > 0) {
+    rawDeliveryFee = globalFixedDeliveryFee;
+  }
 
   // Auto-scale delivery fee based on order magnitude (exact parity with web app):
   // 1. Order Value Handling Fee (% of order subtotal)

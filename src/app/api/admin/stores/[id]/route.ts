@@ -8,6 +8,14 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const id = (await params).id;
     const body = await req.json();
 
+    // Ensure coordinates are numeric if provided, or default to 0
+    if (body.latitude !== undefined) {
+      body.latitude = (body.latitude !== "" && !isNaN(Number(body.latitude))) ? Number(body.latitude) : 0;
+    }
+    if (body.longitude !== undefined) {
+      body.longitude = (body.longitude !== "" && !isNaN(Number(body.longitude))) ? Number(body.longitude) : 0;
+    }
+
     // Ensure valid GeoJSON Polygon for zone
     if (!body.zone || !body.zone.coordinates || body.zone.coordinates.length === 0) {
       body.zone = {

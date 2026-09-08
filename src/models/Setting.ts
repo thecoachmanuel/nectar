@@ -7,6 +7,7 @@ export interface ISetting extends Document {
   iosAppUrl?: string;
   playStoreUrl?: string;
   baseDeliveryFee: number;
+  fixedDeliveryFee?: number;
   feePerKm: number;
   multiStoreExtraFee?: number;
   freeDeliveryThreshold?: number;
@@ -31,6 +32,7 @@ const SettingSchema = new mongoose.Schema<ISetting>(
     iosAppUrl: { type: String },
     playStoreUrl: { type: String },
     baseDeliveryFee: { type: Number, default: 500 },
+    fixedDeliveryFee: { type: Number, default: 0 },
     feePerKm: { type: Number, default: 100 },
     multiStoreExtraFee: { type: Number, default: 0 },
     freeDeliveryThreshold: { type: Number },

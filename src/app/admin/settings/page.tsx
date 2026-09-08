@@ -137,7 +137,7 @@ export default function SettingsPage() {
         ) group = "WhatsApp Bot";
         if (key.startsWith("theme_")) group = "Theme";
         if (key.startsWith("role_")) group = "Roles & Permissions";
-        if (["baseDeliveryFee", "feePerKm", "multiStoreExtraFee", "freeDeliveryThreshold", "orderValueFeePercent", "largeOrderThreshold", "largeOrderFeePercent", "takeaway_enabled"].includes(key)) group = "Delivery";
+        if (["fixedDeliveryFee", "baseDeliveryFee", "feePerKm", "multiStoreExtraFee", "freeDeliveryThreshold", "orderValueFeePercent", "largeOrderThreshold", "largeOrderFeePercent", "takeaway_enabled"].includes(key)) group = "Delivery";
         return { key, group, payload: formData[key] };
       });
 
@@ -673,6 +673,22 @@ export default function SettingsPage() {
           {/* Delivery */}
           {activeTab === "Delivery" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="md:col-span-2 p-4 bg-[#fff5f9] border border-primary/20 rounded-2xl">
+                <label className="block text-sm font-bold text-[#14142B] mb-1">
+                  Fixed Delivery Fee (Flat Rate Store-Wide) (₦) [Optional]
+                </label>
+                <input 
+                  type="number" 
+                  placeholder="e.g. 1500 (Leave 0 or empty for dynamic distance-based calculation)"
+                  value={formData.fixedDeliveryFee || ""} 
+                  onChange={(e) => handleChange("fixedDeliveryFee", e.target.value ? Number(e.target.value) : 0)}
+                  className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm font-medium focus:outline-none focus:border-primary shadow-2xs" 
+                />
+                <p className="text-xs text-[#6E7191] mt-1.5 leading-relaxed">
+                  💡 When set to an amount greater than 0, this flat rate delivery fee is charged store-wide across all orders, instead of calculating by km distance (unless overridden by an individual store). Set to 0 to use distance-based pricing.
+                </p>
+              </div>
+
               <div>
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">Base Delivery Fee (₦)</label>
                 <input 

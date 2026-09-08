@@ -25,6 +25,10 @@ export async function POST(req: Request) {
       hashedPassword = await bcrypt.hash(body.password, 10);
     }
 
+    // Ensure coordinates are numeric or default to 0
+    body.latitude = (body.latitude !== undefined && body.latitude !== "" && !isNaN(Number(body.latitude))) ? Number(body.latitude) : 0;
+    body.longitude = (body.longitude !== undefined && body.longitude !== "" && !isNaN(Number(body.longitude))) ? Number(body.longitude) : 0;
+
     // Ensure valid GeoJSON Polygon for zone
     if (!body.zone || !body.zone.coordinates || body.zone.coordinates.length === 0) {
       body.zone = {

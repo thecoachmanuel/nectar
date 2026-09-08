@@ -70,6 +70,7 @@ export async function POST(req: Request) {
       const settings = await Setting.find({
         key: {
           $in: [
+            "fixedDeliveryFee",
             "baseDeliveryFee",
             "feePerKm",
             "multiStoreExtraFee",
@@ -83,6 +84,7 @@ export async function POST(req: Request) {
         }
       }).lean();
 
+      let globalFixedDeliveryFee: number | undefined;
       let baseFee = 1500;
       let feePerKm = 100;
       let multiStoreExtraFee = 0;
@@ -94,6 +96,10 @@ export async function POST(req: Request) {
       let largeOrderFeePercent = 3; // Default 3% extra for large bulk orders
 
       settings.forEach((s: any) => {
+        if (s.key === "fixedDeliveryFee" && s.payload) {
+          const val = parseFloat(s.payload);
+          if (!isNaN(val) && val > 0) globalFixedDeliveryFee = val;
+        }
         if (s.key === "baseDeliveryFee") baseFee = parseFloat(s.payload) || 1500;
         if (s.key === "feePerKm") feePerKm = parseFloat(s.payload) || 100;
         if (s.key === "multiStoreExtraFee") multiStoreExtraFee = parseFloat(s.payload) || 0;
@@ -120,12 +126,17 @@ export async function POST(req: Request) {
           }
         });
 
+        let storeFixedFee: number | undefined;
+
         if (storeIds.size > 0) {
           const stores = await Store.find({ _id: { $in: Array.from(storeIds) } }).lean();
 
           // Apply store-level delivery terms override when single store order
           if (stores.length === 1) {
             const singleStore = stores[0];
+            if (singleStore.fixedDeliveryFee && singleStore.fixedDeliveryFee > 0) {
+              storeFixedFee = singleStore.fixedDeliveryFee;
+            }
             if (singleStore.baseDeliveryFee && singleStore.baseDeliveryFee > 0) {
               baseFee = singleStore.baseDeliveryFee;
             } else if (singleStore.deliveryFee && singleStore.deliveryFee > 0) {
@@ -187,35 +198,59 @@ export async function POST(req: Request) {
           }, { status: 400 });
         }
 
-        let rawDeliveryFee = baseFee;
-        if (validStoresCount > 0) {
-          rawDeliveryFee = baseFee + (maxDistance * feePerKm);
+        // Check if free threshold met after store overrides
+        if (freeThreshold !== undefined && subtotal >= freeThreshold) {
+          deliveryCharge = 0;
+        } else {
+          let rawDeliveryFee = baseFee;
+
+          // Delivery calculation hierarchy:
+          // 1. If store specified a fixedDeliveryFee (>0), use store fixed fee
+          // 2. Else if platform has globalFixedDeliveryFee (>0), use platform fixed fee
+          // 3. Otherwise use dynamic distance-based fee: baseFee + (maxDistance * feePerKm)
+          if (storeFixedFee !== undefined && storeFixedFee > 0) {
+            rawDeliveryFee = storeFixedFee;
+          } else if (globalFixedDeliveryFee !== undefined && globalFixedDeliveryFee > 0) {
+            rawDeliveryFee = globalFixedDeliveryFee;
+          } else if (validStoresCount > 0) {
+            rawDeliveryFee = baseFee + (maxDistance * feePerKm);
+          }
+
+          // Additional stop fee for multi-store fulfillment
           if (validStoresCount > 1) {
             rawDeliveryFee += (validStoresCount - 1) * multiStoreExtraFee;
           }
+
+          // Auto-scale delivery fee based on order magnitude:
+          // 1. Order Value Handling Fee (% of order subtotal)
+          const orderValueFee = (subtotal * orderValueFeePercent) / 100;
+
+          // 2. Large Order Surcharge (Applied when subtotal exceeds largeOrderThreshold)
+          let largeOrderSurcharge = 0;
+          if (largeOrderThreshold > 0 && subtotal >= largeOrderThreshold) {
+            largeOrderSurcharge = (subtotal * largeOrderFeePercent) / 100;
+          }
+
+          deliveryCharge = rawDeliveryFee + orderValueFee + largeOrderSurcharge;
         }
-
-        // Auto-scale delivery fee based on order magnitude:
-        // 1. Order Value Handling Fee (% of order subtotal)
-        const orderValueFee = (subtotal * orderValueFeePercent) / 100;
-
-        // 2. Large Order Surcharge (Applied when subtotal exceeds largeOrderThreshold)
-        let largeOrderSurcharge = 0;
-        if (largeOrderThreshold > 0 && subtotal >= largeOrderThreshold) {
-          largeOrderSurcharge = (subtotal * largeOrderFeePercent) / 100;
-        }
-
-        deliveryCharge = rawDeliveryFee + orderValueFee + largeOrderSurcharge;
       } else {
         // Delivery order without address or coordinates:
+        let storeFixedFee: number | undefined;
+
         // Apply store-level delivery terms override if single store
         if (storeIds.size === 1) {
           const singleStore = await Store.findById(Array.from(storeIds)[0]).lean();
           if (singleStore) {
+            if (singleStore.fixedDeliveryFee && singleStore.fixedDeliveryFee > 0) {
+              storeFixedFee = singleStore.fixedDeliveryFee;
+            }
             if (singleStore.baseDeliveryFee && singleStore.baseDeliveryFee > 0) {
               baseFee = singleStore.baseDeliveryFee;
             } else if (singleStore.deliveryFee && singleStore.deliveryFee > 0) {
               baseFee = singleStore.deliveryFee;
+            }
+            if (singleStore.freeDeliveryThreshold !== undefined && singleStore.freeDeliveryThreshold > 0) {
+              freeThreshold = singleStore.freeDeliveryThreshold;
             }
             if (singleStore.orderValueFeePercent !== undefined && singleStore.orderValueFeePercent >= 0) {
               orderValueFeePercent = singleStore.orderValueFeePercent;
@@ -229,13 +264,28 @@ export async function POST(req: Request) {
           }
         }
 
-        const orderValueFee = (subtotal * orderValueFeePercent) / 100;
-        let largeOrderSurcharge = 0;
-        if (largeOrderThreshold > 0 && subtotal >= largeOrderThreshold) {
-          largeOrderSurcharge = (subtotal * largeOrderFeePercent) / 100;
-        }
+        if (freeThreshold !== undefined && subtotal >= freeThreshold) {
+          deliveryCharge = 0;
+        } else {
+          let rawDeliveryFee = baseFee;
+          if (storeFixedFee !== undefined && storeFixedFee > 0) {
+            rawDeliveryFee = storeFixedFee;
+          } else if (globalFixedDeliveryFee !== undefined && globalFixedDeliveryFee > 0) {
+            rawDeliveryFee = globalFixedDeliveryFee;
+          }
 
-        deliveryCharge = baseFee + orderValueFee + largeOrderSurcharge;
+          if (storeIds.size > 1) {
+            rawDeliveryFee += (storeIds.size - 1) * multiStoreExtraFee;
+          }
+
+          const orderValueFee = (subtotal * orderValueFeePercent) / 100;
+          let largeOrderSurcharge = 0;
+          if (largeOrderThreshold > 0 && subtotal >= largeOrderThreshold) {
+            largeOrderSurcharge = (subtotal * largeOrderFeePercent) / 100;
+          }
+
+          deliveryCharge = rawDeliveryFee + orderValueFee + largeOrderSurcharge;
+        }
       }
     }
 
