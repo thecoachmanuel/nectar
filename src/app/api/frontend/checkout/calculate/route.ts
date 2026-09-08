@@ -75,6 +75,8 @@ export async function POST(req: Request) {
             "feePerKm",
             "multiStoreExtraFee",
             "freeDeliveryThreshold",
+            "store_wide_latitude",
+            "store_wide_longitude",
             "company_latitude",
             "company_longitude",
             "orderValueFeePercent",
@@ -104,8 +106,10 @@ export async function POST(req: Request) {
         if (s.key === "feePerKm") feePerKm = parseFloat(s.payload) || 100;
         if (s.key === "multiStoreExtraFee") multiStoreExtraFee = parseFloat(s.payload) || 0;
         if (s.key === "freeDeliveryThreshold") freeThreshold = parseFloat(s.payload) || undefined;
-        if (s.key === "company_latitude" && s.payload) adminLat = parseFloat(s.payload);
-        if (s.key === "company_longitude" && s.payload) adminLng = parseFloat(s.payload);
+        if (s.key === "store_wide_latitude" && s.payload) adminLat = parseFloat(s.payload);
+        if (s.key === "store_wide_longitude" && s.payload) adminLng = parseFloat(s.payload);
+        if (adminLat === undefined && s.key === "company_latitude" && s.payload) adminLat = parseFloat(s.payload);
+        if (adminLng === undefined && s.key === "company_longitude" && s.payload) adminLng = parseFloat(s.payload);
         if (s.key === "orderValueFeePercent") orderValueFeePercent = parseFloat(s.payload) ?? 2;
         if (s.key === "largeOrderThreshold") largeOrderThreshold = parseFloat(s.payload) ?? 20000;
         if (s.key === "largeOrderFeePercent") largeOrderFeePercent = parseFloat(s.payload) ?? 3;
@@ -160,8 +164,15 @@ export async function POST(req: Request) {
           }
 
           stores.forEach((store: any) => {
-            if (store.latitude !== undefined && store.longitude !== undefined) {
-              const dist = haversineDistance(userLat, userLng, store.latitude, store.longitude);
+            const effectiveLat = (store.latitude !== undefined && Number(store.latitude) !== 0)
+              ? Number(store.latitude)
+              : adminLat;
+            const effectiveLng = (store.longitude !== undefined && Number(store.longitude) !== 0)
+              ? Number(store.longitude)
+              : adminLng;
+
+            if (effectiveLat !== undefined && effectiveLng !== undefined && !isNaN(effectiveLat) && !isNaN(effectiveLng)) {
+              const dist = haversineDistance(userLat, userLng, effectiveLat, effectiveLng);
               if (!isNaN(dist)) {
                 const storeRadius = Number(store.deliveryRadius || 0);
                 if (storeRadius > 0 && dist > storeRadius) {
@@ -172,6 +183,8 @@ export async function POST(req: Request) {
                   validStoresCount++;
                 }
               }
+            } else {
+              validStoresCount++;
             }
           });
         }

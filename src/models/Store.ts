@@ -11,7 +11,7 @@ export interface IStore extends Document {
   name: string;
   email: string;
   phone: string;
-  address: string;
+  address?: string;
   latitude?: number;
   longitude?: number;
   city?: string;
@@ -54,12 +54,12 @@ const StoreSchema = new Schema<IStore>(
     name: { type: String, required: true },
     email: { type: String, required: true },
     phone: { type: String, required: true },
-    address: { type: String, required: true },
+    address: { type: String, default: "" },
     latitude: { type: Number, default: 0 },
     longitude: { type: Number, default: 0 },
-    city: { type: String },
-    state: { type: String },
-    zipCode: { type: String },
+    city: { type: String, default: "" },
+    state: { type: String, default: "" },
+    zipCode: { type: String, default: "" },
     status: { type: Boolean, default: true },
     zone: {
       type: { type: String, enum: ["Polygon"], default: "Polygon" },

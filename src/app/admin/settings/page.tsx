@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { 
   Building2, 
   Globe, 
@@ -18,11 +18,15 @@ import {
   Trash2,
   Image as ImageIcon,
   RotateCcw,
-  Check
+  Check,
+  MapPin,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import { useSettingsStore, SettingItem } from "@/store/useSettingsStore";
 import { toast } from "sonner";
 import { normalizeImageUrl } from "@/lib/imageUtils";
+import MapComponent from "@/components/frontend/MapComponent";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("Company");
@@ -35,6 +39,25 @@ export default function SettingsPage() {
   const [uploadingFooterLogo, setUploadingFooterLogo] = useState(false);
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Store-wide address state
+  const [swAddressSuggestions, setSwAddressSuggestions] = useState<any[]>([]);
+  const [swIsSearchingAddress, setSwIsSearchingAddress] = useState(false);
+  const [swShowDropdown, setSwShowDropdown] = useState(false);
+  const [swShowMap, setSwShowMap] = useState(false);
+  const [swFetchingCoords, setSwFetchingCoords] = useState(false);
+  const swDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const swContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (swContainerRef.current && !swContainerRef.current.contains(e.target as Node)) {
+        setSwShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleLogoUpload = async (file: File, fieldKey: "theme_logo" | "theme_footer_logo" | "theme_favicon") => {
     if (fieldKey === "theme_favicon") setUploadingFavicon(true);
@@ -102,6 +125,15 @@ export default function SettingsPage() {
   useEffect(() => {
     if (Object.keys(settings).length > 0) {
       const initialForm = { ...settings };
+      if (settings.company_address && !initialForm.store_wide_address) {
+        initialForm.store_wide_address = settings.company_address;
+      }
+      if (settings.company_latitude && !initialForm.store_wide_latitude) {
+        initialForm.store_wide_latitude = settings.company_latitude;
+      }
+      if (settings.company_longitude && !initialForm.store_wide_longitude) {
+        initialForm.store_wide_longitude = settings.company_longitude;
+      }
       if (settings.admin_notification_whatsapp_number || settings.wa_admin_notification_phone) {
         initialForm.admin_notification_whatsapp_number =
           settings.admin_notification_whatsapp_number || settings.wa_admin_notification_phone || "";
@@ -118,6 +150,117 @@ export default function SettingsPage() {
 
   const handleChange = (key: string, value: any) => {
     setFormData(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleSwAddressChange = (newAddress: string) => {
+    handleChange("store_wide_address", newAddress);
+    if (swDebounceRef.current) clearTimeout(swDebounceRef.current);
+    const trimmed = newAddress.trim();
+    if (!trimmed || trimmed.length < 3) {
+      setSwAddressSuggestions([]);
+      setSwShowDropdown(false);
+      setSwIsSearchingAddress(false);
+      return;
+    }
+    setSwIsSearchingAddress(true);
+    swDebounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(trimmed)}&format=json&limit=5&addressdetails=1`,
+          { headers: { "Accept-Language": "en" } }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            setSwAddressSuggestions(data);
+            setSwShowDropdown(true);
+            const top = data[0];
+            if (top?.lat && top?.lon && (!formData.store_wide_latitude || Number(formData.store_wide_latitude) === 0)) {
+              setFormData(prev => ({
+                ...prev,
+                store_wide_latitude: parseFloat(top.lat).toFixed(6),
+                store_wide_longitude: parseFloat(top.lon).toFixed(6),
+              }));
+            }
+          } else {
+            setSwAddressSuggestions([]);
+            setSwShowDropdown(false);
+          }
+        }
+      } catch {} finally {
+        setSwIsSearchingAddress(false);
+      }
+    }, 450);
+  };
+
+  const handleSelectSwSuggestion = (item: any) => {
+    const lat = parseFloat(item.lat).toFixed(6);
+    const lng = parseFloat(item.lon).toFixed(6);
+    const addr = item.address || {};
+    const city = addr.city || addr.town || addr.municipality || addr.suburb || addr.county || "";
+    const state = addr.state || "";
+    const zipCode = addr.postcode || "";
+
+    setFormData(prev => ({
+      ...prev,
+      store_wide_address: item.display_name,
+      store_wide_latitude: lat,
+      store_wide_longitude: lng,
+      ...(city && !prev.store_wide_city ? { store_wide_city: city } : {}),
+      ...(state && !prev.store_wide_state ? { store_wide_state: state } : {}),
+      ...(zipCode && !prev.store_wide_zipCode ? { store_wide_zipCode: zipCode } : {}),
+    }));
+    setSwShowDropdown(false);
+    toast.success("Store-wide address and GPS coordinates set!");
+  };
+
+  const geocodeSwAddress = async () => {
+    const q = (formData.store_wide_address || "").trim();
+    if (!q) {
+      toast.error("Please enter an address first");
+      return;
+    }
+    setSwFetchingCoords(true);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&addressdetails=1`,
+        { headers: { "Accept-Language": "en" } }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0 && data[0].lat && data[0].lon) {
+          const lat = parseFloat(data[0].lat).toFixed(6);
+          const lng = parseFloat(data[0].lon).toFixed(6);
+          const addr = data[0].address || {};
+          const city = addr.city || addr.town || addr.municipality || addr.suburb || addr.county || "";
+          const state = addr.state || "";
+          const zipCode = addr.postcode || "";
+
+          setFormData(prev => ({
+            ...prev,
+            store_wide_latitude: lat,
+            store_wide_longitude: lng,
+            ...(city && !prev.store_wide_city ? { store_wide_city: city } : {}),
+            ...(state && !prev.store_wide_state ? { store_wide_state: state } : {}),
+            ...(zipCode && !prev.store_wide_zipCode ? { store_wide_zipCode: zipCode } : {}),
+          }));
+          toast.success("GPS coordinates auto-detected!");
+          return;
+        }
+      }
+      toast.info("Could not auto-detect exact GPS coordinates. You can optionally pin on map.");
+    } catch {} finally {
+      setSwFetchingCoords(false);
+    }
+  };
+
+  const handleSwLocationSelect = (lat: number, lng: number, addr: string) => {
+    setFormData(prev => ({
+      ...prev,
+      store_wide_latitude: lat.toFixed(6),
+      store_wide_longitude: lng.toFixed(6),
+      ...(addr && !prev.store_wide_address ? { store_wide_address: addr } : {})
+    }));
   };
 
   const handleSave = async () => {
@@ -137,7 +280,23 @@ export default function SettingsPage() {
         ) group = "WhatsApp Bot";
         if (key.startsWith("theme_")) group = "Theme";
         if (key.startsWith("role_")) group = "Roles & Permissions";
-        if (["fixedDeliveryFee", "baseDeliveryFee", "feePerKm", "multiStoreExtraFee", "freeDeliveryThreshold", "orderValueFeePercent", "largeOrderThreshold", "largeOrderFeePercent", "takeaway_enabled"].includes(key)) group = "Delivery";
+        if ([
+          "store_wide_address",
+          "store_wide_city",
+          "store_wide_state",
+          "store_wide_zipCode",
+          "store_wide_latitude",
+          "store_wide_longitude",
+          "fixedDeliveryFee",
+          "baseDeliveryFee",
+          "feePerKm",
+          "multiStoreExtraFee",
+          "freeDeliveryThreshold",
+          "orderValueFeePercent",
+          "largeOrderThreshold",
+          "largeOrderFeePercent",
+          "takeaway_enabled"
+        ].includes(key)) group = "Delivery";
         return { key, group, payload: formData[key] };
       });
 
@@ -149,11 +308,36 @@ export default function SettingsPage() {
         tabSettings = allSettings.filter(s => s.group === "Company" || (!s.key.startsWith("site_") && !s.key.startsWith("mail_") && !s.key.startsWith("pay_") && !s.key.startsWith("sms_") && !s.key.startsWith("push_") && !s.key.startsWith("wa_") && !s.key.startsWith("theme_") && !s.key.startsWith("role_") && s.key !== "admin_notification_whatsapp_number" && s.key !== "wa_admin_notification_phone"));
       }
 
+      // Sync store-wide address and company address bidirectionally
+      if (activeTab === "Delivery") {
+        if (formData.store_wide_address) {
+          tabSettings.push({ key: "company_address", group: "Company", payload: formData.store_wide_address });
+          tabSettings.push({ key: "contactAddress", group: "Company", payload: formData.store_wide_address });
+        }
+        if (formData.store_wide_latitude) {
+          tabSettings.push({ key: "company_latitude", group: "Company", payload: formData.store_wide_latitude });
+        }
+        if (formData.store_wide_longitude) {
+          tabSettings.push({ key: "company_longitude", group: "Company", payload: formData.store_wide_longitude });
+        }
+      }
+
       // Also sync alias keys for company info
       if (activeTab === "Company") {
         if (formData.company_email) tabSettings.push({ key: "contactEmail", group: "Company", payload: formData.company_email });
         if (formData.company_phone) tabSettings.push({ key: "contactPhone", group: "Company", payload: formData.company_phone });
-        if (formData.company_address !== undefined) tabSettings.push({ key: "contactAddress", group: "Company", payload: formData.company_address });
+        if (formData.company_address !== undefined) {
+          tabSettings.push({ key: "contactAddress", group: "Company", payload: formData.company_address });
+          if (!formData.store_wide_address) {
+            tabSettings.push({ key: "store_wide_address", group: "Delivery", payload: formData.company_address });
+          }
+        }
+        if (formData.company_latitude && !formData.store_wide_latitude) {
+          tabSettings.push({ key: "store_wide_latitude", group: "Delivery", payload: formData.company_latitude });
+        }
+        if (formData.company_longitude && !formData.store_wide_longitude) {
+          tabSettings.push({ key: "store_wide_longitude", group: "Delivery", payload: formData.company_longitude });
+        }
       }
 
       // Sync combined bank account payload and admin notification phone for WhatsApp Bot
@@ -673,6 +857,181 @@ export default function SettingsPage() {
           {/* Delivery */}
           {activeTab === "Delivery" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Store-Wide Default Address (Fulfillment Location) */}
+              <div className="md:col-span-2 p-5 bg-white border border-[#EFF0F6] rounded-2xl shadow-2xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                        <MapPin className="w-4 h-4" />
+                      </div>
+                      <h3 className="text-base font-bold text-[#14142B]">
+                        Store-Wide Default Address (Fulfillment Location)
+                      </h3>
+                    </div>
+                    <p className="text-xs text-[#6E7191] mt-1.5 leading-relaxed">
+                      Default platform fulfillment address when operating a single restaurant/store or when individual stores have not specified a custom address. Any store can override this by setting its own address.
+                    </p>
+                  </div>
+                  {formData.store_wide_latitude && formData.store_wide_longitude ? (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200 self-start shrink-0">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                      GPS Configured
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 text-xs font-semibold rounded-full border border-amber-200 self-start shrink-0">
+                      <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                      No Coordinates Set
+                    </span>
+                  )}
+                </div>
+
+                {/* Street Address Input with Live Dropdown */}
+                <div className="relative" ref={swContainerRef}>
+                  <label className="block text-xs font-semibold text-[#14142B] mb-1.5">
+                    Store-Wide Street Address
+                  </label>
+                  <div className="relative flex items-center">
+                    <input
+                      type="text"
+                      placeholder="e.g. 123 Allen Avenue, Ikeja, Lagos"
+                      value={formData.store_wide_address || ""}
+                      onChange={(e) => handleSwAddressChange(e.target.value)}
+                      onFocus={() => swAddressSuggestions.length > 0 && setSwShowDropdown(true)}
+                      className="w-full h-11 pl-10 pr-36 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary font-medium"
+                    />
+                    <MapPin className="absolute left-3.5 w-4 h-4 text-[#A0A3BD] pointer-events-none" />
+                    
+                    <button
+                      type="button"
+                      onClick={geocodeSwAddress}
+                      disabled={swFetchingCoords || !(formData.store_wide_address || "").trim()}
+                      className="absolute right-1.5 px-3 py-1.5 bg-[#F7F7FC] hover:bg-primary hover:text-white text-[#14142B] text-xs font-semibold rounded-lg transition border border-[#EFF0F6] disabled:opacity-50 flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                    >
+                      {swFetchingCoords ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Locating...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>⚡ Auto-Detect GPS</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Autocomplete Dropdown */}
+                  {swShowDropdown && swAddressSuggestions.length > 0 && (
+                    <div className="absolute z-50 left-0 right-0 top-full mt-1.5 bg-white rounded-xl border border-[#EFF0F6] shadow-xl overflow-hidden max-h-56 overflow-y-auto">
+                      {swAddressSuggestions.map((item, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handleSelectSwSuggestion(item)}
+                          className="w-full px-4 py-2.5 text-left text-xs hover:bg-[#F7F7FC] border-b border-[#F7F7FC] last:border-0 flex items-start gap-2 text-[#14142B] transition cursor-pointer"
+                        >
+                          <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                          <span className="line-clamp-2 leading-relaxed">{item.display_name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* City, State, Zip Code */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#14142B] mb-1">City</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Ikeja"
+                      value={formData.store_wide_city || ""}
+                      onChange={(e) => handleChange("store_wide_city", e.target.value)}
+                      className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-xs focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#14142B] mb-1">State / Province</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Lagos"
+                      value={formData.store_wide_state || ""}
+                      onChange={(e) => handleChange("store_wide_state", e.target.value)}
+                      className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-xs focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#14142B] mb-1">Postal / Zip Code</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 100001"
+                      value={formData.store_wide_zipCode || ""}
+                      onChange={(e) => handleChange("store_wide_zipCode", e.target.value)}
+                      className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-xs focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                </div>
+
+                {/* Coordinates & Map Pin Accordion */}
+                <div className="pt-2 border-t border-[#EFF0F6]">
+                  <button
+                    type="button"
+                    onClick={() => setSwShowMap(!swShowMap)}
+                    className="flex items-center justify-between w-full p-2.5 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] hover:bg-[#EFF0F6] transition text-left cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-primary" />
+                      <span className="text-xs font-semibold text-[#14142B]">
+                        {swShowMap ? "Hide Map & Coordinate Details" : "Pin Exact Location on Map / Fine-Tune Coordinates"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {formData.store_wide_latitude && formData.store_wide_longitude && (
+                        <span className="text-[11px] font-mono text-[#6E7191]">
+                          ({formData.store_wide_latitude}, {formData.store_wide_longitude})
+                        </span>
+                      )}
+                      {swShowMap ? <ChevronUp className="w-4 h-4 text-[#6E7191]" /> : <ChevronDown className="w-4 h-4 text-[#6E7191]" />}
+                    </div>
+                  </button>
+
+                  {swShowMap && (
+                    <div className="mt-3 space-y-3 p-3 border border-[#EFF0F6] rounded-xl bg-white animate-in fade-in duration-200">
+                      <MapComponent
+                        initialLat={formData.store_wide_latitude ? parseFloat(formData.store_wide_latitude) : undefined}
+                        initialLng={formData.store_wide_longitude ? parseFloat(formData.store_wide_longitude) : undefined}
+                        addressText={formData.store_wide_address}
+                        onLocationSelect={handleSwLocationSelect}
+                      />
+
+                      <div className="grid grid-cols-2 gap-3 pt-1">
+                        <div>
+                          <label className="block text-xs font-semibold text-[#14142B] mb-1">Latitude</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. 6.5244"
+                            value={formData.store_wide_latitude || ""}
+                            onChange={(e) => handleChange("store_wide_latitude", e.target.value)}
+                            className="w-full h-9 px-3 border border-[#EFF0F6] rounded-xl text-xs font-mono outline-none focus:border-primary"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-[#14142B] mb-1">Longitude</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. 3.3792"
+                            value={formData.store_wide_longitude || ""}
+                            onChange={(e) => handleChange("store_wide_longitude", e.target.value)}
+                            className="w-full h-9 px-3 border border-[#EFF0F6] rounded-xl text-xs font-mono outline-none focus:border-primary"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="md:col-span-2 p-4 bg-[#fff5f9] border border-primary/20 rounded-2xl">
                 <label className="block text-sm font-bold text-[#14142B] mb-1">
                   Fixed Delivery Fee (Flat Rate Store-Wide) (₦) [Optional]

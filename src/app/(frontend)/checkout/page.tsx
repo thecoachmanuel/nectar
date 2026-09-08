@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Undo2, MapPin, Edit2, Clock, X, Home as HomeIcon } from "lucide-react";
+import { Undo2, MapPin, Edit2, Clock, X, Home as HomeIcon, Plus } from "lucide-react";
 import { useSettingStore } from "@/store/useSettingStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useCartStore } from "@/store/useCartStore";
@@ -14,7 +14,7 @@ import AddressModal from "@/components/frontend/AddressModal";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { user, isGuest, guestInfo, token, fetchUserProfile } = useAuthStore();
+  const { user, isGuest, guestInfo, token, fetchUserProfile, updateUser } = useAuthStore();
   const { items, orderType, setOrderType, getSubtotal, getTotalAmount, clearCart, removeItem } = useCartStore();
   const { settings, fetchSettings } = useSettingsStore();
   const [loading, setLoading] = useState(true);
@@ -26,6 +26,8 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<string>(""); // empty until settings loaded
   const [paymentMethodInitialized, setPaymentMethodInitialized] = useState(false);
   const [isNoAddressModalOpen, setIsNoAddressModalOpen] = useState(false);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<any>(null);
   
   // Fetch fresh settings and user profile/wallet on checkout page mount
   useEffect(() => {
@@ -55,6 +57,14 @@ export default function CheckoutPage() {
   
   const addresses = user?.addresses || [];
   const [selectedAddress, setSelectedAddress] = useState<string | null>(addresses.length > 0 ? addresses[0]._id || null : null);
+
+  // Automatically select default address when addresses load or update
+  useEffect(() => {
+    if (!selectedAddress && addresses.length > 0) {
+      const defaultAddr = addresses.find((a: any) => a.isDefault) || addresses[0];
+      if (defaultAddr?._id) setSelectedAddress(defaultAddr._id);
+    }
+  }, [addresses, selectedAddress]);
   const [deliveryCharge, setDeliveryCharge] = useState(0);
 
   const [couponCodeInput, setCouponCodeInput] = useState("");
@@ -171,6 +181,54 @@ export default function CheckoutPage() {
     
     fetchDeliveryCharge();
   }, [items, orderType, selectedAddress, addresses, appliedCoupon, user, guestInfo]);
+
+  const handleSaveCheckoutAddress = async (savedAddr: any) => {
+    if (!token) {
+      const tempId = savedAddr._id || `addr_${Date.now()}`;
+      const newAddr = { ...savedAddr, _id: tempId };
+      const current = user?.addresses || [];
+      const updated = editingAddress 
+        ? current.map((a: any) => a._id === savedAddr._id ? newAddr : a)
+        : [...current, newAddr];
+      updateUser({ addresses: updated });
+      setSelectedAddress(tempId);
+      setIsAddressModalOpen(false);
+      setEditingAddress(null);
+      toast.success("Delivery address set!");
+      return;
+    }
+
+    try {
+      toast.loading("Saving address to your account...");
+      const res = await fetch("/api/frontend/account/addresses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(savedAddr)
+      });
+      const data = await res.json();
+      toast.dismiss();
+      if (data.status) {
+        updateUser({ addresses: data.data });
+        if (savedAddr._id) {
+          setSelectedAddress(savedAddr._id);
+        } else if (Array.isArray(data.data) && data.data.length > 0) {
+          const newest = data.data[data.data.length - 1];
+          setSelectedAddress(newest._id);
+        }
+        setIsAddressModalOpen(false);
+        setEditingAddress(null);
+        toast.success(data.message || "Address saved successfully!");
+      } else {
+        toast.error(data.message || "Failed to save address");
+      }
+    } catch {
+      toast.dismiss();
+      toast.error("Failed to save address");
+    }
+  };
 
   const handlePlaceOrder = async (bypassAddressCheck = false) => {
     if (items.length === 0) {
@@ -386,41 +444,75 @@ export default function CheckoutPage() {
                           Optional
                         </span>
                       </div>
-                      <Link href="/account/addresses?from=checkout" className="group text-xs capitalize font-medium flex items-center rounded-3xl py-1.5 px-3 gap-1 text-[#00749B] bg-[#D6F5FF] transition hover:text-white hover:bg-[#00749B]">
-                        <Edit2 className="w-3.5 h-3.5" />
-                        <span>Add/Edit</span>
-                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingAddress(null);
+                          setIsAddressModalOpen(true);
+                        }}
+                        className="group text-xs capitalize font-medium flex items-center rounded-3xl py-1.5 px-3 gap-1 text-[#00749B] bg-[#D6F5FF] transition hover:text-white hover:bg-[#00749B]"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Add New Address</span>
+                      </button>
                     </div>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {addresses.length === 0 ? (
-                        <div className="col-span-full p-4 border border-dashed border-[#eff0f6] rounded-xl text-center text-sm text-[#6e7191] bg-[#f7f7fc]/50">
-                          <p className="mb-1">No saved addresses found.</p>
-                          <p className="text-xs text-[#a0a3bd]">
-                            You can <Link href="/account/addresses?from=checkout" className="text-primary font-medium hover:underline">add an address</Link> or proceed without one.
+                        <div className="col-span-full p-5 border border-dashed border-[#eff0f6] rounded-2xl text-center text-sm text-[#6e7191] bg-[#f7f7fc]/50">
+                          <p className="mb-1 font-semibold text-[#14142B]">No saved addresses found</p>
+                          <p className="text-xs text-[#a0a3bd] mb-3">
+                            Add a delivery address to calculate exact distance and delivery fee, or proceed without one.
                           </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingAddress(null);
+                              setIsAddressModalOpen(true);
+                            }}
+                            className="inline-flex items-center gap-1.5 py-2 px-4 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-rose-600 transition shadow-xs"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> Add Delivery Address
+                          </button>
                         </div>
                       ) : (
                         addresses.map((addr) => (
-                          <label 
+                          <div 
                             key={addr._id} 
                             onClick={() => setSelectedAddress(selectedAddress === addr._id ? null : (addr._id || null))}
-                            className={`p-3 rounded-xl w-full border cursor-pointer transition-colors ${selectedAddress === addr._id ? 'border-primary bg-[#fff5f9]' : 'border-[#F7F7FC] bg-[#F7F7FC] hover:border-primary/30'}`}
+                            className={`p-3 rounded-xl w-full border cursor-pointer transition-colors relative group ${selectedAddress === addr._id ? 'border-primary bg-[#fff5f9]' : 'border-[#F7F7FC] bg-[#F7F7FC] hover:border-primary/30'}`}
                           >
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-2 text-xs text-[#008BBA]">
                                 <HomeIcon className="w-3.5 h-3.5" />
                                 <span className="font-medium">{addr.label || "Address"}</span>
+                                {addr.isDefault && (
+                                  <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.2 rounded-full font-semibold">Default</span>
+                                )}
                               </div>
-                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${selectedAddress === addr._id ? 'border-primary' : 'border-[#a0a3bd]'}`}>
-                                {selectedAddress === addr._id && <div className="w-2 h-2 rounded-full bg-primary" />}
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingAddress(addr);
+                                    setIsAddressModalOpen(true);
+                                  }}
+                                  className="opacity-0 group-hover:opacity-100 transition p-1 hover:text-primary text-[#6e7191]"
+                                  title="Edit address"
+                                >
+                                  <Edit2 className="w-3 h-3" />
+                                </button>
+                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${selectedAddress === addr._id ? 'border-primary' : 'border-[#a0a3bd]'}`}>
+                                  {selectedAddress === addr._id && <div className="w-2 h-2 rounded-full bg-primary" />}
+                                </div>
                               </div>
                             </div>
                             <div className="text-xs flex gap-2 text-[#14142b]">
                               <MapPin className="w-3.5 h-3.5 mt-0.5 text-[#a0a3bd] shrink-0" />
-                              <span>{addr.apartment ? `${addr.apartment}, ` : ''}{addr.address}</span>
+                              <span className="line-clamp-2">{addr.apartment ? `${addr.apartment}, ` : ''}{addr.address}</span>
                             </div>
-                          </label>
+                          </div>
                         ))
                       )}
                     </div>
@@ -756,7 +848,8 @@ export default function CheckoutPage() {
                 onClick={() => {
                   setIsNoAddressModalOpen(false);
                   if (addresses.length === 0) {
-                    router.push("/account/addresses?from=checkout");
+                    setEditingAddress(null);
+                    setIsAddressModalOpen(true);
                   } else {
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }
@@ -769,6 +862,17 @@ export default function CheckoutPage() {
           </div>
         </div>
       )}
+
+      {/* Inline Address Modal for Seamless Cross-Device Management */}
+      <AddressModal
+        isOpen={isAddressModalOpen}
+        onClose={() => {
+          setIsAddressModalOpen(false);
+          setEditingAddress(null);
+        }}
+        initialData={editingAddress}
+        onSave={handleSaveCheckoutAddress}
+      />
     </>
   );
 }

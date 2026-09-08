@@ -2,24 +2,38 @@ import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 import User from "@/models/User";
 import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "errandshop_secret_key_default_2026"
 );
 
+export const dynamic = "force-dynamic";
+
 async function getUserFromToken(req: Request) {
+  let token: string | undefined;
+
   const authHeader = req.headers.get("authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
-  const token = authHeader.split(" ")[1];
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.split(" ")[1];
+  }
+
+  if (!token) {
+    try {
+      const cookieStore = await cookies();
+      token = cookieStore.get("token")?.value;
+    } catch {}
+  }
+
+  if (!token) return null;
+
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload.userId as string;
+    return (payload.userId || payload.id) as string;
   } catch (error) {
     return null;
   }
 }
-
-export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   try {
@@ -47,6 +61,11 @@ export async function GET(req: Request) {
         walletBalance: user.walletBalance ?? 0,
         addresses: user.addresses || [],
       },
+    }, {
+      headers: {
+        "Cache-Control": "no-store, no-cache, must-revalidate",
+        "Pragma": "no-cache",
+      }
     });
   } catch (error: any) {
     return NextResponse.json({ status: false, message: error.message }, { status: 500 });

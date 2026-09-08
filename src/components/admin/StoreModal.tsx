@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { X, ImagePlus, Loader2, Eye, EyeOff, MapPin, ChevronDown, ChevronUp, Search, Check } from "lucide-react";
 import { toast } from "sonner";
 import MapComponent from "@/components/frontend/MapComponent";
+import { useSettingsStore } from "@/store/useSettingsStore";
 
 interface StoreModalProps {
   isOpen: boolean;
@@ -22,6 +23,18 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
   const addressDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const addressContainerRef = useRef<HTMLDivElement | null>(null);
   const [fetchingCoords, setFetchingCoords] = useState(false);
+
+  const { settings, fetchSettings } = useSettingsStore();
+
+  useEffect(() => {
+    if (isOpen && Object.keys(settings).length === 0) {
+      fetchSettings();
+    }
+  }, [isOpen, settings, fetchSettings]);
+
+  const storeWideAddress = settings.store_wide_address || settings.company_address || "";
+  const storeWideLat = settings.store_wide_latitude || settings.company_latitude || "";
+  const storeWideLng = settings.store_wide_longitude || settings.company_longitude || "";
 
   const [formData, setFormData] = useState({
     name: "",
@@ -89,12 +102,12 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
         name: storeToEdit.name || "",
         email: storeToEdit.email || "",
         phone: storeToEdit.phone || "",
-        address: storeToEdit.address || "",
-        city: storeToEdit.city || "",
-        state: storeToEdit.state || "",
-        zipCode: storeToEdit.zipCode || "",
-        latitude: storeToEdit.latitude !== undefined && storeToEdit.latitude !== null ? storeToEdit.latitude.toString() : "",
-        longitude: storeToEdit.longitude !== undefined && storeToEdit.longitude !== null ? storeToEdit.longitude.toString() : "",
+        address: storeToEdit.isUsingStoreWideAddress ? "" : (storeToEdit.rawAddress !== undefined ? storeToEdit.rawAddress : (storeToEdit.address || "")),
+        city: storeToEdit.isUsingStoreWideAddress ? "" : (storeToEdit.city || ""),
+        state: storeToEdit.isUsingStoreWideAddress ? "" : (storeToEdit.state || ""),
+        zipCode: storeToEdit.isUsingStoreWideAddress ? "" : (storeToEdit.zipCode || ""),
+        latitude: storeToEdit.isUsingStoreWideAddress ? "" : (storeToEdit.latitude !== undefined && storeToEdit.latitude !== null ? storeToEdit.latitude.toString() : ""),
+        longitude: storeToEdit.isUsingStoreWideAddress ? "" : (storeToEdit.longitude !== undefined && storeToEdit.longitude !== null ? storeToEdit.longitude.toString() : ""),
         deliveryRadius: storeToEdit.deliveryRadius !== undefined ? storeToEdit.deliveryRadius : 0,
         deliveryFee: storeToEdit.deliveryFee || 0,
         fixedDeliveryFee: storeToEdit.fixedDeliveryFee || 0,
@@ -318,16 +331,11 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
         setLoading(false);
         return;
       }
-      if (!formData.address?.trim()) {
-        toast.error("Store address is required");
-        setLoading(false);
-        return;
-      }
 
       let finalLat = formData.latitude ? parseFloat(formData.latitude) : 0;
       let finalLng = formData.longitude ? parseFloat(formData.longitude) : 0;
 
-      // If coordinates are missing or zero, attempt auto-geocode from the typed address
+      // If coordinates are missing or zero and store has typed address, attempt auto-geocode from the typed address
       if ((!finalLat || !finalLng) && formData.address?.trim()) {
         try {
           const geo = await geocodeTypedAddress(formData.address);
@@ -456,29 +464,37 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
               <div ref={addressContainerRef} className="relative">
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-sm font-semibold text-[#14142B]">
-                    Store Address (Street / Area / Landmark) *
+                    Store Address (Street / Area / Landmark)
+                    <span className="text-xs font-normal text-[#6E7191] ml-1.5">
+                      (Optional — inherits Store-Wide Address if blank)
+                    </span>
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => geocodeTypedAddress()}
-                    disabled={fetchingCoords || !formData.address}
-                    className="text-xs text-primary hover:underline font-semibold flex items-center gap-1 disabled:opacity-50"
-                  >
-                    {fetchingCoords ? (
-                      <>
-                        <Loader2 className="w-3 h-3 animate-spin" /> Auto-Detecting...
-                      </>
-                    ) : (
-                      "⚡ Auto-Detect GPS"
-                    )}
-                  </button>
+                  {formData.address && (
+                    <button
+                      type="button"
+                      onClick={() => geocodeTypedAddress()}
+                      disabled={fetchingCoords || !formData.address}
+                      className="text-xs text-primary hover:underline font-semibold flex items-center gap-1 disabled:opacity-50"
+                    >
+                      {fetchingCoords ? (
+                        <>
+                          <Loader2 className="w-3 h-3 animate-spin" /> Auto-Detecting...
+                        </>
+                      ) : (
+                        "⚡ Auto-Detect GPS"
+                      )}
+                    </button>
+                  )}
                 </div>
                 
                 <div className="relative">
                   <input 
-                    required 
                     type="text" 
-                    placeholder="Type store address (e.g. Plot 12, Admiralty Way, Lekki Phase 1, Lagos)" 
+                    placeholder={
+                      storeWideAddress 
+                        ? `Leave blank to inherit Store-Wide Address (${storeWideAddress})` 
+                        : "Type store address (e.g. Plot 12, Admiralty Way, Lekki Phase 1, Lagos)"
+                    }
                     value={formData.address} 
                     onChange={(e) => handleAddressInputChange(e.target.value)} 
                     onFocus={() => {
@@ -513,8 +529,23 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
                   </div>
                 )}
 
+                {/* If address is empty and storeWideAddress exists, show inheriting indicator */}
+                {!formData.address?.trim() && storeWideAddress && (
+                  <div className="mt-2.5 flex items-start gap-2 px-3 py-2 bg-blue-50/80 border border-blue-200/70 rounded-xl text-xs text-blue-900">
+                    <span className="text-sm">🏬</span>
+                    <div className="leading-relaxed">
+                      <span className="font-semibold">Inheriting Store-Wide Address:</span> {storeWideAddress}
+                      {storeWideLat && storeWideLng && (
+                        <span className="block text-[11px] font-mono text-blue-700 mt-0.5">
+                          GPS: ({parseFloat(storeWideLat).toFixed(4)}, {parseFloat(storeWideLng).toFixed(4)})
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <span className="block text-[11px] text-[#A0A3BD] mt-1">
-                  Type the physical street address. GPS coordinates auto-detect in the background without forcing map interaction.
+                  Type the physical street address to override default store-wide location. GPS coordinates auto-detect in the background.
                 </span>
 
                 {/* Coordinate status badge */}
@@ -523,7 +554,7 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                       <p className="text-xs text-emerald-700 font-medium">
-                        📍 GPS Auto-Detected: <span className="font-mono font-semibold">{parseFloat(formData.latitude).toFixed(4)}, {parseFloat(formData.longitude).toFixed(4)}</span>
+                        📍 Custom Store GPS: <span className="font-mono font-semibold">{parseFloat(formData.latitude).toFixed(4)}, {parseFloat(formData.longitude).toFixed(4)}</span>
                       </p>
                     </div>
                     <button
@@ -533,6 +564,11 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
                     >
                       Clear
                     </button>
+                  </div>
+                ) : !formData.address?.trim() && storeWideLat && storeWideLng ? (
+                  <div className="mt-2.5 flex items-center gap-2 px-3 py-2 bg-emerald-50/60 border border-emerald-200/60 rounded-xl text-xs text-emerald-800">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                    <span>Using default GPS from Store-Wide Address ({parseFloat(storeWideLat).toFixed(4)}, {parseFloat(storeWideLng).toFixed(4)}).</span>
                   </div>
                 ) : (
                   <div className="mt-2.5 flex items-center gap-2 px-3 py-2 bg-[#F7F7FC] border border-[#EFF0F6] rounded-xl text-xs text-[#6E7191]">

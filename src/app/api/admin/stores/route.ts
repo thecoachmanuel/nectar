@@ -1,14 +1,68 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 import Store from "@/models/Store";
+import Setting from "@/models/Setting";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
 
 export async function GET() {
   try {
     await connectToDatabase();
-    const stores = await Store.find({}).sort({ createdAt: -1 });
-    return NextResponse.json({ status: true, data: stores, stores });
+    const stores = await Store.find({}).sort({ createdAt: -1 }).lean();
+
+    const storeSettings = await Setting.find({
+      key: {
+        $in: [
+          "store_wide_address",
+          "store_wide_city",
+          "store_wide_state",
+          "store_wide_zipCode",
+          "store_wide_latitude",
+          "store_wide_longitude",
+          "company_address",
+          "company_latitude",
+          "company_longitude"
+        ]
+      }
+    }).lean();
+
+    let swAddress = "";
+    let swCity = "";
+    let swState = "";
+    let swZip = "";
+    let swLat: number | undefined;
+    let swLng: number | undefined;
+
+    storeSettings.forEach((s: any) => {
+      if (s.key === "store_wide_address" && s.payload) swAddress = s.payload;
+      if (s.key === "store_wide_city" && s.payload) swCity = s.payload;
+      if (s.key === "store_wide_state" && s.payload) swState = s.payload;
+      if (s.key === "store_wide_zipCode" && s.payload) swZip = s.payload;
+      if (s.key === "store_wide_latitude" && s.payload) swLat = parseFloat(s.payload);
+      if (s.key === "store_wide_longitude" && s.payload) swLng = parseFloat(s.payload);
+      if (!swAddress && s.key === "company_address" && s.payload) swAddress = s.payload;
+      if (swLat === undefined && s.key === "company_latitude" && s.payload) swLat = parseFloat(s.payload);
+      if (swLng === undefined && s.key === "company_longitude" && s.payload) swLng = parseFloat(s.payload);
+    });
+
+    const enrichedStores = stores.map((store: any) => {
+      const hasCustomAddress = Boolean(store.address && store.address.trim());
+      const hasCustomCoords = Boolean(store.latitude && store.longitude && Number(store.latitude) !== 0 && Number(store.longitude) !== 0);
+
+      return {
+        ...store,
+        rawAddress: store.address || "",
+        address: hasCustomAddress ? store.address : (swAddress || store.address || ""),
+        city: store.city || swCity || "",
+        state: store.state || swState || "",
+        zipCode: store.zipCode || swZip || "",
+        latitude: hasCustomCoords ? store.latitude : (swLat ?? store.latitude ?? 0),
+        longitude: hasCustomCoords ? store.longitude : (swLng ?? store.longitude ?? 0),
+        isUsingStoreWideAddress: !hasCustomAddress && Boolean(swAddress)
+      };
+    });
+
+    return NextResponse.json({ status: true, data: enrichedStores, stores: enrichedStores });
   } catch (error: any) {
     return NextResponse.json({ status: false, message: error.message }, { status: 500 });
   }

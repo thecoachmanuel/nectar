@@ -89,6 +89,12 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "errandshop_auth_storage",
+      onRehydrateStorage: () => (state) => {
+        if (state && state.token) {
+          // Immediately sync with MongoDB in background to guarantee fresh addresses and customer details
+          state.fetchUserProfile();
+        }
+      },
     }
   )
 );
@@ -99,4 +105,21 @@ if (typeof window !== "undefined") {
       localStorage.setItem("errandshop_auth_storage", localStorage.getItem("nectar_auth_storage")!);
     }
   } catch {}
+
+  // Auto-sync customer details and saved addresses across devices whenever window gains focus
+  let lastSyncTime = 0;
+  const syncOnFocus = () => {
+    const now = Date.now();
+    if (now - lastSyncTime < 3000) return; // 3s debounce throttle
+    lastSyncTime = now;
+    const store = useAuthStore.getState();
+    if (store.token) {
+      store.fetchUserProfile();
+    }
+  };
+
+  window.addEventListener("focus", syncOnFocus);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") syncOnFocus();
+  });
 }
