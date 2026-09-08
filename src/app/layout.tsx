@@ -57,9 +57,15 @@ export async function generateMetadata(): Promise<Metadata> {
     icons: {
       icon: [
         { url: faviconUrl, sizes: "192x192", type: "image/png" },
+        { url: faviconUrl, sizes: "512x512", type: "image/png" },
+        { url: faviconUrl, sizes: "32x32", type: "image/png" },
+        { url: faviconUrl, sizes: "16x16", type: "image/png" },
       ],
       apple: [
-        { url: faviconUrl, sizes: "192x192", type: "image/png" },
+        { url: faviconUrl, sizes: "180x180", type: "image/png" },
+        { url: faviconUrl, sizes: "167x167", type: "image/png" },
+        { url: faviconUrl, sizes: "152x152", type: "image/png" },
+        { url: faviconUrl, sizes: "120x120", type: "image/png" },
       ],
       shortcut: [
         { url: faviconUrl },
@@ -131,6 +137,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         {/* Dynamic Favicon rendered directly on SSR server output with zero flicker */}
         <link rel="icon" href={activeFaviconUrl} sizes="any" />
         <link rel="apple-touch-icon" href={activeFaviconUrl} />
+        <link rel="apple-touch-icon" sizes="180x180" href={activeFaviconUrl} />
+        <link rel="apple-touch-icon" sizes="167x167" href={activeFaviconUrl} />
+        <link rel="apple-touch-icon" sizes="152x152" href={activeFaviconUrl} />
+        <link rel="apple-touch-icon" sizes="120x120" href={activeFaviconUrl} />
+        <link rel="apple-touch-icon-precomposed" href={activeFaviconUrl} />
         <link rel="shortcut icon" href={activeFaviconUrl} />
 
         {/* Preload admin uploaded favicon to eliminate network latency */}
@@ -177,6 +188,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           .accent-primary { accent-color: var(--primary-hex) !important; }
           .bg-primary-light { background-color: var(--primary-light) !important; }
           .hover\\:bg-primary-light:hover { background-color: var(--primary-light) !important; }
+          .hover\\:bg-primary:hover, .group:hover .group-hover\\:bg-primary { background-color: var(--primary-hex) !important; }
           .hover\\:text-white:hover, .group:hover .group-hover\\:text-white { color: #ffffff !important; }
         `}} />
       </head>

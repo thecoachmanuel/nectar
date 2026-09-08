@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { X, Download, Share, PlusSquare, Smartphone, CheckCircle, Apple } from "lucide-react";
 
+import { useSettingsStore, getFaviconUrl } from "@/store/useSettingsStore";
+
 interface PwaInstallModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -10,6 +12,10 @@ interface PwaInstallModalProps {
 }
 
 export default function PwaInstallModal({ isOpen, onClose, deferredPrompt }: PwaInstallModalProps) {
+  const { settings } = useSettingsStore();
+  const faviconUrl = getFaviconUrl(settings);
+  const appName = settings?.site_title || settings?.app_name || "FoodAppi";
+  const [imgError, setImgError] = useState(false);
   const [isIos, setIsIos] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [installed, setInstalled] = useState(false);
@@ -55,20 +61,31 @@ export default function PwaInstallModal({ isOpen, onClose, deferredPrompt }: Pwa
 
         {/* Top Header Badge */}
         <div className="flex flex-col items-center text-center">
-          <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/25 mb-4">
-            <Smartphone className="w-8 h-8" />
+          <div className="w-16 h-16 rounded-2xl bg-white p-1 border border-slate-100 shadow-lg shadow-primary/20 mb-4 flex items-center justify-center overflow-hidden">
+            {!imgError ? (
+              <img
+                src={faviconUrl}
+                alt={appName}
+                className="w-full h-full object-contain rounded-xl"
+                onError={() => setImgError(true)}
+              />
+            ) : (
+              <div className="w-full h-full rounded-xl bg-primary flex items-center justify-center text-white">
+                <Smartphone className="w-8 h-8" />
+              </div>
+            )}
           </div>
 
-          <h3 className="text-xl font-bold text-slate-800">Download Errandshop App</h3>
+          <h3 className="text-xl font-bold text-slate-800">Download {appName} App</h3>
           <p className="text-xs text-slate-500 mt-1 max-w-[240px]">
-            Install Errandshop on your phone for instant grocery delivery, fast checkout & live order tracking.
+            Install {appName} on your device for fast checkout, instant updates & offline ordering.
           </p>
         </div>
 
         {isStandalone || installed ? (
           <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-2xl flex items-center gap-3 text-green-700">
             <CheckCircle className="w-5 h-5 shrink-0" />
-            <p className="text-xs font-semibold">Errandshop App is already installed on your device!</p>
+            <p className="text-xs font-semibold">{appName} App is already installed on your device!</p>
           </div>
         ) : isIos ? (
           /* iOS Step-by-Step Installation Instructions */
@@ -102,7 +119,7 @@ export default function PwaInstallModal({ isOpen, onClose, deferredPrompt }: Pwa
                 className="w-full h-12 rounded-2xl bg-primary text-white font-bold text-sm hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-primary/25 flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" />
-                Install Errandshop App Now
+                Install {appName} App Now
               </button>
             ) : (
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs text-slate-600 space-y-2">

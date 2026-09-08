@@ -2,6 +2,7 @@
 
 import React, { useEffect } from "react";
 import { X, ExternalLink, Bell } from "lucide-react";
+import { useSettingsStore, getFaviconUrl } from "@/store/useSettingsStore";
 
 export interface PushNotificationData {
   title: string;
@@ -21,6 +22,9 @@ export default function PushNotificationDetailModal({
   notification,
   onClose,
 }: PushNotificationDetailModalProps) {
+  const { settings } = useSettingsStore();
+  const faviconUrl = getFaviconUrl(settings);
+  const appName = settings?.site_title || settings?.app_name || "Errandshop";
   const isOpen = !!notification;
 
   // Lock body scroll when modal is open
@@ -100,17 +104,18 @@ export default function PushNotificationDetailModal({
 
           {/* Site logo + badge */}
           <div className="flex items-start gap-3">
-            <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white/30 shadow-lg shrink-0">
+            <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white/30 shadow-lg shrink-0 bg-white flex items-center justify-center">
               <img
-                src="/images/theme/theme-favicon-logo.png"
-                alt="Errandshop"
-                className="w-full h-full object-cover"
+                src={faviconUrl}
+                alt={appName}
+                className="w-full h-full object-contain"
+                onError={(e) => { (e.target as HTMLImageElement).src = "/images/theme/theme-favicon-logo.png?v=3"; }}
               />
             </div>
             <div className="pt-1">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-semibold mb-1.5 border border-white/20">
                 <Bell className="w-2.5 h-2.5" />
-                Errandshop Notification
+                {appName} Notification
               </div>
               {formattedTime && (
                 <p className="text-white/70 text-[10px]">{formattedTime}</p>

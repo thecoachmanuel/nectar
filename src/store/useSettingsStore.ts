@@ -172,3 +172,12 @@ export function getFooterLogo(settings?: Record<string, any>): string {
   }
   return '/images/theme/theme-footer-logo.png';
 }
+
+/**
+ * Helper to get the active favicon / app icon URL with fallback
+ */
+export function getFaviconUrl(settings?: Record<string, any>): string {
+  const custom = settings?.theme_favicon || settings?.site_favicon;
+  return normalizeImageUrl(custom, '/images/theme/theme-favicon-logo.png?v=3');
+}
+

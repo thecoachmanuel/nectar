@@ -88,7 +88,7 @@ export default function KDSPage() {
           <Link href="/admin/dashboard" className="w-10 h-10 rounded-xl bg-[#F7F7FC] text-[#6E7191] flex items-center justify-center hover:bg-[#EFF0F6] transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h2 className="font-semibold text-xl text-[#14142B]">Kitchen Display System</h2>
+          <h2 className="font-semibold text-xl text-[#14142B]">Shop Order Display System</h2>
         </div>
         
         {/* Mobile Tabs */}

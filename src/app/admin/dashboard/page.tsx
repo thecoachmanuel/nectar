@@ -516,9 +516,11 @@ export default function AdminDashboardPage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 {(dashboardData?.featuredItems?.length ? dashboardData.featuredItems : dashboardData?.popularItems?.slice(0, 6) || []).map((item: any) => (
-                  <div 
+                  <Link 
                     key={item._id}
-                    className="flex items-center gap-3 p-2.5 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] hover:border-primary/20 hover:bg-white transition-all group"
+                    href={`/admin/items?search=${encodeURIComponent(item.name)}`}
+                    className="flex items-center gap-3 p-2.5 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] hover:border-primary/20 hover:bg-white transition-all group cursor-pointer"
+                    title={`View ${item.name} in products catalog`}
                   >
                     <img 
                       src={normalizeImageUrl(item.image, "/images/item/thumb.png")} 
@@ -535,16 +537,16 @@ export default function AdminDashboardPage() {
                       </span>
                       <div className="flex items-center gap-1.5 mt-1">
                         <span className="text-xs font-bold text-[#14142B]">
-                          {formatPrice(item.discountPrice && Number(item.discountPrice) > 0 ? item.discountPrice : item.price)}
+                          {formatPrice(Number(item.discountPrice) > 0 ? item.discountPrice : item.price)}
                         </span>
-                        {item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price) && (
+                        {Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price) ? (
                           <span className="text-[10px] text-[#A0A3BD] line-through">
                             {formatPrice(item.price)}
                           </span>
-                        )}
+                        ) : null}
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}
@@ -581,8 +583,9 @@ export default function AdminDashboardPage() {
                 {dashboardData.topCategories.map((cat: any) => (
                   <Link 
                     key={cat._id}
-                    href={`/admin/items`}
-                    className="flex flex-col items-center text-center p-3 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] hover:border-primary/30 hover:bg-white hover:shadow-xs transition-all group"
+                    href={`/admin/items?category=${cat._id}`}
+                    className="flex flex-col items-center text-center p-3 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] hover:border-primary/30 hover:bg-white hover:shadow-xs transition-all group cursor-pointer"
+                    title={`View and filter all products in ${cat.name}`}
                   >
                     <div className="w-12 h-12 rounded-xl overflow-hidden mb-2 border border-[#EFF0F6] bg-white flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
                       <img 
@@ -595,6 +598,9 @@ export default function AdminDashboardPage() {
                     <h4 className="text-xs font-semibold text-[#14142B] truncate w-full group-hover:text-primary transition-colors" title={cat.name}>
                       {cat.name}
                     </h4>
+                    <span className="text-[10px] text-[#A0A3BD] mt-0.5 group-hover:text-primary font-medium transition-colors">
+                      View Products →
+                    </span>
                   </Link>
                 ))}
               </div>

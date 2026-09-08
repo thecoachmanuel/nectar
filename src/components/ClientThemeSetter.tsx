@@ -46,7 +46,7 @@ export default function ClientThemeSetter({ initialSettings }: ClientThemeSetter
     const customFavicon = settings.theme_favicon || settings.site_favicon;
     const faviconUrl = customFavicon ? normalizeImageUrl(customFavicon) : "/images/theme/theme-favicon-logo.png?v=3";
     const iconLinks = document.querySelectorAll<HTMLLinkElement>(
-      "link[rel*='icon'], link[rel='apple-touch-icon'], link[rel='shortcut icon']"
+      "link[rel*='icon'], link[rel='apple-touch-icon'], link[rel='apple-touch-icon-precomposed'], link[rel='shortcut icon']"
     );
     if (iconLinks.length > 0) {
       iconLinks.forEach((link) => {
@@ -57,6 +57,18 @@ export default function ClientThemeSetter({ initialSettings }: ClientThemeSetter
       newLink.rel = "icon";
       newLink.href = faviconUrl;
       document.head.appendChild(newLink);
+    }
+
+    // Update Windows / Microsoft tile image
+    const tileImageMeta = document.querySelector<HTMLMetaElement>("meta[name='msapplication-TileImage']");
+    if (tileImageMeta) {
+      tileImageMeta.content = faviconUrl;
+    }
+
+    // Signal manifest update without breaking cache
+    const manifestLink = document.querySelector<HTMLLinkElement>("link[rel='manifest']");
+    if (manifestLink && customFavicon) {
+      manifestLink.href = `/manifest.webmanifest?v=${encodeURIComponent(faviconUrl)}`;
     }
 
     // Enforce brand page title

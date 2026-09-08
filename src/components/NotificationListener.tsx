@@ -6,6 +6,7 @@ import { formatPrice } from "@/lib/formatters";
 import PushNotificationDetailModal, {
   PushNotificationData,
 } from "@/components/frontend/PushNotificationDetailModal";
+import { useSettingsStore, getFaviconUrl } from "@/store/useSettingsStore";
 
 // ── Web Audio Chime Synthesizer ──────────────────────────────────────────────
 function playNotificationChime(type: "admin_order" | "customer_update" | "broadcast" = "admin_order") {
@@ -81,14 +82,16 @@ async function triggerOsNotification(
     }
   }
 
+  const faviconUrl = getFaviconUrl(useSettingsStore.getState().settings);
+
   if ("serviceWorker" in navigator) {
     try {
       const reg = await navigator.serviceWorker.ready;
       if (reg) {
         reg.showNotification(title, {
           body: options.body,
-          icon: "/images/theme/theme-favicon-logo.png?v=3",
-          badge: "/images/theme/theme-favicon-logo.png?v=3",
+          icon: faviconUrl,
+          badge: faviconUrl,
           image: options.image,
           vibrate: [200, 100, 200],
           data: { url: options.url || "/", body: options.body, title },
@@ -106,7 +109,7 @@ async function triggerOsNotification(
   try {
     const notif = new Notification(title, {
       body: options.body,
-      icon: "/images/theme/theme-favicon-logo.png?v=3",
+      icon: faviconUrl,
       tag: options.tag,
     });
     notif.onclick = () => {

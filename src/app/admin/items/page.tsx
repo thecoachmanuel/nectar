@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { Plus, Search, Edit, Trash2, Filter, Store as StoreIcon, Layers, RotateCcw } from "lucide-react";
 import { useApi } from "@/hooks/useApi";
 import { formatPrice } from "@/lib/formatters";
@@ -8,7 +9,8 @@ import ItemModal from "@/components/admin/ItemModal";
 import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
 import { normalizeImageUrl } from "@/lib/imageUtils";
 
-export default function ItemsPage() {
+function ItemsContent() {
+  const searchParams = useSearchParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -32,6 +34,38 @@ export default function ItemsPage() {
     fetchCategories("/api/admin/item-categories");
     fetchStores("/api/admin/stores");
   }, []);
+
+  // Sync filter states automatically with URL parameters (e.g. from Dashboard category click)
+  useEffect(() => {
+    const cat = searchParams.get("category") || searchParams.get("categoryId");
+    if (cat) {
+      if (categories && Array.isArray(categories) && categories.length > 0) {
+        const found = categories.find(
+          (c: any) =>
+            c._id === cat ||
+            (c.slug && c.slug.toLowerCase() === cat.toLowerCase()) ||
+            (c.name && c.name.toLowerCase() === cat.toLowerCase())
+        );
+        if (found) {
+          setSelectedCategory(found._id);
+        } else {
+          setSelectedCategory(cat);
+        }
+      } else {
+        setSelectedCategory(cat);
+      }
+    }
+
+    const search = searchParams.get("search");
+    if (search) {
+      setSearchQuery(search);
+    }
+
+    const store = searchParams.get("store") || searchParams.get("storeId");
+    if (store) {
+      setSelectedStore(store);
+    }
+  }, [searchParams, categories]);
 
   const handleAdd = () => {
     setSelectedItem(null);
@@ -62,6 +96,9 @@ export default function ItemsPage() {
     setSearchQuery("");
     setSelectedCategory("all");
     setSelectedStore("all");
+    if (typeof window !== "undefined" && window.history?.replaceState) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
   };
 
   const hasActiveFilters = searchQuery.trim() !== "" || selectedCategory !== "all" || selectedStore !== "all";
@@ -83,7 +120,16 @@ export default function ItemsPage() {
       // 2. Category Filter
       if (selectedCategory !== "all") {
         const itemCatId = (item.categoryId?._id || item.categoryId)?.toString();
-        if (itemCatId !== selectedCategory) return false;
+        const itemCatName = (item.categoryId?.name || item.categoryName || "").toLowerCase();
+        const itemCatSlug = (item.categoryId?.slug || "").toLowerCase();
+        const target = selectedCategory.toLowerCase();
+
+        const isMatch =
+          itemCatId === selectedCategory ||
+          itemCatName === target ||
+          itemCatSlug === target;
+
+        if (!isMatch) return false;
       }
 
       // 3. Store Filter
@@ -161,8 +207,25 @@ export default function ItemsPage() {
               </div>
               <select
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="h-10 pl-9 pr-8 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary font-medium text-[#14142B] w-full appearance-none cursor-pointer hover:border-primary/50 transition-colors"
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSelectedCategory(val);
+                  if (typeof window !== "undefined" && window.history?.replaceState) {
+                    const newUrl = new URL(window.location.href);
+                    if (val === "all") {
+                      newUrl.searchParams.delete("category");
+                      newUrl.searchParams.delete("categoryId");
+                    } else {
+                      newUrl.searchParams.set("category", val);
+                    }
+                    window.history.replaceState(null, "", newUrl.toString());
+                  }
+                }}
+                className={`h-10 pl-9 pr-8 rounded-xl border text-sm focus:outline-none focus:border-primary font-medium w-full appearance-none cursor-pointer transition-colors ${
+                  selectedCategory !== "all" 
+                    ? "border-primary text-primary bg-primary-light/10 font-bold" 
+                    : "border-[#EFF0F6] bg-white text-[#14142B] hover:border-primary/50"
+                }`}
               >
                 <option value="all">All Categories</option>
                 {categories?.map((cat: any) => (
@@ -207,7 +270,28 @@ export default function ItemsPage() {
           </div>
 
           {/* Quick Active Filter Pill Summary */}
-          <div className="text-xs text-[#6E7191] flex items-center gap-2 self-start lg:self-center">
+          <div className="text-xs text-[#6E7191] flex flex-wrap items-center gap-2 self-start lg:self-center">
+            {selectedCategory !== "all" && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary-light text-primary font-bold text-xs border border-primary/20 shadow-2xs">
+                <span>Category: {categories?.find((c: any) => c._id === selectedCategory)?.name || "Selected"}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCategory("all");
+                    if (typeof window !== "undefined" && window.history?.replaceState) {
+                      const newUrl = new URL(window.location.href);
+                      newUrl.searchParams.delete("category");
+                      newUrl.searchParams.delete("categoryId");
+                      window.history.replaceState(null, "", newUrl.toString());
+                    }
+                  }}
+                  className="hover:bg-primary/20 rounded-full w-4 h-4 inline-flex items-center justify-center transition-colors text-xs font-black cursor-pointer"
+                  title="Clear category filter"
+                >
+                  ×
+                </button>
+              </span>
+            )}
             <span className="font-semibold text-[#14142B]">{filteredItems.length}</span>
             <span>of {totalCount} products</span>
           </div>
@@ -365,4 +449,20 @@ export default function ItemsPage() {
     </div>
   );
 }
+
+export default function ItemsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 text-center text-sm text-[#6E7191] bg-white rounded-2xl border border-[#EFF0F6]">
+          <div className="errandshop-loader mx-auto mb-3"></div>
+          Loading products catalog...
+        </div>
+      }
+    >
+      <ItemsContent />
+    </Suspense>
+  );
+}
+
 

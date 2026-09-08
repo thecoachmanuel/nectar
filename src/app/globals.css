@@ -38,6 +38,7 @@ body {
 .text-heading    { color: var(--heading); }
 .bg-primary-light { background-color: var(--primary-light); }
 .hover\:bg-primary-light:hover { background-color: var(--primary-light) !important; }
+.hover\:bg-primary:hover, .group:hover .group-hover\:bg-primary { background-color: var(--primary-hex) !important; }
 .stroke-primary { stroke: var(--primary-hex) !important; }
 .accent-primary { accent-color: var(--primary-hex) !important; }
 .hover\:text-white:hover, .group:hover .group-hover\:text-white { color: #ffffff !important; }

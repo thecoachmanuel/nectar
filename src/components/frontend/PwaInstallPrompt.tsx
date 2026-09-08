@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { X, Download } from "lucide-react";
 import { useSettingStore } from "@/store/useSettingStore";
+import { useSettingsStore, getFaviconUrl } from "@/store/useSettingsStore";
 
 function isIOS() {
   if (typeof navigator === "undefined") return false;
@@ -21,6 +22,8 @@ export default function PwaInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isPwaViewed, setIsPwaViewed] = useState(true);
   const { siteName } = useSettingStore();
+  const { settings } = useSettingsStore();
+  const faviconUrl = getFaviconUrl(settings);
 
   useEffect(() => {
     // Don't show if already installed as standalone app
@@ -76,7 +79,12 @@ export default function PwaInstallPrompt() {
             <X className="w-5 h-5" />
           </button>
           <div className="flex items-start gap-4">
-            <img src="/images/theme/theme-favicon-logo.png" alt="App Icon" className="w-12 h-12 rounded-xl shadow-sm object-cover" />
+            <img 
+              src={faviconUrl} 
+              alt="App Icon" 
+              className="w-12 h-12 rounded-xl shadow-sm object-cover bg-white shrink-0" 
+              onError={(e) => { (e.target as HTMLImageElement).src = "/images/theme/theme-favicon-logo.png?v=3"; }}
+            />
             <div className="flex-1">
               <h3 className="text-[15px] font-bold text-[#14142B] mb-1">Install {siteName || "Errandshop"} App</h3>
               <p className="text-[13px] text-[#4E4B66] leading-snug">
@@ -101,7 +109,15 @@ export default function PwaInstallPrompt() {
         <button className="absolute top-4 right-4 text-[#A0A3BD] hover:text-[#14142B] transition-colors" onClick={closePwaModal}>
           <X className="w-5 h-5" />
         </button>
-        <h3 className="text-[18px] font-semibold leading-8 mb-6 text-[#14142B]">Install App ?</h3>
+        <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-white border border-[#EFF0F6] flex items-center justify-center shadow-md p-2 overflow-hidden">
+          <img 
+            src={faviconUrl} 
+            alt="App Icon" 
+            className="w-full h-full object-contain" 
+            onError={(e) => { (e.target as HTMLImageElement).src = "/images/theme/theme-favicon-logo.png?v=3"; }}
+          />
+        </div>
+        <h3 className="text-[18px] font-semibold leading-8 mb-6 text-[#14142B]">Install {siteName || "Errandshop"} App ?</h3>
         <div className="flex gap-3 justify-center">
           <button type="button" className="h-10 px-4 rounded-3xl border border-[#EFF0F6] bg-white text-[#6E7191] flex items-center gap-1 hover:bg-[#F7F7FC] transition-colors font-medium text-sm" onClick={closePwaModal}>
             <X className="w-4 h-4" /><span>Close</span>
@@ -116,7 +132,12 @@ export default function PwaInstallPrompt() {
       {!isIOS() && (
         <div className="lg:hidden bg-white p-4 fixed bottom-0 left-0 w-full z-[100] rounded-tl-3xl rounded-tr-3xl shadow-[0_-4px_10px_rgba(0,0,0,0.1)]">
           <div className="flex items-start gap-3 mb-3">
-            <img src="/images/theme/theme-favicon-logo.png" alt="App Icon" className="w-8 h-8 rounded-lg flex-shrink-0 shadow-sm object-cover" />
+            <img 
+              src={faviconUrl} 
+              alt="App Icon" 
+              className="w-8 h-8 rounded-lg flex-shrink-0 shadow-sm object-cover bg-white" 
+              onError={(e) => { (e.target as HTMLImageElement).src = "/images/theme/theme-favicon-logo.png?v=3"; }}
+            />
             <h3 className="text-sm flex-auto text-[#008BBA] font-medium leading-tight">
               Add {siteName || "Errandshop"} app to your home screen ?
             </h3>

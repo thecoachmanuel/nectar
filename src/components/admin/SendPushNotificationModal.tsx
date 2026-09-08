@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Modal from "./Modal";
 import { Users, ShoppingBag, Store, Bike, Send, Bell, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
+import { useSettingsStore, getFaviconUrl } from "@/store/useSettingsStore";
 
 interface SendPushNotificationModalProps {
   isOpen: boolean;
@@ -22,6 +23,9 @@ export default function SendPushNotificationModal({
   onSuccess,
   audienceStats = { all: 0, customer: 0, store_manager: 0, delivery_boy: 0 },
 }: SendPushNotificationModalProps) {
+  const { settings } = useSettingsStore();
+  const faviconUrl = getFaviconUrl(settings);
+  const appName = settings?.site_title || settings?.app_name || "Errandshop";
   const [targetRole, setTargetRole] = useState<"all" | "customer" | "store_manager" | "delivery_boy">("all");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -217,16 +221,17 @@ export default function SendPushNotificationModal({
           </div>
           <div className="p-3 bg-white rounded-xl shadow-sm border border-[#EFF0F6] flex items-start gap-3">
             {/* Site logo — exactly how OS push notifications render on device */}
-            <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 shadow-sm border border-[#EFF0F6]">
+            <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 shadow-sm border border-[#EFF0F6] bg-white flex items-center justify-center">
               <img
-                src="/images/theme/theme-favicon-logo.png"
-                alt="Errandshop"
-                className="w-full h-full object-cover"
+                src={faviconUrl}
+                alt={appName}
+                className="w-full h-full object-contain"
+                onError={(e) => { (e.target as HTMLImageElement).src = "/images/theme/theme-favicon-logo.png?v=3"; }}
               />
             </div>
             <div className="flex-1 min-w-0">
               <h4 className="text-xs font-bold text-[#14142B] truncate">
-                {title || "Errandshop Notification Title"}
+                {title || `${appName} Notification Title`}
               </h4>
               <p className="text-[11px] text-[#6E7191] line-clamp-2 mt-0.5">
                 {description || "Your custom notification message will appear on user devices."}
