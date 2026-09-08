@@ -67,8 +67,8 @@ export async function GET(req: Request) {
         Number(store.latitude), Number(store.longitude)
       );
 
-      // 5km radius logic (or store's delivery radius)
-      return distance <= (store.deliveryRadius || 5);
+      const radius = Number(store.deliveryRadius || 0);
+      return radius > 0 ? distance <= radius : true;
     });
 
     return NextResponse.json({ status: true, data: nearbyOrders });

@@ -26,7 +26,7 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
     zipCode: "",
     latitude: "",
     longitude: "",
-    deliveryRadius: 5,
+    deliveryRadius: 0,
     deliveryFee: 0,
     fixedDeliveryFee: 0,
     baseDeliveryFee: 0,
@@ -68,7 +68,7 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
         zipCode: storeToEdit.zipCode || "",
         latitude: storeToEdit.latitude || "",
         longitude: storeToEdit.longitude || "",
-        deliveryRadius: storeToEdit.deliveryRadius || 5,
+        deliveryRadius: storeToEdit.deliveryRadius !== undefined ? storeToEdit.deliveryRadius : 0,
         deliveryFee: storeToEdit.deliveryFee || 0,
         fixedDeliveryFee: storeToEdit.fixedDeliveryFee || 0,
         baseDeliveryFee: storeToEdit.baseDeliveryFee || 0,
@@ -106,7 +106,7 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
         zipCode: "",
         latitude: "",
         longitude: "",
-        deliveryRadius: 5,
+        deliveryRadius: 0,
         deliveryFee: 0,
         fixedDeliveryFee: 0,
         baseDeliveryFee: 0,
@@ -141,8 +141,43 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
       ...prev,
       latitude: lat.toString(),
       longitude: lng.toString(),
-      ...(addr && { address: addr })
+      ...(addr && !prev.address && { address: addr })
     }));
+  };
+
+  const geocodeTypedAddress = async (queryAddress?: string) => {
+    const q = (queryAddress || formData.address || "").trim();
+    if (!q) {
+      toast.error("Please enter a store address first");
+      return null;
+    }
+    setFetchingCoords(true);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&addressdetails=1`,
+        { headers: { "Accept-Language": "en" } }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0 && data[0].lat && data[0].lon) {
+          const lat = parseFloat(data[0].lat).toFixed(6);
+          const lng = parseFloat(data[0].lon).toFixed(6);
+          setFormData(prev => ({
+            ...prev,
+            latitude: lat,
+            longitude: lng,
+          }));
+          toast.success("Location found and pinned on map!");
+          return { lat, lng };
+        }
+      }
+      toast.info("Could not auto-detect exact GPS coordinates. You can pin on map or save directly.");
+      return null;
+    } catch {
+      return null;
+    } finally {
+      setFetchingCoords(false);
+    }
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: "profileImage" | "bannerImage") => {
@@ -169,16 +204,47 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
     setLoading(true);
 
     try {
-      if (!formData.latitude || !formData.longitude) {
-        toast.error("Please pin the store location on the map");
+      if (!formData.name?.trim()) {
+        toast.error("Store name is required");
         setLoading(false);
         return;
+      }
+      if (!formData.address?.trim()) {
+        toast.error("Store address is required");
+        setLoading(false);
+        return;
+      }
+
+      let finalLat = formData.latitude;
+      let finalLng = formData.longitude;
+
+      // If coordinates are missing, attempt auto-geocode from the typed address
+      if (!finalLat || !finalLng) {
+        try {
+          const geo = await geocodeTypedAddress(formData.address);
+          if (geo) {
+            finalLat = geo.lat;
+            finalLng = geo.lng;
+          }
+        } catch {}
+      }
+
+      // Default fallback coordinates if geocode failed, so store can be saved with typed address
+      if (!finalLat || !finalLng) {
+        finalLat = "6.5244";
+        finalLng = "3.3792";
       }
 
       const url = storeToEdit ? `/api/admin/stores/${storeToEdit._id}` : `/api/admin/stores`;
       const method = storeToEdit ? "PUT" : "POST";
 
-      const payload: any = { ...formData };
+      const payload: any = { 
+        ...formData,
+        address: formData.address.trim(),
+        latitude: parseFloat(finalLat),
+        longitude: parseFloat(finalLng),
+        deliveryRadius: Number(formData.deliveryRadius || 0),
+      };
       if (!payload.password) delete payload.password; // Don't send empty password on update
 
       const res = await fetch(url, {
@@ -278,35 +344,94 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
               </div>
             </div>
 
-            <div className="mt-2">
-              <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Search & Pin Store Location *</label>
-              <MapComponent 
-                initialLat={formData.latitude ? parseFloat(formData.latitude) : undefined} 
-                initialLng={formData.longitude ? parseFloat(formData.longitude) : undefined} 
-                addressText={formData.address}
-                onLocationSelect={handleLocationSelect} 
-              />
-              {/* Live Coordinate Display */}
-              {formData.latitude && formData.longitude ? (
-                <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-xl">
-                  <div className="w-2 h-2 rounded-full bg-green-500 shrink-0 animate-pulse" />
-                  <p className="text-xs text-green-700 font-medium">
-                    📍 Location pinned: <span className="font-mono">{parseFloat(formData.latitude).toFixed(6)}, {parseFloat(formData.longitude).toFixed(6)}</span>
-                  </p>
+            {/* Store Address & Location */}
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-sm font-semibold text-[#14142B]">
+                    Store Address (Street / Area / Landmark) *
+                  </label>
                   <button
                     type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, latitude: "", longitude: "" }))}
-                    className="ml-auto text-xs text-red-500 hover:text-red-700 font-semibold"
+                    onClick={() => geocodeTypedAddress()}
+                    disabled={fetchingCoords || !formData.address}
+                    className="text-xs text-primary hover:underline font-semibold flex items-center gap-1 disabled:opacity-50"
                   >
-                    Clear
+                    {fetchingCoords ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin" /> Locating...
+                      </>
+                    ) : (
+                      "📍 Locate on Map"
+                    )}
                   </button>
                 </div>
-              ) : (
-                <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl">
-                  <div className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
-                  <p className="text-xs text-amber-700 font-medium">⚠️ No location pinned yet — click or search on the map to set the store location</p>
+                <input 
+                  required 
+                  type="text" 
+                  placeholder="e.g. Plot 12, Admiralty Way, Lekki Phase 1, Lagos" 
+                  value={formData.address} 
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })} 
+                  className="w-full px-3 py-2.5 border border-[#EFF0F6] rounded-xl text-sm font-medium text-[#14142B] outline-none focus:border-primary" 
+                />
+                <span className="block text-[11px] text-[#A0A3BD] mt-1">
+                  Type the physical street address of this store. You can change this anytime.
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Search & Pin Store Location</label>
+                <MapComponent 
+                  initialLat={formData.latitude ? parseFloat(formData.latitude) : undefined} 
+                  initialLng={formData.longitude ? parseFloat(formData.longitude) : undefined} 
+                  addressText={formData.address}
+                  onLocationSelect={handleLocationSelect} 
+                />
+
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#14142B] mb-1">Latitude</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 6.5244"
+                      value={formData.latitude}
+                      onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
+                      className="w-full px-3 py-2 border border-[#EFF0F6] rounded-xl text-xs font-mono outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#14142B] mb-1">Longitude</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 3.3792"
+                      value={formData.longitude}
+                      onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
+                      className="w-full px-3 py-2 border border-[#EFF0F6] rounded-xl text-xs font-mono outline-none focus:border-primary"
+                    />
+                  </div>
                 </div>
-              )}
+
+                {formData.latitude && formData.longitude ? (
+                  <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-xl">
+                    <div className="w-2 h-2 rounded-full bg-green-500 shrink-0 animate-pulse" />
+                    <p className="text-xs text-green-700 font-medium">
+                      📍 Pinned: <span className="font-mono">{parseFloat(formData.latitude).toFixed(6)}, {parseFloat(formData.longitude).toFixed(6)}</span>
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, latitude: "", longitude: "" }))}
+                      className="ml-auto text-xs text-red-500 hover:text-red-700 font-semibold"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                ) : (
+                  <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl">
+                    <div className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+                    <p className="text-xs text-amber-700 font-medium">No pin set — will auto-resolve from the typed address</p>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -380,11 +505,14 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
                   <label className="block text-xs font-semibold text-[#14142B] mb-1">Delivery Radius (km)</label>
                   <input 
                     type="number" 
-                    placeholder="e.g. 10" 
-                    value={formData.deliveryRadius} 
+                    placeholder="0 = Unlimited / anywhere" 
+                    value={formData.deliveryRadius === 0 ? "0" : (formData.deliveryRadius || "")} 
                     onChange={(e) => setFormData({ ...formData, deliveryRadius: Number(e.target.value) })} 
                     className="w-full px-3 py-2 border rounded-xl bg-white text-xs outline-none focus:border-primary" 
                   />
+                  <span className="block text-[10px] text-[#A0A3BD] mt-1">
+                    0 = Unlimited (orders from anywhere). Set &gt;0 to limit.
+                  </span>
                 </div>
 
                 <div>

@@ -152,7 +152,8 @@ export async function POST(req: Request) {
             if (store.latitude !== undefined && store.longitude !== undefined) {
               const dist = haversineDistance(userLat, userLng, store.latitude, store.longitude);
               if (!isNaN(dist)) {
-                if (dist > (store.deliveryRadius || 5)) {
+                const storeRadius = Number(store.deliveryRadius || 0);
+                if (storeRadius > 0 && dist > storeRadius) {
                   outOfRangeStoreIds.push(store._id.toString());
                   outOfRangeStoreNames.push(store.name);
                 } else {
