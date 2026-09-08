@@ -437,7 +437,6 @@ export default function HomePage() {
                       />
                     )}
                     {cat.name}
-                    <span className="text-xs font-normal text-[#a0a3bd] ml-1">({cat.totalCount})</span>
                   </h2>
                   <Link
                     href={`/menu?category=${cat._id}`}

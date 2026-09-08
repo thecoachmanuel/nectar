@@ -191,9 +191,6 @@ function AisleView({
                 />
               )}
               {cat.name}
-              <span className="text-xs font-normal text-[#a0a3bd] ml-1">
-                ({items.length})
-              </span>
             </h2>
             {cat._id !== "__other" && (
               <Link
