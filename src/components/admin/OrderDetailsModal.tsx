@@ -418,7 +418,7 @@ ${el.innerHTML}
                   <div className="pt-2 border-t border-[#EFF0F6]">
                     <span className="text-[#6E7191] block mb-1">Delivery Address:</span>
                     <p className="font-medium text-[#14142B] bg-white p-2.5 rounded-xl border border-[#EFF0F6]">
-                      {order.deliveryAddress?.address || "Takeaway / Direct Order"}
+                      {order.deliveryAddress?.address || (order.orderType === "delivery" ? "Not provided (to be provided by customer)" : "Takeaway / Direct Order")}
                       {order.deliveryAddress?.apartment && ` (Apt: ${order.deliveryAddress.apartment})`}
                     </p>
                     {order.deliveryAddress?.latitude && order.deliveryAddress?.longitude && (
@@ -767,10 +767,10 @@ ${el.innerHTML}
                       </td>
                     </tr>
                   )}
-                  {order.orderType === "delivery" && order.deliveryAddress?.address && (
+                  {order.orderType === "delivery" && (
                     <tr>
                       <td colSpan={2} className="text-left py-0.5 text-gray-700">
-                        Delivery: {order.deliveryAddress.address}
+                        Delivery: {order.deliveryAddress?.address || "To be provided by customer"}
                       </td>
                     </tr>
                   )}

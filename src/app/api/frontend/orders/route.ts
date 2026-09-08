@@ -65,10 +65,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ status: false, message: "Cart is empty" }, { status: 400 });
     }
 
-    if (orderType === "delivery" && !deliveryAddress) {
-      return NextResponse.json({ status: false, message: "Delivery address is required" }, { status: 400 });
-    }
-    
     if (paymentMethod === "cash_on_delivery" && !isPos) {
       return NextResponse.json({ status: false, message: "Cash on delivery is not available for online orders." }, { status: 400 });
     }
@@ -79,7 +75,7 @@ export async function POST(req: Request) {
       userDoc = await User.findById(userId);
     }
     
-    if (orderType === "delivery" && (deliveryCharge === undefined || deliveryCharge < 0)) {
+    if (orderType === "delivery" && deliveryAddress && (deliveryCharge === undefined || deliveryCharge < 0)) {
       return NextResponse.json({ status: false, message: "Your address is out of delivery range." }, { status: 400 });
     }
 
@@ -419,7 +415,7 @@ function buildCustomAdminOrderNotification(order: any, appOrigin: string, fallba
 
   const paymentStatusBadge = order.paymentStatus === "paid" ? "✅ PAID" : "⏳ UNPAID / PENDING";
   const orderType = order.orderType === "takeaway" ? "🛍️ Takeaway / Pickup" : "🚚 Home Delivery";
-  const deliveryAddress = order.deliveryAddress?.address || "Pickup at Store";
+  const deliveryAddress = order.deliveryAddress?.address || (order.orderType === "delivery" ? "To be provided by customer" : "Pickup at Store");
   const timeSlot = order.deliveryTimeSlot ? `\n• *Delivery Slot:* ${order.deliveryTimeSlot}` : "";
   const notesText = order.notes && order.notes.trim() ? `\n📝 *Customer Note:* _"${order.notes.trim()}"_` : "";
 

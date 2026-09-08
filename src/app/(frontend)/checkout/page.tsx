@@ -25,6 +25,7 @@ export default function CheckoutPage() {
   
   const [paymentMethod, setPaymentMethod] = useState<string>(""); // empty until settings loaded
   const [paymentMethodInitialized, setPaymentMethodInitialized] = useState(false);
+  const [isNoAddressModalOpen, setIsNoAddressModalOpen] = useState(false);
   
   // Fetch fresh settings and user profile/wallet on checkout page mount
   useEffect(() => {
@@ -171,20 +172,16 @@ export default function CheckoutPage() {
     fetchDeliveryCharge();
   }, [items, orderType, selectedAddress, addresses, appliedCoupon, user, guestInfo]);
 
-  const handlePlaceOrder = async () => {
+  const handlePlaceOrder = async (bypassAddressCheck = false) => {
     if (items.length === 0) {
       toast.error("Your cart is empty");
       return;
     }
-    if (items.length === 0) {
-      toast.error("Your cart is empty");
+    if (orderType === "delivery" && !selectedAddress && !bypassAddressCheck) {
+      setIsNoAddressModalOpen(true);
       return;
     }
-    if (orderType === "delivery" && !selectedAddress) {
-      toast.error("Please select a delivery address");
-      return;
-    }
-    if (orderType === "delivery" && deliveryCharge === -1) {
+    if (orderType === "delivery" && selectedAddress && deliveryCharge === -1) {
       toast.error("Your address is out of delivery range for one or more items.");
       return;
     }
@@ -192,6 +189,8 @@ export default function CheckoutPage() {
       toast.error("Insufficient wallet balance");
       return;
     }
+
+    setIsNoAddressModalOpen(false);
 
     const customerName = user?.name || guestInfo?.name || "Guest";
     const customerEmail = user?.email || guestInfo?.email || "";
@@ -280,6 +279,8 @@ export default function CheckoutPage() {
           text += `Phone: ${customerPhone}\n`;
           if (deliveryAddressObj) {
             text += `Address: ${deliveryAddressObj.address}\n`;
+          } else if (orderType === "delivery") {
+            text += `Address: Not provided (will send details via chat)\n`;
           }
           
           const encoded = encodeURIComponent(text);
@@ -379,7 +380,12 @@ export default function CheckoutPage() {
                 {orderType === "delivery" && (
                   <div className="mb-6">
                     <div className="flex flex-wrap items-center justify-between gap-4 mb-3">
-                      <h4 className="capitalize font-medium text-[#14142b]">Delivery Address</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="capitalize font-medium text-[#14142b]">Delivery Address</h4>
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-[#6e7191] bg-[#f7f7fc] border border-[#eff0f6] px-2 py-0.5 rounded-full">
+                          Optional
+                        </span>
+                      </div>
                       <Link href="/account/addresses?from=checkout" className="group text-xs capitalize font-medium flex items-center rounded-3xl py-1.5 px-3 gap-1 text-[#00749B] bg-[#D6F5FF] transition hover:text-white hover:bg-[#00749B]">
                         <Edit2 className="w-3.5 h-3.5" />
                         <span>Add/Edit</span>
@@ -388,14 +394,17 @@ export default function CheckoutPage() {
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {addresses.length === 0 ? (
-                        <div className="col-span-full p-4 border border-dashed border-[#eff0f6] rounded-xl text-center text-sm text-[#6e7191]">
-                          No addresses found. <Link href="/account/addresses?from=checkout" className="text-primary font-medium hover:underline">Add one now</Link>.
+                        <div className="col-span-full p-4 border border-dashed border-[#eff0f6] rounded-xl text-center text-sm text-[#6e7191] bg-[#f7f7fc]/50">
+                          <p className="mb-1">No saved addresses found.</p>
+                          <p className="text-xs text-[#a0a3bd]">
+                            You can <Link href="/account/addresses?from=checkout" className="text-primary font-medium hover:underline">add an address</Link> or proceed without one.
+                          </p>
                         </div>
                       ) : (
                         addresses.map((addr) => (
                           <label 
                             key={addr._id} 
-                            onClick={() => setSelectedAddress(addr._id || null)}
+                            onClick={() => setSelectedAddress(selectedAddress === addr._id ? null : (addr._id || null))}
                             className={`p-3 rounded-xl w-full border cursor-pointer transition-colors ${selectedAddress === addr._id ? 'border-primary bg-[#fff5f9]' : 'border-[#F7F7FC] bg-[#F7F7FC] hover:border-primary/30'}`}
                           >
                             <div className="flex items-center justify-between mb-2">
@@ -415,6 +424,17 @@ export default function CheckoutPage() {
                         ))
                       )}
                     </div>
+                    {addresses.length > 0 && selectedAddress && (
+                      <div className="mt-2 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedAddress(null)}
+                          className="text-[11px] text-[#6e7191] hover:text-primary transition-colors underline"
+                        >
+                          Deselect address (proceed without address)
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
                 
@@ -630,8 +650,8 @@ export default function CheckoutPage() {
                   </div>
                   
                   <button 
-                    onClick={handlePlaceOrder}
-                    disabled={loading || (paymentMethod === "wallet" && walletBalance < total) || (orderType === "delivery" && deliveryCharge === -1)}
+                    onClick={() => handlePlaceOrder(false)}
+                    disabled={loading || (paymentMethod === "wallet" && walletBalance < total) || (orderType === "delivery" && selectedAddress !== null && deliveryCharge === -1)}
                     className={`w-full flex justify-center items-center gap-2 rounded-2xl capitalize font-bold text-base py-3.5 text-white transition-colors shadow-md disabled:opacity-50 ${paymentMethod === "whatsapp" ? 'bg-[#1AB759] hover:bg-[#159a4a] shadow-[#1AB759]/20' : 'bg-primary hover:bg-rose-600 shadow-primary/20'}`}
                   >
                     {paymentMethod === "paystack" ? "Proceed to Payment" : paymentMethod === "whatsapp" ? "Proceed To WhatsApp" : "Place Order"}
@@ -687,6 +707,64 @@ export default function CheckoutPage() {
                   </li>
                 ))}
               </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* No Delivery Address Confirmation Prompt Modal */}
+      {isNoAddressModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="relative w-full max-w-sm sm:max-w-md bg-white rounded-3xl shadow-2xl p-6 overflow-hidden border border-[#eff0f6]">
+            {/* Close Button */}
+            <button
+              onClick={() => setIsNoAddressModalOpen(false)}
+              className="absolute top-4 right-4 p-1.5 text-[#a0a3bd] hover:text-[#14142b] rounded-full hover:bg-[#f7f7fc] transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Top Icon Badge */}
+            <div className="flex flex-col items-center text-center">
+              <div className="w-14 h-14 rounded-2xl bg-[#fff5f9] text-primary flex items-center justify-center shadow-inner mb-4">
+                <MapPin className="w-7 h-7" />
+              </div>
+
+              <h3 className="text-lg font-bold text-[#14142b]">
+                No Delivery Address Selected
+              </h3>
+              <p className="text-xs sm:text-sm text-[#6e7191] mt-2 max-w-[280px] leading-relaxed">
+                You haven&apos;t selected a delivery address for this order. Would you like to select one now, or proceed anyway?
+              </p>
+              <p className="text-[11px] text-[#a0a3bd] mt-1.5 italic">
+                (You can share your address details directly via WhatsApp or phone call)
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="mt-6 flex flex-col gap-2.5">
+              <button
+                type="button"
+                onClick={() => handlePlaceOrder(true)}
+                className="w-full py-3.5 px-4 rounded-2xl bg-primary text-white font-bold text-sm hover:bg-rose-600 transition-colors shadow-md shadow-primary/20 flex items-center justify-center gap-2"
+              >
+                Proceed Anyway
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => {
+                  setIsNoAddressModalOpen(false);
+                  if (addresses.length === 0) {
+                    router.push("/account/addresses?from=checkout");
+                  } else {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }
+                }}
+                className="w-full py-3 px-4 rounded-2xl border border-[#eff0f6] bg-[#f7f7fc] hover:bg-[#eff0f6] text-[#14142b] font-medium text-xs sm:text-sm transition-colors flex items-center justify-center gap-2"
+              >
+                {addresses.length === 0 ? "Add Delivery Address" : "Select an Address"}
+              </button>
             </div>
           </div>
         </div>

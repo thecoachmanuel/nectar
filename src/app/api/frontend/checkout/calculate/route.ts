@@ -62,9 +62,10 @@ export async function POST(req: Request) {
 
     let deliveryCharge = 0;
 
-    if (orderType === "delivery" && deliveryAddress && deliveryAddress.latitude !== undefined && deliveryAddress.longitude !== undefined) {
-      const userLat = parseFloat(deliveryAddress.latitude);
-      const userLng = parseFloat(deliveryAddress.longitude);
+    if (orderType === "delivery") {
+      const hasCoords = Boolean(deliveryAddress && deliveryAddress.latitude !== undefined && deliveryAddress.longitude !== undefined);
+      const userLat = hasCoords ? parseFloat(deliveryAddress.latitude) : 0;
+      const userLng = hasCoords ? parseFloat(deliveryAddress.longitude) : 0;
 
       const settings = await Setting.find({
         key: {
@@ -106,7 +107,7 @@ export async function POST(req: Request) {
 
       if (freeThreshold !== undefined && subtotal >= freeThreshold) {
         deliveryCharge = 0;
-      } else {
+      } else if (hasCoords) {
         let maxDistance = 0;
         let validStoresCount = 0;
         let outOfRangeStoreIds: string[] = [];
@@ -204,6 +205,36 @@ export async function POST(req: Request) {
         }
 
         deliveryCharge = rawDeliveryFee + orderValueFee + largeOrderSurcharge;
+      } else {
+        // Delivery order without address or coordinates:
+        // Apply store-level delivery terms override if single store
+        if (storeIds.size === 1) {
+          const singleStore = await Store.findById(Array.from(storeIds)[0]).lean();
+          if (singleStore) {
+            if (singleStore.baseDeliveryFee && singleStore.baseDeliveryFee > 0) {
+              baseFee = singleStore.baseDeliveryFee;
+            } else if (singleStore.deliveryFee && singleStore.deliveryFee > 0) {
+              baseFee = singleStore.deliveryFee;
+            }
+            if (singleStore.orderValueFeePercent !== undefined && singleStore.orderValueFeePercent >= 0) {
+              orderValueFeePercent = singleStore.orderValueFeePercent;
+            }
+            if (singleStore.largeOrderThreshold !== undefined && singleStore.largeOrderThreshold > 0) {
+              largeOrderThreshold = singleStore.largeOrderThreshold;
+            }
+            if (singleStore.largeOrderFeePercent !== undefined && singleStore.largeOrderFeePercent >= 0) {
+              largeOrderFeePercent = singleStore.largeOrderFeePercent;
+            }
+          }
+        }
+
+        const orderValueFee = (subtotal * orderValueFeePercent) / 100;
+        let largeOrderSurcharge = 0;
+        if (largeOrderThreshold > 0 && subtotal >= largeOrderThreshold) {
+          largeOrderSurcharge = (subtotal * largeOrderFeePercent) / 100;
+        }
+
+        deliveryCharge = baseFee + orderValueFee + largeOrderSurcharge;
       }
     }
 
