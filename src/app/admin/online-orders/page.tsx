@@ -10,6 +10,7 @@ import {
   Trash2,
   Volume2,
   VolumeX,
+  CreditCard,
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -26,7 +27,39 @@ export default function OnlineOrdersPage() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [markingPaidId, setMarkingPaidId] = useState<string | null>(null);
   const lastLatestIdRef = useRef<string | null>(null);
+
+  const handleQuickMarkPaid = async (order: any) => {
+    const isWA = order.paymentMethod === "whatsapp";
+    const confirmMsg = `Mark Order #${order.orderSerialNo} (${formatPrice(order.totalAmount || 0)})${isWA ? " [WhatsApp Order]" : ""} as PAID?\n\n• Product inventory stock will be automatically deducted\n• WhatsApp payment confirmation will be sent to the customer`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setMarkingPaidId(order._id);
+    try {
+      const res = await fetch(`/api/admin/orders/${order._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentStatus: "paid" }),
+      });
+      const data = await res.json();
+      if (data.status) {
+        toast.success(`Order #${order.orderSerialNo} marked as PAID! 🎉`, {
+          description: "Inventory stock updated & WhatsApp receipt sent.",
+        });
+        setOrders((prev) =>
+          prev.map((o) => (o._id === order._id ? { ...o, paymentStatus: "paid" } : o))
+        );
+        fetchOrders();
+      } else {
+        toast.error(data.message || "Failed to update payment status");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "An error occurred while marking as paid");
+    } finally {
+      setMarkingPaidId(null);
+    }
+  };
 
   // Load sound preference
   useEffect(() => {
@@ -233,7 +266,7 @@ export default function OnlineOrdersPage() {
               <input type="date" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" />
             </div>
             <div className="flex items-center gap-3 pt-6">
-              <button className="h-10 px-6 rounded-xl bg-primary text-white text-sm font-medium hover:bg-[#e60060] transition-colors flex-1">Search</button>
+              <button className="h-10 px-6 rounded-xl bg-primary text-white text-sm font-medium hover:opacity-90 transition-colors flex-1 shadow-sm">Search</button>
               <button className="h-10 px-6 rounded-xl bg-gray-600 text-white text-sm font-medium hover:bg-gray-700 transition-colors flex-1">Clear</button>
             </div>
           </div>
@@ -250,17 +283,18 @@ export default function OnlineOrdersPage() {
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Amount</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Date</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Status</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Payment</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EFF0F6]">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">Loading orders...</td>
+                  <td colSpan={8} className="px-6 py-8 text-center text-gray-500">Loading orders...</td>
                 </tr>
               ) : filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">No orders found.</td>
+                  <td colSpan={8} className="px-6 py-8 text-center text-gray-500">No orders found.</td>
                 </tr>
               ) : (
                 filteredOrders.map((order) => (
@@ -298,6 +332,42 @@ export default function OnlineOrdersPage() {
                         <option value="delivered">Delivered</option>
                         <option value="canceled">Canceled</option>
                       </select>
+                    </td>
+                    <td className="px-6 py-4">
+                      {order.paymentStatus === "paid" ? (
+                        <div className="inline-flex items-center gap-1.5">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 shadow-2xs">
+                            <span className="text-xs">✓</span> Paid
+                          </span>
+                          {order.paymentMethod === "whatsapp" && (
+                            <span className="text-[9px] bg-[#1AB759] text-white px-1.5 py-0.5 rounded font-black tracking-wide" title="WhatsApp Order">
+                              WA
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={markingPaidId === order._id}
+                          onClick={() => handleQuickMarkPaid(order)}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer ${
+                            order.paymentMethod === "whatsapp"
+                              ? "bg-[#1AB759] hover:bg-[#159a4a] shadow-[#1AB759]/25 ring-2 ring-[#1AB759]/30"
+                              : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20"
+                          }`}
+                          title="1-Click Mark as Paid: auto-deducts inventory & sends WhatsApp receipt"
+                        >
+                          {markingPaidId === order._id ? (
+                            <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <CreditCard className="w-3.5 h-3.5" />
+                          )}
+                          <span>{markingPaidId === order._id ? "Saving..." : "Mark Paid"}</span>
+                          {order.paymentMethod === "whatsapp" && (
+                            <span className="text-[9px] bg-white/30 px-1 py-0.2 rounded font-black">WA</span>
+                          )}
+                        </button>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">

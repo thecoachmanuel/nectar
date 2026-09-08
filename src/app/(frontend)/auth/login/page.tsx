@@ -167,7 +167,7 @@ export default function LoginPage() {
           <button 
             type="button"
             onClick={handleGuestLogin}
-            className="w-full h-12 leading-[46px] text-center capitalize font-medium rounded-3xl border text-primary border-primary bg-white hover:bg-[#fff5f9] transition-colors"
+            className="w-full h-12 leading-[46px] text-center capitalize font-medium rounded-3xl border text-primary border-primary bg-white hover:bg-primary-light transition-colors cursor-pointer"
           >
             Login As Guest
           </button>

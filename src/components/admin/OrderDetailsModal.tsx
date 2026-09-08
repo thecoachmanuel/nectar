@@ -483,7 +483,7 @@ ${el.innerHTML}
                         type="button"
                         disabled={assigningDriver || !selectedDriverId}
                         onClick={handleAssignDeliveryAgent}
-                        className="h-9 px-3 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-[#e60060] transition-colors disabled:opacity-50"
+                        className="h-9 px-3 rounded-xl bg-primary text-white text-xs font-semibold hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
                       >
                         Assign
                       </button>

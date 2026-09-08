@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 import Order from "@/models/Order";
 import { getPaystackConfig } from "@/lib/paystack";
+import { deductOrderInventory } from "@/lib/inventoryService";
 
 export async function POST(req: Request) {
   try {
@@ -46,6 +47,7 @@ export async function POST(req: Request) {
             note: `Payment verified via Paystack ref: ${reference}`,
           });
           await order.save();
+          await deductOrderInventory(order);
         }
       }
 

@@ -108,7 +108,7 @@ export default function AddressesPage() {
   return (
     <section className="pt-6 pb-24 sm:pt-8 sm:pb-16 bg-[#f7f7fc] min-h-screen">
       <div className="container mx-auto px-4 sm:px-6 max-w-3xl">
-        <Link href={fromCheckout ? "/checkout" : "/"} className="mb-4 inline-flex items-center gap-2 text-primary hover:text-rose-600 transition-colors">
+        <Link href={fromCheckout ? "/checkout" : "/"} className="mb-4 inline-flex items-center gap-2 text-primary hover:opacity-80 transition-colors">
           <Undo2 className="w-4 h-4" />
           <span className="text-xs font-medium leading-6">{fromCheckout ? "Back to cart" : "Back to home"}</span>
         </Link>
@@ -120,7 +120,7 @@ export default function AddressesPage() {
               setSelectedAddress(null);
               setIsModalOpen(true);
             }}
-            className="flex items-center gap-2 bg-primary hover:bg-rose-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors shadow-md shadow-primary/20"
+            className="flex items-center gap-2 bg-primary hover:opacity-90 active:scale-[0.98] text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-all shadow-md shadow-primary/20"
           >
             <Plus className="w-4 h-4" />
             <span>Add New</span>

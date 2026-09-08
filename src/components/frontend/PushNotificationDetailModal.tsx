@@ -88,7 +88,7 @@ export default function PushNotificationDetailModal({
         </div>
 
         {/* Header gradient banner */}
-        <div className="relative bg-gradient-to-br from-primary to-[#ff006b]/80 px-5 pt-5 pb-8">
+        <div className="relative bg-gradient-to-br from-primary to-primary/80 px-5 pt-5 pb-8">
           {/* Close button */}
           <button
             onClick={onClose}

@@ -35,7 +35,7 @@ export default function AccountLayout({
       <section className="min-h-[70vh] bg-[#f7f7fc] flex items-center justify-center px-4 py-16">
         <div className="w-full max-w-[480px] bg-white rounded-3xl shadow-sm border border-[#eff0f6] overflow-hidden text-center p-8 sm:p-12">
           
-          <div className="mx-auto w-20 h-20 bg-[#fff5f9] rounded-full flex items-center justify-center mb-6 shadow-sm shadow-primary/10">
+          <div className="mx-auto w-20 h-20 bg-primary-light rounded-full flex items-center justify-center mb-6 shadow-sm shadow-primary/10">
             <Lock className="w-10 h-10 text-primary" />
           </div>
 
@@ -49,7 +49,7 @@ export default function AccountLayout({
           <div className="space-y-4">
             <Link 
               href="/auth/login" 
-              className="w-full h-[52px] rounded-2xl bg-primary text-white flex items-center justify-center gap-2 font-semibold hover:bg-rose-600 transition-colors shadow-md shadow-primary/20"
+              className="w-full h-[52px] rounded-2xl bg-primary text-white flex items-center justify-center gap-2 font-semibold hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-primary/20"
             >
               <LogIn className="w-5 h-5" />
               <span>Login to your account</span>

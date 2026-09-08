@@ -36,8 +36,10 @@ body {
 .bg-primary      { background-color: var(--primary-hex); }
 .border-primary  { border-color: var(--primary-hex); }
 .text-heading    { color: var(--heading); }
-.text-paragraph  { color: var(--paragraph); }
 .bg-primary-light { background-color: var(--primary-light); }
+.hover\:bg-primary-light:hover { background-color: var(--primary-light) !important; }
+.stroke-primary { stroke: var(--primary-hex) !important; }
+.accent-primary { accent-color: var(--primary-hex) !important; }
 
 /* =====================
    HEADER (matches PHP ff-header)

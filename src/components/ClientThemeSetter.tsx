@@ -37,6 +37,8 @@ export default function ClientThemeSetter({ initialSettings }: ClientThemeSetter
       document.documentElement.style.setProperty("--primary-hex", color);
       document.documentElement.style.setProperty("--primary-slate", color + "e6");
       document.documentElement.style.setProperty("--primary-light", color + "1a");
+      document.documentElement.style.setProperty("--color-primary", color);
+      document.documentElement.style.setProperty("--color-primary-light", color + "1a");
       setThemeColor(color);
     }
 

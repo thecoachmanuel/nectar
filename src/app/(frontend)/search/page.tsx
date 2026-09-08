@@ -166,7 +166,7 @@ function SearchContent() {
               <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
                 <button
                   onClick={() => setRequestModalOpen(true)}
-                  className="w-full sm:w-auto px-6 h-11 rounded-2xl bg-primary text-white text-xs sm:text-sm font-semibold hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20 flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto px-6 h-11 rounded-2xl bg-primary text-white text-xs sm:text-sm font-semibold hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-2"
                 >
                   <PackageSearch className="w-4 h-4" />
                   <span>Request This Product</span>

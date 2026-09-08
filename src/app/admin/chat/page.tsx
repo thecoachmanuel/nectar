@@ -161,7 +161,7 @@ export default function AdminChatPage() {
               <div 
                 key={t._id}
                 onClick={() => handleSelectThread(t)}
-                className={`p-4 border-b border-[#EFF0F6] cursor-pointer hover:bg-[#FAFAFC] transition-colors ${activeThread?._id === t._id ? 'bg-[#fff5f9] border-l-4 border-l-primary' : 'border-l-4 border-l-transparent'}`}
+                className={`p-4 border-b border-[#EFF0F6] cursor-pointer hover:bg-[#FAFAFC] transition-colors ${activeThread?._id === t._id ? 'bg-primary-light border-l-4 border-l-primary' : 'border-l-4 border-l-transparent'}`}
               >
                 <div className="flex justify-between items-start mb-1">
                   <h4 className="font-semibold text-[#14142B] text-sm truncate pr-2">
@@ -281,7 +281,7 @@ export default function AdminChatPage() {
                 <button 
                   type="submit"
                   disabled={!newMessage.trim() || sending}
-                  className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center hover:bg-rose-600 transition-colors disabled:opacity-50 flex-shrink-0"
+                  className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 flex-shrink-0"
                 >
                   {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5 ml-1" />}
                 </button>

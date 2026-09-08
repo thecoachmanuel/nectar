@@ -119,7 +119,7 @@ export default function WalletPage() {
   return (
     <section className="pt-7 pb-16 bg-[#f7f7fc] min-h-screen">
       <div className="container mx-auto px-4 max-w-[800px]">
-        <Link href="/" className="mb-3 inline-flex items-center gap-2 text-primary hover:text-rose-600 transition-colors">
+        <Link href="/" className="mb-3 inline-flex items-center gap-2 text-primary hover:opacity-80 transition-colors">
           <Undo2 className="w-4 h-4" />
           <span className="text-xs font-medium leading-6">Back to home</span>
         </Link>
@@ -202,7 +202,7 @@ export default function WalletPage() {
             <button 
               type="submit"
               disabled={isInitializing}
-              className="w-full h-12 rounded-xl bg-primary text-white font-bold text-sm hover:bg-rose-600 transition-colors shadow-md shadow-primary/20 flex justify-center items-center gap-2 disabled:opacity-50"
+              className="w-full h-12 rounded-xl bg-primary text-white font-bold text-sm hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-primary/20 flex justify-center items-center gap-2 disabled:opacity-50"
             >
               {isInitializing ? <Loader2 className="w-5 h-5 animate-spin" /> : "Proceed to Pay"}
             </button>

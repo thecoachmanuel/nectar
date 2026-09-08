@@ -138,7 +138,7 @@ export default function MessagesPage() {
               {filteredMessages.map((message) => (
                 <tr 
                   key={message._id} 
-                  className={`hover:bg-[#FAFAFC] transition-colors cursor-pointer ${!message.isRead ? 'bg-[#fff5f9]/40' : ''}`}
+                  className={`hover:bg-[#FAFAFC] transition-colors cursor-pointer ${!message.isRead ? 'bg-primary-light' : ''}`}
                   onClick={() => handleView(message)}
                 >
                   <td className="px-6 py-4">
@@ -266,7 +266,7 @@ export default function MessagesPage() {
               <div className="flex items-center gap-2">
                 <a
                   href={`mailto:${selectedMessage.email}?subject=Re: ${encodeURIComponent(selectedMessage.subject)}`}
-                  className="px-5 py-2.5 rounded-xl bg-primary hover:bg-[#e60060] text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-md shadow-primary/20"
+                  className="px-5 py-2.5 rounded-xl bg-primary hover:opacity-90 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-primary/20"
                 >
                   <Reply className="w-4 h-4" />
                   <span>Reply by Email</span>

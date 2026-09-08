@@ -129,7 +129,7 @@ export default function ItemsPage() {
           <div className="flex items-center gap-3 shrink-0">
             <button 
               onClick={handleAdd}
-              className="h-10 px-4 rounded-xl bg-primary text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20"
+              className="h-10 px-4 rounded-xl bg-primary text-white flex items-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-primary/20"
             >
               <Plus className="w-4 h-4" />
               <span className="text-sm font-medium">Add Product</span>
@@ -238,7 +238,7 @@ export default function ItemsPage() {
                     {hasActiveFilters && (
                       <button
                         onClick={clearFilters}
-                        className="mt-3 px-4 py-2 bg-primary text-white text-xs font-semibold rounded-xl hover:bg-[#e60060] transition-colors inline-flex items-center gap-1.5"
+                        className="mt-3 px-4 py-2 bg-primary text-white text-xs font-semibold rounded-xl hover:opacity-90 active:scale-[0.98] transition-all inline-flex items-center gap-1.5"
                       >
                         <RotateCcw className="w-3.5 h-3.5" /> Clear Filters
                       </button>

@@ -27,8 +27,8 @@ export default function CookiesConsent() {
     <div className={`cookie-paper fixed bottom-16 lg:bottom-4 left-4 right-4 lg:left-auto lg:right-6 lg:max-w-sm z-50 transition-all duration-500 ease-linear ${visible ? "translate-y-0 opacity-100 visible" : "translate-y-full opacity-0 invisible"}`}>
       <div className="bg-white rounded-2xl shadow-xl border border-[#eff0f6] p-4">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#fff0f6" }}>
-            <Cookie className="w-5 h-5" style={{ color: "var(--primary-hex)" }} />
+          <div className="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center flex-shrink-0">
+            <Cookie className="w-5 h-5 text-primary" />
           </div>
           <div className="flex-1">
             <h4 className="text-sm font-semibold text-[#14142b] mb-1">We Use Cookies 🍪</h4>

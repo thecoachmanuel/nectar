@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { X, MapPin, Check, ChevronDown, ChevronUp, Navigation } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { X, MapPin, Check, ChevronDown, ChevronUp, Navigation, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import MapComponent from "./MapComponent";
 
@@ -28,7 +28,25 @@ export default function AddressModal({ isOpen, onClose, onSave, initialData }: A
   const [showMap, setShowMap] = useState(Boolean(initialData?.latitude));
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  React.useEffect(() => {
+  // Address Autocomplete state
+  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+  const [isSearchingAddress, setIsSearchingAddress] = useState(false);
+  const [showAddressDropdown, setShowAddressDropdown] = useState(false);
+  const [fetchingCoords, setFetchingCoords] = useState(false);
+  const addressDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const addressContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (addressContainerRef.current && !addressContainerRef.current.contains(e.target as Node)) {
+        setShowAddressDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
     if (isOpen) {
       setLabel(initialData?.label || "Home");
       setAddress(initialData?.address || "");
@@ -37,6 +55,8 @@ export default function AddressModal({ isOpen, onClose, onSave, initialData }: A
       setLongitude(initialData?.longitude || undefined);
       setShowMap(Boolean(initialData?.latitude));
       setIsSubmitting(false);
+      setAddressSuggestions([]);
+      setShowAddressDropdown(false);
     }
   }, [isOpen, initialData]);
 
@@ -47,6 +67,86 @@ export default function AddressModal({ isOpen, onClose, onSave, initialData }: A
     setLongitude(lng);
     if (addr && !address) {
       setAddress(addr);
+    }
+  };
+
+  const handleAddressInputChange = (newAddress: string) => {
+    setAddress(newAddress);
+    if (addressDebounceRef.current) clearTimeout(addressDebounceRef.current);
+    const trimmed = newAddress.trim();
+    if (!trimmed || trimmed.length < 3) {
+      setAddressSuggestions([]);
+      setShowAddressDropdown(false);
+      setIsSearchingAddress(false);
+      return;
+    }
+    setIsSearchingAddress(true);
+    addressDebounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(trimmed)}&format=json&limit=5&addressdetails=1`,
+          { headers: { "Accept-Language": "en" } }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            setAddressSuggestions(data);
+            setShowAddressDropdown(true);
+            if (!latitude || !longitude) {
+              const top = data[0];
+              if (top?.lat && top?.lon) {
+                setLatitude(parseFloat(top.lat));
+                setLongitude(parseFloat(top.lon));
+              }
+            }
+          } else {
+            setAddressSuggestions([]);
+            setShowAddressDropdown(false);
+          }
+        }
+      } catch {
+        // non-blocking
+      } finally {
+        setIsSearchingAddress(false);
+      }
+    }, 400);
+  };
+
+  const handleSelectSuggestion = (item: any) => {
+    setAddress(item.display_name);
+    if (item.lat && item.lon) {
+      setLatitude(parseFloat(item.lat));
+      setLongitude(parseFloat(item.lon));
+    }
+    setShowAddressDropdown(false);
+    toast.success("Location and GPS coordinates selected!");
+  };
+
+  const geocodeTypedAddress = async () => {
+    const q = address.trim();
+    if (!q) {
+      toast.error("Please enter an address first");
+      return;
+    }
+    setFetchingCoords(true);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&addressdetails=1`,
+        { headers: { "Accept-Language": "en" } }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0 && data[0].lat && data[0].lon) {
+          setLatitude(parseFloat(data[0].lat));
+          setLongitude(parseFloat(data[0].lon));
+          toast.success("GPS location auto-detected!");
+          return;
+        }
+      }
+      toast.info("Could not pinpoint exact GPS, you can pin on map below");
+    } catch {
+    } finally {
+      setFetchingCoords(false);
     }
   };
 
@@ -101,7 +201,7 @@ export default function AddressModal({ isOpen, onClose, onSave, initialData }: A
       <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 space-y-5 border border-[#eff0f6] max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-[#eff0f6] pb-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-[#fff5f9] text-primary flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-primary-light text-primary flex items-center justify-center">
               <MapPin className="w-4 h-4" />
             </div>
             <h3 className="text-lg font-bold text-[#14142b]">
@@ -130,7 +230,7 @@ export default function AddressModal({ isOpen, onClose, onSave, initialData }: A
                   onClick={() => setLabel(item)}
                   className={`py-2 px-3 text-xs font-semibold rounded-xl border transition ${
                     label === item
-                      ? "border-primary bg-[#fff5f9] text-primary shadow-sm"
+                      ? "border-primary bg-primary-light text-primary shadow-sm"
                       : "border-[#eff0f6] text-[#6e7191] hover:bg-[#f7f7fc]"
                   }`}
                 >
@@ -140,22 +240,70 @@ export default function AddressModal({ isOpen, onClose, onSave, initialData }: A
             </div>
           </div>
 
-          {/* Street Address */}
-          <div>
-            <label className="text-xs font-semibold text-[#14142b] uppercase tracking-wider block mb-1.5">
-              Delivery Address *
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. 15 Adeola Odeku St, Victoria Island, Lagos"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-white border border-[#eff0f6] rounded-xl text-sm font-medium text-[#14142b] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-2xs"
-              required
-              autoFocus
-            />
+          {/* Street Address with Suggestions */}
+          <div ref={addressContainerRef} className="relative">
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-semibold text-[#14142b] uppercase tracking-wider block">
+                Delivery Address *
+              </label>
+              <button
+                type="button"
+                onClick={geocodeTypedAddress}
+                disabled={fetchingCoords || !address.trim()}
+                className="text-xs text-primary hover:underline font-semibold flex items-center gap-1 disabled:opacity-50 cursor-pointer"
+              >
+                {fetchingCoords ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin" /> Locating...
+                  </>
+                ) : (
+                  "⚡ Auto-Detect GPS"
+                )}
+              </button>
+            </div>
+            
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="e.g. 15 Adeola Odeku St, Victoria Island, Lagos"
+                value={address}
+                onChange={(e) => handleAddressInputChange(e.target.value)}
+                onFocus={() => {
+                  if (addressSuggestions.length > 0) setShowAddressDropdown(true);
+                }}
+                className="w-full px-3.5 py-2.5 pr-9 bg-white border border-[#eff0f6] rounded-xl text-sm font-medium text-[#14142b] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-2xs"
+                required
+                autoFocus
+              />
+              {isSearchingAddress && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-primary">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                </div>
+              )}
+            </div>
+
+            {/* Suggestions Dropdown */}
+            {showAddressDropdown && addressSuggestions.length > 0 && (
+              <div className="absolute z-50 left-0 right-0 mt-1.5 bg-white border border-[#EFF0F6] rounded-2xl shadow-xl overflow-hidden max-h-56 overflow-y-auto">
+                <div className="px-3 py-1.5 bg-[#F7F7FC] border-b border-[#EFF0F6] text-[10px] font-bold uppercase text-[#6E7191] tracking-wider">
+                  Address Suggestions (Click to select)
+                </div>
+                {addressSuggestions.map((item, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleSelectSuggestion(item)}
+                    className="w-full text-left px-3.5 py-2.5 hover:bg-primary-light border-b border-[#EFF0F6] last:border-b-0 transition flex items-start gap-2.5 text-xs text-[#14142B] cursor-pointer"
+                  >
+                    <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                    <span className="line-clamp-2 leading-relaxed">{item.display_name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
             <p className="text-[11px] text-[#a0a3bd] mt-1">
-              Type your street, area, or landmark. You can enter any address directly.
+              Type your street, area, or landmark for instant suggestions.
             </p>
           </div>
 
@@ -216,7 +364,7 @@ export default function AddressModal({ isOpen, onClose, onSave, initialData }: A
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-1/2 py-3 bg-primary hover:bg-rose-600 text-white font-semibold text-sm rounded-xl shadow-md shadow-primary/20 transition-colors disabled:opacity-50"
+              className="w-1/2 py-3 bg-primary hover:opacity-90 active:scale-[0.98] text-white font-semibold text-sm rounded-xl shadow-md shadow-primary/20 transition-all disabled:opacity-50"
             >
               {isSubmitting ? "Saving..." : "Save Address"}
             </button>

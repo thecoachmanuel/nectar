@@ -5,6 +5,7 @@ import User from "@/models/User";
 import Store from "@/models/Store";
 import { sendSMS } from "@/lib/sms";
 import { sendPushNotification } from "@/lib/push";
+import { deductOrderInventory, restoreOrderInventory } from "@/lib/inventoryService";
 
 export async function GET(
   req: Request,
@@ -132,6 +133,11 @@ export async function PUT(
       } catch (err) {
         console.error("Failed to send order notifications", err);
       }
+
+      // If order is canceled, restore inventory if previously deducted
+      if (body.orderStatus === "canceled") {
+        await restoreOrderInventory(order);
+      }
     }
 
     // ── Payment Status Change Notification ───────────────────────────────
@@ -146,12 +152,14 @@ export async function PUT(
         if (customerPhone && customerPhone !== "N/A" && customerPhone.trim() !== "") {
           let paymentMessage = "";
           if (body.paymentStatus === "paid") {
+            await deductOrderInventory(order);
             const formattedTotal = Number(order.totalAmount || 0).toLocaleString("en-US", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             });
             paymentMessage = `✅ *Payment Confirmed!*\n\nHi ${order.customerName || "Customer"}, your payment of *₦${formattedTotal}* for order *#${order.orderSerialNo}* has been verified by our team!\n\nWe are preparing your fresh groceries for delivery. 🥑📦`;
           } else if (body.paymentStatus === "unpaid") {
+            await restoreOrderInventory(order);
             paymentMessage = `⚠️ *Payment Status Update*\n\nHi ${order.customerName || "Customer"}, payment status for order *#${order.orderSerialNo}* has been updated to *Unpaid*. Please contact support if you need assistance.`;
           }
 

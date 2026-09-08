@@ -33,7 +33,11 @@ export interface IItem extends Document {
   variations: IVariationGroup[];
   extras: IExtraOption[];
   addonIds: mongoose.Types.ObjectId[];
-  taxRate: number;
+  taxRate?: number;
+  manageStock?: boolean;
+  stockQuantity?: number;
+  lowStockThreshold?: number;
+  isOutOfStock?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -70,6 +74,10 @@ const ItemSchema = new Schema<IItem>(
     extras: [ExtraOptionSchema],
     addonIds: [{ type: Schema.Types.ObjectId, ref: "Addon" }],
     taxRate: { type: Number, default: 0 },
+    manageStock: { type: Boolean, default: false },
+    stockQuantity: { type: Number, default: 0 },
+    lowStockThreshold: { type: Number, default: 5 },
+    isOutOfStock: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

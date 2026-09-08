@@ -54,7 +54,7 @@ export default function StoresPage() {
         </div>
         <button
           onClick={() => { setStoreToEdit(null); setIsModalOpen(true); }}
-          className="bg-primary hover:bg-[#e60060] text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm transition-colors"
+          className="bg-primary hover:opacity-90 active:scale-[0.98] text-white px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-sm transition-all"
         >
           <Plus className="w-5 h-5" />
           Add Store

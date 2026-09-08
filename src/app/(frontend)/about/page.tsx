@@ -70,7 +70,7 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-[#FAFAFC] pb-24 lg:pb-16">
       {/* Hero Header */}
-      <div className="bg-gradient-to-b from-white via-rose-50/20 to-[#F7F7FC] border-b border-[#EFF0F6] py-10 sm:py-16">
+      <div className="bg-gradient-to-b from-white via-primary-light/20 to-[#F7F7FC] border-b border-[#EFF0F6] py-10 sm:py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex items-center gap-2 text-xs font-semibold text-[#A0A3BD] mb-4">
             <Link href="/" className="hover:text-primary transition-colors">Home</Link>
@@ -212,7 +212,7 @@ export default function AboutPage() {
         </div>
 
         {/* CTA Banner */}
-        <div className="bg-gradient-to-r from-primary via-[#ff006b] to-[#e60060] rounded-3xl p-8 sm:p-12 text-white shadow-xl shadow-primary/20 text-center relative overflow-hidden">
+        <div className="bg-gradient-to-r from-primary via-primary/90 to-primary/80 rounded-3xl p-8 sm:p-12 text-white shadow-xl shadow-primary/20 text-center relative overflow-hidden">
           <div className="relative z-10 max-w-2xl mx-auto space-y-4">
             <h2 className="text-2xl sm:text-4xl font-black tracking-tight">
               Ready to Stock Up on Fresh Groceries?

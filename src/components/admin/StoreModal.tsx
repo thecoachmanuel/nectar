@@ -520,7 +520,7 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
                         key={idx}
                         type="button"
                         onClick={() => handleSelectSuggestion(item)}
-                        className="w-full text-left px-3 py-2.5 hover:bg-[#FFF5F9] border-b border-[#EFF0F6] last:border-b-0 transition flex items-start gap-2 text-xs text-[#14142B]"
+                        className="w-full text-left px-3 py-2.5 hover:bg-primary-light border-b border-[#EFF0F6] last:border-b-0 transition flex items-start gap-2 text-xs text-[#14142B] cursor-pointer"
                       >
                         <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
                         <span className="line-clamp-2">{item.display_name}</span>
@@ -813,7 +813,7 @@ export default function StoreModal({ isOpen, onClose, onSuccess, storeToEdit }: 
 
         <div className="p-4 border-t border-[#EFF0F6] flex justify-end gap-3">
           <button onClick={onClose} className="px-4 py-2 text-sm font-semibold text-[#6E7191] bg-[#F7F7FC] rounded-xl hover:bg-[#EFF0F6]">Cancel</button>
-          <button type="submit" form="store-form" disabled={loading} className="px-4 py-2 text-sm font-semibold text-white bg-[var(--primary-color,#ff006b)] rounded-xl disabled:opacity-70 flex items-center gap-2">
+          <button type="submit" form="store-form" disabled={loading} className="px-4 py-2 text-sm font-semibold text-white bg-primary hover:opacity-90 active:scale-[0.98] transition-all rounded-xl disabled:opacity-70 flex items-center gap-2">
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             {loading ? "Saving..." : "Save Store"}
           </button>

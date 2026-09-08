@@ -247,7 +247,7 @@ export default function SendPushNotificationModal({
           <button
             type="submit"
             disabled={loading}
-            className="px-6 h-11 rounded-xl bg-primary text-white font-medium hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20 flex items-center justify-center gap-2 min-w-[140px] disabled:opacity-70 text-sm"
+            className="px-6 h-11 rounded-xl bg-primary text-white font-medium hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-2 min-w-[140px] disabled:opacity-70 text-sm"
           >
             {loading ? (
               <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />

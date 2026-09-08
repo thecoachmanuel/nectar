@@ -240,11 +240,11 @@ export default function MapComponentOSM({
             value={inputValue}
             onChange={(e) => handleSearchInput(e.target.value)}
             onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border-0 shadow-md rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#ff006b]"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border-0 shadow-md rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary"
           />
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
           {isSearching && (
-            <div className="absolute right-3 top-3 w-4 h-4 border-2 border-[#ff006b] border-t-transparent rounded-full animate-spin" />
+            <div className="absolute right-3 top-3 w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           )}
           {showSuggestions && suggestions.length > 0 && (
             <ul className="absolute top-full mt-1 left-0 right-0 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden z-[600] max-h-52 overflow-y-auto">
@@ -264,7 +264,7 @@ export default function MapComponentOSM({
         <button
           type="button"
           onClick={(e) => { e.preventDefault(); getUserLocation(); }}
-          className="h-[40px] w-[40px] bg-white text-[#ff006b] rounded-xl shadow-md flex items-center justify-center hover:bg-[#fff5f9] transition-colors flex-shrink-0"
+          className="h-[40px] w-[40px] bg-white text-primary rounded-xl shadow-md flex items-center justify-center hover:bg-primary-light transition-colors flex-shrink-0 cursor-pointer"
           title="Use my location"
         >
           <LocateFixed className="w-5 h-5" />

@@ -76,7 +76,7 @@ export default function OfflineDetector() {
       <button
         onClick={handleRetry}
         disabled={isReconnecting}
-        className="h-8 px-3 rounded-xl bg-primary hover:bg-[#e60060] text-white text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 active:scale-95 disabled:opacity-70"
+        className="h-8 px-3 rounded-xl bg-primary hover:opacity-90 text-white text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 active:scale-95 disabled:opacity-70 cursor-pointer shadow-sm"
       >
         <RefreshCw className={`w-3 h-3 ${isReconnecting ? "animate-spin" : ""}`} />
         <span>{isReconnecting ? "Retrying..." : "Retry"}</span>

@@ -193,7 +193,7 @@ export default function MapComponentGoogle({ initialLat, initialLng, addressText
               placeholder="Search places..."
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border-0 shadow-md rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#ff006b]"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border-0 shadow-md rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </Autocomplete>
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
@@ -201,7 +201,7 @@ export default function MapComponentGoogle({ initialLat, initialLng, addressText
         <button
           type="button"
           onClick={(e) => { e.preventDefault(); getUserLocation(); }}
-          className="h-[40px] w-[40px] bg-white text-primary rounded-xl shadow-md flex items-center justify-center hover:bg-[#fff5f9] transition-colors"
+          className="h-[40px] w-[40px] bg-white text-primary rounded-xl shadow-md flex items-center justify-center hover:bg-primary-light transition-colors cursor-pointer"
           title="Use my location"
         >
           <LocateFixed className="w-5 h-5" />

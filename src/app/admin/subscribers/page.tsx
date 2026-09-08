@@ -96,7 +96,7 @@ export default function SubscribersPage() {
               <input type="date" className="w-full h-10 px-3 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" />
             </div>
             <div className="lg:col-span-3 flex items-center gap-3 pt-2">
-              <button className="h-10 px-6 rounded-xl bg-primary text-white text-sm font-medium hover:bg-[#e60060] transition-colors">Search</button>
+              <button className="h-10 px-6 rounded-xl bg-primary text-white text-sm font-medium hover:opacity-90 active:scale-[0.98] transition-all">Search</button>
               <button className="h-10 px-6 rounded-xl bg-gray-600 text-white text-sm font-medium hover:bg-gray-700 transition-colors">Clear</button>
             </div>
           </div>

@@ -75,7 +75,7 @@ export default function WaitersPage() {
             
             <button 
               onClick={handleAdd}
-              className="h-10 px-4 rounded-xl bg-primary text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20"
+              className="h-10 px-4 rounded-xl bg-primary text-white flex items-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-primary/20"
             >
               <Plus className="w-4 h-4" />
               <span className="text-sm font-medium">Add Waiter</span>

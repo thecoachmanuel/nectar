@@ -55,7 +55,7 @@ export default function PwaInstallModal({ isOpen, onClose, deferredPrompt }: Pwa
 
         {/* Top Header Badge */}
         <div className="flex flex-col items-center text-center">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-primary to-rose-500 flex items-center justify-center text-white shadow-lg shadow-primary/25 mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/25 mb-4">
             <Smartphone className="w-8 h-8" />
           </div>
 
@@ -72,7 +72,7 @@ export default function PwaInstallModal({ isOpen, onClose, deferredPrompt }: Pwa
           </div>
         ) : isIos ? (
           /* iOS Step-by-Step Installation Instructions */
-          <div className="mt-6 space-y-3 bg-rose-50/60 p-4 rounded-2xl border border-rose-100">
+          <div className="mt-6 space-y-3 bg-primary-light p-4 rounded-2xl border border-primary/20">
             <div className="flex items-center gap-2 text-primary font-bold text-xs">
               <Apple className="w-4 h-4" />
               <span>iOS / Safari Installation Steps</span>
@@ -99,7 +99,7 @@ export default function PwaInstallModal({ isOpen, onClose, deferredPrompt }: Pwa
             {deferredPrompt ? (
               <button
                 onClick={handleInstallClick}
-                className="w-full h-12 rounded-2xl bg-primary text-white font-bold text-sm hover:bg-[#e60060] transition-colors shadow-lg shadow-primary/25 flex items-center justify-center gap-2"
+                className="w-full h-12 rounded-2xl bg-primary text-white font-bold text-sm hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-primary/25 flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" />
                 Install Errandshop App Now

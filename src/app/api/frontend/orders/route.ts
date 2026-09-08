@@ -6,6 +6,7 @@ import User from "@/models/User";
 import Store from "@/models/Store";
 import { jwtVerify } from "jose";
 import { sendPushNotification } from "@/lib/push";
+import { checkStockAvailability, deductOrderInventory } from "@/lib/inventoryService";
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "errandshop_secret_key_default_2026"
@@ -63,6 +64,12 @@ export async function POST(req: Request) {
 
     if (!items || items.length === 0) {
       return NextResponse.json({ status: false, message: "Cart is empty" }, { status: 400 });
+    }
+
+    // Check inventory stock availability before proceeding
+    const stockCheck = await checkStockAvailability(items);
+    if (!stockCheck.available) {
+      return NextResponse.json({ status: false, message: stockCheck.message }, { status: 400 });
     }
 
     if (paymentMethod === "cash_on_delivery" && !isPos) {
@@ -218,6 +225,11 @@ export async function POST(req: Request) {
 
       const savedOrder = await newOrder.save();
       createdOrders.push(savedOrder);
+
+      // Auto-deduct inventory strictly if marked as paid (e.g. Wallet or POS payments)
+      if (savedOrder.paymentStatus === "paid") {
+        await deductOrderInventory(savedOrder);
+      }
     }
     if (userId && paymentMethod === "wallet" && userDoc) {
       await User.findByIdAndUpdate(userId, {

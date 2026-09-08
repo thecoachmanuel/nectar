@@ -85,7 +85,7 @@ export default function PayoutsPage() {
         {!isAdmin && (
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl hover:bg-[#e60060] transition-colors font-medium text-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl hover:opacity-90 active:scale-[0.98] transition-all font-medium text-sm"
           >
             <Plus className="w-4 h-4" /> Request Payout
           </button>

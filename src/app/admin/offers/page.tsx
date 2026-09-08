@@ -67,7 +67,7 @@ export default function OffersPage() {
         </div>
         <button
           onClick={openAddModal}
-          className="flex items-center gap-2 bg-primary hover:bg-[#e60060] text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm shadow-primary/20"
+          className="flex items-center gap-2 bg-primary hover:opacity-90 active:scale-[0.98] text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm shadow-primary/20"
         >
           <Plus className="w-5 h-5" />
           <span>Add Offer</span>

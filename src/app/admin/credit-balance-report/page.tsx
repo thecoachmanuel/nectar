@@ -120,7 +120,7 @@ export default function CreditBalanceReportPage() {
               </select>
             </div>
             <div className="flex items-center gap-3 pt-6">
-              <button onClick={fetchReports} className="h-10 px-6 rounded-xl bg-primary text-white text-sm font-medium hover:bg-[#e60060] transition-colors flex-1">Filter</button>
+              <button onClick={fetchReports} className="h-10 px-6 rounded-xl bg-primary text-white text-sm font-medium hover:opacity-90 active:scale-[0.98] transition-all flex-1">Filter</button>
               <button onClick={() => {
                 setBalanceStatus("all");
                 setFilterName("");

@@ -135,12 +135,12 @@ export default function AdminProfilePage() {
             <div className="relative w-32 h-32 mx-auto mb-4">
               <div className="w-full h-full rounded-full bg-[#F7F7FC] border-4 border-white shadow-md overflow-hidden flex items-center justify-center">
                 {uploadingAvatar ? (
-                   <span className="w-8 h-8 border-4 border-primary/40 border-t-[#ff006b] rounded-full animate-spin"></span>
+                   <span className="w-8 h-8 border-4 border-primary/40 border-t-primary rounded-full animate-spin"></span>
                 ) : (
                    <img src={user?.image || "/images/default/user.png"} alt="Profile" className="w-full h-full object-cover" />
                 )}
               </div>
-              <label className="absolute bottom-0 right-0 w-10 h-10 bg-primary rounded-full text-white flex items-center justify-center border-2 border-white shadow-md hover:bg-[#e60060] transition-colors cursor-pointer">
+              <label className="absolute bottom-0 right-0 w-10 h-10 bg-primary rounded-full text-white flex items-center justify-center border-2 border-white shadow-md hover:opacity-90 active:scale-95 transition-all cursor-pointer">
                 <Camera className="w-5 h-5" />
                 <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} />
               </label>
@@ -186,7 +186,7 @@ export default function AdminProfilePage() {
                 </div>
               </div>
               <div className="flex justify-end pt-2">
-                <button type="submit" disabled={isSaving} className="h-11 px-6 rounded-xl bg-primary text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20 disabled:opacity-50">
+                <button type="submit" disabled={isSaving} className="h-11 px-6 rounded-xl bg-primary text-white flex items-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-primary/20 disabled:opacity-50">
                   {isSaving ? <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
                   <span className="text-sm font-medium">Update Profile</span>
                 </button>

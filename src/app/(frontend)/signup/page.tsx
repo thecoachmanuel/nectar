@@ -124,14 +124,14 @@ export default function SignupPage() {
           
           <button 
             type="submit"
-            className="w-full h-12 text-center capitalize font-bold text-base rounded-2xl mb-6 text-white bg-primary hover:bg-rose-600 transition-colors shadow-md shadow-primary/20"
+            className="w-full h-12 text-center capitalize font-bold text-base rounded-2xl mb-6 text-white bg-primary hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-primary/20"
           >
             Sign Up
           </button>
           
           <div className="flex items-center justify-center gap-2">
             <span className="text-xs text-[#6E7191]">Already have an account?</span>
-            <Link href="/login" className="text-xs font-medium text-primary hover:text-rose-600 transition-colors">
+            <Link href="/login" className="text-xs font-medium text-primary hover:underline hover:opacity-80 transition-all">
               Login
             </Link>
           </div>

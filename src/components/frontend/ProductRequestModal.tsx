@@ -160,7 +160,7 @@ export default function ProductRequestModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="mt-4 px-6 h-11 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20"
+                className="mt-4 px-6 h-11 rounded-xl bg-primary text-white font-semibold text-sm hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-primary/20"
               >
                 Done
               </button>
@@ -286,7 +286,7 @@ export default function ProductRequestModal({
                 <button
                   type="submit"
                   disabled={submitting || uploadingImage || !productName.trim()}
-                  className="px-6 h-10 rounded-xl bg-primary text-white font-semibold text-xs hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20 flex items-center justify-center gap-1.5 disabled:opacity-60"
+                  className="px-6 h-10 rounded-xl bg-primary text-white font-semibold text-xs hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-1.5 disabled:opacity-60"
                 >
                   {submitting ? (
                     <>

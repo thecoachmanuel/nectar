@@ -16,7 +16,7 @@ export default function CartPage() {
         <div className="flex items-center justify-between mb-6">
           <Link
             href="/"
-            className="text-xs font-medium inline-flex items-center gap-2 text-primary hover:text-rose-600 transition-colors"
+            className="text-xs font-medium inline-flex items-center gap-2 text-primary hover:opacity-80 transition-opacity"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Continue Shopping</span>
@@ -24,7 +24,7 @@ export default function CartPage() {
           {items.length > 0 && (
             <button
               onClick={clearCart}
-              className="text-xs font-semibold text-rose-500 hover:text-rose-700 transition"
+              className="text-xs font-semibold text-red-500 hover:text-red-700 transition cursor-pointer"
             >
               Clear Cart
             </button>
@@ -95,7 +95,7 @@ export default function CartPage() {
 
                       <button
                         onClick={() => removeItem(item.id)}
-                        className="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg transition"
+                        className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg transition cursor-pointer"
                         title="Remove item"
                       >
                         <Trash2 className="w-4 h-4" />

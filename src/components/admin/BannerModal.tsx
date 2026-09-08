@@ -242,7 +242,7 @@ export default function BannerModal({ isOpen, onClose, banner, onSuccess }: Bann
                 type="checkbox"
                 checked={formData.status}
                 onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.checked }))}
-                className="w-4 h-4 accent-[#ff006b] rounded"
+                className="w-4 h-4 accent-primary rounded"
               />
               <span className="text-sm font-medium text-[#14142B]">Active</span>
             </label>
@@ -262,7 +262,7 @@ export default function BannerModal({ isOpen, onClose, banner, onSuccess }: Bann
           <button
             type="submit"
             disabled={isBusy || !formData.image}
-            className="px-6 h-11 rounded-xl bg-primary text-white font-medium hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20 flex items-center justify-center min-w-[120px] disabled:opacity-60"
+            className="px-6 h-11 rounded-xl bg-primary text-white font-medium hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-primary/20 flex items-center justify-center min-w-[120px] disabled:opacity-60"
           >
             {isBusy
               ? <Loader2 className="w-4 h-4 animate-spin" />

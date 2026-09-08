@@ -26,7 +26,8 @@ import {
   Bell,
   ExternalLink,
   ClipboardList,
-  ListPlus
+  ListPlus,
+  Package
 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 
@@ -59,6 +60,7 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
     },
     { name: "Product Categories", icon: <Box className="w-4 h-4" />, path: "/admin/item-categories", roles: ["admin", "store_manager"] },
     { name: "Products", icon: <Apple className="w-4 h-4" />, path: "/admin/items", roles: ["admin", "store_manager"] },
+    { name: "Inventory", icon: <Package className="w-4 h-4" />, path: "/admin/inventory", roles: ["admin", "store_manager"] },
     { name: "Product Requests", icon: <ClipboardList className="w-4 h-4" />, path: "/admin/product-requests", roles: ["admin", "store_manager"] },
     { name: "Shopping Wishlists", icon: <ListPlus className="w-4 h-4" />, path: "/admin/shopping-wishlist", roles: ["admin", "store_manager"] },
     { name: "Push Notifications", icon: <Send className="w-4 h-4" />, path: "/admin/push-notifications", roles: ["admin", "store_manager"] },
@@ -166,7 +168,7 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
                             <li key={child.name}>
                               <Link 
                                 href={child.path}
-                                className={`block px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${pathname === child.path ? 'text-primary bg-[#fff5f9]' : 'text-[#6E7191] hover:text-primary hover:bg-[#F7F7FC]'}`}
+                                className={`block px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${pathname === child.path ? 'text-primary bg-primary-light font-semibold' : 'text-[#6E7191] hover:text-primary hover:bg-[#F7F7FC]'}`}
                               >
                                 {child.name}
                               </Link>

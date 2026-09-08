@@ -115,7 +115,7 @@ export default function CouponsPage() {
 
             <button 
               onClick={handleAdd}
-              className="h-10 px-4 rounded-xl bg-primary text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20"
+              className="h-10 px-4 rounded-xl bg-primary text-white flex items-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-primary/20"
             >
               <Plus className="w-4 h-4" />
               <span className="text-sm font-medium">Add Coupon</span>
@@ -143,7 +143,7 @@ export default function CouponsPage() {
               </select>
             </div>
             <div className="lg:col-span-1 flex items-center gap-3 pt-2">
-              <button className="h-10 px-6 rounded-xl bg-primary text-white text-sm font-medium hover:bg-[#e60060] transition-colors">Search</button>
+              <button className="h-10 px-6 rounded-xl bg-primary text-white text-sm font-medium hover:opacity-90 active:scale-[0.98] transition-all">Search</button>
               <button className="h-10 px-6 rounded-xl bg-gray-600 text-white text-sm font-medium hover:bg-gray-700 transition-colors">Clear</button>
             </div>
           </div>

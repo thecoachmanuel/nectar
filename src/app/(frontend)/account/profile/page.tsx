@@ -74,7 +74,7 @@ export default function EditProfilePage() {
   return (
     <section className="pt-7 pb-16 bg-[#f7f7fc] min-h-screen">
       <div className="container mx-auto px-4 max-w-[550px]">
-        <Link href="/" className="mb-3 inline-flex items-center gap-2 text-primary hover:text-rose-600 transition-colors">
+        <Link href="/" className="mb-3 inline-flex items-center gap-2 text-primary hover:opacity-80 transition-colors">
           <Undo2 className="w-4 h-4" />
           <span className="text-xs font-medium leading-6">Back to home</span>
         </Link>
@@ -148,7 +148,7 @@ export default function EditProfilePage() {
                 <button 
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-12 flex items-center justify-center gap-2 capitalize font-bold text-base rounded-2xl text-white bg-primary hover:bg-rose-600 transition-colors shadow-md shadow-primary/20 disabled:opacity-70"
+                  className="w-full h-12 flex items-center justify-center gap-2 capitalize font-bold text-base rounded-2xl text-white bg-primary hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-primary/20 disabled:opacity-70"
                 >
                   {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                   Update Profile

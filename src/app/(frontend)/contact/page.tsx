@@ -268,7 +268,7 @@ export default function ContactPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full h-12 rounded-2xl bg-primary hover:bg-[#e60060] text-white font-bold text-sm transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-70 active:scale-[0.99]"
+                className="w-full h-12 rounded-2xl bg-primary hover:opacity-90 active:scale-[0.99] text-white font-bold text-sm transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-70"
               >
                 {isSubmitting ? (
                   <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
@@ -284,7 +284,7 @@ export default function ContactPage() {
 
           {/* Side Info & Grocery Promise Card */}
           <div className="lg:col-span-5 space-y-6">
-            <div className="bg-gradient-to-br from-primary to-[#ff006b] rounded-3xl p-6 sm:p-8 text-white shadow-lg shadow-primary/20">
+            <div className="bg-gradient-to-br from-primary to-primary/80 rounded-3xl p-6 sm:p-8 text-white shadow-lg shadow-primary/20">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-xs font-bold mb-4 border border-white/20">
                 <Sparkles className="w-3.5 h-3.5" />
                 Errandshop Fresh Guarantee

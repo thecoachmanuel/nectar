@@ -17,7 +17,7 @@ export default function OfflinePage() {
   return (
     <div className="min-h-screen bg-[#FAFAFC] flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl p-8 sm:p-10 border border-[#EFF0F6] shadow-sm max-w-md w-full text-center space-y-6">
-        <div className="w-20 h-20 rounded-full bg-[#FFF0F6] text-primary flex items-center justify-center mx-auto relative">
+        <div className="w-20 h-20 rounded-full bg-primary-light text-primary flex items-center justify-center mx-auto relative">
           <div className="absolute inset-0 rounded-full bg-primary/10 animate-ping" />
           <WifiOff className="w-10 h-10 relative z-10" />
         </div>
@@ -33,7 +33,7 @@ export default function OfflinePage() {
           <button
             onClick={handleRetry}
             disabled={retrying}
-            className="w-full h-12 rounded-2xl bg-primary hover:bg-[#e60060] text-white text-sm font-bold shadow-md shadow-primary/20 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-70"
+            className="w-full h-12 rounded-2xl bg-primary hover:opacity-90 text-white text-sm font-bold shadow-md shadow-primary/20 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-70 cursor-pointer"
           >
             <RefreshCw className={`w-4 h-4 ${retrying ? "animate-spin" : ""}`} />
             <span>{retrying ? "Reconnecting..." : "Retry Connection"}</span>

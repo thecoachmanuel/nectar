@@ -25,6 +25,10 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
     storeId: "0",
     price: 0,
     discountPrice: 0,
+    manageStock: false,
+    stockQuantity: 0,
+    lowStockThreshold: 5,
+    isOutOfStock: false,
 
     isFeatured: false,
     status: true,
@@ -54,6 +58,10 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
         storeId: item.storeId || "0",
         price: item.price || 0,
         discountPrice: item.discountPrice || 0,
+        manageStock: item.manageStock ?? false,
+        stockQuantity: item.stockQuantity ?? 0,
+        lowStockThreshold: item.lowStockThreshold ?? 5,
+        isOutOfStock: item.isOutOfStock ?? false,
 
         isFeatured: item.isFeatured ?? false,
         status: item.status ?? true,
@@ -71,6 +79,10 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
         storeId: "0",
         price: 0,
         discountPrice: 0,
+        manageStock: false,
+        stockQuantity: 0,
+        lowStockThreshold: 5,
+        isOutOfStock: false,
 
         isFeatured: false,
         status: true,
@@ -249,6 +261,93 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
           </div>
         </div>
 
+        {/* Inventory & Stock Management */}
+        <div className="p-4 rounded-2xl border border-[#EFF0F6] bg-[#FAFAFC] space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+                📦
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-[#14142B]">Inventory & Stock Control</h4>
+                <p className="text-[11px] text-[#6E7191]">
+                  Track product quantities and automatically deduct on paid purchases.
+                </p>
+              </div>
+            </div>
+            
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                checked={formData.manageStock}
+                onChange={(e) => setFormData({...formData, manageStock: e.target.checked})}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-[#D9DBE9] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+              <span className="ml-2 text-xs font-semibold text-[#14142B]">
+                {formData.manageStock ? "Tracking Active" : "Untracked (Unlimited)"}
+              </span>
+            </label>
+          </div>
+
+          {formData.manageStock && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-[#EFF0F6]">
+              <div>
+                <label className="block text-xs font-semibold text-[#14142B] mb-1.5">
+                  Available Quantity in Stock <span className="text-red-500">*</span>
+                </label>
+                <input 
+                  type="number" 
+                  min="0"
+                  required={formData.manageStock}
+                  value={formData.stockQuantity}
+                  onChange={(e) => setFormData({...formData, stockQuantity: Math.max(0, parseInt(e.target.value) || 0)})}
+                  className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors text-sm font-bold text-[#14142B] bg-white"
+                />
+                <p className="text-[10px] text-[#6E7191] mt-1">Available units for purchase.</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#14142B] mb-1.5">
+                  Low Stock Warning Level
+                </label>
+                <input 
+                  type="number" 
+                  min="1"
+                  value={formData.lowStockThreshold}
+                  onChange={(e) => setFormData({...formData, lowStockThreshold: Math.max(1, parseInt(e.target.value) || 5)})}
+                  className="w-full h-11 px-4 rounded-xl border border-[#EFF0F6] focus:outline-none focus:border-primary transition-colors text-sm font-semibold text-[#14142B] bg-white"
+                />
+                <p className="text-[10px] text-[#6E7191] mt-1">Triggers low stock alert when count reaches this.</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#14142B] mb-1.5">
+                  Stock Status Override
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, isOutOfStock: !formData.isOutOfStock})}
+                  className={`w-full h-11 px-4 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                    formData.isOutOfStock || formData.stockQuantity <= 0
+                      ? "bg-red-50 border-red-200 text-red-700"
+                      : formData.stockQuantity <= formData.lowStockThreshold
+                      ? "bg-amber-50 border-amber-200 text-amber-700"
+                      : "bg-emerald-50 border-emerald-200 text-emerald-700"
+                  }`}
+                >
+                  {formData.isOutOfStock || formData.stockQuantity <= 0
+                    ? "🛑 Marked Out of Stock"
+                    : formData.stockQuantity <= formData.lowStockThreshold
+                    ? `⚠️ Low Stock (${formData.stockQuantity} left)`
+                    : `✓ In Stock (${formData.stockQuantity} units)`}
+                </button>
+                <p className="text-[10px] text-[#6E7191] mt-1 text-center">Click button to toggle manual out of stock.</p>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Product Image */}
         <div>
           <label className="block text-sm font-semibold text-[#14142B] mb-1.5">Product Image</label>
@@ -288,7 +387,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
               />
               <p className="text-[11px] text-[#A0A3BD] mt-1">Recommended format: Square PNG/JPEG/WEBP under 2MB</p>
             </div>
-            {uploadingImage && <span className="w-5 h-5 border-2 border-primary/40 border-t-[#ff006b] rounded-full animate-spin shrink-0"></span>}
+            {uploadingImage && <span className="w-5 h-5 border-2 border-primary/40 border-t-primary rounded-full animate-spin shrink-0"></span>}
           </div>
         </div>
 
@@ -465,7 +564,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
               id="isFeatured" 
               checked={formData.isFeatured}
               onChange={(e) => setFormData({...formData, isFeatured: e.target.checked})}
-              className="w-4 h-4 text-primary rounded focus:ring-[#ff006b] accent-[#ff006b]"
+              className="w-4 h-4 text-primary rounded focus:ring-primary accent-primary"
             />
             <div>
               <span className="text-sm font-semibold text-[#14142B] block">Featured Product</span>
@@ -479,7 +578,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
               id="status" 
               checked={formData.status}
               onChange={(e) => setFormData({...formData, status: e.target.checked})}
-              className="w-4 h-4 text-primary rounded focus:ring-[#ff006b] accent-[#ff006b]"
+              className="w-4 h-4 text-primary rounded focus:ring-primary accent-primary"
             />
             <div>
               <span className="text-sm font-semibold text-[#14142B] block">Active Status</span>
@@ -500,7 +599,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
           <button 
             type="submit"
             disabled={loading || uploadingImage}
-            className="px-8 h-11 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20 flex items-center justify-center min-w-[140px] disabled:opacity-70"
+            className="px-8 h-11 rounded-xl bg-primary text-white font-semibold text-sm hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-primary/20 flex items-center justify-center min-w-[140px] disabled:opacity-70"
           >
             {(loading || uploadingImage) ? (
               <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />

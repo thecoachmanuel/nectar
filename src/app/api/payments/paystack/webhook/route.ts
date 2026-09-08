@@ -4,6 +4,7 @@ import dbConnect from "@/lib/dbConnect";
 import Order from "@/models/Order";
 import PaymentGateway from "@/models/PaymentGateway";
 import User from "@/models/User";
+import { deductOrderInventory } from "@/lib/inventoryService";
 
 export const dynamic = "force-dynamic";
 
@@ -85,6 +86,7 @@ export async function POST(req: Request) {
             note: `Payment verified via Paystack Webhook (Ref: ${reference})`,
           });
           await order.save();
+          await deductOrderInventory(order);
           console.log(`📦 Order #${order.orderSerialNo} marked as PAID via Paystack webhook.`);
 
           // Dispatch confirmation WhatsApp message to customer

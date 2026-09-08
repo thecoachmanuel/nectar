@@ -177,7 +177,7 @@ export default function ItemsReportPage() {
             <button 
               type="button"
               onClick={exportToExcel}
-              className="h-10 px-4 rounded-xl bg-primary text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-sm"
+              className="h-10 px-4 rounded-xl bg-primary text-white flex items-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-sm"
             >
               <Download className="w-4 h-4" />
               <span className="text-sm font-medium">Export</span>

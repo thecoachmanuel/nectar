@@ -157,7 +157,7 @@ export default function UserModal({ isOpen, onClose, user, role, onSuccess }: Us
             id="status" 
             checked={formData.status}
             onChange={(e) => setFormData({...formData, status: e.target.checked})}
-            className="w-4 h-4 text-primary rounded focus:ring-[#ff006b]"
+            className="w-4 h-4 text-primary rounded focus:ring-primary accent-primary"
           />
           <label htmlFor="status" className="text-sm font-medium text-[#14142B] cursor-pointer">
             Active Account
@@ -200,7 +200,7 @@ export default function UserModal({ isOpen, onClose, user, role, onSuccess }: Us
           <button 
             type="submit"
             disabled={loading}
-            className="px-6 h-11 rounded-xl bg-primary text-white font-medium hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20 flex items-center justify-center min-w-[120px] disabled:opacity-70"
+            className="px-6 h-11 rounded-xl bg-primary text-white font-medium hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-primary/20 flex items-center justify-center min-w-[120px] disabled:opacity-70"
           >
             {loading ? <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : "Save"}
           </button>

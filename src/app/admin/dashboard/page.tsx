@@ -149,7 +149,7 @@ export default function AdminDashboardPage() {
 
           <Link
             href="/admin/coupons"
-            className="p-3 rounded-xl bg-pink-50 hover:bg-pink-100/80 border border-pink-100 text-pink-700 transition-all flex flex-col items-center text-center gap-1.5 group"
+            className="p-3 rounded-xl bg-primary-light hover:bg-primary-light/80 border border-primary/20 text-primary transition-all flex flex-col items-center text-center gap-1.5 group"
           >
             <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm text-primary group-hover:scale-110 transition-transform">
               <Ticket className="w-4 h-4" />
@@ -287,7 +287,7 @@ export default function AdminDashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4 mb-3">
           
           <div className="flex items-center gap-4 p-4 rounded-xl shadow-sm border border-[#EFF0F6] bg-white hover:border-primary/30 transition-colors">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#fff5f9] shrink-0">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-primary-light shrink-0">
               <ShoppingCart className="w-6 h-6 text-primary" />
             </div>
             <div>

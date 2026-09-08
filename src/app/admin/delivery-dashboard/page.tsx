@@ -148,7 +148,7 @@ export default function DeliveryDashboard() {
                 ) : (
                   <button 
                     onClick={() => setVerifyingOrder(order._id)}
-                    className="w-full py-2 bg-primary text-white rounded-lg font-semibold flex items-center justify-center gap-2 text-sm hover:bg-[#e60060]"
+                    className="w-full py-2 bg-primary text-white rounded-lg font-semibold flex items-center justify-center gap-2 text-sm hover:opacity-90 active:scale-[0.98] transition-all"
                   >
                     <ShieldCheck className="w-4 h-4" /> Enter Completion PIN
                   </button>

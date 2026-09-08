@@ -55,7 +55,7 @@ export default function MobileBottomNav({ onCartOpen }: MobileBottomNavProps) {
         return (
           <Link key={i} href={item.href!}
             className={`flex flex-col items-center gap-0.5 transition-colors ${isActive ? "text-primary" : "text-[#a0a3bd] hover:text-[#6e7191]"}`}>
-            <Icon className={`w-5 h-5 ${isActive ? "stroke-[#ff006b]" : ""}`} />
+            <Icon className={`w-5 h-5 ${isActive ? "stroke-primary" : ""}`} />
             <span className="text-[10px] font-medium">{item.label}</span>
             {isActive && <span className="w-1 h-1 rounded-full" style={{ backgroundColor: "var(--primary-hex)" }} />}
           </Link>

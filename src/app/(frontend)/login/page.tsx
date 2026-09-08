@@ -87,28 +87,28 @@ export default function LoginPage() {
               <span className="text-xs text-[#14142b]">Remember me</span>
             </label>
             
-            <Link href="#" className="capitalize text-xs font-medium transition text-primary hover:text-rose-600">
+            <Link href="#" className="capitalize text-xs font-medium transition text-primary hover:underline hover:opacity-80">
               Forget Password?
             </Link>
           </div>
           
           <button 
             type="submit"
-            className="w-full h-12 text-center capitalize font-bold text-base rounded-2xl mb-6 text-white bg-primary hover:bg-rose-600 transition-colors shadow-md shadow-primary/20"
+            className="w-full h-12 text-center capitalize font-bold text-base rounded-2xl mb-6 text-white bg-primary hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-primary/20"
           >
             Login
           </button>
           
           <div className="flex items-center justify-center gap-2 mb-4">
             <span className="text-xs text-[#6E7191]">Don't have an account?</span>
-            <Link href="/signup" className="text-xs font-medium text-primary hover:text-rose-600 transition-colors">
+            <Link href="/signup" className="text-xs font-medium text-primary hover:underline hover:opacity-80 transition-all">
               Sign Up
             </Link>
           </div>
           
           <div>
             <p className="text-xs uppercase text-center mb-3 text-[#6E7191]">Or</p>
-            <button type="button" className="w-full h-12 text-center capitalize font-medium rounded-2xl border border-primary text-primary bg-white hover:bg-[#fff5f9] transition-colors">
+            <button type="button" className="w-full h-12 text-center capitalize font-medium rounded-2xl border border-primary text-primary bg-white hover:bg-primary-light transition-colors cursor-pointer">
               Login as guest
             </button>
           </div>

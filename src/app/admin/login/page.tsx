@@ -59,7 +59,7 @@ export default function AdminLoginPage() {
         
         {/* Header */}
         <div className="px-8 pt-8 pb-6 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#fff5f9] text-primary rounded-2xl mb-4 shadow-sm shadow-primary/10">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-light text-primary rounded-2xl mb-4 shadow-sm shadow-primary/10">
             <Lock className="w-8 h-8" />
           </div>
           <h2 className="text-2xl font-bold text-[#14142B] mb-2">Admin Login</h2>
@@ -112,7 +112,7 @@ export default function AdminLoginPage() {
           <button 
             type="submit" 
             disabled={isLoading}
-            className="w-full h-12 mt-2 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20 flex items-center justify-center disabled:opacity-70"
+            className="w-full h-12 mt-2 rounded-xl bg-primary text-white font-semibold text-sm hover:opacity-90 transition-all shadow-md shadow-primary/20 flex items-center justify-center disabled:opacity-70 cursor-pointer"
           >
             {isLoading ? (
               <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

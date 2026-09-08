@@ -63,7 +63,7 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
       <div className="flex items-center gap-2 sm:gap-4 min-w-0 shrink-0">
         <button 
           onClick={toggleSidebar}
-          className="w-10 h-10 rounded-xl bg-[#F7F7FC] text-primary flex items-center justify-center hover:bg-[#fff5f9] transition-colors lg:hidden shrink-0"
+          className="w-10 h-10 rounded-xl bg-[#F7F7FC] text-primary flex items-center justify-center hover:bg-primary-light transition-colors lg:hidden shrink-0 cursor-pointer"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -77,9 +77,9 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
                 setProfileOpen(false); 
                 setLangOpen(false); 
               }}
-              className={`flex items-center gap-3 ${user?.role === "store_manager" ? "cursor-default" : ""}`}
+              className={`flex items-center gap-3 ${user?.role === "store_manager" ? "cursor-default" : "cursor-pointer"}`}
             >
-              <div className="w-10 h-10 rounded-xl bg-[#fff5f9] text-primary flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-primary-light text-primary flex items-center justify-center">
                 <Store className="w-5 h-5" />
               </div>
               <div className="text-left hidden md:block">
@@ -95,24 +95,24 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
             
             {storeOpen && user?.role === "admin" && (
               <div className="absolute top-12 left-0 w-56 max-h-64 overflow-y-auto custom-scrollbar bg-white border border-[#EFF0F6] rounded-xl shadow-lg py-2 z-50">
-                <label className="flex items-center gap-3 p-3 rounded-lg hover:bg-[#fff5f9] cursor-pointer text-sm text-[#14142B] font-medium transition-colors">
+                <label className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary-light cursor-pointer text-sm text-[#14142B] font-medium transition-colors">
                   <input 
                     type="radio" 
                     name="admin_store"
                     checked={activeAdminStoreId === "0"} 
                     onChange={() => { setActiveAdminStoreId("0"); setStoreOpen(false); }}
-                    className="accent-[#ff006b]" 
+                    className="accent-primary" 
                   /> 
                   All Stores (Global)
                 </label>
                 {(stores || []).map(store => (
-                  <label key={store._id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-[#fff5f9] cursor-pointer text-sm text-[#14142B] font-medium transition-colors">
+                  <label key={store._id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary-light cursor-pointer text-sm text-[#14142B] font-medium transition-colors">
                     <input 
                       type="radio" 
                       name="admin_store"
                       checked={activeAdminStoreId === store._id} 
                       onChange={() => { setActiveAdminStoreId(store._id); setStoreOpen(false); }}
-                      className="accent-[#ff006b]" 
+                      className="accent-primary" 
                     /> 
                     {store.name}
                   </label>
@@ -123,7 +123,7 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
         )}
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
         {/* Quick Navigate to Main Live Storefront */}
         <Link
           href="/"
@@ -146,7 +146,7 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
         <div className="relative">
           <button 
             onClick={() => { setLangOpen(!langOpen); setProfileOpen(false); setStoreOpen(false); }}
-            className="flex items-center gap-1.5 h-9 sm:h-10 px-2.5 sm:px-3 rounded-xl bg-[#fff5f9] text-primary hover:bg-rose-100 transition-colors"
+            className="flex items-center gap-1.5 h-9 sm:h-10 px-2.5 sm:px-3 rounded-xl bg-primary-light text-primary hover:opacity-90 transition-all cursor-pointer"
           >
             <Globe className="w-4 h-4" />
             <span className="text-xs font-semibold uppercase hidden xs:inline">EN</span>
@@ -157,7 +157,7 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
         <div className="relative">
           <button 
             onClick={() => { setProfileOpen(!profileOpen); setStoreOpen(false); setLangOpen(false); }}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 cursor-pointer"
           >
             {user?.image && user.image !== "/images/default/user.png" ? (
               <img src={user.image} alt="User" className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-cover bg-gray-100" />
@@ -176,7 +176,7 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
           {profileOpen && (
             <div className="absolute top-14 right-0 w-72 bg-white border border-[#EFF0F6] rounded-2xl shadow-xl py-4 z-50">
               <div className="px-6 pb-4 border-b border-[#EFF0F6] text-center">
-                <div className="w-20 h-20 mx-auto rounded-full p-1 bg-gradient-to-tr from-[#ff006b] to-orange-400 mb-3">
+                <div className="w-20 h-20 mx-auto rounded-full p-1 bg-gradient-to-tr from-primary to-orange-400 mb-3">
                   {user?.image && user.image !== "/images/default/user.png" ? (
                     <img src={user.image} alt="Admin" className="w-full h-full rounded-full border-2 border-white object-cover bg-white" />
                   ) : (

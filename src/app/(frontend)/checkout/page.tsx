@@ -417,12 +417,12 @@ export default function CheckoutPage() {
       <section className="pt-6 pb-24 sm:pt-8 sm:pb-16 bg-[#f7f7fc] min-h-screen">
         <div className="container mx-auto px-4 sm:px-6 max-w-[965px]">
           {items.length > 0 ? (
-            <Link href="/cart" className="text-xs font-medium inline-flex mb-3 items-center gap-2 text-primary hover:text-rose-600 transition-colors">
+            <Link href="/cart" className="text-xs font-medium inline-flex mb-3 items-center gap-2 text-primary hover:opacity-80 transition-colors">
               <Undo2 className="w-4 h-4" />
               <span>Back to Cart</span>
             </Link>
           ) : (
-            <Link href="/" className="text-xs font-medium inline-flex mb-3 items-center gap-2 text-primary hover:text-rose-600 transition-colors">
+            <Link href="/" className="text-xs font-medium inline-flex mb-3 items-center gap-2 text-primary hover:opacity-80 transition-colors">
               <Undo2 className="w-4 h-4" />
               <span>Back to Home</span>
             </Link>
@@ -470,7 +470,7 @@ export default function CheckoutPage() {
                               setEditingAddress(null);
                               setIsAddressModalOpen(true);
                             }}
-                            className="inline-flex items-center gap-1.5 py-2 px-4 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-rose-600 transition shadow-xs"
+                            className="inline-flex items-center gap-1.5 py-2 px-4 rounded-xl bg-primary text-white text-xs font-semibold hover:opacity-90 active:scale-[0.98] transition shadow-xs"
                           >
                             <Plus className="w-3.5 h-3.5" /> Add Delivery Address
                           </button>
@@ -480,7 +480,7 @@ export default function CheckoutPage() {
                           <div 
                             key={addr._id} 
                             onClick={() => setSelectedAddress(selectedAddress === addr._id ? null : (addr._id || null))}
-                            className={`p-3 rounded-xl w-full border cursor-pointer transition-colors relative group ${selectedAddress === addr._id ? 'border-primary bg-[#fff5f9]' : 'border-[#F7F7FC] bg-[#F7F7FC] hover:border-primary/30'}`}
+                            className={`p-3 rounded-xl w-full border cursor-pointer transition-colors relative group ${selectedAddress === addr._id ? 'border-primary bg-primary-light' : 'border-[#F7F7FC] bg-[#F7F7FC] hover:border-primary/30'}`}
                           >
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-2 text-xs text-[#008BBA]">
@@ -540,7 +540,7 @@ export default function CheckoutPage() {
                     
                     <label 
                       onClick={() => setSchedule("NOW")}
-                      className={`w-fit py-2.5 px-4 rounded-xl flex items-start gap-5 cursor-pointer border transition-all duration-300 ${schedule === "NOW" ? 'bg-[#fff5f9] border-primary' : 'bg-white border-[#eff0f6]'}`}
+                      className={`w-fit py-2.5 px-4 rounded-xl flex items-start gap-5 cursor-pointer border transition-all duration-300 ${schedule === "NOW" ? 'bg-primary-light border-primary' : 'bg-white border-[#eff0f6]'}`}
                     >
                       <dl className="flex-auto">
                         <dt className="text-sm font-medium whitespace-nowrap mb-1 text-[#14142b]">Now</dt>
@@ -556,7 +556,7 @@ export default function CheckoutPage() {
                         setSchedule("LATER");
                         setIsTimeModalOpen(true);
                       }}
-                      className={`w-fit py-2.5 px-4 rounded-xl flex items-start gap-5 cursor-pointer border transition-all duration-300 ${schedule === "LATER" ? 'bg-[#fff5f9] border-primary' : 'bg-white border-[#eff0f6]'}`}
+                      className={`w-fit py-2.5 px-4 rounded-xl flex items-start gap-5 cursor-pointer border transition-all duration-300 ${schedule === "LATER" ? 'bg-primary-light border-primary' : 'bg-white border-[#eff0f6]'}`}
                     >
                       <dl className="flex-auto">
                         <dt className="text-sm font-medium whitespace-nowrap mb-1 text-[#14142b]">Schedule for later</dt>
@@ -577,7 +577,7 @@ export default function CheckoutPage() {
                     {settings.pay_paystack_enabled !== "No" && (
                       <label 
                         onClick={() => setPaymentMethod("paystack")}
-                        className={`w-full py-3 px-4 rounded-xl flex items-center justify-between cursor-pointer border transition-all duration-300 ${paymentMethod === "paystack" ? 'bg-[#fff5f9] border-primary' : 'bg-white border-[#eff0f6]'}`}
+                        className={`w-full py-3 px-4 rounded-xl flex items-center justify-between cursor-pointer border transition-all duration-300 ${paymentMethod === "paystack" ? 'bg-primary-light border-primary' : 'bg-white border-[#eff0f6]'}`}
                       >
                         <span className="text-sm font-medium text-[#14142b]">Pay Online (Paystack)</span>
                         <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === "paystack" ? 'border-primary' : 'border-[#a0a3bd]'}`}>
@@ -589,7 +589,7 @@ export default function CheckoutPage() {
                     {settings.pay_whatsapp_enabled === "Yes" && (
                       <label 
                         onClick={() => setPaymentMethod("whatsapp")}
-                        className={`w-full py-3 px-4 rounded-xl flex items-center justify-between cursor-pointer border transition-all duration-300 ${paymentMethod === "whatsapp" ? 'bg-[#fff5f9] border-primary' : 'bg-white border-[#eff0f6]'}`}
+                        className={`w-full py-3 px-4 rounded-xl flex items-center justify-between cursor-pointer border transition-all duration-300 ${paymentMethod === "whatsapp" ? 'bg-primary-light border-primary' : 'bg-white border-[#eff0f6]'}`}
                       >
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-[#14142b]">WhatsApp Checkout</span>
@@ -603,7 +603,7 @@ export default function CheckoutPage() {
 
                     <label 
                       onClick={() => setPaymentMethod("wallet")}
-                      className={`w-full py-3 px-4 rounded-xl flex items-center justify-between cursor-pointer border transition-all duration-300 ${paymentMethod === "wallet" ? 'bg-[#fff5f9] border-primary' : 'bg-white border-[#eff0f6]'}`}
+                      className={`w-full py-3 px-4 rounded-xl flex items-center justify-between cursor-pointer border transition-all duration-300 ${paymentMethod === "wallet" ? 'bg-primary-light border-primary' : 'bg-white border-[#eff0f6]'}`}
                     >
                       <div>
                         <span className="block text-sm font-medium text-[#14142b]">Wallet</span>
@@ -735,7 +735,7 @@ export default function CheckoutPage() {
                         </li>
                       )}
                     </ul>
-                    <div className="flex items-center justify-between p-3 sm:p-4 bg-[#fff5f9]/30">
+                    <div className="flex items-center justify-between p-3 sm:p-4 bg-primary-light">
                       <h4 className="text-base font-bold capitalize text-[#14142b]">Total</h4>
                       <h5 className="text-lg font-extrabold text-primary">{formatPrice(total)}</h5>
                     </div>
@@ -744,7 +744,7 @@ export default function CheckoutPage() {
                   <button 
                     onClick={() => handlePlaceOrder(false)}
                     disabled={loading || (paymentMethod === "wallet" && walletBalance < total) || (orderType === "delivery" && selectedAddress !== null && deliveryCharge === -1)}
-                    className={`w-full flex justify-center items-center gap-2 rounded-2xl capitalize font-bold text-base py-3.5 text-white transition-colors shadow-md disabled:opacity-50 ${paymentMethod === "whatsapp" ? 'bg-[#1AB759] hover:bg-[#159a4a] shadow-[#1AB759]/20' : 'bg-primary hover:bg-rose-600 shadow-primary/20'}`}
+                    className={`w-full flex justify-center items-center gap-2 rounded-2xl capitalize font-bold text-base py-3.5 text-white transition-all shadow-md disabled:opacity-50 cursor-pointer ${paymentMethod === "whatsapp" ? 'bg-[#1AB759] hover:bg-[#159a4a] shadow-[#1AB759]/20' : 'bg-primary hover:opacity-90 shadow-primary/20'}`}
                   >
                     {paymentMethod === "paystack" ? "Proceed to Payment" : paymentMethod === "whatsapp" ? "Proceed To WhatsApp" : "Place Order"}
                   </button>
@@ -793,7 +793,7 @@ export default function CheckoutPage() {
                       setSelectedTime(`${scheduleTab === 'TODAY' ? 'Today' : 'Tomorrow'} - ${time}`);
                       setIsTimeModalOpen(false);
                     }}
-                    className={`w-full py-2.5 rounded-xl text-center text-sm cursor-pointer border transition-colors ${selectedTime?.includes(time) ? 'bg-[#fff5f9] border-primary font-medium text-primary' : 'border-[#eff0f6] bg-white text-[#14142b] hover:border-primary/40'}`}
+                    className={`w-full py-2.5 rounded-xl text-center text-sm cursor-pointer border transition-colors ${selectedTime?.includes(time) ? 'bg-primary-light border-primary font-medium text-primary' : 'border-[#eff0f6] bg-white text-[#14142b] hover:border-primary/40'}`}
                   >
                     {time}
                   </li>
@@ -818,7 +818,7 @@ export default function CheckoutPage() {
 
             {/* Top Icon Badge */}
             <div className="flex flex-col items-center text-center">
-              <div className="w-14 h-14 rounded-2xl bg-[#fff5f9] text-primary flex items-center justify-center shadow-inner mb-4">
+              <div className="w-14 h-14 rounded-2xl bg-primary-light text-primary flex items-center justify-center shadow-inner mb-4">
                 <MapPin className="w-7 h-7" />
               </div>
 
@@ -838,7 +838,7 @@ export default function CheckoutPage() {
               <button
                 type="button"
                 onClick={() => handlePlaceOrder(true)}
-                className="w-full py-3.5 px-4 rounded-2xl bg-primary text-white font-bold text-sm hover:bg-rose-600 transition-colors shadow-md shadow-primary/20 flex items-center justify-center gap-2"
+                className="w-full py-3.5 px-4 rounded-2xl bg-primary text-white font-bold text-sm hover:opacity-90 transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-2 cursor-pointer"
               >
                 Proceed Anyway
               </button>

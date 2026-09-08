@@ -70,7 +70,7 @@ export default function OrderStatusPage() {
       
       <section className="pt-6 pb-24 sm:pt-8 sm:pb-16 bg-[#f7f7fc] min-h-screen">
         <div className="container mx-auto px-4 sm:px-6 max-w-3xl">
-          <Link href="/account/my-orders" className="mb-3 inline-flex items-center gap-2 text-primary hover:text-rose-600 transition-colors">
+          <Link href="/account/my-orders" className="mb-3 inline-flex items-center gap-2 text-primary hover:opacity-80 transition-colors">
             <Undo2 className="w-4 h-4" />
             <span className="text-xs font-medium leading-6">Back to orders</span>
           </Link>
@@ -224,7 +224,7 @@ export default function OrderStatusPage() {
                         <span className="text-sm leading-6 font-semibold text-[#1AB759]">{formatPrice(order.delivery_charge)}</span>
                       </li>
                     </ul>
-                    <div className="flex items-center justify-between p-3 sm:p-4 bg-[#fff5f9]/30">
+                    <div className="flex items-center justify-between p-3 sm:p-4 bg-primary-light">
                       <h4 className="text-sm leading-6 font-bold capitalize text-[#14142b]">Total</h4>
                       <h5 className="text-base leading-6 font-extrabold capitalize text-primary">{formatPrice(order.total)}</h5>
                     </div>

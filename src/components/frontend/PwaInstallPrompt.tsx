@@ -106,7 +106,7 @@ export default function PwaInstallPrompt() {
           <button type="button" className="h-10 px-4 rounded-3xl border border-[#EFF0F6] bg-white text-[#6E7191] flex items-center gap-1 hover:bg-[#F7F7FC] transition-colors font-medium text-sm" onClick={closePwaModal}>
             <X className="w-4 h-4" /><span>Close</span>
           </button>
-          <button className="h-10 px-6 rounded-3xl bg-primary text-white flex items-center gap-1 hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20 font-medium text-sm" onClick={installPWA}>
+          <button className="h-10 px-6 rounded-3xl bg-primary text-white flex items-center gap-1 hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-primary/20 font-medium text-sm" onClick={installPWA}>
             <Download className="w-4 h-4" /><span>Install</span>
           </button>
         </div>
@@ -123,7 +123,7 @@ export default function PwaInstallPrompt() {
           </div>
           <div className="flex items-center justify-end gap-2">
             <button onClick={closePwaModal} className="py-2 px-3 rounded-md capitalize text-sm border border-gray-200 text-primary hover:bg-[#F7F7FC] transition-colors">Cancel</button>
-            <button onClick={installPWA} className="py-2 px-3 rounded-md capitalize text-sm bg-primary text-white hover:bg-[#e60060] transition-colors shadow-sm">Install</button>
+            <button onClick={installPWA} className="py-2 px-3 rounded-md capitalize text-sm bg-primary text-white hover:opacity-90 active:scale-[0.98] transition-all shadow-sm">Install</button>
           </div>
         </div>
       )}

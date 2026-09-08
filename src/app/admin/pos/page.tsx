@@ -203,6 +203,12 @@ export default function POSPage() {
 
   // Cart operations
   const addToCart = (product: any) => {
+    const isOut = Boolean(product.isOutOfStock) || (Boolean(product.manageStock) && Number(product.stockQuantity || 0) <= 0);
+    if (isOut) {
+      toast.error(`"${product.name}" is currently out of stock`);
+      return;
+    }
+
     const hasDiscount = Boolean(
       product.discountPrice && 
       Number(product.discountPrice) > 0 && 
@@ -213,6 +219,10 @@ export default function POSPage() {
     setCart(prev => {
       const existing = prev.find(item => item.itemId === product._id);
       if (existing) {
+        if (product.manageStock && existing.quantity >= Number(product.stockQuantity || 0)) {
+          toast.warning(`Only ${product.stockQuantity} unit(s) available in stock for "${product.name}"`);
+          return prev;
+        }
         const newQty = existing.quantity + 1;
         return prev.map(item => item.itemId === product._id ? { 
           ...item, 
@@ -831,12 +841,18 @@ ${el.innerHTML}
                   );
                   const effectivePrice = hasDiscount ? Number(product.discountPrice) : Number(product.price || 0);
                   const cartItem = cart.find(i => i.itemId === product._id);
+                  const isOutOfStock = Boolean(product.isOutOfStock) || (Boolean(product.manageStock) && Number(product.stockQuantity || 0) <= 0);
+                  const isLowStock = Boolean(product.manageStock) && !isOutOfStock && Number(product.stockQuantity || 0) <= (Number(product.lowStockThreshold) || 5);
 
                   return (
                     <div 
                       key={product._id} 
-                      onClick={() => addToCart(product)}
-                      className="group bg-white rounded-2xl border border-[#EFF0F6] hover:border-primary hover:shadow-md transition-all cursor-pointer flex flex-col overflow-hidden relative"
+                      onClick={() => !isOutOfStock && addToCart(product)}
+                      className={`group bg-white rounded-2xl border transition-all flex flex-col overflow-hidden relative ${
+                        isOutOfStock 
+                          ? "opacity-60 border-red-200 cursor-not-allowed" 
+                          : "border-[#EFF0F6] hover:border-primary hover:shadow-md cursor-pointer"
+                      }`}
                     >
                       {/* Image Frame */}
                       <div className="aspect-square w-full bg-[#FAFAFC] relative overflow-hidden flex items-center justify-center p-3">
@@ -845,11 +861,24 @@ ${el.innerHTML}
                           alt={product.name} 
                           className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                         />
-                        {hasDiscount ? (
+                        {isOutOfStock ? (
+                          <span className="absolute top-2 left-2 bg-black/85 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md">
+                            OUT OF STOCK
+                          </span>
+                        ) : hasDiscount ? (
                           <span className="absolute top-2 left-2 bg-[#FB4E4E] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
                             SALE
                           </span>
                         ) : null}
+
+                        {product.manageStock && !isOutOfStock && (
+                          <span className={`absolute bottom-2 left-2 text-[9px] font-extrabold px-1.5 py-0.5 rounded-md ${
+                            isLowStock ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"
+                          }`}>
+                            {product.stockQuantity} in stock
+                          </span>
+                        )}
+
                         {cartItem && cartItem.quantity > 0 ? (
                           <span className="absolute top-2 right-2 bg-primary text-white text-xs font-extrabold w-6 h-6 rounded-full flex items-center justify-center shadow-md">
                             {cartItem.quantity}
@@ -877,7 +906,7 @@ ${el.innerHTML}
                             ) : null}
                           </div>
                           
-                          <div className="w-7 h-7 rounded-lg bg-[#F7F7FC] text-[#6E7191] group-hover:bg-[#ff006b] group-hover:text-white flex items-center justify-center transition-all duration-200 shadow-xs">
+                          <div className="w-7 h-7 rounded-lg bg-[#F7F7FC] text-[#6E7191] group-hover:bg-primary group-hover:text-white flex items-center justify-center transition-all duration-200 shadow-xs">
                             <Plus className="w-4 h-4" />
                           </div>
                         </div>
@@ -1506,7 +1535,7 @@ ${el.innerHTML}
               type="button"
               onClick={handleConfirmOrder}
               disabled={isSubmitting}
-              className="rounded-3xl text-sm py-3 px-4 font-bold w-full text-white bg-primary hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50"
+              className="rounded-3xl text-sm py-3 px-4 font-bold w-full text-white bg-primary hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>

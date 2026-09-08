@@ -88,7 +88,7 @@ export default function ChatPage() {
   return (
     <section className="pt-7 pb-16 bg-[#f7f7fc] min-h-screen">
       <div className="container mx-auto px-4 max-w-4xl">
-        <Link href="/" className="mb-3 inline-flex items-center gap-2 text-primary hover:text-rose-600 transition-colors">
+        <Link href="/" className="mb-3 inline-flex items-center gap-2 text-primary hover:opacity-80 transition-colors">
           <Undo2 className="w-4 h-4" />
           <span className="text-xs font-medium leading-6">Back to home</span>
         </Link>
@@ -148,7 +148,7 @@ export default function ChatPage() {
           <button 
             type="submit"
             disabled={!newMessage.trim() || sending}
-            className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center hover:bg-rose-600 transition-colors disabled:opacity-50 flex-shrink-0"
+            className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 flex-shrink-0"
           >
             {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5 ml-1" />}
           </button>

@@ -150,7 +150,7 @@ export default function KDSPage() {
                 <button 
                   key={filter}
                   onClick={() => setOrderFilter(filter)}
-                  className={`px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap capitalize transition-colors ${orderFilter === filter ? "bg-[#fff5f9] text-primary" : "bg-white border border-[#EFF0F6] text-[#14142B] hover:bg-[#F7F7FC]"}`}
+                  className={`px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap capitalize transition-colors ${orderFilter === filter ? "bg-primary-light text-primary" : "bg-white border border-[#EFF0F6] text-[#14142B] hover:bg-[#F7F7FC]"}`}
                 >
                   {filter.replace("_", " ")}
                 </button>
@@ -183,7 +183,7 @@ export default function KDSPage() {
                 filteredOrders.map(order => (
                   <div key={order._id} className="bg-white rounded-2xl border border-[#EFF0F6] overflow-hidden shadow-sm flex flex-col h-full">
                     {/* Card Header */}
-                    <div className={`px-4 py-3 flex items-center justify-between ${['pending', 'accepted'].includes(order.orderStatus) ? 'bg-[#fff5f9]' : 'bg-[#e5ebff]'}`}>
+                    <div className={`px-4 py-3 flex items-center justify-between ${['pending', 'accepted'].includes(order.orderStatus) ? 'bg-primary-light' : 'bg-[#e5ebff]'}`}>
                       <div className="flex items-center gap-2">
                         <Clock className={`w-4 h-4 ${['pending', 'accepted'].includes(order.orderStatus) ? 'text-primary' : 'text-[#567DFF]'}`} />
                         <span className="font-bold text-[#14142B]">#{order.orderSerialNo}</span>
@@ -221,7 +221,7 @@ export default function KDSPage() {
                       {['pending', 'accepted'].includes(order.orderStatus) ? (
                         <button 
                           onClick={() => handleStatusChange(order._id, 'preparing')}
-                          className="w-full h-10 rounded-xl text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors mt-auto bg-primary hover:bg-[#e60060]">
+                          className="w-full h-10 rounded-xl text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all mt-auto bg-primary hover:opacity-90 shadow-sm cursor-pointer">
                           Start Preparing
                         </button>
                       ) : (

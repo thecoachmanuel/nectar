@@ -158,7 +158,7 @@ export default function OffersPage() {
                         <button
                           type="button"
                           onClick={() => handleCopy(offer.code)}
-                          className="h-9 px-4 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-[#e60060] transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+                          className="h-9 px-4 rounded-xl bg-primary text-white text-xs font-semibold hover:opacity-90 transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
                         >
                           {copiedCode === offer.code ? (
                             <>
@@ -190,7 +190,7 @@ export default function OffersPage() {
                 </p>
                 <Link
                   href="/menu"
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-xs sm:text-sm font-semibold hover:bg-[#e60060] transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-xs sm:text-sm font-semibold hover:opacity-90 active:scale-[0.98] transition-all"
                 >
                   <ShoppingBag className="w-4 h-4" /> Start Shopping
                 </Link>

@@ -438,7 +438,7 @@ export default function SettingsPage() {
                     onClick={() => setActiveTab(item.name)}
                     className={`w-full flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-colors ${
                       isActive 
-                        ? "bg-[#fff5f9] text-primary border-r-2 border-primary" 
+                        ? "bg-primary-light text-primary border-r-2 border-primary" 
                         : "text-[#6E7191] hover:bg-[#FAFAFC] hover:text-[#14142B] border-r-2 border-transparent"
                     }`}
                   >
@@ -471,7 +471,7 @@ export default function SettingsPage() {
             <button 
               onClick={handleSave}
               disabled={isLoading}
-              className="h-11 px-6 rounded-xl bg-primary text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20 disabled:opacity-50"
+              className="h-11 px-6 rounded-xl bg-primary text-white flex items-center gap-2 hover:opacity-90 transition-all shadow-md shadow-primary/20 disabled:opacity-50 cursor-pointer"
             >
               <Save className="w-4 h-4" />
               <span className="text-sm font-medium">Save Changes</span>
@@ -1032,7 +1032,7 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="md:col-span-2 p-4 bg-[#fff5f9] border border-primary/20 rounded-2xl">
+              <div className="md:col-span-2 p-4 bg-primary-light border border-primary/20 rounded-2xl">
                 <label className="block text-sm font-bold text-[#14142B] mb-1">
                   Fixed Delivery Fee (Flat Rate Store-Wide) (₦) [Optional]
                 </label>

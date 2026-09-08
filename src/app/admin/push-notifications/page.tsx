@@ -224,7 +224,7 @@ export default function PushNotificationsPage() {
         </div>
 
         <div className="p-4 rounded-2xl bg-white border border-[#EFF0F6] shadow-sm flex items-center gap-3 col-span-2 sm:col-span-1">
-          <div className="w-11 h-11 rounded-xl bg-rose-50 text-primary flex items-center justify-center shrink-0">
+          <div className="w-11 h-11 rounded-xl bg-primary-light text-primary flex items-center justify-center shrink-0">
             <Smartphone className="w-5 h-5" />
           </div>
           <div>
@@ -261,7 +261,7 @@ export default function PushNotificationsPage() {
           className={`h-10 px-5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 shrink-0 ${
             isWebPushActive
               ? 'bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 shadow-sm'
-              : 'bg-primary hover:bg-[#e60060] text-white shadow-md shadow-primary/20'
+              : 'bg-primary hover:opacity-90 active:scale-[0.98] text-white shadow-md shadow-primary/20 transition-all'
           }`}
         >
           {togglingWebPush ? (
@@ -316,7 +316,7 @@ export default function PushNotificationsPage() {
 
             <button
               onClick={() => setIsSendModalOpen(true)}
-              className="h-10 px-4 rounded-xl bg-primary text-white flex items-center gap-2 hover:bg-[#e60060] transition-colors shadow-md shadow-primary/20"
+              className="h-10 px-4 rounded-xl bg-primary text-white flex items-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-primary/20"
             >
               <Send className="w-4 h-4" />
               <span className="text-sm font-semibold">Send Notification</span>

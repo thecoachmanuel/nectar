@@ -57,6 +57,7 @@ export interface IOrder extends Document {
   tableNumber?: string;
   notes?: string;
   isPos?: boolean;
+  inventoryDeducted?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -132,6 +133,7 @@ const OrderSchema = new Schema<IOrder>(
     tableNumber: { type: String },
     notes: { type: String },
     isPos: { type: Boolean, default: false },
+    inventoryDeducted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

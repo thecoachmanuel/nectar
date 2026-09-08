@@ -65,7 +65,7 @@ export default function MyOrdersPage() {
       
       <section className="pt-6 pb-24 sm:pt-8 sm:pb-16 bg-[#f7f7fc] min-h-screen">
         <div className="container mx-auto px-4 sm:px-6 max-w-3xl">
-          <Link href="/" className="mb-3 inline-flex items-center gap-2 text-primary hover:text-rose-600 transition-colors">
+          <Link href="/" className="mb-3 inline-flex items-center gap-2 text-primary hover:opacity-80 transition-colors">
             <Undo2 className="w-4 h-4" />
             <span className="text-xs font-medium leading-6">Back to home</span>
           </Link>
@@ -98,7 +98,7 @@ export default function MyOrdersPage() {
                             <p className="text-sm leading-6 capitalize text-[#6e7191]">
                               Total: <span className="font-bold text-[#14142b]">{formatPrice(order.totalAmount)}</span>
                             </p>
-                            <Link href={`/order/${order._id}`} className="text-[10px] leading-4 font-bold flex items-center gap-1 text-primary hover:text-rose-600 uppercase tracking-wide">
+                            <Link href={`/order/${order._id}`} className="text-[10px] leading-4 font-bold flex items-center gap-1 text-primary hover:opacity-80 uppercase tracking-wide">
                               See Details <ArrowRight className="w-3 h-3" />
                             </Link>
                           </div>
@@ -140,7 +140,7 @@ export default function MyOrdersPage() {
                             <p className="text-sm leading-6 capitalize text-[#6e7191]">
                               Total: <span className="font-bold text-[#14142b]">{formatPrice(order.totalAmount)}</span>
                             </p>
-                            <Link href={`/order/${order._id}`} className="text-[10px] leading-4 font-bold flex items-center gap-1 text-primary hover:text-rose-600 uppercase tracking-wide">
+                            <Link href={`/order/${order._id}`} className="text-[10px] leading-4 font-bold flex items-center gap-1 text-primary hover:opacity-80 uppercase tracking-wide">
                               See Details <ArrowRight className="w-3 h-3" />
                             </Link>
                           </div>

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useCartStore } from "@/store/useCartStore";
 import { useSettingStore } from "@/store/useSettingStore";
 import { formatPrice } from "@/lib/formatters";
-import { X, Plus, Minus, Check, ShoppingCart, Sparkles } from "lucide-react";
+import { X, Plus, Minus, Check, ShoppingCart, Sparkles, AlertTriangle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 interface ItemModalProps {
@@ -76,7 +76,15 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
     }
   };
 
+  const isOutOfStock = Boolean(item?.isOutOfStock) || (Boolean(item?.manageStock) && Number(item?.stockQuantity ?? 0) <= 0);
+  const maxAvailableStock = item?.manageStock ? Math.max(0, Number(item?.stockQuantity ?? 0)) : 999;
+  const isLowStock = Boolean(item?.manageStock) && !isOutOfStock && maxAvailableStock <= (Number(item?.lowStockThreshold) || 5);
+
   const handleAddToCart = () => {
+    if (isOutOfStock) {
+      toast.error("Sorry, this item is currently out of stock.");
+      return;
+    }
     addItem({
       itemId: item._id,
       storeId: typeof item.storeId === "object" ? item.storeId._id : item.storeId,
@@ -117,11 +125,16 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30 pointer-events-none" />
 
           {/* Sale badge */}
-          {hasDiscount && (
+          {isOutOfStock ? (
+            <div className="absolute top-3.5 left-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/85 text-white text-xs font-black shadow-lg">
+              <XCircle className="w-3.5 h-3.5 text-red-400" />
+              OUT OF STOCK
+            </div>
+          ) : hasDiscount ? (
             <div className="absolute top-3.5 left-4 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-red-600 text-white text-xs font-black shadow-lg">
               -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}% OFF
             </div>
-          )}
+          ) : null}
 
           {/* Close button */}
           <button
@@ -166,11 +179,25 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
                 )}
               </div>
             </div>
+            {/* Description */}
             {item.description && (
               <p className="text-xs sm:text-sm text-[#6E7191] mt-2 leading-relaxed">
                 {item.description}
               </p>
             )}
+
+            {/* Stock Alert Banners */}
+            {isOutOfStock ? (
+              <div className="px-3.5 py-2.5 mt-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-2 text-xs font-bold text-red-700">
+                <XCircle className="w-4 h-4 text-red-500 shrink-0" />
+                <span>This product is currently out of stock and cannot be ordered.</span>
+              </div>
+            ) : isLowStock ? (
+              <div className="px-3.5 py-2.5 mt-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-2 text-xs font-bold text-amber-800">
+                <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+                <span>Hurry! Only {maxAvailableStock} left in stock.</span>
+              </div>
+            ) : null}
           </div>
 
           {/* Variations (Sizes/Options) */}
@@ -317,8 +344,8 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
             <button
               type="button"
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="w-8 h-8 rounded-xl bg-[#F7F7FC] hover:bg-[#EFF0F6] text-[#4E4B66] flex items-center justify-center transition-colors active:scale-95 disabled:opacity-40"
-              disabled={quantity <= 1}
+              className="w-8 h-8 rounded-xl bg-[#F7F7FC] hover:bg-[#EFF0F6] text-[#4E4B66] flex items-center justify-center transition-colors active:scale-95 disabled:opacity-40 cursor-pointer"
+              disabled={quantity <= 1 || isOutOfStock}
               aria-label="Decrease quantity"
             >
               <Minus className="w-3.5 h-3.5" />
@@ -326,8 +353,9 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
             <span className="w-7 text-center font-bold text-sm text-[#14142B]">{quantity}</span>
             <button
               type="button"
-              onClick={() => setQuantity(quantity + 1)}
-              className="w-8 h-8 rounded-xl bg-[#F7F7FC] hover:bg-[#EFF0F6] text-[#4E4B66] flex items-center justify-center transition-colors active:scale-95"
+              onClick={() => setQuantity(Math.min(maxAvailableStock, quantity + 1))}
+              className="w-8 h-8 rounded-xl bg-[#F7F7FC] hover:bg-[#EFF0F6] text-[#4E4B66] flex items-center justify-center transition-colors active:scale-95 disabled:opacity-40 cursor-pointer"
+              disabled={isOutOfStock || quantity >= maxAvailableStock}
               aria-label="Increase quantity"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -335,19 +363,30 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
           </div>
 
           {/* Add to Cart Button */}
-          <button
-            type="button"
-            onClick={handleAddToCart}
-            className="flex-1 bg-primary hover:bg-[#e60060] text-white font-semibold h-11 px-4 sm:px-5 rounded-2xl shadow-md shadow-primary/25 transition-all flex items-center justify-between active:scale-[0.98]"
-          >
-            <span className="text-xs sm:text-sm font-bold flex items-center gap-1.5">
-              <ShoppingCart className="w-4 h-4" />
-              Add to Cart
-            </span>
-            <span className="text-xs sm:text-sm font-extrabold text-white/95 font-mono">
-              {formatPrice(totalPrice, symbol)}
-            </span>
-          </button>
+          {isOutOfStock ? (
+            <button
+              type="button"
+              disabled
+              className="flex-1 bg-gray-200 text-gray-500 font-bold h-11 px-4 sm:px-5 rounded-2xl transition-all flex items-center justify-center gap-2 cursor-not-allowed"
+            >
+              <XCircle className="w-4 h-4" />
+              <span>Out of Stock</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              className="flex-1 bg-primary hover:opacity-90 active:scale-[0.98] text-white font-semibold h-11 px-4 sm:px-5 rounded-2xl shadow-md shadow-primary/25 transition-all flex items-center justify-between cursor-pointer"
+            >
+              <span className="text-xs sm:text-sm font-bold flex items-center gap-1.5">
+                <ShoppingCart className="w-4 h-4" />
+                Add to Cart
+              </span>
+              <span className="text-xs sm:text-sm font-extrabold text-white/95 font-mono">
+                {formatPrice(totalPrice, symbol)}
+              </span>
+            </button>
+          )}
         </div>
       </div>
     </div>
