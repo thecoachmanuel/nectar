@@ -8,7 +8,7 @@ export const revalidate = 0;
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
   let faviconUrl = "/images/theme/theme-favicon-logo.png?v=3";
-  let appName = "Errandshop - Online Groceries Delivery & WhatsApp Ordering";
+  let appName = "Errandshop - Online Groceries Shopping";
   let shortName = "Errandshop";
   let themeColor = "#ff006b";
 
@@ -27,7 +27,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     }
     if (map.company_name || map.site_name || map.site_title) {
       shortName = map.company_name || map.site_name || map.site_title;
-      appName = `${shortName} - Online Groceries Delivery & WhatsApp Ordering`;
+      appName = `${shortName} - Online Groceries Shopping`;
     }
     if (map.theme_primary_color) {
       themeColor = map.theme_primary_color;
@@ -46,7 +46,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
   return {
     name: appName,
     short_name: shortName,
-    description: `${shortName} - Online Groceries Delivery & WhatsApp Ordering with POS and instant home delivery.`,
+    description: `${shortName} - Order your fresh food items and have them delivered to your doorstep same day.`,
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",

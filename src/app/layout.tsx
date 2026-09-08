@@ -14,7 +14,7 @@ import HorizontalMouseScroll from "@/components/HorizontalMouseScroll";
 
 export async function generateMetadata(): Promise<Metadata> {
   let faviconUrl = "/images/theme/theme-favicon-logo.png?v=3";
-  let siteTitle = "Errandshop - Online Groceries Delivery & WhatsApp Ordering";
+  let siteTitle = "Errandshop - Online Groceries Shopping";
   let themeColor = "#ff006b";
 
   try {
@@ -172,7 +172,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             __html: `window.__INITIAL_SETTINGS__ = ${JSON.stringify(initialSettings).replace(/</g, "\\u003c")};`,
           }}
         />
-        <style dangerouslySetInnerHTML={{ __html: `
+        <style dangerouslySetInnerHTML={{
+          __html: `
           :root {
             --primary-hex: ${themeColor};
             --primary-slate: ${themeColor}e6;

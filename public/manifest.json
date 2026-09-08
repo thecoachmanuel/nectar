@@ -1,7 +1,7 @@
 {
-  "name": "Errandshop - Online Groceries Delivery & WhatsApp Ordering",
+  "name": "Errandshop - Online Groceries Shopping",
   "short_name": "Errandshop",
-  "description": "Errandshop - Online Groceries Delivery & WhatsApp Ordering with POS and instant home delivery.",
+  "description": "Errandshop - Order your fresh food items and have them delivered to your doorstep same day.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -9,7 +9,11 @@
   "orientation": "portrait",
   "scope": "/",
   "lang": "en",
-  "categories": ["shopping", "food", "lifestyle"],
+  "categories": [
+    "shopping",
+    "food",
+    "lifestyle"
+  ],
   "icons": [
     {
       "src": "/images/theme/theme-favicon-logo.png?v=3",

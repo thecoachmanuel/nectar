@@ -76,7 +76,7 @@ export default function ClientThemeSetter({ initialSettings }: ClientThemeSetter
       settings.site_title ||
       settings.company_name ||
       settings.company_title ||
-      "Errandshop - Online Groceries Delivery & WhatsApp Ordering";
+      "Errandshop - Online Groceries Shopping";
 
     if (
       typeof document !== "undefined" &&
