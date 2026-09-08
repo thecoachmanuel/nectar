@@ -23,6 +23,7 @@ import { useApi } from "@/hooks/useApi";
 import { toast } from "sonner";
 import ItemModal from "@/components/admin/ItemModal";
 import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
+import { formatDate } from "@/lib/formatters";
 
 export default function ProductRequestsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -321,11 +322,7 @@ export default function ProductRequestsPage() {
 
                       {/* Date */}
                       <td className="px-6 py-4 text-xs text-[#6E7191]">
-                        {new Date(req.createdAt).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
+                        {formatDate(req.createdAt)}
                       </td>
 
                       {/* Status Dropdown */}

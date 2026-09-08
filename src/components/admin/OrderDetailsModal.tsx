@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Modal from "./Modal";
-import { formatPrice } from "@/lib/formatters";
+import { formatPrice, formatDate, formatTime, formatDateTime } from "@/lib/formatters";
 
 interface OrderDetailsModalProps {
   isOpen: boolean;
@@ -292,12 +292,8 @@ ${el.innerHTML}
   const receiptStoreName  = order?.storeInfo?.name || "Main Kitchen";
   const receiptStoreAddr  = order?.storeInfo?.address || "";
   const receiptStorePhone = order?.storeInfo?.phone || "";
-  const receiptDate = order
-    ? new Date(order.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
-    : "";
-  const receiptTime = order
-    ? new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-    : "";
+  const receiptDate = order ? formatDate(order.createdAt) : "";
+  const receiptTime = order ? formatTime(order.createdAt) : "";
 
   return (
     <>
@@ -332,7 +328,7 @@ ${el.innerHTML}
                   )}
                 </div>
                 <h4 className="text-lg font-bold text-primary">#{order.orderSerialNo}</h4>
-                <p className="text-xs text-[#A0A3BD] mt-0.5">{new Date(order.createdAt).toLocaleString()}</p>
+                <p className="text-xs text-[#A0A3BD] mt-0.5">{formatDateTime(order.createdAt)}</p>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">

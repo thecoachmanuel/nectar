@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Undo2, Search, ArrowRight, ShoppingBag } from "lucide-react";
 
 import { useAuthStore } from "@/store/useAuthStore";
-import { formatPrice } from "@/lib/formatters";
+import { formatPrice, formatDateTime } from "@/lib/formatters";
 import { useRouter } from "next/navigation";
 
 export default function MyOrdersPage() {
@@ -92,7 +92,7 @@ export default function MyOrdersPage() {
                               {order.orderStatus?.replace(/_/g, " ")}
                             </span>
                           </div>
-                          <p className="text-xs font-light mb-1 text-[#6e7191]">{new Date(order.createdAt).toLocaleString()}</p>
+                          <p className="text-xs font-light mb-1 text-[#6e7191]">{formatDateTime(order.createdAt)}</p>
                           <p className="text-sm font-normal capitalize mb-2 text-[#00749B]">{order.orderType}</p>
                           <div className="flex flex-wrap gap-3 items-center justify-between">
                             <p className="text-sm leading-6 capitalize text-[#6e7191]">
@@ -134,7 +134,7 @@ export default function MyOrdersPage() {
                               {order.orderStatus?.replace(/_/g, " ")}
                             </span>
                           </div>
-                          <p className="text-xs font-light mb-1 text-[#6e7191]">{new Date(order.createdAt).toLocaleString()}</p>
+                          <p className="text-xs font-light mb-1 text-[#6e7191]">{formatDateTime(order.createdAt)}</p>
                           <p className="text-sm font-normal capitalize mb-2 text-[#00749B]">{order.orderType}</p>
                           <div className="flex flex-wrap gap-3 items-center justify-between">
                             <p className="text-sm leading-6 capitalize text-[#6e7191]">

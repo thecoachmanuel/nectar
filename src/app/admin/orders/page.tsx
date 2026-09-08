@@ -15,7 +15,7 @@ import {
 import { toast } from "sonner";
 import { useApi } from "@/hooks/useApi";
 import { orderSoundAlert } from "@/utils/audioAlert";
-import { formatPrice } from "@/lib/formatters";
+import { formatPrice, formatDateTime } from "@/lib/formatters";
 
 import OrderDetailsModal from "@/components/admin/OrderDetailsModal";
 
@@ -302,7 +302,7 @@ export default function OrdersPage() {
                       <span className="text-sm text-[#4E4B66] capitalize">{order.orderType?.replace("_", " ")}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-[#4E4B66]">{new Date(order.createdAt).toLocaleString()}</span>
+                      <span className="text-sm text-[#4E4B66]">{formatDateTime(order.createdAt)}</span>
                     </td>
                     <td className="px-6 py-4">
                       <select

@@ -35,7 +35,7 @@ import {
   FileText
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
-import { formatPrice } from "@/lib/formatters";
+import { formatPrice, formatDate, formatTime } from "@/lib/formatters";
 
 // Haversine formula for exact distance between store and customer coordinates
 function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -524,8 +524,8 @@ export default function POSPage() {
         setReceiptOrder({
           orderSerialNo: data.orderSerialNo || "N/A",
           id: data.orderId || data.data?._id || "",
-          orderDate: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
-          orderTime: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          orderDate: formatDate(new Date()),
+          orderTime: formatTime(new Date()),
           storeName: currentStore?.name || "Errandshop Groceries",
           storeAddress: currentStore?.address || "",
           storePhone: currentStore?.phone || "",

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { MessageCircle, Send, Loader2, CheckCircle, Trash2, Search, ArrowLeft } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
+import { formatTime } from "@/lib/formatters";
 
 export default function AdminChatPage() {
   const { token, activeAdminStoreId } = useAuthStore();
@@ -169,7 +170,7 @@ export default function AdminChatPage() {
                     <span className="text-xs font-normal text-[#6E7191] ml-1">({t.senderRole})</span>
                   </h4>
                   <span className="text-[10px] text-[#A0A3BD] whitespace-nowrap">
-                    {new Date(t.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {formatTime(t.lastMessageTime)}
                   </span>
                 </div>
                 <p className="text-xs text-[#6E7191] truncate">{t.lastMessage}</p>
@@ -258,7 +259,7 @@ export default function AdminChatPage() {
                       >
                         <p className="whitespace-pre-wrap">{msg.message}</p>
                         <p className={`text-[10px] mt-1 text-right ${isAdmin ? "text-white/70" : "text-[#A0A3BD]"}`}>
-                          {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {formatTime(msg.createdAt)}
                         </p>
                       </div>
                     </div>

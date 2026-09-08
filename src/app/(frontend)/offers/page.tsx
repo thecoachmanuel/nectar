@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Tag, Copy, Check, Sparkles, Percent, Calendar, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
-import { formatPrice } from "@/lib/formatters";
+import { formatPrice, formatDate } from "@/lib/formatters";
 
 export default function OffersPage() {
   const [offers, setOffers] = useState<any[]>([]);
@@ -133,11 +133,7 @@ export default function OffersPage() {
                             <div className="flex items-center justify-between">
                               <span className="text-[#6E7191]">Valid Until:</span>
                               <span className="font-semibold text-[#14142B]">
-                                {new Date(validUntil).toLocaleDateString("en-GB", {
-                                  day: "numeric",
-                                  month: "short",
-                                  year: "numeric",
-                                })}
+                                {formatDate(validUntil)}
                               </span>
                             </div>
                           )}

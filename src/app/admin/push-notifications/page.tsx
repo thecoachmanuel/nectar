@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import SendPushNotificationModal from "@/components/admin/SendPushNotificationModal";
 import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
+import { formatDateTime } from "@/lib/formatters";
 
 export default function PushNotificationsPage() {
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -385,13 +386,7 @@ export default function PushNotificationsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-xs text-[#4E4B66] font-medium">
-                        {new Date(item.createdAt).toLocaleDateString("en-GB", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {formatDateTime(item.createdAt)}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">

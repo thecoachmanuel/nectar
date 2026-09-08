@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
-import { formatPrice } from "@/lib/formatters";
+import { formatPrice, formatTime } from "@/lib/formatters";
 
 interface Conversation {
   phone: string;
@@ -642,7 +642,7 @@ export default function WhatsAppChatPage() {
                           </div>
 
                           <span className="text-[10px] text-[#A0A3BD] mt-1 px-1">
-                            {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
+                            {msg.timestamp ? formatTime(msg.timestamp) : ""}
                           </span>
                         </div>
                       );

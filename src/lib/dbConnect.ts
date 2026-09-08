@@ -1,3 +1,7 @@
+if (!process.env.TZ) {
+  process.env.TZ = "Africa/Lagos";
+}
+
 import mongoose from 'mongoose';
 import "@/models/User";
 import "@/models/ItemCategory";

@@ -7,6 +7,7 @@ import Store from "@/models/Store";
 import { jwtVerify } from "jose";
 import { sendPushNotification } from "@/lib/push";
 import { checkStockAvailability, deductOrderInventory } from "@/lib/inventoryService";
+import { formatDateTime } from "@/lib/formatters";
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "errandshop_secret_key_default_2026"
@@ -431,10 +432,7 @@ function buildCustomAdminOrderNotification(order: any, appOrigin: string, fallba
   const timeSlot = order.deliveryTimeSlot ? `\n• *Delivery Slot:* ${order.deliveryTimeSlot}` : "";
   const notesText = order.notes && order.notes.trim() ? `\n📝 *Customer Note:* _"${order.notes.trim()}"_` : "";
 
-  const dateStr = new Date().toLocaleString("en-NG", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+  const dateStr = formatDateTime(new Date());
 
   return (
     `🚨 *NEW ORDER RECEIVED!* 🛒✨\n` +

@@ -5,6 +5,7 @@ import { MessageCircle, Send, Loader2, Undo2 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 import Link from "next/link";
+import { formatTime } from "@/lib/formatters";
 
 export default function ChatPage() {
   const { user, token } = useAuthStore();
@@ -125,7 +126,7 @@ export default function ChatPage() {
                 >
                   <p className="whitespace-pre-wrap">{msg.message}</p>
                   <p className={`text-[10px] mt-1 text-right ${isMe ? "text-white/70" : "text-[#A0A3BD]"}`}>
-                    {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {formatTime(msg.createdAt)}
                   </p>
                 </div>
               </div>

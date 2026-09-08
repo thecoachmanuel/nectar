@@ -15,7 +15,7 @@ import {
   Check
 } from "lucide-react";
 import { toast } from "sonner";
-import { formatPrice } from "@/lib/formatters";
+import { formatPrice, formatDate, formatTime, formatDateTime } from "@/lib/formatters";
 import OrderDetailsModal from "@/components/admin/OrderDetailsModal";
 
 // Helper function to resolve the exact transaction amount from multiple possible fields
@@ -239,7 +239,7 @@ export default function TransactionsPage() {
       `"${t.orderSerialNo || t.orderId || t._id.slice(-6).toUpperCase()}"`,
       `"${t.customerName || 'Customer'}"`,
       `"${t.customerPhone || 'N/A'}"`,
-      `"${new Date(t.createdAt).toLocaleString()}"`,
+      `"${formatDateTime(t.createdAt)}"`,
       `"${formatPaymentMethod(t)}"`,
       resolveTransactionAmount(t),
       `"${t.paymentStatus === 'paid' ? 'Successful' : 'Pending'}"`,
@@ -515,10 +515,10 @@ export default function TransactionsPage() {
                     {/* Date */}
                     <td className="px-6 py-4">
                       <span className="text-xs text-[#4E4B66]">
-                        {new Date(txn.createdAt).toLocaleDateString()}
+                        {formatDate(txn.createdAt)}
                       </span>
                       <span className="block text-[11px] text-[#A0A3BD]">
-                        {new Date(txn.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {formatTime(txn.createdAt)}
                       </span>
                     </td>
 

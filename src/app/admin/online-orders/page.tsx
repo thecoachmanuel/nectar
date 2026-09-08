@@ -15,7 +15,7 @@ import {
 import { toast } from "sonner";
 import Link from "next/link";
 import { orderSoundAlert } from "@/utils/audioAlert";
-import { formatPrice } from "@/lib/formatters";
+import { formatPrice, formatDateTime } from "@/lib/formatters";
 
 import OrderDetailsModal from "@/components/admin/OrderDetailsModal";
 
@@ -312,7 +312,7 @@ export default function OnlineOrdersPage() {
                       <span className="text-sm font-semibold text-[#14142B]">{formatPrice(order.totalAmount || 0)}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-[#4E4B66]">{new Date(order.createdAt).toLocaleString()}</span>
+                      <span className="text-sm text-[#4E4B66]">{formatDateTime(order.createdAt)}</span>
                     </td>
                     <td className="px-6 py-4">
                       <select 

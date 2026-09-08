@@ -20,6 +20,7 @@ import {
 import { useApi } from "@/hooks/useApi";
 import { toast } from "sonner";
 import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
+import { formatDate } from "@/lib/formatters";
 
 // ─── Notify via WhatsApp Bot Modal ───────────────────────────────────────────
 function NotifyModal({
@@ -478,11 +479,7 @@ export default function ShoppingWishlistPage() {
 
                       {/* Date */}
                       <td className="px-6 py-4 text-xs text-[#6E7191]">
-                        {new Date(wl.createdAt).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
+                        {formatDate(wl.createdAt)}
                       </td>
 
                       {/* Status Dropdown */}

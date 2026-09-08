@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Undo2, MapPin, Phone, MessageSquare } from "lucide-react";
-import { formatPrice } from "@/lib/formatters";
+import { formatPrice, formatDateTime } from "@/lib/formatters";
 
 export default function OrderDetailsPage() {
   const { id } = useParams();
@@ -115,7 +115,7 @@ export default function OrderDetailsPage() {
                     <h3 className="text-sm leading-6 mb-1 font-medium text-[#14142b]">
                       Order ID: <span className="text-[#008BBA]">#{order.orderSerialNo}</span>
                     </h3>
-                    <p className="text-xs font-light mb-3 text-[#6e7191]">{new Date(order.createdAt).toLocaleString()}</p>
+                    <p className="text-xs font-light mb-3 text-[#6e7191]">{formatDateTime(order.createdAt)}</p>
                     <div className="flex flex-wrap items-center gap-2 mb-2">
                       <span className="text-sm capitalize text-[#6e7191]">Order Type:</span>
                       <span className="text-sm capitalize text-[#14142b] font-medium">{order.orderType}</span>

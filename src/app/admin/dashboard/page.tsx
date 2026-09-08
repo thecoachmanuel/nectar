@@ -27,7 +27,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import { toast } from "sonner";
-import { formatPrice } from "@/lib/formatters";
+import { formatPrice, getNigerianGreeting } from "@/lib/formatters";
 import { normalizeImageUrl } from "@/lib/imageUtils";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
@@ -58,10 +58,7 @@ export default function AdminDashboardPage() {
   }, []);
 
   const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good Morning,";
-    if (hour < 18) return "Good Afternoon,";
-    return "Good Evening,";
+    return getNigerianGreeting();
   };
 
   const salesChartOptions: any = {

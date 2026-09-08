@@ -15,6 +15,7 @@ import {
   Clock
 } from "lucide-react";
 import { toast } from "sonner";
+import { formatDateTime } from "@/lib/formatters";
 
 export default function MessagesPage() {
   const [messages, setMessages] = useState<any[]>([]);
@@ -161,7 +162,7 @@ export default function MessagesPage() {
                     <p className="text-xs text-[#6E7191] truncate max-w-xs">{message.message}</p>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-xs text-[#6E7191]">{new Date(message.createdAt).toLocaleString()}</span>
+                    <span className="text-xs text-[#6E7191]">{formatDateTime(message.createdAt)}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${!message.isRead ? 'bg-[#FFF4E5] text-[#FF9F43]' : 'bg-[#E0FFED] text-[#1AB759]'}`}>
@@ -213,7 +214,7 @@ export default function MessagesPage() {
                   <h3 className="font-bold text-base text-[#14142B]">Message Details</h3>
                   <span className="text-xs text-[#6E7191] flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5" />
-                    {new Date(selectedMessage.createdAt).toLocaleString()}
+                    {formatDateTime(selectedMessage.createdAt)}
                   </span>
                 </div>
               </div>

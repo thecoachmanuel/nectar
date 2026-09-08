@@ -21,7 +21,7 @@ import {
 import { useAuthStore } from "@/store/useAuthStore";
 import ExcelJS from "exceljs";
 import { toast } from "sonner";
-import { formatPrice } from "@/lib/formatters";
+import { formatPrice, formatDate, formatTime, formatDateTime } from "@/lib/formatters";
 import OrderDetailsModal from "@/components/admin/OrderDetailsModal";
 
 export default function PosOrdersPage() {
@@ -164,7 +164,7 @@ export default function PosOrdersPage() {
 
         worksheet.addRow({
           orderSerialNo: o.orderSerialNo,
-          date: new Date(o.createdAt).toLocaleString(),
+          date: formatDateTime(o.createdAt),
           customerName: o.customerName || "Walk-in Customer",
           customerPhone: o.customerPhone || "—",
           store: storeName,
@@ -584,7 +584,7 @@ ${el.innerHTML}
 
                     {/* Date */}
                     <td className="px-6 py-4">
-                      <span className="text-xs text-[#6E7191]">{new Date(order.createdAt).toLocaleString()}</span>
+                      <span className="text-xs text-[#6E7191]">{formatDateTime(order.createdAt)}</span>
                     </td>
 
                     {/* Status */}
@@ -617,8 +617,8 @@ ${el.innerHTML}
                             setReceiptOrder({
                               orderSerialNo: order.orderSerialNo,
                               id: order._id,
-                              orderDate: new Date(order.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
-                              orderTime: new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                              orderDate: formatDate(order.createdAt),
+                              orderTime: formatTime(order.createdAt),
                               storeName: storeName,
                               storeAddress: storeObj?.address || "",
                               storePhone: storeObj?.phone || "",

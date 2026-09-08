@@ -11,6 +11,7 @@ import {
   CheckCircle,
   PackageCheck
 } from "lucide-react";
+import { formatDateTime } from "@/lib/formatters";
 
 export default function KDSPage() {
   const [activeTab, setActiveTab] = useState("Products Board");
@@ -198,7 +199,7 @@ export default function KDSPage() {
                       <div className="mb-4">
                         <p className="text-sm text-[#6E7191] mb-1">Type: <span className="font-semibold text-[#14142B] capitalize">{order.orderType?.replace("_", " ")}</span></p>
                         <p className="text-xs text-[#A0A3BD] flex items-center justify-between">
-                          {new Date(order.createdAt).toLocaleString()}
+                          {formatDateTime(order.createdAt)}
                         </p>
                       </div>
 

@@ -7,6 +7,7 @@ import {
   Download,
   Trash2
 } from "lucide-react";
+import { formatDateTime } from "@/lib/formatters";
 
 export default function SubscribersPage() {
   const [showFilter, setShowFilter] = useState(false);
@@ -119,7 +120,7 @@ export default function SubscribersPage() {
                     <span className="text-sm font-medium text-[#14142B]">{sub.email}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm text-[#4E4B66]">{new Date(sub.createdAt).toLocaleString()}</span>
+                    <span className="text-sm text-[#4E4B66]">{formatDateTime(sub.createdAt)}</span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button 

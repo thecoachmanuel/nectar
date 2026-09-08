@@ -3,6 +3,7 @@
 import React, { useEffect } from "react";
 import { X, ExternalLink, Bell } from "lucide-react";
 import { useSettingsStore, getFaviconUrl } from "@/store/useSettingsStore";
+import { formatDateTime } from "@/lib/formatters";
 
 export interface PushNotificationData {
   title: string;
@@ -55,13 +56,7 @@ export default function PushNotificationDetailModal({
     notification.url && notification.url !== "/" && notification.url !== "";
 
   const formattedTime = notification.receivedAt
-    ? new Intl.DateTimeFormat("en-GB", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(new Date(notification.receivedAt))
+    ? formatDateTime(notification.receivedAt)
     : null;
 
   return (

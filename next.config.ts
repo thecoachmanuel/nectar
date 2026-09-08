@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
+process.env.TZ = "Africa/Lagos";
+
 const nextConfig: NextConfig = {
+  env: {
+    TZ: "Africa/Lagos",
+    NEXT_PUBLIC_DEFAULT_TIMEZONE: "Africa/Lagos",
+  },
   images: {
     remotePatterns: [
       {

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { normalizeImageUrl } from "@/lib/imageUtils";
+import { formatDate, formatTime, formatDateTime, NIGERIAN_TIMEZONE } from "@/lib/formatters";
 
 export interface StoreInfo {
   _id: string;
@@ -38,6 +39,10 @@ interface SettingState {
   setLogoUrl: (url: string) => void;
   setFooterLogoUrl: (url: string) => void;
   formatPrice: (amount: number | string) => string;
+  timeZone: string;
+  formatDate: (dateInput: Date | string | number | undefined | null) => string;
+  formatTime: (dateInput: Date | string | number | undefined | null) => string;
+  formatDateTime: (dateInput: Date | string | number | undefined | null) => string;
 }
 
 const getInitialLogo = () => {
@@ -98,6 +103,11 @@ export const useSettingStore = create<SettingState>()(
         });
         return `${symbol}${val}`;
       },
+
+      timeZone: NIGERIAN_TIMEZONE,
+      formatDate: (dateInput) => formatDate(dateInput),
+      formatTime: (dateInput) => formatTime(dateInput),
+      formatDateTime: (dateInput) => formatDateTime(dateInput),
     }),
     {
       name: "errandshop_settings_storage",

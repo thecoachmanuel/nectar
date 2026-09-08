@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Plus, CheckCircle, XCircle, Clock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { formatPrice } from "@/lib/formatters";
+import { formatPrice, formatDate } from "@/lib/formatters";
 
 export default function PayoutsPage() {
   const [payouts, setPayouts] = useState<any[]>([]);
@@ -108,7 +108,7 @@ export default function PayoutsPage() {
             <tbody className="text-sm text-[#14142B]">
               {payouts.map((p) => (
                 <tr key={p._id} className="border-b border-[#EFF0F6] hover:bg-[#F7F7FC] transition-colors">
-                  <td className="px-6 py-4">{new Date(p.createdAt).toLocaleDateString()}</td>
+                  <td className="px-6 py-4">{formatDate(p.createdAt)}</td>
                   <td className="px-6 py-4 font-mono text-xs">{p.userId}</td>
                   <td className="px-6 py-4 capitalize">{p.userRole.replace("_", " ")}</td>
                   <td className="px-6 py-4 font-bold">{formatPrice(p.amount || 0)}</td>

@@ -20,7 +20,7 @@ import {
 import { useAuthStore } from "@/store/useAuthStore";
 import { normalizeImageUrl } from "@/lib/imageUtils";
 import { orderSoundAlert } from "@/utils/audioAlert";
-import { formatPrice } from "@/lib/formatters";
+import { formatPrice, formatDate, formatTime } from "@/lib/formatters";
 import { toast } from "sonner";
 
 export default function OrderStatusScreenPage() {
@@ -244,10 +244,10 @@ export default function OrderStatusScreenPage() {
             <Clock className="w-4 h-4 text-primary" />
             <div className="text-right">
               <p className="text-xs font-black text-[#14142B] font-mono leading-none">
-                {currentTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                {formatTime(currentTime, { second: "2-digit" })}
               </p>
               <p className="text-[10px] text-[#A0A3BD] font-medium mt-0.5">
-                {currentTime.toLocaleDateString([], { weekday: "short", day: "2-digit", month: "short", year: "numeric" })}
+                {formatDate(currentTime, { weekday: "short" })}
               </p>
             </div>
           </div>

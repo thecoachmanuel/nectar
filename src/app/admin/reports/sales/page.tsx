@@ -6,6 +6,7 @@ import { useSettingStore } from "@/store/useSettingStore";
 import { ArrowLeft, Download, FileText, Calendar, Filter } from "lucide-react";
 import { toast } from "sonner";
 import ExcelJS from "exceljs";
+import { formatDateTime } from "@/lib/formatters";
 
 export default function SalesReportPage() {
   const { formatPrice, activeStore } = useSettingStore();
@@ -62,7 +63,7 @@ export default function SalesReportPage() {
           paymentMethod: o.paymentMethod,
           paymentStatus: o.paymentStatus,
           totalAmount: o.totalAmount,
-          createdAt: new Date(o.createdAt).toLocaleDateString(),
+          createdAt: formatDateTime(o.createdAt),
         });
       });
 

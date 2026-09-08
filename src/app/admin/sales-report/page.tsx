@@ -13,7 +13,7 @@ import {
 import { useApi } from "@/hooks/useApi";
 import ExcelJS from "exceljs";
 import { toast } from "sonner";
-import { formatPrice } from "@/lib/formatters";
+import { formatPrice, formatDate, formatDateTime } from "@/lib/formatters";
 
 export default function SalesReportPage() {
   const [showFilter, setShowFilter] = useState(false);
@@ -88,7 +88,7 @@ export default function SalesReportPage() {
 
         worksheet.addRow({
           orderSerialNo: o.orderSerialNo,
-          date: new Date(o.createdAt).toLocaleDateString(),
+          date: formatDateTime(o.createdAt),
           customerName: o.customerName || "Customer",
           itemsCount: o.items?.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0) || 0,
           subtotal: formatPrice(subtotalVal),
@@ -272,7 +272,7 @@ export default function SalesReportPage() {
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-xs text-[#4E4B66]">
-                          {new Date(report.createdAt).toLocaleDateString()}
+                          {formatDate(report.createdAt)}
                         </span>
                       </td>
                       <td className="px-6 py-4">
