@@ -23,10 +23,12 @@ import {
   Ticket,
   MessageCircle,
   Bot,
-  FileSpreadsheet
+  FileSpreadsheet,
+  ArrowRight
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
+import { normalizeImageUrl } from "@/lib/imageUtils";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
@@ -477,6 +479,126 @@ export default function AdminDashboardPage() {
                 <li className="text-center text-sm text-[#6E7191] mt-4">No order data available yet.</li>
               )}
             </ul>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Featured Products & Top Categories Showcase */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-9">
+        
+        {/* Featured & Popular Products */}
+        <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] p-6 hover:shadow-md transition-shadow flex flex-col">
+          <div className="flex items-center justify-between mb-4 border-b border-[#EFF0F6] pb-4 shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-sm">
+                ⭐
+              </span>
+              <div>
+                <h3 className="font-semibold text-lg text-[#14142B]">Featured Products</h3>
+                <p className="text-xs text-[#6E7191]">Top catalog groceries & menu items</p>
+              </div>
+            </div>
+            <Link 
+              href="/admin/items" 
+              className="text-xs font-semibold text-primary hover:underline flex items-center gap-1 group"
+            >
+              View All <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          </div>
+
+          <div className="flex-1">
+            {(!dashboardData?.featuredItems || dashboardData.featuredItems.length === 0) &&
+             (!dashboardData?.popularItems || dashboardData.popularItems.length === 0) ? (
+              <div className="p-8 text-center text-sm text-[#6E7191]">
+                No products found yet.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {(dashboardData?.featuredItems?.length ? dashboardData.featuredItems : dashboardData?.popularItems?.slice(0, 6) || []).map((item: any) => (
+                  <div 
+                    key={item._id}
+                    className="flex items-center gap-3 p-2.5 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] hover:border-primary/20 hover:bg-white transition-all group"
+                  >
+                    <img 
+                      src={normalizeImageUrl(item.image, "/images/item/thumb.png")} 
+                      alt={item.name} 
+                      className="w-14 h-14 rounded-xl object-cover border border-[#EFF0F6] shrink-0 bg-white shadow-2xs group-hover:scale-105 transition-transform"
+                      onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-xs text-[#14142B] truncate group-hover:text-primary transition-colors" title={item.name}>
+                        {item.name}
+                      </h4>
+                      <span className="inline-block text-[11px] text-[#6E7191] truncate">
+                        {item.categoryName || "Groceries"}
+                      </span>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className="text-xs font-bold text-[#14142B]">
+                          {formatPrice(item.discountPrice && Number(item.discountPrice) > 0 ? item.discountPrice : item.price)}
+                        </span>
+                        {item.discountPrice && Number(item.discountPrice) > 0 && Number(item.discountPrice) < Number(item.price) && (
+                          <span className="text-[10px] text-[#A0A3BD] line-through">
+                            {formatPrice(item.price)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Product Categories */}
+        <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] p-6 hover:shadow-md transition-shadow flex flex-col">
+          <div className="flex items-center justify-between mb-4 border-b border-[#EFF0F6] pb-4 shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">
+                📂
+              </span>
+              <div>
+                <h3 className="font-semibold text-lg text-[#14142B]">Product Categories</h3>
+                <p className="text-xs text-[#6E7191]">Organized store departments</p>
+              </div>
+            </div>
+            <Link 
+              href="/admin/item-categories" 
+              className="text-xs font-semibold text-primary hover:underline flex items-center gap-1 group"
+            >
+              Manage <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          </div>
+
+          <div className="flex-1">
+            {!dashboardData?.topCategories || dashboardData.topCategories.length === 0 ? (
+              <div className="p-8 text-center text-sm text-[#6E7191]">
+                No categories found.
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {dashboardData.topCategories.map((cat: any) => (
+                  <Link 
+                    key={cat._id}
+                    href={`/admin/items`}
+                    className="flex flex-col items-center text-center p-3 rounded-xl border border-[#EFF0F6] bg-[#FAFAFC] hover:border-primary/30 hover:bg-white hover:shadow-xs transition-all group"
+                  >
+                    <div className="w-12 h-12 rounded-xl overflow-hidden mb-2 border border-[#EFF0F6] bg-white flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
+                      <img 
+                        src={normalizeImageUrl(cat.image, "/images/category/thumb.png")} 
+                        alt={cat.name} 
+                        className="w-full h-full object-cover"
+                        onError={(e) => { (e.target as HTMLImageElement).src = "/images/category/thumb.png"; }}
+                      />
+                    </div>
+                    <h4 className="text-xs font-semibold text-[#14142B] truncate w-full group-hover:text-primary transition-colors" title={cat.name}>
+                      {cat.name}
+                    </h4>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

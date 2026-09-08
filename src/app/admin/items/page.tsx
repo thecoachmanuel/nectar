@@ -6,6 +6,7 @@ import { useApi } from "@/hooks/useApi";
 import { formatPrice } from "@/lib/formatters";
 import ItemModal from "@/components/admin/ItemModal";
 import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
+import { normalizeImageUrl } from "@/lib/imageUtils";
 
 export default function ItemsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -253,10 +254,10 @@ export default function ItemsPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <img 
-                          src={item.image || "/images/default/food.png"} 
+                          src={normalizeImageUrl(item.image, "/images/item/thumb.png")} 
                           alt={item.name} 
                           className="w-11 h-11 rounded-xl object-cover border border-[#EFF0F6] shrink-0" 
-                          onError={(e) => { (e.target as HTMLImageElement).src = "/images/default/food.png"; }}
+                          onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }}
                         />
                         <div className="max-w-xs">
                           <span className="text-sm font-semibold text-[#14142B] block truncate" title={item.name}>

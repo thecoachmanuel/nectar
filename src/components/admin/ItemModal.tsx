@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Plus, X, Trash2 } from "lucide-react";
 import Modal from "./Modal";
 import { useApi } from "@/hooks/useApi";
+import { normalizeImageUrl } from "@/lib/imageUtils";
 
 interface ItemModalProps {
   isOpen: boolean;
@@ -354,9 +355,10 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-2xl border border-[#EFF0F6] bg-[#FAFAFC]">
             {formData.image ? (
               <img 
-                src={formData.image} 
+                src={normalizeImageUrl(formData.image, "/images/item/thumb.png")} 
                 alt="Preview" 
                 className="w-20 h-20 sm:w-16 sm:h-16 object-cover rounded-xl border border-[#EFF0F6] shadow-sm shrink-0" 
+                onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }}
               />
             ) : (
               <div className="w-16 h-16 rounded-xl border-2 border-dashed border-[#EFF0F6] flex items-center justify-center text-xs text-[#A0A3BD] shrink-0">

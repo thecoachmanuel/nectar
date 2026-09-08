@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Modal from "./Modal";
 import { useApi } from "@/hooks/useApi";
+import { normalizeImageUrl } from "@/lib/imageUtils";
 
 interface CategoryModalProps {
   isOpen: boolean;
@@ -94,8 +95,17 @@ export default function CategoryModal({ isOpen, onClose, category, onSuccess }: 
         <div>
           <label className="block text-sm font-medium text-[#14142B] mb-1">Image</label>
           <div className="flex items-center gap-4">
-            {formData.image && (
-              <img src={formData.image} alt="Preview" className="w-16 h-16 object-cover rounded-lg border border-[#EFF0F6]" />
+            {formData.image ? (
+              <img 
+                src={normalizeImageUrl(formData.image, "/images/category/thumb.png")} 
+                alt="Preview" 
+                className="w-16 h-16 object-cover rounded-xl border border-[#EFF0F6] shrink-0 shadow-xs" 
+                onError={(e) => { (e.target as HTMLImageElement).src = "/images/category/thumb.png"; }}
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-xl border-2 border-dashed border-[#EFF0F6] flex items-center justify-center text-xs text-[#A0A3BD] shrink-0">
+                No Image
+              </div>
             )}
             <input 
               type="file" 

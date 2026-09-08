@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { normalizeImageUrl } from "@/lib/imageUtils";
 import { 
   ArrowLeft,
   Search,
@@ -857,9 +858,10 @@ ${el.innerHTML}
                       {/* Image Frame */}
                       <div className="aspect-square w-full bg-[#FAFAFC] relative overflow-hidden flex items-center justify-center p-3">
                         <img 
-                          src={product.image || "/images/default/item.png"} 
+                          src={normalizeImageUrl(product.image, "/images/item/thumb.png")} 
                           alt={product.name} 
                           className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                          onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }}
                         />
                         {isOutOfStock ? (
                           <span className="absolute top-2 left-2 bg-black/85 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md">
@@ -1097,9 +1099,10 @@ ${el.innerHTML}
                     {/* Item Image */}
                     <div className="w-11 h-11 rounded-lg bg-white overflow-hidden shrink-0 border border-[#EFF0F6]">
                       <img 
-                        src={item.image || "/images/default/item.png"} 
+                        src={normalizeImageUrl(item.image, "/images/item/thumb.png")} 
                         alt={item.name} 
                         className="w-full h-full object-cover"
+                        onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }}
                       />
                     </div>
 

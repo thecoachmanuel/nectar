@@ -5,6 +5,7 @@ import { Plus, Search, Edit, Trash2, GripVertical } from "lucide-react";
 import { useApi } from "@/hooks/useApi";
 import CategoryModal from "@/components/admin/CategoryModal";
 import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
+import { normalizeImageUrl } from "@/lib/imageUtils";
 
 import {
   DndContext,
@@ -51,7 +52,20 @@ function SortableTableRow({ category, handleEdit, handleDeleteClick }: { categor
         </button>
       </td>
       <td className="px-6 py-4">
-        <span className="text-sm font-medium text-[#14142B]">{category.name}</span>
+        <div className="flex items-center gap-3">
+          <img 
+            src={normalizeImageUrl(category.image, "/images/category/thumb.png")} 
+            alt={category.name} 
+            className="w-11 h-11 rounded-xl object-cover border border-[#EFF0F6] shrink-0 shadow-xs bg-[#FAFAFC]" 
+            onError={(e) => { (e.target as HTMLImageElement).src = "/images/category/thumb.png"; }}
+          />
+          <div>
+            <span className="text-sm font-semibold text-[#14142B] block">{category.name}</span>
+            {category.slug && (
+              <span className="text-xs text-[#6E7191] font-mono block mt-0.5">{category.slug}</span>
+            )}
+          </div>
+        </div>
       </td>
       <td className="px-6 py-4">
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${category.status ? 'bg-[#E0FFED] text-[#1AB759]' : 'bg-[#FFEAEA] text-[#FB4E4E]'}`}>
@@ -77,6 +91,7 @@ export default function ItemCategoriesPage() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
   const [localCategories, setLocalCategories] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   
   const { execute, data: categories, loading } = useApi();
   const { execute: deleteCategory } = useApi();
@@ -170,8 +185,10 @@ export default function ItemCategoriesPage() {
             <div className="relative">
               <input 
                 type="text" 
-                placeholder="Search..." 
-                className="h-10 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-sm focus:outline-none focus:border-primary w-full sm:w-48 transition-colors"
+                placeholder="Search categories..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-10 pl-10 pr-4 rounded-xl border border-[#EFF0F6] bg-[#F7F7FC] text-sm focus:outline-none focus:border-primary w-full sm:w-56 transition-colors"
               />
               <Search className="w-4 h-4 text-[#A0A3BD] absolute left-3.5 top-1/2 -translate-y-1/2" />
             </div>
@@ -192,7 +209,7 @@ export default function ItemCategoriesPage() {
             <thead className="bg-[#F7F7FC] border-b border-[#EFF0F6]">
               <tr>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider w-10">Reorder</th>
-                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Name</th>
+                <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Category</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#6E7191] uppercase tracking-wider text-right">Action</th>
               </tr>
@@ -218,14 +235,16 @@ export default function ItemCategoriesPage() {
                     items={localCategories.map(c => c._id)}
                     strategy={verticalListSortingStrategy}
                   >
-                    {localCategories.map((category) => (
-                      <SortableTableRow 
-                        key={category._id} 
-                        category={category}
-                        handleEdit={handleEdit}
-                        handleDeleteClick={handleDeleteClick}
-                      />
-                    ))}
+                    {localCategories
+                      .filter(cat => !searchQuery.trim() || cat.name?.toLowerCase().includes(searchQuery.toLowerCase()) || cat.slug?.toLowerCase().includes(searchQuery.toLowerCase()))
+                      .map((category) => (
+                        <SortableTableRow 
+                          key={category._id} 
+                          category={category}
+                          handleEdit={handleEdit}
+                          handleDeleteClick={handleDeleteClick}
+                        />
+                      ))}
                   </SortableContext>
                 </tbody>
               </DndContext>
@@ -235,7 +254,7 @@ export default function ItemCategoriesPage() {
         
         {/* Pagination */}
         <div className="p-4 sm:p-6 border-t border-[#EFF0F6] flex items-center justify-between">
-          <span className="text-sm text-[#6E7191]">Showing {localCategories.length || 0} entries</span>
+          <span className="text-sm text-[#6E7191]">Showing {localCategories.length || 0} categories</span>
         </div>
       </div>
 

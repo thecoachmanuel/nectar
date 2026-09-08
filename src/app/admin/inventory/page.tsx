@@ -23,6 +23,7 @@ import {
 import { formatPrice } from "@/lib/formatters";
 import ItemModal from "@/components/admin/ItemModal";
 import { toast } from "sonner";
+import { normalizeImageUrl } from "@/lib/imageUtils";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export default function InventoryPage() {
@@ -423,9 +424,10 @@ export default function InventoryPage() {
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
                           <img
-                            src={item.image || "/images/item/thumb.png"}
+                            src={normalizeImageUrl(item.image, "/images/item/thumb.png")}
                             alt={item.name}
                             className="w-12 h-12 rounded-xl object-cover border border-[#EFF0F6] shadow-2xs shrink-0"
+                            onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }}
                           />
                           <div>
                             <span className="font-bold text-[#14142B] text-sm block leading-tight line-clamp-1">

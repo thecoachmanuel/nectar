@@ -18,6 +18,7 @@ import {
   Bell
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
+import { normalizeImageUrl } from "@/lib/imageUtils";
 import { orderSoundAlert } from "@/utils/audioAlert";
 import { formatPrice } from "@/lib/formatters";
 import { toast } from "sonner";
@@ -327,11 +328,11 @@ export default function OrderStatusScreenPage() {
                     {/* Circular Image (matching PHP style) */}
                     <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden mb-3 border-2 border-white shadow-sm shrink-0 bg-white group-hover:scale-105 transition-transform">
                       <img 
-                        src={item.image || "/images/default/item.png"} 
+                        src={normalizeImageUrl(item.image, "/images/item/thumb.png")} 
                         alt={item.name} 
                         className="w-full h-full object-cover"
                         onError={(e: any) => {
-                          e.target.src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&auto=format&fit=crop&q=60";
+                          e.target.src = "/images/item/thumb.png";
                         }}
                       />
                     </div>

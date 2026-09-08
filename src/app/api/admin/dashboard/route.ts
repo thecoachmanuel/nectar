@@ -28,13 +28,18 @@ export async function GET() {
       }
     }
 
+    const ItemCategory = (await import("@/models/ItemCategory")).default;
+
     const [
       totalOrders,
       totalCustomers,
       totalItems,
       orders,
       topCustomersData,
-      adminPhoneSetting
+      adminPhoneSetting,
+      rawFeaturedItems,
+      rawPopularItems,
+      rawCategories
     ] = await Promise.all([
       Order.countDocuments(storeIdFilter),
       User.countDocuments({ role: "customer" }),
@@ -48,8 +53,54 @@ export async function GET() {
       ]),
       Setting.findOne({
         key: { $in: ["admin_notification_whatsapp_number", "wa_admin_notification_phone", "company_phone"] }
-      }).lean()
+      }).lean(),
+      Item.find({ ...storeIdFilter, isFeatured: true, status: true })
+        .populate("categoryId", "name slug")
+        .limit(6)
+        .lean(),
+      Item.find({ ...storeIdFilter, status: true })
+        .populate("categoryId", "name slug")
+        .sort({ createdAt: -1 })
+        .limit(6)
+        .lean(),
+      ItemCategory.find({ status: true })
+        .sort({ sortOrder: 1, createdAt: -1 })
+        .limit(8)
+        .lean()
     ]);
+
+    const { normalizeImageUrl } = await import("@/lib/imageUtils");
+
+    const featuredItems = (rawFeaturedItems || []).map((item: any) => ({
+      _id: item._id,
+      name: item.name,
+      price: item.price,
+      discountPrice: item.discountPrice,
+      image: normalizeImageUrl(item.image, "/images/item/thumb.png"),
+      categoryName: item.categoryId?.name || "Groceries",
+      manageStock: item.manageStock,
+      stockQuantity: item.stockQuantity,
+      isOutOfStock: item.isOutOfStock,
+    }));
+
+    const popularItems = (rawPopularItems || []).map((item: any) => ({
+      _id: item._id,
+      name: item.name,
+      price: item.price,
+      discountPrice: item.discountPrice,
+      image: normalizeImageUrl(item.image, "/images/item/thumb.png"),
+      categoryName: item.categoryId?.name || "Groceries",
+      manageStock: item.manageStock,
+      stockQuantity: item.stockQuantity,
+      isOutOfStock: item.isOutOfStock,
+    }));
+
+    const topCategories = (rawCategories || []).map((cat: any) => ({
+      _id: cat._id,
+      name: cat.name,
+      slug: cat.slug,
+      image: normalizeImageUrl(cat.image, "/images/category/thumb.png"),
+    }));
 
     const totalSales = orders.reduce((sum, order: any) => sum + (order.totalAmount || 0), 0);
     const totalCommission = orders.reduce((sum, order: any) => sum + (order.commissionAmount || 0), 0);
@@ -80,6 +131,9 @@ export async function GET() {
         totalItems,
         orderStats,
         topCustomersData,
+        featuredItems,
+        popularItems,
+        topCategories,
         adminNotificationWhatsApp: adminPhoneSetting?.payload ? String(adminPhoneSetting.payload).trim() : null
       }
     });
