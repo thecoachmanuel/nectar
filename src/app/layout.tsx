@@ -170,13 +170,14 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             --color-primary-light: ${themeColor}1a;
           }
           .bg-primary { background-color: var(--primary-hex) !important; }
-          .text-primary { color: var(--primary-hex) !important; }
+          .text-primary { color: var(--primary-hex); }
           .border-primary { border-color: var(--primary-hex) !important; }
           .fill-primary { fill: var(--primary-hex) !important; }
           .stroke-primary { stroke: var(--primary-hex) !important; }
           .accent-primary { accent-color: var(--primary-hex) !important; }
           .bg-primary-light { background-color: var(--primary-light) !important; }
           .hover\\:bg-primary-light:hover { background-color: var(--primary-light) !important; }
+          .hover\\:text-white:hover, .group:hover .group-hover\\:text-white { color: #ffffff !important; }
         `}} />
       </head>
       <body className="antialiased bg-white text-[#14142b]" style={{ fontFamily: "'Rubik', sans-serif" }}>

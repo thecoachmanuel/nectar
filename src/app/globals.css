@@ -40,6 +40,7 @@ body {
 .hover\:bg-primary-light:hover { background-color: var(--primary-light) !important; }
 .stroke-primary { stroke: var(--primary-hex) !important; }
 .accent-primary { accent-color: var(--primary-hex) !important; }
+.hover\:text-white:hover, .group:hover .group-hover\:text-white { color: #ffffff !important; }
 
 /* =====================
    HEADER (matches PHP ff-header)

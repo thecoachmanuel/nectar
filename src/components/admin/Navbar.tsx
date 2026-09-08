@@ -129,11 +129,11 @@ export default function Navbar({ toggleSidebar, user }: NavbarProps) {
           href="/"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 h-9 sm:h-10 px-2.5 sm:px-3.5 rounded-xl bg-primary/10 hover:bg-primary text-primary hover:text-white transition-all text-xs font-bold shadow-sm"
+          className="group inline-flex items-center gap-1.5 h-9 sm:h-10 px-2.5 sm:px-3.5 rounded-xl bg-primary-light hover:bg-primary text-primary hover:text-white transition-all text-xs font-bold shadow-sm"
           title="Open Main Storefront"
         >
-          <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-          <span className="hidden sm:inline">Live Store</span>
+          <ExternalLink className="w-3.5 h-3.5 shrink-0 transition-colors group-hover:text-white" />
+          <span className="hidden sm:inline transition-colors group-hover:text-white">Live Store</span>
         </Link>
         
         <button 

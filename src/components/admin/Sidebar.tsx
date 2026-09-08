@@ -201,7 +201,7 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
             className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-white border border-[#EFF0F6] text-primary hover:bg-primary hover:text-white font-bold text-xs transition-all shadow-sm group"
           >
             <ExternalLink className="w-4 h-4 text-primary group-hover:text-white transition-colors" />
-            <span>Visit Live Store</span>
+            <span className="transition-colors group-hover:text-white">Visit Live Store</span>
           </Link>
         </div>
       </aside>
