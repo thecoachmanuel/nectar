@@ -60,6 +60,24 @@ const defaultPages: Record<string, any> = {
       <p>We implement robust encryption and security standards to ensure your personal details, payment records, and address information are fully secure and never shared with unauthorized third parties.</p>
     `,
   },
+  "faq": {
+    title: "Frequently Asked Questions (FAQ)",
+    slug: "faq",
+    template_id: 0,
+    description: `
+      <h2>Frequently Asked Questions (FAQ)</h2>
+      <p>Find quick answers to common questions about our services, orders, delivery, and payments.</p>
+    `,
+  },
+  "frequently-asked-questions": {
+    title: "Frequently Asked Questions (FAQ)",
+    slug: "frequently-asked-questions",
+    template_id: 0,
+    description: `
+      <h2>Frequently Asked Questions (FAQ)</h2>
+      <p>Find quick answers to common questions about our services, orders, delivery, and payments.</p>
+    `,
+  },
 };
 
 export async function GET(

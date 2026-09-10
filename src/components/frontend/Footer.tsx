@@ -65,10 +65,11 @@ export default function Footer() {
   };
 
   const pages = [
-    { title: "About Us", slug: "about-us" },
-    { title: "Contact Us", slug: "contact-us" },
-    { title: "Terms & Conditions", slug: "terms-conditions" },
-    { title: "Privacy Policy", slug: "privacy-policy" },
+    { title: "About Us", slug: "about-us", href: "/about" },
+    { title: "Contact Us", slug: "contact-us", href: "/contact" },
+    { title: "FAQ", slug: "faq", href: "/faq" },
+    { title: "Terms & Conditions", slug: "terms-conditions", href: "/page/terms-conditions" },
+    { title: "Privacy Policy", slug: "privacy-policy", href: "/page/privacy-policy" },
   ];
 
   return (
@@ -124,7 +125,7 @@ export default function Footer() {
                 {pages.map((page) => (
                   <Link
                     key={page.slug}
-                    href={`/page/${page.slug}`}
+                    href={page.href || `/page/${page.slug}`}
                     className="capitalize text-white text-sm hover:underline opacity-90 hover:opacity-100 transition-all"
                   >
                     {page.title}

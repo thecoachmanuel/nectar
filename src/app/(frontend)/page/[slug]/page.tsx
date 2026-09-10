@@ -7,6 +7,7 @@ import { Mail, Phone, ChevronRight, Headphones } from "lucide-react";
 import { useSettingsStore } from "@/store/useSettingsStore";
 import ContactPage from "@/app/(frontend)/contact/page";
 import AboutPage from "@/app/(frontend)/about/page";
+import FaqPage from "@/app/(frontend)/faq/page";
 
 export default function DynamicPage() {
   const params = useParams();
@@ -17,9 +18,11 @@ export default function DynamicPage() {
   const [page, setPage] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  const dedicatedSlugs = ["contact-us", "about-us", "contact", "about", "faq", "faqs", "frequently-asked-questions"];
+
   useEffect(() => {
     fetchSettings();
-    if (slug && slug !== "contact-us" && slug !== "about-us" && slug !== "contact" && slug !== "about") {
+    if (slug && !dedicatedSlugs.includes(slug)) {
       fetchPage();
     } else {
       setLoading(false);
@@ -41,13 +44,17 @@ export default function DynamicPage() {
     }
   };
 
-  // If slug is contact or about, render the dedicated rich components
+  // If slug is contact, about, or faq, render the dedicated rich components
   if (slug === "contact-us" || slug === "contact") {
     return <ContactPage />;
   }
 
   if (slug === "about-us" || slug === "about") {
     return <AboutPage />;
+  }
+
+  if (slug === "faq" || slug === "faqs" || slug === "frequently-asked-questions") {
+    return <FaqPage />;
   }
 
   const contactEmail = settings?.company_email || settings?.contactEmail || "info@errandshop.com";
