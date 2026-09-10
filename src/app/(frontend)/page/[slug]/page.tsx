@@ -8,6 +8,7 @@ import { useSettingsStore } from "@/store/useSettingsStore";
 import ContactPage from "@/app/(frontend)/contact/page";
 import AboutPage from "@/app/(frontend)/about/page";
 import FaqPage from "@/app/(frontend)/faq/page";
+import PrivacyPolicyPage from "@/app/(frontend)/privacy-policy/page";
 
 export default function DynamicPage() {
   const params = useParams();
@@ -18,7 +19,17 @@ export default function DynamicPage() {
   const [page, setPage] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const dedicatedSlugs = ["contact-us", "about-us", "contact", "about", "faq", "faqs", "frequently-asked-questions"];
+  const dedicatedSlugs = [
+    "contact-us",
+    "about-us",
+    "contact",
+    "about",
+    "faq",
+    "faqs",
+    "frequently-asked-questions",
+    "privacy-policy",
+    "privacy",
+  ];
 
   useEffect(() => {
     fetchSettings();
@@ -44,7 +55,7 @@ export default function DynamicPage() {
     }
   };
 
-  // If slug is contact, about, or faq, render the dedicated rich components
+  // If slug matches any dedicated page, render its rich component
   if (slug === "contact-us" || slug === "contact") {
     return <ContactPage />;
   }
@@ -55,6 +66,10 @@ export default function DynamicPage() {
 
   if (slug === "faq" || slug === "faqs" || slug === "frequently-asked-questions") {
     return <FaqPage />;
+  }
+
+  if (slug === "privacy-policy" || slug === "privacy") {
+    return <PrivacyPolicyPage />;
   }
 
   const contactEmail = settings?.company_email || settings?.contactEmail || "info@errandshop.com";

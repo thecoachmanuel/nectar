@@ -50,14 +50,58 @@ const defaultPages: Record<string, any> = {
     `,
   },
   "privacy-policy": {
-    title: "Privacy Policy",
+    title: "Privacy Policy — Errand Shop",
     slug: "privacy-policy",
     template_id: 0,
     description: `
-      <h2>Privacy Policy</h2>
-      <p>At Errandshop, we are committed to protecting your personal privacy. We collect minimal customer information necessary to process your orders, deliver products to your specified address, and communicate order updates.</p>
-      <h3>Data Security</h3>
-      <p>We implement robust encryption and security standards to ensure your personal details, payment records, and address information are fully secure and never shared with unauthorized third parties.</p>
+      <h2>Privacy Policy — Errand Shop</h2>
+      <p><strong>Effective Date:</strong> 13 August 2025</p>
+      <p>At Errand Shop, we respect your privacy and are committed to protecting the personal information you share with us. This Privacy Policy explains what information we collect, how we use it, and your rights regarding that information.</p>
+      
+      <h3>1. Information We Collect</h3>
+      <ul>
+        <li><strong>Personal Identification Information:</strong> Name, phone number, email address, and delivery address.</li>
+        <li><strong>Order Information:</strong> Items purchased, order history, and delivery preferences.</li>
+        <li><strong>Payment Information:</strong> Transaction details (we do not store your full payment card information).</li>
+        <li><strong>Location Data:</strong> If enabled, we use your approximate location only to facilitate deliveries to your address and to show delivery availability in your area.</li>
+        <li><strong>Device Information:</strong> Device type, operating system, and app usage statistics for service improvement.</li>
+      </ul>
+
+      <h3>2. How We Use Your Information</h3>
+      <ul>
+        <li>Process and deliver your grocery orders.</li>
+        <li>Provide customer support.</li>
+        <li>Improve and personalize our services.</li>
+        <li>Send important service notices (marketing communications are optional).</li>
+        <li>Detect and prevent fraud or misuse of our platform.</li>
+      </ul>
+
+      <h3>3. Sharing of Information</h3>
+      <p><strong>We do not sell your personal information.</strong> We may share it with:</p>
+      <ul>
+        <li><strong>Delivery Services:</strong> To deliver your groceries to your address.</li>
+        <li><strong>Payment Processors:</strong> To process your transactions securely.</li>
+        <li><strong>Legal Authorities:</strong> When required by law or to protect our legal rights.</li>
+      </ul>
+
+      <h3>4. Data Retention</h3>
+      <p>We keep your personal information only as long as necessary to fulfill your orders, comply with legal requirements, or resolve disputes.</p>
+
+      <h3>5. Security of Your Information</h3>
+      <p>We implement reasonable physical, electronic, and managerial procedures to safeguard your data against loss, theft, and unauthorized access.</p>
+
+      <h3>6. Your Rights</h3>
+      <p>You have the right to:</p>
+      <ul>
+        <li>Update or correct your personal information.</li>
+        <li>Delete your account and associated information.</li>
+      </ul>
+
+      <h3>7. Changes to This Policy</h3>
+      <p>We may update this Privacy Policy from time to time. Changes will be posted on our app and/or website, with the updated date.</p>
+
+      <h3>8. Contact Us</h3>
+      <p>If you have questions about this Privacy Policy, please contact our support team.</p>
     `,
   },
   "faq": {

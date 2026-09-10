@@ -69,7 +69,7 @@ export default function Footer() {
     { title: "Contact Us", slug: "contact-us", href: "/contact" },
     { title: "FAQ", slug: "faq", href: "/faq" },
     { title: "Terms & Conditions", slug: "terms-conditions", href: "/page/terms-conditions" },
-    { title: "Privacy Policy", slug: "privacy-policy", href: "/page/privacy-policy" },
+    { title: "Privacy Policy", slug: "privacy-policy", href: "/privacy-policy" },
   ];
 
   return (
