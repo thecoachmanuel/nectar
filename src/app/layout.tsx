@@ -15,7 +15,7 @@ import HorizontalMouseScroll from "@/components/HorizontalMouseScroll";
 export async function generateMetadata(): Promise<Metadata> {
   let faviconUrl = "/images/theme/theme-favicon-logo.png?v=3";
   let siteTitle = "Errandshop - Online Groceries Shopping";
-  let themeColor = "#ff006b";
+  let themeColor = "#2eb824";
 
   try {
     await dbConnect();
@@ -96,7 +96,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#ff006b",
+  themeColor: "#2eb824",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -107,9 +107,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  let themeColor = "#ff006b";
-  let themeSecondaryColor = "#1E293B";
-  let themeTertiaryColor = "#FF6B00";
+  let themeColor = "#2eb824";
+  let themeSecondaryColor = "#f70102";
+  let themeTertiaryColor = "#ff840a";
   const initialSettings: Record<string, any> = {};
 
   try {
@@ -222,7 +222,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           .bg-accent-light { background-color: var(--accent-light) !important; }
           .hover\\:bg-accent:hover { background-color: var(--accent-hover) !important; }
           
-          .footer-part { background-color: var(--secondary-hex) !important; }
+          .footer-part { background-color: #14142b !important; border-top: 3px solid var(--secondary-hex) !important; }
         `}} />
       </head>
       <body className="antialiased bg-white text-[#14142b]" style={{ fontFamily: "'Rubik', sans-serif" }}>

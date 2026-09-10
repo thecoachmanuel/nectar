@@ -145,7 +145,7 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
           ) : hasDiscount ? (
             <div 
               className="absolute top-3.5 left-4 inline-flex items-center gap-1 px-3 py-1 rounded-full text-white text-xs font-black shadow-lg tracking-wide"
-              style={{ backgroundColor: "var(--accent-hex)" }}
+              style={{ backgroundColor: "var(--secondary-hex)" }}
             >
               -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}% OFF
             </div>
@@ -161,7 +161,7 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
           </button>
 
           {item.isFeatured && (
-            <div className="absolute bottom-3.5 left-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/95 backdrop-blur-md text-xs font-bold shadow-md" style={{ color: "var(--primary-hex)" }}>
+            <div className="absolute bottom-3.5 left-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/95 backdrop-blur-md text-xs font-bold shadow-md" style={{ color: "var(--accent-hex)" }}>
               <Sparkles className="w-3.5 h-3.5" />
               Featured Product
             </div>

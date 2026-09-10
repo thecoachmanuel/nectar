@@ -50,15 +50,15 @@ export function SettingsProvider({
   }, [settings]);
 
   const themeColor = useMemo(() => {
-    return settings.theme_primary_color || "#ff006b";
+    return settings.theme_primary_color || "#2eb824";
   }, [settings]);
 
   const themeSecondaryColor = useMemo(() => {
-    return settings.theme_secondary_color || "#1E293B";
+    return settings.theme_secondary_color || "#f70102";
   }, [settings]);
 
   const themeTertiaryColor = useMemo(() => {
-    return settings.theme_tertiary_color || "#FF6B00";
+    return settings.theme_tertiary_color || "#ff840a";
   }, [settings]);
 
   const siteTitle = useMemo(() => {
@@ -139,9 +139,9 @@ export function useSettings() {
       settings: zustandSettings,
       headerLogo: getHeaderLogo(zustandSettings),
       footerLogo: getFooterLogo(zustandSettings),
-      themeColor: zustandSettings?.theme_primary_color || "#ff006b",
-      themeSecondaryColor: zustandSettings?.theme_secondary_color || "#1E293B",
-      themeTertiaryColor: zustandSettings?.theme_tertiary_color || "#FF6B00",
+      themeColor: zustandSettings?.theme_primary_color || "#2eb824",
+      themeSecondaryColor: zustandSettings?.theme_secondary_color || "#f70102",
+      themeTertiaryColor: zustandSettings?.theme_tertiary_color || "#ff840a",
       siteTitle: zustandSettings?.site_title || zustandSettings?.company_name || "Errandshop",
       updateSettings: () => {},
     };

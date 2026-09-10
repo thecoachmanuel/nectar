@@ -98,7 +98,10 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             <ShoppingBag className="w-5 h-5 text-primary" />
             <h3 className="text-lg font-semibold capitalize text-[#14142b]">Your Cart</h3>
             {items.length > 0 && (
-              <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-bold">
+              <span 
+                className="w-6 h-6 rounded-full text-white text-xs flex items-center justify-center font-bold shadow-xs"
+                style={{ backgroundColor: "var(--accent-hex)" }}
+              >
                 {items.reduce((s, i) => s + i.quantity, 0)}
               </span>
             )}
@@ -130,9 +133,9 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               <button
                 key={type}
                 onClick={() => useCartStore.getState().setOrderType(type as any)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold capitalize transition-all ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold capitalize transition-all cursor-pointer ${
                   orderType === type
-                    ? "bg-[#008BBA] text-white shadow-sm"
+                    ? "bg-[#14142B] text-white shadow-sm"
                     : "bg-white border border-[#e2e8f0] text-[#6e7191] hover:bg-slate-50"
                 }`}
               >
@@ -153,8 +156,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               <p className="text-sm text-[#a0a3bd]">Add items from our menu to get started.</p>
               <button
                 onClick={onClose}
-                className="mt-6 px-6 py-2.5 rounded-2xl text-sm font-semibold text-white transition-all shadow-md"
-                style={{ backgroundColor: "var(--primary-hex)" }}
+                className="mt-6 px-6 py-2.5 rounded-2xl text-sm font-semibold text-white bg-[#14142B] hover:bg-primary transition-all shadow-md cursor-pointer"
               >
                 Browse Menu
               </button>

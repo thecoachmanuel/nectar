@@ -64,7 +64,7 @@ function ProductCard({ item, onOpen }: { item: any; onOpen: (i: any) => void }) 
         ) : hasDiscount ? (
           <div 
             className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md text-white text-[10px] font-black shadow-md z-10 tracking-wide"
-            style={{ backgroundColor: "var(--accent-hex)" }}
+            style={{ backgroundColor: "var(--secondary-hex)" }}
           >
             -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}%
           </div>
@@ -139,7 +139,7 @@ function ProductRow({ item, onOpen }: { item: any; onOpen: (i: any) => void }) {
         ) : hasDiscount ? (
           <div 
             className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md text-white text-[10px] font-black shadow-md z-10 tracking-wide"
-            style={{ backgroundColor: "var(--accent-hex)" }}
+            style={{ backgroundColor: "var(--secondary-hex)" }}
           >
             -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}%
           </div>
@@ -223,8 +223,7 @@ function AisleView({
             {cat._id !== "__other" && (
               <Link
                 href={`/menu?category=${cat._id}`}
-                className="flex items-center gap-0.5 text-xs font-semibold hover:underline shrink-0"
-                style={{ color: "var(--primary-hex)" }}
+                className="flex items-center gap-0.5 text-xs font-semibold text-[#6e7191] hover:text-primary transition-colors shrink-0"
               >
                 View All <ChevronRight className="w-3.5 h-3.5" />
               </Link>
@@ -407,7 +406,7 @@ function MenuContent() {
           {/* HEADER & VIEW TOGGLE */}
           <div className="flex gap-2 sm:gap-4 items-start justify-between mb-4 sm:mb-6">
             <div>
-              <h2 className="capitalize text-lg sm:text-2xl font-semibold text-primary">
+              <h2 className="capitalize text-lg sm:text-2xl font-semibold text-[#14142b]">
                 {selectedCategory ? selectedCategory.name : "All Products"}
               </h2>
               {isAllView && allItems.length > 0 && (

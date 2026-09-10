@@ -2,30 +2,30 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #ff006b;
-  --color-primary-light: #ffedf4;
-  --color-primary-slate: #ff3b8e;
-  --color-secondary: #1e293b;
-  --color-secondary-hover: #334155;
-  --color-secondary-light: #f1f5f9;
-  --color-accent: #ff6b00;
-  --color-accent-hover: #ea580c;
-  --color-accent-light: #fff7ed;
+  --color-primary: #2eb824;
+  --color-primary-light: #eaf8e9;
+  --color-primary-slate: #259c1e;
+  --color-secondary: #f70102;
+  --color-secondary-hover: #d90102;
+  --color-secondary-light: #feeeee;
+  --color-accent: #ff840a;
+  --color-accent-hover: #e57507;
+  --color-accent-light: #fff5eb;
 }
 
 :root {
-  /* === 3-BRAND-COLOR SYSTEM: PRIMARY, SECONDARY, ACCENT === */
-  --primary: 255 0 107;
-  --primary-hex: #ff006b;
-  --primary-slate: #ff3b8e;
-  --primary-light: #ffedF4;
-  --secondary-hex: #1e293b;
-  --secondary-hover: #334155;
-  --secondary-light: #f1f5f9;
-  --secondary-dark: #0f172a;
-  --accent-hex: #ff6b00;
-  --accent-hover: #ea580c;
-  --accent-light: #fff7ed;
+  /* === ERRANDSHOP 3-BRAND-COLOR SYSTEM: GREEN (PRIMARY), RED (SECONDARY), YELLOW/ORANGE (TERTIARY) === */
+  --primary: 46 184 36;
+  --primary-hex: #2eb824;
+  --primary-slate: #259c1e;
+  --primary-light: #eaf8e9;
+  --secondary-hex: #f70102;
+  --secondary-hover: #d90102;
+  --secondary-light: #feeeee;
+  --secondary-dark: #14142b;
+  --accent-hex: #ff840a;
+  --accent-hover: #e57507;
+  --accent-light: #fff5eb;
   --accent-border: #fed7aa;
   --heading: #14142b;
   --paragraph: #6e7191;
@@ -44,7 +44,7 @@ body {
 }
 
 /* =====================
-   PRIMARY BRAND UTILITIES
+   PRIMARY BRAND UTILITIES (Green - Core Conversions)
    ===================== */
 .text-primary    { color: var(--primary-hex); }
 .bg-primary      { background-color: var(--primary-hex); }
@@ -58,7 +58,7 @@ body {
 .hover\:text-white:hover, .group:hover .group-hover\:text-white { color: #ffffff !important; }
 
 /* =====================
-   SECONDARY BRAND UTILITIES (Structure, Footers, Deep Contrast)
+   SECONDARY BRAND UTILITIES (Red - Urgency, Badges, Deal Highlights)
    ===================== */
 .text-secondary          { color: var(--secondary-hex); }
 .bg-secondary            { background-color: var(--secondary-hex); }
@@ -68,7 +68,7 @@ body {
 .hover\:text-secondary:hover { color: var(--secondary-hex) !important; }
 
 /* =====================
-   ACCENT / TERTIARY BRAND UTILITIES (Badges, Highlights, Cart Bubble)
+   ACCENT / TERTIARY BRAND UTILITIES (Yellow/Orange - Cart Bubble, Stars, Micro-delight)
    ===================== */
 .text-accent             { color: var(--accent-hex); }
 .bg-accent               { background-color: var(--accent-hex); }
@@ -94,10 +94,11 @@ body {
 }
 
 /* =====================
-   FOOTER (grounded in secondary brand color)
+   FOOTER (grounded in enterprise dark with brand secondary & primary accents)
    ===================== */
 .footer-part {
-  background-color: var(--secondary-hex);
+  background-color: #14142b;
+  border-top: 3px solid var(--secondary-hex);
 }
 
 /* =====================

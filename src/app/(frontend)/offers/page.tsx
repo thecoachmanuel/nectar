@@ -46,7 +46,10 @@ export default function OffersPage() {
       <section className="mb-24 sm:mb-16 mt-4 sm:mt-8">
         <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
           <div className="flex items-center gap-3 mb-6 sm:mb-8">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#1AB759]/20 to-[#1AB759]/5 text-[#1AB759] flex items-center justify-center shadow-sm">
+            <div 
+              className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm"
+              style={{ backgroundColor: "var(--secondary-light)", color: "var(--secondary-hex)" }}
+            >
               <Tag className="w-6 h-6" />
             </div>
             <div>
@@ -86,12 +89,15 @@ export default function OffersPage() {
                             src={offer.image}
                             alt={displayName}
                           />
-                          <div className="absolute top-3 right-3 bg-white/95 backdrop-blur px-3 py-1 rounded-full text-xs font-bold shadow" style={{ color: "var(--accent-hex)" }}>
+                          <div className="absolute top-3 right-3 bg-white/95 backdrop-blur px-3 py-1 rounded-full text-xs font-bold shadow" style={{ color: "var(--secondary-hex)" }}>
                             {discountText}
                           </div>
                         </div>
                       ) : (
-                        <div className="bg-gradient-to-br from-[#1AB759] to-[#128a42] p-6 text-white text-center relative overflow-hidden">
+                        <div 
+                          className="p-6 text-white text-center relative overflow-hidden"
+                          style={{ background: "linear-gradient(135deg, var(--secondary-hex), var(--secondary-hover))" }}
+                        >
                           <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
                           <span className="text-3xl sm:text-4xl font-extrabold tracking-tight block">
                             {discountText}
@@ -147,14 +153,15 @@ export default function OffersPage() {
                           <span className="text-[10px] text-[#6E7191] uppercase tracking-wider block font-semibold">
                             Coupon Code
                           </span>
-                          <span className="font-mono font-bold text-sm text-primary uppercase">
+                          <span className="font-mono font-bold text-sm uppercase" style={{ color: "var(--accent-hex)" }}>
                             {offer.code}
                           </span>
                         </div>
                         <button
                           type="button"
                           onClick={() => handleCopy(offer.code)}
-                          className="h-9 px-4 rounded-xl bg-primary text-white text-xs font-semibold hover:opacity-90 transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+                          className="h-9 px-4 rounded-xl text-white text-xs font-semibold hover:opacity-90 transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
+                          style={{ backgroundColor: "var(--secondary-hex)" }}
                         >
                           {copiedCode === offer.code ? (
                             <>

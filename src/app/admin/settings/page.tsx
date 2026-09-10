@@ -33,39 +33,39 @@ import MapComponent from "@/components/frontend/MapComponent";
 
 const COLOR_PRESETS = [
   {
-    name: "Errandshop Signature",
-    primary: "#008BBA",
-    secondary: "#1E293B",
-    accent: "#FF6B00",
-    desc: "Teal CTA, slate foundation, vivid orange accents",
+    name: "Errandshop Official (Logo Match)",
+    primary: "#2EB824",
+    secondary: "#F70102",
+    accent: "#FF840A",
+    desc: "Official logo: Fresh Grocer Green, Bold Red & Golden Cart Accent",
   },
   {
-    name: "Fresh Organic Grocer",
-    primary: "#059669",
-    secondary: "#064E3B",
-    accent: "#F59E0B",
-    desc: "Emerald CTA, forest structure, amber discounts",
+    name: "Errandshop Deep Harvest",
+    primary: "#15803D",
+    secondary: "#DC2626",
+    accent: "#EAB308",
+    desc: "Deep forest green, crimson red, and warm gold",
   },
   {
-    name: "Berry & Charcoal",
-    primary: "#FF006B",
-    secondary: "#1E1B4B",
-    accent: "#FF9900",
-    desc: "Vibrant berry CTA, indigo structure, golden accents",
-  },
-  {
-    name: "Citrus Market",
-    primary: "#0284C7",
-    secondary: "#0F172A",
-    accent: "#EA580C",
-    desc: "Ocean blue CTA, midnight navy, tangerine spark",
-  },
-  {
-    name: "Earthy Harvest",
+    name: "Errandshop Vibrant Market",
     primary: "#16A34A",
-    secondary: "#374151",
-    accent: "#D97706",
-    desc: "Botanical green CTA, charcoal structure, warm bronze",
+    secondary: "#E11D48",
+    accent: "#F59E0B",
+    desc: "Emerald grocer CTA, rose red highlights, and warm amber",
+  },
+  {
+    name: "Classic Grocer & Slate",
+    primary: "#2EB824",
+    secondary: "#1E293B",
+    accent: "#FF840A",
+    desc: "Logo green CTA, slate foundation, and golden cart accent",
+  },
+  {
+    name: "Teal & Charcoal",
+    primary: "#008BBA",
+    secondary: "#14142B",
+    accent: "#FF6B00",
+    desc: "Original teal CTA, charcoal structure, vivid orange accents",
   },
 ];
 
@@ -741,7 +741,7 @@ export default function SettingsPage() {
                       <span className="block text-xs font-bold text-[#14142B] mb-2">Footer Logo</span>
                       <div 
                         className="h-16 w-full rounded-lg border border-black/10 flex items-center justify-center p-2 mb-3"
-                        style={{ backgroundColor: formData.theme_secondary_color || "var(--secondary-hex)" }}
+                        style={{ backgroundColor: "#14142B", borderTop: `3px solid ${formData.theme_secondary_color || "var(--secondary-hex)"}` }}
                       >
                         {formData.theme_footer_logo ? (
                           <img src={normalizeImageUrl(formData.theme_footer_logo)} alt="Footer Logo" className="max-h-12 max-w-full object-contain" />
@@ -1270,18 +1270,18 @@ export default function SettingsPage() {
                         </span>
                       </div>
                       <p className="text-xs text-[#6E7191] mb-4">
-                        Main conversion buttons (&quot;Add to Cart&quot;, &quot;Checkout&quot;), active nav tabs, and key focus rings.
+                        Main conversion buttons (&quot;Add to Cart&quot;, &quot;Checkout&quot;), active nav indicators, and key focus rings.
                       </p>
                       <div className="flex gap-2.5 items-center mb-4">
                         <input 
                           type="color" 
-                          value={formData.theme_primary_color || "#008BBA"} 
+                          value={formData.theme_primary_color || "#2EB824"} 
                           onChange={(e) => handleChange("theme_primary_color", e.target.value)}
                           className="h-12 w-12 rounded-xl border border-[#EFF0F6] cursor-pointer shrink-0 shadow-2xs" 
                         />
                         <input 
                           type="text" 
-                          value={formData.theme_primary_color || "#008BBA"} 
+                          value={formData.theme_primary_color || "#2EB824"} 
                           onChange={(e) => handleChange("theme_primary_color", e.target.value)}
                           className="flex-1 h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary font-mono uppercase" 
                         />
@@ -1292,7 +1292,7 @@ export default function SettingsPage() {
                       <span className="text-[11px] text-[#A0A3BD]">Preview CTA:</span>
                       <span 
                         className="px-3 py-1 rounded-full text-xs font-semibold text-white shadow-2xs"
-                        style={{ backgroundColor: formData.theme_primary_color || "#008BBA" }}
+                        style={{ backgroundColor: formData.theme_primary_color || "#2EB824" }}
                       >
                         Add to Cart
                       </span>
@@ -1304,63 +1304,24 @@ export default function SettingsPage() {
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <label className="text-sm font-bold text-[#14142B]">2. Secondary Color</label>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white border border-[#EFF0F6] text-[#1E293B]">
-                          30% Grounding
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white border border-[#EFF0F6] text-[#F70102]">
+                          30% Accent & Framing
                         </span>
                       </div>
                       <p className="text-xs text-[#6E7191] mb-4">
-                        Replaces the solid primary footer wall with a rich, grounded background and secondary framing.
+                        Powers high-visibility discount badges (-20% OFF), urgent alerts, and footer brand accent framing.
                       </p>
                       <div className="flex gap-2.5 items-center mb-4">
                         <input 
                           type="color" 
-                          value={formData.theme_secondary_color || "#1E293B"} 
+                          value={formData.theme_secondary_color || "#F70102"} 
                           onChange={(e) => handleChange("theme_secondary_color", e.target.value)}
                           className="h-12 w-12 rounded-xl border border-[#EFF0F6] cursor-pointer shrink-0 shadow-2xs" 
                         />
                         <input 
                           type="text" 
-                          value={formData.theme_secondary_color || "#1E293B"} 
+                          value={formData.theme_secondary_color || "#F70102"} 
                           onChange={(e) => handleChange("theme_secondary_color", e.target.value)}
-                          className="flex-1 h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary font-mono uppercase" 
-                        />
-                      </div>
-                    </div>
-                    {/* Live Chip */}
-                    <div className="pt-3 border-t border-[#EFF0F6] flex items-center justify-between">
-                      <span className="text-[11px] text-[#A0A3BD]">Preview Footer:</span>
-                      <span 
-                        className="px-3 py-1 rounded-full text-xs font-semibold text-white shadow-2xs"
-                        style={{ backgroundColor: formData.theme_secondary_color || "#1E293B" }}
-                      >
-                        Footer & Contrast
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Tertiary / Accent Color Card */}
-                  <div className="p-5 rounded-2xl border border-[#EFF0F6] bg-[#FAFAFC] flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="text-sm font-bold text-[#14142B]">3. Accent Color</label>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white border border-[#EFF0F6] text-[#FF6B00]">
-                          10% Highlight
-                        </span>
-                      </div>
-                      <p className="text-xs text-[#6E7191] mb-4">
-                        Creates urgency and delight on discount badges (-20% OFF), floating cart counts, and star ratings.
-                      </p>
-                      <div className="flex gap-2.5 items-center mb-4">
-                        <input 
-                          type="color" 
-                          value={formData.theme_tertiary_color || "#FF6B00"} 
-                          onChange={(e) => handleChange("theme_tertiary_color", e.target.value)}
-                          className="h-12 w-12 rounded-xl border border-[#EFF0F6] cursor-pointer shrink-0 shadow-2xs" 
-                        />
-                        <input 
-                          type="text" 
-                          value={formData.theme_tertiary_color || "#FF6B00"} 
-                          onChange={(e) => handleChange("theme_tertiary_color", e.target.value)}
                           className="flex-1 h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary font-mono uppercase" 
                         />
                       </div>
@@ -1370,9 +1331,48 @@ export default function SettingsPage() {
                       <span className="text-[11px] text-[#A0A3BD]">Preview Badge:</span>
                       <span 
                         className="px-3 py-1 rounded-full text-xs font-bold text-white shadow-2xs"
-                        style={{ backgroundColor: formData.theme_tertiary_color || "#FF6B00" }}
+                        style={{ backgroundColor: formData.theme_secondary_color || "#F70102" }}
                       >
                         -25% OFF
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Tertiary / Accent Color Card */}
+                  <div className="p-5 rounded-2xl border border-[#EFF0F6] bg-[#FAFAFC] flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-sm font-bold text-[#14142B]">3. Accent Color (Yellow / Gold)</label>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white border border-[#EFF0F6] text-[#FF840A]">
+                          10% Highlight
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#6E7191] mb-4">
+                        Matches the logo basket: floating cart badges, star ratings, coupon codes, and special highlights.
+                      </p>
+                      <div className="flex gap-2.5 items-center mb-4">
+                        <input 
+                          type="color" 
+                          value={formData.theme_tertiary_color || "#FF840A"} 
+                          onChange={(e) => handleChange("theme_tertiary_color", e.target.value)}
+                          className="h-12 w-12 rounded-xl border border-[#EFF0F6] cursor-pointer shrink-0 shadow-2xs" 
+                        />
+                        <input 
+                          type="text" 
+                          value={formData.theme_tertiary_color || "#FF840A"} 
+                          onChange={(e) => handleChange("theme_tertiary_color", e.target.value)}
+                          className="flex-1 h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary font-mono uppercase" 
+                        />
+                      </div>
+                    </div>
+                    {/* Live Chip */}
+                    <div className="pt-3 border-t border-[#EFF0F6] flex items-center justify-between">
+                      <span className="text-[11px] text-[#A0A3BD]">Preview Bubble:</span>
+                      <span 
+                        className="px-3 py-1 rounded-full text-xs font-bold text-white shadow-2xs"
+                        style={{ backgroundColor: formData.theme_tertiary_color || "#FF840A" }}
+                      >
+                        ★ 4.9 Cart (3)
                       </span>
                     </div>
                   </div>
@@ -1388,9 +1388,9 @@ export default function SettingsPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                     {COLOR_PRESETS.map((preset) => {
                       const isActive = 
-                        (formData.theme_primary_color || "#ff006b").toLowerCase() === preset.primary.toLowerCase() &&
-                        (formData.theme_secondary_color || "#1e293b").toLowerCase() === preset.secondary.toLowerCase() &&
-                        (formData.theme_tertiary_color || "#ff6b00").toLowerCase() === preset.accent.toLowerCase();
+                        (formData.theme_primary_color || "#2eb824").toLowerCase() === preset.primary.toLowerCase() &&
+                        (formData.theme_secondary_color || "#f70102").toLowerCase() === preset.secondary.toLowerCase() &&
+                        (formData.theme_tertiary_color || "#ff840a").toLowerCase() === preset.accent.toLowerCase();
                       return (
                         <button
                           key={preset.name}
@@ -1441,7 +1441,7 @@ export default function SettingsPage() {
                     {/* Simulated Mini Navbar */}
                     <div className="bg-white px-4 py-3 border-b border-[#EFF0F6] flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs text-white" style={{ backgroundColor: formData.theme_primary_color || "#008BBA" }}>
+                        <div className="w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs text-white" style={{ backgroundColor: formData.theme_primary_color || "#2EB824" }}>
                           E
                         </div>
                         <span className="font-bold text-xs text-[#14142B]">Errandshop Store</span>
@@ -1454,7 +1454,7 @@ export default function SettingsPage() {
                           {/* Accent Cart Bubble */}
                           <span 
                             className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold text-white flex items-center justify-center shadow-xs"
-                            style={{ backgroundColor: formData.theme_tertiary_color || "#FF6B00" }}
+                            style={{ backgroundColor: formData.theme_tertiary_color || "#FF840A" }}
                           >
                             3
                           </span>
@@ -1466,15 +1466,15 @@ export default function SettingsPage() {
                     <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
                       {/* Product Card Demonstration */}
                       <div className="bg-white rounded-xl p-4 border border-[#EFF0F6] shadow-xs relative">
-                        {/* Accent Discount Badge */}
+                        {/* Secondary Red Discount Badge */}
                         <div className="flex items-center justify-between mb-3">
                           <span 
                             className="px-2 py-0.5 rounded-md text-[10px] font-bold text-white shadow-2xs tracking-wide"
-                            style={{ backgroundColor: formData.theme_tertiary_color || "#FF6B00" }}
+                            style={{ backgroundColor: formData.theme_secondary_color || "#F70102" }}
                           >
                             -20% OFF
                           </span>
-                          <span className="text-[11px] font-semibold" style={{ color: formData.theme_tertiary_color || "#FF6B00" }}>
+                          <span className="text-[11px] font-semibold flex items-center gap-0.5" style={{ color: formData.theme_tertiary_color || "#FF840A" }}>
                             ★ 4.9 (128)
                           </span>
                         </div>
@@ -1491,8 +1491,8 @@ export default function SettingsPage() {
                           {/* Primary CTA Button */}
                           <button
                             type="button"
-                            className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white shadow-xs transition-opacity hover:opacity-90"
-                            style={{ backgroundColor: formData.theme_primary_color || "#008BBA" }}
+                            className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white shadow-xs transition-opacity hover:opacity-90 cursor-pointer"
+                            style={{ backgroundColor: formData.theme_primary_color || "#2EB824" }}
                           >
                             Add to Cart
                           </button>
@@ -1502,21 +1502,21 @@ export default function SettingsPage() {
                       {/* Design Rule Explanation */}
                       <div className="space-y-2.5 text-xs">
                         <div className="flex items-start gap-2">
-                          <div className="w-3.5 h-3.5 rounded-full mt-0.5 shrink-0" style={{ backgroundColor: formData.theme_primary_color || "#008BBA" }} />
+                          <div className="w-3.5 h-3.5 rounded-full mt-0.5 shrink-0 shadow-2xs" style={{ backgroundColor: formData.theme_primary_color || "#2EB824" }} />
                           <div>
-                            <strong className="text-[#14142B]">Primary CTA (60%):</strong> Commands customer focus immediately for adding items and checkout.
+                            <strong className="text-[#14142B]">Primary CTA (60%):</strong> Fresh Grocer Green commands customer focus immediately for adding items and checkout.
                           </div>
                         </div>
                         <div className="flex items-start gap-2">
-                          <div className="w-3.5 h-3.5 rounded-full mt-0.5 shrink-0" style={{ backgroundColor: formData.theme_tertiary_color || "#FF6B00" }} />
+                          <div className="w-3.5 h-3.5 rounded-full mt-0.5 shrink-0 shadow-2xs" style={{ backgroundColor: formData.theme_secondary_color || "#F70102" }} />
                           <div>
-                            <strong className="text-[#14142B]">Accent Alert (10%):</strong> Highlights limited-time discounts and alerts without competing with the primary action.
+                            <strong className="text-[#14142B]">Secondary Contrast (30%):</strong> Bold Red drives promotional discounts (-20% OFF), urgent alerts, and footer framing.
                           </div>
                         </div>
                         <div className="flex items-start gap-2">
-                          <div className="w-3.5 h-3.5 rounded-full mt-0.5 shrink-0" style={{ backgroundColor: formData.theme_secondary_color || "#1E293B" }} />
+                          <div className="w-3.5 h-3.5 rounded-full mt-0.5 shrink-0 shadow-2xs" style={{ backgroundColor: formData.theme_tertiary_color || "#FF840A" }} />
                           <div>
-                            <strong className="text-[#14142B]">Secondary Grounding (30%):</strong> Anchors the footer and structural hierarchy with rich, comfortable depth.
+                            <strong className="text-[#14142B]">Tertiary Accent (10%):</strong> Warm Golden Basket Amber for cart bubbles, star ratings, and promo highlights.
                           </div>
                         </div>
                       </div>
@@ -1524,8 +1524,11 @@ export default function SettingsPage() {
 
                     {/* Simulated Mini Footer */}
                     <div 
-                      className="px-5 py-4 text-white flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
-                      style={{ backgroundColor: formData.theme_secondary_color || "#1E293B" }}
+                      className="px-5 py-4 text-white flex flex-col sm:flex-row items-center justify-between gap-3 text-xs border-t-[3px]"
+                      style={{ 
+                        backgroundColor: "#14142B",
+                        borderTopColor: formData.theme_secondary_color || "#F70102"
+                      }}
                     >
                       <div>
                         <div className="font-bold">Errandshop Nigeria</div>
@@ -1540,8 +1543,8 @@ export default function SettingsPage() {
                         />
                         <button 
                           type="button" 
-                          className="h-8 px-3 rounded text-[11px] font-semibold text-white shrink-0"
-                          style={{ backgroundColor: formData.theme_primary_color || "#008BBA" }}
+                          className="h-8 px-3 rounded text-[11px] font-semibold text-white shrink-0 shadow-xs"
+                          style={{ backgroundColor: formData.theme_primary_color || "#2EB824" }}
                         >
                           Subscribe
                         </button>
@@ -1648,7 +1651,7 @@ export default function SettingsPage() {
                       {/* Preview Box with live Secondary Brand BG */}
                       <div 
                         className="w-full h-24 rounded-xl border border-black/10 flex items-center justify-center p-3 mb-4 shadow-2xs relative"
-                        style={{ backgroundColor: formData.theme_secondary_color || "var(--secondary-hex)" }}
+                        style={{ backgroundColor: "#14142B", borderTop: `3px solid ${formData.theme_secondary_color || "var(--secondary-hex)"}` }}
                       >
                         {formData.theme_footer_logo ? (
                           <img 

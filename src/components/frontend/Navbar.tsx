@@ -147,7 +147,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
               {!user ? (
                 <Link
                   href="/auth/login"
-                  className="hidden lg:flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white bg-primary hover:opacity-90 transition-all shadow-sm"
+                  className="hidden lg:flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white bg-[#14142b] hover:bg-primary transition-all shadow-xs"
                 >
                   <User className="w-4 h-4" />
                   <span>Login</span>
@@ -156,7 +156,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
                 <div ref={profileRef} className="relative hidden lg:block">
                   <button
                     onClick={() => setProfileOpen(!profileOpen)}
-                    className="flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white bg-primary hover:opacity-90 transition-all shadow-sm cursor-pointer"
+                    className="flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white bg-[#14142b] hover:bg-primary transition-all shadow-xs cursor-pointer"
                   >
                     <User className="w-4 h-4" />
                     <span className="capitalize">{user.name?.split(" ")[0] || "Account"}</span>
@@ -215,13 +215,13 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
                         </Link>
                          <button 
                           onClick={() => { setProfileOpen(false); setPwaModalOpen(true); }}
-                          className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-primary hover:bg-primary-light transition-all border-b border-[#eff0f6] font-semibold cursor-pointer"
+                          className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-[#14142b] hover:text-primary hover:bg-primary-light transition-all border-b border-[#eff0f6] font-medium cursor-pointer"
                         >
                           <div className="flex items-center gap-3">
                             <Smartphone className="w-4 h-4 text-primary" />
                             <span>Download App</span>
                           </div>
-                          <span className="text-[9px] uppercase font-bold bg-primary text-white px-1.5 py-0.5 rounded-md">PWA</span>
+                          <span className="text-[9px] uppercase font-bold text-white px-1.5 py-0.5 rounded-md shadow-2xs" style={{ backgroundColor: "var(--secondary-hex)" }}>PWA</span>
                         </button>
                         <Link href="/account/profile?tab=security" onClick={() => setProfileOpen(false)}
                           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#14142b] hover:text-primary hover:bg-primary-light transition-all border-b border-[#eff0f6] capitalize">

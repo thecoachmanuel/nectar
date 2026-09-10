@@ -450,7 +450,7 @@ export default function CheckoutPage() {
                           setEditingAddress(null);
                           setIsAddressModalOpen(true);
                         }}
-                        className="group text-xs capitalize font-medium flex items-center rounded-3xl py-1.5 px-3 gap-1 text-[#00749B] bg-[#D6F5FF] transition hover:text-white hover:bg-[#00749B]"
+                        className="group text-xs capitalize font-semibold flex items-center rounded-3xl py-1.5 px-3 gap-1 text-primary bg-primary-light transition hover:bg-primary hover:text-white"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>Add New Address</span>
@@ -483,7 +483,7 @@ export default function CheckoutPage() {
                             className={`p-3 rounded-xl w-full border cursor-pointer transition-colors relative group ${selectedAddress === addr._id ? 'border-primary bg-primary-light' : 'border-[#F7F7FC] bg-[#F7F7FC] hover:border-primary/30'}`}
                           >
                             <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center gap-2 text-xs text-[#008BBA]">
+                              <div className="flex items-center gap-2 text-xs text-primary">
                                 <HomeIcon className="w-3.5 h-3.5" />
                                 <span className="font-medium">{addr.label || "Address"}</span>
                                 {addr.isDefault && (
@@ -629,17 +629,17 @@ export default function CheckoutPage() {
                   <h3 className="capitalize font-medium mb-4 text-center text-[#14142b]">Cart Summary</h3>
                   
                   {/* Delivery / Takeaway Toggle */}
-                  <div className="flex items-center rounded-2xl w-fit mx-auto mb-6 bg-[#BDEFFF] p-1">
+                  <div className="flex items-center rounded-2xl w-fit mx-auto mb-6 bg-[#F7F7FC] p-1 border border-[#EFF0F6]">
                     <button 
                       onClick={() => setOrderType("delivery")}
-                      className={`py-1.5 px-4 rounded-2xl text-xs font-medium capitalize transition-colors ${orderType === "delivery" ? 'bg-[#008BBA] text-white' : 'text-[#008BBA] hover:bg-white/50'}`}
+                      className={`py-1.5 px-4 rounded-2xl text-xs font-semibold capitalize transition-all cursor-pointer ${orderType === "delivery" ? 'bg-[#14142B] text-white shadow-xs' : 'text-[#6E7191] hover:text-[#14142B]'}`}
                     >
                       Delivery
                     </button>
                     {settings.takeaway_enabled === "Yes" && (
                       <button 
                         onClick={() => setOrderType("takeaway")}
-                        className={`py-1.5 px-4 rounded-2xl text-xs font-medium capitalize transition-colors ${orderType === "takeaway" ? 'bg-[#008BBA] text-white' : 'text-[#008BBA] hover:bg-white/50'}`}
+                        className={`py-1.5 px-4 rounded-2xl text-xs font-semibold capitalize transition-all cursor-pointer ${orderType === "takeaway" ? 'bg-[#14142B] text-white shadow-xs' : 'text-[#6E7191] hover:text-[#14142B]'}`}
                       >
                         Takeaway
                       </button>

@@ -83,9 +83,9 @@ export const useSettingStore = create<SettingState>()(
       activeStore: null,
 
       menuViewMode: "grid",
-      themeColor: "#FF4D4F",
-      themeSecondaryColor: "#1E293B",
-      themeTertiaryColor: "#FF6B00",
+      themeColor: "#2eb824",
+      themeSecondaryColor: "#f70102",
+      themeTertiaryColor: "#ff840a",
       logoUrl: getInitialLogo(),
       footerLogoUrl: getInitialFooterLogo(),
 

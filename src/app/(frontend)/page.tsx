@@ -197,7 +197,7 @@ export default function HomePage() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between gap-2 mb-4">
               <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b]">Categories</h2>
-              <Link href="/menu" className="text-xs font-medium" style={{ color: "var(--primary-hex)" }}>
+              <Link href="/menu" className="text-xs font-semibold text-[#6e7191] hover:text-primary transition-colors">
                 View All
               </Link>
             </div>
@@ -298,10 +298,10 @@ export default function HomePage() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between gap-2 mb-4">
               <div className="flex items-center gap-2">
-                <Star className="w-5 h-5 fill-primary text-primary" />
+                <Star className="w-5 h-5 fill-current" style={{ color: "var(--accent-hex)" }} />
                 <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b]">Featured Items</h2>
               </div>
-              <Link href="/menu?featured=true" className="text-xs font-medium" style={{ color: "var(--primary-hex)" }}>View All</Link>
+              <Link href="/menu?featured=true" className="text-xs font-semibold text-[#6e7191] hover:text-primary transition-colors">View All</Link>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {featuredItems.map((item) => (
@@ -318,10 +318,10 @@ export default function HomePage() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between gap-2 mb-4">
               <div className="flex items-center gap-2">
-                <Tag className="w-5 h-5" style={{ color: "var(--primary-hex)" }} />
+                <Tag className="w-5 h-5" style={{ color: "var(--secondary-hex)" }} />
                 <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b]">Current Offers</h2>
               </div>
-              <Link href="/offers" className="text-xs font-medium" style={{ color: "var(--primary-hex)" }}>View All</Link>
+              <Link href="/offers" className="text-xs font-semibold text-[#6e7191] hover:text-primary transition-colors">View All</Link>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {offers.map((offer) => (
@@ -343,7 +343,7 @@ export default function HomePage() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between gap-2 mb-4">
               <h2 className="text-lg sm:text-2xl font-semibold capitalize text-[#14142b]">Popular Products</h2>
-              <Link href="/menu" className="text-xs font-medium" style={{ color: "var(--primary-hex)" }}>View All</Link>
+              <Link href="/menu" className="text-xs font-semibold text-[#6e7191] hover:text-primary transition-colors">View All</Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {popularItems.map((item) => {
@@ -356,7 +356,10 @@ export default function HomePage() {
                         className="w-24 h-24 object-cover rounded-l-lg shrink-0"
                         onError={(e) => { (e.target as HTMLImageElement).src = "/images/item/thumb.png"; }} />
                       {hasDiscount && (
-                        <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-red-600 text-white text-[9px] font-black shadow-md z-10">
+                        <div 
+                          className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md text-white text-[9px] font-black shadow-md z-10"
+                          style={{ backgroundColor: "var(--secondary-hex)" }}
+                        >
                           -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}%
                         </div>
                       )}
@@ -440,8 +443,7 @@ export default function HomePage() {
                   </h2>
                   <Link
                     href={`/menu?category=${cat._id}`}
-                    className="flex items-center gap-0.5 text-xs font-semibold hover:underline shrink-0"
-                    style={{ color: "var(--primary-hex)" }}
+                    className="flex items-center gap-1 text-xs font-semibold text-[#6e7191] hover:text-primary transition-colors shrink-0"
                   >
                     View All <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
@@ -482,7 +484,10 @@ export default function HomePage() {
                                 OUT OF STOCK
                               </div>
                             ) : hasDiscount ? (
-                              <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-red-600 text-white text-[9px] font-black shadow-md z-10">
+                              <div 
+                                className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md text-white text-[9px] font-black shadow-md z-10"
+                                style={{ backgroundColor: "var(--secondary-hex)" }}
+                              >
                                 -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}%
                               </div>
                             ) : null}
@@ -566,7 +571,7 @@ function ItemCard({ item, onOpen }: { item: any; onOpen: (item: any) => void }) 
         ) : hasDiscount ? (
           <div 
             className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md text-white text-[10px] font-black shadow-md z-10 tracking-wide"
-            style={{ backgroundColor: "var(--accent-hex)" }}
+            style={{ backgroundColor: "var(--secondary-hex)" }}
           >
             -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}%
           </div>
