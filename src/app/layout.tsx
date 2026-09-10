@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
   try {
     await dbConnect();
     const settings = await Setting.find({
-      key: { $in: ["theme_favicon", "site_favicon", "site_title", "company_name", "theme_primary_color"] },
+      key: { $in: ["theme_favicon", "site_favicon", "site_title", "company_name", "theme_primary_color", "theme_secondary_color", "theme_tertiary_color"] },
     }).lean();
 
     const map: Record<string, any> = {};
@@ -108,6 +108,8 @@ export const revalidate = 0;
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   let themeColor = "#ff006b";
+  let themeSecondaryColor = "#1E293B";
+  let themeTertiaryColor = "#FF6B00";
   const initialSettings: Record<string, any> = {};
 
   try {
@@ -120,6 +122,12 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 
     if (initialSettings.theme_primary_color) {
       themeColor = initialSettings.theme_primary_color;
+    }
+    if (initialSettings.theme_secondary_color) {
+      themeSecondaryColor = initialSettings.theme_secondary_color;
+    }
+    if (initialSettings.theme_tertiary_color) {
+      themeTertiaryColor = initialSettings.theme_tertiary_color;
     }
   } catch (err) {
     console.error("Failed to load settings in RootLayout", err);
@@ -180,6 +188,16 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             --primary-light: ${themeColor}1a;
             --color-primary: ${themeColor};
             --color-primary-light: ${themeColor}1a;
+            --secondary-hex: ${themeSecondaryColor};
+            --secondary-hover: ${themeSecondaryColor}e6;
+            --secondary-light: ${themeSecondaryColor}1a;
+            --color-secondary: ${themeSecondaryColor};
+            --color-secondary-light: ${themeSecondaryColor}1a;
+            --accent-hex: ${themeTertiaryColor};
+            --accent-hover: ${themeTertiaryColor}e6;
+            --accent-light: ${themeTertiaryColor}1a;
+            --color-accent: ${themeTertiaryColor};
+            --color-accent-light: ${themeTertiaryColor}1a;
           }
           .bg-primary { background-color: var(--primary-hex) !important; }
           .text-primary { color: var(--primary-hex); }
@@ -191,6 +209,20 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           .hover\\:bg-primary-light:hover { background-color: var(--primary-light) !important; }
           .hover\\:bg-primary:hover, .group:hover .group-hover\\:bg-primary { background-color: var(--primary-hex) !important; }
           .hover\\:text-white:hover, .group:hover .group-hover\\:text-white { color: #ffffff !important; }
+
+          .bg-secondary { background-color: var(--secondary-hex) !important; }
+          .text-secondary { color: var(--secondary-hex); }
+          .border-secondary { border-color: var(--secondary-hex) !important; }
+          .bg-secondary-light { background-color: var(--secondary-light) !important; }
+          .hover\\:bg-secondary:hover { background-color: var(--secondary-hover) !important; }
+
+          .bg-accent { background-color: var(--accent-hex) !important; }
+          .text-accent { color: var(--accent-hex); }
+          .border-accent { border-color: var(--accent-hex) !important; }
+          .bg-accent-light { background-color: var(--accent-light) !important; }
+          .hover\\:bg-accent:hover { background-color: var(--accent-hover) !important; }
+          
+          .footer-part { background-color: var(--secondary-hex) !important; }
         `}} />
       </head>
       <body className="antialiased bg-white text-[#14142b]" style={{ fontFamily: "'Rubik', sans-serif" }}>

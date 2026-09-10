@@ -72,7 +72,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="footer-part pt-12 mb-14 lg:mb-0 hidden sm:block" style={{ backgroundColor: "var(--primary-hex)" }}>
+    <footer className="footer-part pt-12 mb-14 lg:mb-0 hidden sm:block" style={{ backgroundColor: "var(--secondary-hex)" }}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 md:gap-6">
           {/* Brand Column */}

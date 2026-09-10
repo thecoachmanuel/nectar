@@ -564,13 +564,19 @@ function ItemCard({ item, onOpen }: { item: any; onOpen: (item: any) => void }) 
             OUT OF STOCK
           </div>
         ) : hasDiscount ? (
-          <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-black shadow-md z-10">
+          <div 
+            className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md text-white text-[10px] font-black shadow-md z-10 tracking-wide"
+            style={{ backgroundColor: "var(--accent-hex)" }}
+          >
             -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}%
           </div>
         ) : null}
 
         {item.isFeatured && (
-          <div className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center z-10" style={{ backgroundColor: "var(--primary-hex)" }}>
+          <div 
+            className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center z-10 shadow-xs" 
+            style={{ backgroundColor: "var(--accent-hex)" }}
+          >
             <Star className="w-3 h-3 fill-white text-white" />
           </div>
         )}

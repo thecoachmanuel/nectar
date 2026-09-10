@@ -134,7 +134,10 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
                 <ShoppingBag className="w-4 h-4" />
                 <span className="whitespace-nowrap font-bold">{formatPrice(cartTotal)}</span>
                 {cartCount > 0 && (
-                  <span className="w-5 h-5 rounded-full bg-primary text-white text-[10px] flex items-center justify-center font-bold ml-1">
+                  <span 
+                    className="w-5 h-5 rounded-full text-white text-[10px] flex items-center justify-center font-bold ml-1 shadow-xs"
+                    style={{ backgroundColor: "var(--accent-hex)" }}
+                  >
                     {cartCount}
                   </span>
                 )}

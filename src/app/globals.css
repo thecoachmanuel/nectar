@@ -5,14 +5,28 @@
   --color-primary: #ff006b;
   --color-primary-light: #ffedf4;
   --color-primary-slate: #ff3b8e;
+  --color-secondary: #1e293b;
+  --color-secondary-hover: #334155;
+  --color-secondary-light: #f1f5f9;
+  --color-accent: #ff6b00;
+  --color-accent-hover: #ea580c;
+  --color-accent-light: #fff7ed;
 }
 
 :root {
-  /* === EXACT PHP APP PRIMARY COLOR: rgb(255, 0, 107) === */
+  /* === 3-BRAND-COLOR SYSTEM: PRIMARY, SECONDARY, ACCENT === */
   --primary: 255 0 107;
   --primary-hex: #ff006b;
   --primary-slate: #ff3b8e;
   --primary-light: #ffedF4;
+  --secondary-hex: #1e293b;
+  --secondary-hover: #334155;
+  --secondary-light: #f1f5f9;
+  --secondary-dark: #0f172a;
+  --accent-hex: #ff6b00;
+  --accent-hover: #ea580c;
+  --accent-light: #fff7ed;
+  --accent-border: #fed7aa;
   --heading: #14142b;
   --paragraph: #6e7191;
   --placeholder: #a0a3bd;
@@ -30,7 +44,7 @@ body {
 }
 
 /* =====================
-   PHP APP EXACT COLORS
+   PRIMARY BRAND UTILITIES
    ===================== */
 .text-primary    { color: var(--primary-hex); }
 .bg-primary      { background-color: var(--primary-hex); }
@@ -42,6 +56,26 @@ body {
 .stroke-primary { stroke: var(--primary-hex) !important; }
 .accent-primary { accent-color: var(--primary-hex) !important; }
 .hover\:text-white:hover, .group:hover .group-hover\:text-white { color: #ffffff !important; }
+
+/* =====================
+   SECONDARY BRAND UTILITIES (Structure, Footers, Deep Contrast)
+   ===================== */
+.text-secondary          { color: var(--secondary-hex); }
+.bg-secondary            { background-color: var(--secondary-hex); }
+.border-secondary        { border-color: var(--secondary-hex); }
+.bg-secondary-light      { background-color: var(--secondary-light); }
+.hover\:bg-secondary:hover { background-color: var(--secondary-hover) !important; }
+.hover\:text-secondary:hover { color: var(--secondary-hex) !important; }
+
+/* =====================
+   ACCENT / TERTIARY BRAND UTILITIES (Badges, Highlights, Cart Bubble)
+   ===================== */
+.text-accent             { color: var(--accent-hex); }
+.bg-accent               { background-color: var(--accent-hex); }
+.border-accent           { border-color: var(--accent-hex); }
+.bg-accent-light         { background-color: var(--accent-light); }
+.hover\:bg-accent:hover   { background-color: var(--accent-hover) !important; }
+.hover\:text-accent:hover { color: var(--accent-hex) !important; }
 
 /* =====================
    HEADER (matches PHP ff-header)
@@ -60,10 +94,10 @@ body {
 }
 
 /* =====================
-   FOOTER (matches PHP footer-part)
+   FOOTER (grounded in secondary brand color)
    ===================== */
 .footer-part {
-  background-color: var(--primary-hex);
+  background-color: var(--secondary-hex);
 }
 
 /* =====================

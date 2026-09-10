@@ -86,7 +86,7 @@ export default function OffersPage() {
                             src={offer.image}
                             alt={displayName}
                           />
-                          <div className="absolute top-3 right-3 bg-white/95 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-primary shadow">
+                          <div className="absolute top-3 right-3 bg-white/95 backdrop-blur px-3 py-1 rounded-full text-xs font-bold shadow" style={{ color: "var(--accent-hex)" }}>
                             {discountText}
                           </div>
                         </div>

@@ -42,7 +42,10 @@ export default function MobileBottomNav({ onCartOpen }: MobileBottomNavProps) {
                   <Icon className="w-5 h-5" />
                 </div>
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#14142b] text-white text-[9px] font-bold flex items-center justify-center">
+                  <span 
+                    className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-white text-[9px] font-bold flex items-center justify-center shadow-xs border border-white"
+                    style={{ backgroundColor: "var(--accent-hex)" }}
+                  >
                     {cartCount > 9 ? "9+" : cartCount}
                   </span>
                 )}

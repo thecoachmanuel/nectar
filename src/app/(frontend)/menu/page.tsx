@@ -62,7 +62,10 @@ function ProductCard({ item, onOpen }: { item: any; onOpen: (i: any) => void }) 
             OUT OF STOCK
           </div>
         ) : hasDiscount ? (
-          <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-black shadow-md z-10">
+          <div 
+            className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md text-white text-[10px] font-black shadow-md z-10 tracking-wide"
+            style={{ backgroundColor: "var(--accent-hex)" }}
+          >
             -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}%
           </div>
         ) : null}
@@ -134,7 +137,10 @@ function ProductRow({ item, onOpen }: { item: any; onOpen: (i: any) => void }) {
             OUT OF STOCK
           </div>
         ) : hasDiscount ? (
-          <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-black shadow-md z-10">
+          <div 
+            className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md text-white text-[10px] font-black shadow-md z-10 tracking-wide"
+            style={{ backgroundColor: "var(--accent-hex)" }}
+          >
             -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}%
           </div>
         ) : null}

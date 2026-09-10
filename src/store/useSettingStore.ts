@@ -26,6 +26,8 @@ interface SettingState {
 
   menuViewMode: "grid" | "list"; // Grid vs List view mode
   themeColor: string; // Primary brand color
+  themeSecondaryColor: string; // Secondary brand color
+  themeTertiaryColor: string; // Accent / Tertiary brand color
   logoUrl: string; // Dynamic header logo URL
   footerLogoUrl: string; // Dynamic footer logo URL
 
@@ -36,6 +38,8 @@ interface SettingState {
 
   setMenuViewMode: (mode: "grid" | "list") => void;
   setThemeColor: (color: string) => void;
+  setThemeSecondaryColor: (color: string) => void;
+  setThemeTertiaryColor: (color: string) => void;
   setLogoUrl: (url: string) => void;
   setFooterLogoUrl: (url: string) => void;
   formatPrice: (amount: number | string) => string;
@@ -80,6 +84,8 @@ export const useSettingStore = create<SettingState>()(
 
       menuViewMode: "grid",
       themeColor: "#FF4D4F",
+      themeSecondaryColor: "#1E293B",
+      themeTertiaryColor: "#FF6B00",
       logoUrl: getInitialLogo(),
       footerLogoUrl: getInitialFooterLogo(),
 
@@ -90,6 +96,8 @@ export const useSettingStore = create<SettingState>()(
 
       setMenuViewMode: (menuViewMode) => set({ menuViewMode }),
       setThemeColor: (themeColor) => set({ themeColor }),
+      setThemeSecondaryColor: (themeSecondaryColor) => set({ themeSecondaryColor }),
+      setThemeTertiaryColor: (themeTertiaryColor) => set({ themeTertiaryColor }),
       setLogoUrl: (logoUrl) => set({ logoUrl: normalizeImageUrl(logoUrl) }),
       setFooterLogoUrl: (footerLogoUrl) => set({ footerLogoUrl: normalizeImageUrl(footerLogoUrl) }),
 
@@ -139,6 +147,12 @@ if (typeof window !== "undefined") {
       }
       if (data.theme_primary_color) {
         updates.themeColor = data.theme_primary_color;
+      }
+      if (data.theme_secondary_color) {
+        updates.themeSecondaryColor = data.theme_secondary_color;
+      }
+      if (data.theme_tertiary_color) {
+        updates.themeTertiaryColor = data.theme_tertiary_color;
       }
       if (data.site_title || data.company_name) {
         updates.siteName = data.site_title || data.company_name;

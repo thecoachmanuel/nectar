@@ -11,7 +11,7 @@ interface ClientThemeSetterProps {
 
 export default function ClientThemeSetter({ initialSettings }: ClientThemeSetterProps) {
   const { settings, fetchSettings, setAllSettings } = useSettingsStore();
-  const { setThemeColor, siteName } = useSettingStore();
+  const { setThemeColor, setThemeSecondaryColor, setThemeTertiaryColor, siteName } = useSettingStore();
   const bootstrapped = useRef(false);
 
   // Synchronize initial settings from Server Component before first effect
@@ -40,6 +40,26 @@ export default function ClientThemeSetter({ initialSettings }: ClientThemeSetter
       document.documentElement.style.setProperty("--color-primary", color);
       document.documentElement.style.setProperty("--color-primary-light", color + "1a");
       setThemeColor(color);
+    }
+
+    const secondaryColor = settings.theme_secondary_color;
+    if (secondaryColor) {
+      document.documentElement.style.setProperty("--secondary-hex", secondaryColor);
+      document.documentElement.style.setProperty("--secondary-hover", secondaryColor + "e6");
+      document.documentElement.style.setProperty("--secondary-light", secondaryColor + "1a");
+      document.documentElement.style.setProperty("--color-secondary", secondaryColor);
+      document.documentElement.style.setProperty("--color-secondary-light", secondaryColor + "1a");
+      setThemeSecondaryColor(secondaryColor);
+    }
+
+    const tertiaryColor = settings.theme_tertiary_color;
+    if (tertiaryColor) {
+      document.documentElement.style.setProperty("--accent-hex", tertiaryColor);
+      document.documentElement.style.setProperty("--accent-hover", tertiaryColor + "e6");
+      document.documentElement.style.setProperty("--accent-light", tertiaryColor + "1a");
+      document.documentElement.style.setProperty("--color-accent", tertiaryColor);
+      document.documentElement.style.setProperty("--color-accent-light", tertiaryColor + "1a");
+      setThemeTertiaryColor(tertiaryColor);
     }
 
     // Dynamic Favicon sync from MongoDB or real-time admin update
@@ -87,7 +107,7 @@ export default function ClientThemeSetter({ initialSettings }: ClientThemeSetter
     ) {
       document.title = appTitle;
     }
-  }, [settings, setThemeColor]);
+  }, [settings, setThemeColor, setThemeSecondaryColor, setThemeTertiaryColor]);
 
   return null;
 }

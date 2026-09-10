@@ -143,7 +143,10 @@ export default function ItemModal({ item, isOpen, onClose }: ItemModalProps) {
               OUT OF STOCK
             </div>
           ) : hasDiscount ? (
-            <div className="absolute top-3.5 left-4 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-red-600 text-white text-xs font-black shadow-lg">
+            <div 
+              className="absolute top-3.5 left-4 inline-flex items-center gap-1 px-3 py-1 rounded-full text-white text-xs font-black shadow-lg tracking-wide"
+              style={{ backgroundColor: "var(--accent-hex)" }}
+            >
               -{Math.round(((item.price - item.discountPrice) / item.price) * 100)}% OFF
             </div>
           ) : null}

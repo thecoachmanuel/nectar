@@ -10,6 +10,8 @@ export interface SettingsContextType {
   headerLogo: string;
   footerLogo: string;
   themeColor: string;
+  themeSecondaryColor: string;
+  themeTertiaryColor: string;
   siteTitle: string;
   updateSettings: (newSettings: Record<string, any>) => void;
 }
@@ -51,6 +53,14 @@ export function SettingsProvider({
     return settings.theme_primary_color || "#ff006b";
   }, [settings]);
 
+  const themeSecondaryColor = useMemo(() => {
+    return settings.theme_secondary_color || "#1E293B";
+  }, [settings]);
+
+  const themeTertiaryColor = useMemo(() => {
+    return settings.theme_tertiary_color || "#FF6B00";
+  }, [settings]);
+
   const siteTitle = useMemo(() => {
     return settings.site_title || settings.company_name || "Errandshop";
   }, [settings]);
@@ -73,6 +83,12 @@ export function SettingsProvider({
         }
         if (data.theme_primary_color) {
           settingStoreUpdates.themeColor = data.theme_primary_color;
+        }
+        if (data.theme_secondary_color) {
+          settingStoreUpdates.themeSecondaryColor = data.theme_secondary_color;
+        }
+        if (data.theme_tertiary_color) {
+          settingStoreUpdates.themeTertiaryColor = data.theme_tertiary_color;
         }
         if (data.site_title || data.company_name) {
           settingStoreUpdates.siteName = data.site_title || data.company_name;
@@ -104,6 +120,8 @@ export function SettingsProvider({
         headerLogo,
         footerLogo,
         themeColor,
+        themeSecondaryColor,
+        themeTertiaryColor,
         siteTitle,
         updateSettings,
       }}
@@ -122,6 +140,8 @@ export function useSettings() {
       headerLogo: getHeaderLogo(zustandSettings),
       footerLogo: getFooterLogo(zustandSettings),
       themeColor: zustandSettings?.theme_primary_color || "#ff006b",
+      themeSecondaryColor: zustandSettings?.theme_secondary_color || "#1E293B",
+      themeTertiaryColor: zustandSettings?.theme_tertiary_color || "#FF6B00",
       siteTitle: zustandSettings?.site_title || zustandSettings?.company_name || "Errandshop",
       updateSettings: () => {},
     };
