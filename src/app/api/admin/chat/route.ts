@@ -59,10 +59,21 @@ export async function GET(req: Request) {
       // Populate user info for customers
       for (const t of threads) {
         if (t.senderRole === "customer" && t.senderId) {
-          const u = await User.findById(t.senderId).select("name email");
-          if (u) {
-            t.customerName = u.name;
-            t.customerEmail = u.email;
+          if (String(t.senderId).startsWith("guest_")) {
+            t.customerName = "Guest (Visitor)";
+            t.customerEmail = "Not registered";
+          } else {
+            try {
+              const u = await User.findById(t.senderId).select("name email");
+              if (u) {
+                t.customerName = u.name;
+                t.customerEmail = u.email;
+              } else {
+                t.customerName = "Guest";
+              }
+            } catch {
+              t.customerName = "Guest";
+            }
           }
         }
       }

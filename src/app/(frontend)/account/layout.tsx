@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Lock, LogIn, UserPlus } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -10,6 +11,7 @@ export default function AccountLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
   const { token, isGuest, fetchUserProfile } = useAuthStore();
   const [mounted, setMounted] = useState(false);
 
@@ -25,6 +27,15 @@ export default function AccountLayout({
     return (
       <div className="min-h-[60vh] flex items-center justify-center bg-[#f7f7fc]">
         <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+      </div>
+    );
+  }
+
+  // Allow support chat (/account/chat) for guests and non-registered visitors
+  if (pathname === "/account/chat") {
+    return (
+      <div className="min-h-screen bg-[#f7f7fc]">
+        {children}
       </div>
     );
   }

@@ -209,7 +209,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
                         <Link href="/account/chat" onClick={() => setProfileOpen(false)}
                           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#14142b] hover:text-primary hover:bg-primary-light transition-all border-b border-[#eff0f6] capitalize">
                           <MessageCircle className="w-4 h-4" />
-                          <span>Chat</span>
+                          <span>Contact Support</span>
                         </Link>
                         <Link href="/account/addresses" onClick={() => setProfileOpen(false)}
                           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#14142b] hover:text-primary hover:bg-primary-light transition-all border-b border-[#eff0f6] capitalize">
@@ -260,7 +260,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
 
 
             <nav className="flex flex-col gap-1">
-              {[{ href: "/", label: "Home" }, { href: "/menu", label: "Groceries" }, { href: "/offers", label: "Offers" }].map(({ href, label }) => (
+              {[{ href: "/", label: "Home" }, { href: "/menu", label: "Groceries" }, { href: "/offers", label: "Offers" }, { href: "/account/chat", label: "Contact Support" }].map(({ href, label }) => (
                 <Link key={href} href={href} onClick={() => setMobileMenuOpen(false)}
                   className={`px-3 py-2.5 rounded-lg text-sm font-medium capitalize transition-all ${isActive(href) ? "text-primary bg-primary-light" : "text-[#14142b] hover:bg-[#f7f7fc]"}`}>
                   {label}
@@ -293,7 +293,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
                   { href: "/account/wallet", label: "Wallet", icon: <Wallet className="w-4 h-4" /> },
                   { href: "/account/profile", label: "Edit Profile", icon: <User className="w-4 h-4" /> },
                   { href: "/account/addresses", label: "Addresses", icon: <MapPin className="w-4 h-4" /> },
-                  { href: "/account/chat", label: "Chat", icon: <MessageCircle className="w-4 h-4" /> },
+                  { href: "/account/chat", label: "Contact Support", icon: <MessageCircle className="w-4 h-4" /> },
                 ].map(({ href, label, icon }) => (
                   <Link key={href} href={href} onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[#14142b] hover:bg-primary-light hover:text-primary transition-all">

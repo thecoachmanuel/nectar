@@ -23,20 +23,25 @@ export async function GET(req: Request) {
   try {
     await connectToDatabase();
     const user = await getUserFromToken(req);
-    if (!user) return NextResponse.json({ status: false, message: "Unauthorized" }, { status: 401 });
+    
+    let threadId = "";
+    if (user) {
+      threadId = user.userId as string; // Customer thread ID is their user ID
+    } else {
+      const { searchParams } = new URL(req.url);
+      const guestId = searchParams.get("guestId") || req.headers.get("x-guest-id");
+      if (guestId) {
+        threadId = guestId.startsWith("guest_") ? guestId : `guest_${guestId}`;
+      }
+    }
 
-    const threadId = user.userId as string; // Customer thread ID is their user ID
-    
-    // Fetch only open or resolved messages. But prompt says "Make sure the chat automatically clear from users end when the issue is resolved."
-    // So if the latest message in the thread is 'resolved' or 'deleted', we shouldn't show it?
-    // Actually, we can fetch all messages for this threadId that are not 'deleted'.
-    // If ANY message in the thread is 'resolved', we clear it.
-    // Let's check the status of the thread based on any message having status = resolved.
-    
-    // To simplify: if any message has 'resolved', the user sees nothing.
+    if (!threadId) {
+      return NextResponse.json({ status: false, message: "Unauthorized or missing session" }, { status: 401 });
+    }
+
+    // To simplify: if any message has 'resolved' or 'deleted', the user sees nothing (cleared from user's end).
     const hasResolved = await Message.exists({ threadId, status: { $in: ["resolved", "deleted"] } });
     if (hasResolved) {
-      // If resolved, we return empty so it clears from user's end.
       return NextResponse.json({ status: true, data: [] });
     }
 
@@ -51,21 +56,32 @@ export async function POST(req: Request) {
   try {
     await connectToDatabase();
     const user = await getUserFromToken(req);
-    if (!user) return NextResponse.json({ status: false, message: "Unauthorized" }, { status: 401 });
-
     const body = await req.json();
-    const { message } = body;
+    const { message, guestId: bodyGuestId } = body;
     if (!message) return NextResponse.json({ status: false, message: "Message is required" }, { status: 400 });
 
-    const threadId = user.userId as string;
+    let threadId = "";
+    let senderId = "";
+    if (user) {
+      threadId = user.userId as string;
+      senderId = threadId;
+    } else {
+      const gId = bodyGuestId || req.headers.get("x-guest-id");
+      if (gId) {
+        threadId = gId.startsWith("guest_") ? gId : `guest_${gId}`;
+        senderId = threadId;
+      }
+    }
+
+    if (!threadId) {
+      return NextResponse.json({ status: false, message: "Unauthorized or missing session" }, { status: 401 });
+    }
     
     // If there is a resolved/deleted thread for this user, they are starting a NEW thread.
-    // We should delete old ones or just let them create new messages with "open" status.
-    // Because threadId is fixed to userId, we must update all previous resolved messages to 'deleted' so they don't block the new thread.
     await Message.updateMany({ threadId, status: "resolved" }, { $set: { status: "deleted" } });
 
     const newMessage = await Message.create({
-      senderId: threadId,
+      senderId,
       senderRole: "customer",
       storeId: "admin", // Chat with admin
       message,
@@ -78,3 +94,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ status: false, message: error.message }, { status: 500 });
   }
 }
+
