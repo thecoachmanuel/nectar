@@ -411,27 +411,27 @@ export default function FaqPage() {
 
         {/* Quick CTA to Start Shopping */}
         <div
-          className="rounded-3xl p-6 sm:p-8 text-white text-center shadow-lg relative overflow-hidden"
-          style={{ backgroundColor: "var(--dark-hex, #14142B)" }}
+          className="rounded-3xl p-6 sm:p-10 text-white text-center shadow-xl shadow-primary/20 relative overflow-hidden"
+          style={{ backgroundColor: "var(--primary-hex, #2EB824)" }}
         >
           <div className="relative z-10 max-w-lg mx-auto space-y-3">
-            <h3 className="text-xl sm:text-2xl font-black">
+            <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
               Ready to Order Your Fresh Food Items?
             </h3>
-            <p className="text-xs sm:text-sm text-white/80">
+            <p className="text-xs sm:text-sm text-white/90 leading-relaxed">
               Send us your shopping list today and let our market experts select, clean, and pack the freshest produce for your household.
             </p>
             <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
               <Link
                 href="/menu"
-                className="h-10 px-6 rounded-xl bg-primary hover:opacity-95 text-white font-bold text-xs flex items-center gap-2 transition-all shadow-md shadow-primary/20"
+                className="h-11 px-7 rounded-xl bg-white text-primary font-bold text-xs flex items-center gap-2 transition-all shadow-md shadow-black/10 hover:bg-white/95 active:scale-95"
               >
-                <ShoppingBag className="w-4 h-4" />
+                <ShoppingBag className="w-4 h-4 text-primary" />
                 <span>Browse Products</span>
               </Link>
               <Link
                 href="/contact"
-                className="h-10 px-5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs flex items-center gap-2 transition-all border border-white/20"
+                className="h-11 px-6 rounded-xl bg-white/20 hover:bg-white/30 text-white font-bold text-xs flex items-center gap-2 transition-all border border-white/30 active:scale-95"
               >
                 <span>Contact Us</span>
               </Link>
