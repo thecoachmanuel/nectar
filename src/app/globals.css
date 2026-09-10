@@ -11,10 +11,11 @@
   --color-accent: #ff840a;
   --color-accent-hover: #e57507;
   --color-accent-light: #fff5eb;
+  --color-footer: #14142b;
 }
 
 :root {
-  /* === ERRANDSHOP 3-BRAND-COLOR SYSTEM: GREEN (PRIMARY), RED (SECONDARY), YELLOW/ORANGE (TERTIARY) === */
+  /* === ERRANDSHOP BRAND COLOR SYSTEM: GREEN (PRIMARY), RED (SECONDARY), YELLOW (ACCENT), FOOTER & FOUNDATION === */
   --primary: 46 184 36;
   --primary-hex: #2eb824;
   --primary-slate: #259c1e;
@@ -27,6 +28,8 @@
   --accent-hover: #e57507;
   --accent-light: #fff5eb;
   --accent-border: #fed7aa;
+  --footer-hex: #14142b;
+  --footer-bg: #14142b;
   --heading: #14142b;
   --paragraph: #6e7191;
   --placeholder: #a0a3bd;
@@ -94,10 +97,13 @@ body {
 }
 
 /* =====================
-   FOOTER (grounded in enterprise dark with brand secondary & primary accents)
+   FOOTER & FOUNDATION BRAND UTILITIES
    ===================== */
+.text-footer             { color: var(--footer-hex); }
+.bg-footer               { background-color: var(--footer-hex); }
+.border-footer           { border-color: var(--footer-hex); }
 .footer-part {
-  background-color: #14142b;
+  background-color: var(--footer-hex);
   border-top: 3px solid var(--secondary-hex);
 }
 

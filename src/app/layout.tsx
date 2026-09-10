@@ -110,6 +110,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   let themeColor = "#2eb824";
   let themeSecondaryColor = "#f70102";
   let themeTertiaryColor = "#ff840a";
+  let themeFooterColor = "#14142b";
   const initialSettings: Record<string, any> = {};
 
   try {
@@ -128,6 +129,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     }
     if (initialSettings.theme_tertiary_color) {
       themeTertiaryColor = initialSettings.theme_tertiary_color;
+    }
+    if (initialSettings.theme_footer_color) {
+      themeFooterColor = initialSettings.theme_footer_color;
+    } else if (initialSettings.theme_secondary_color) {
+      themeFooterColor = initialSettings.theme_secondary_color;
     }
   } catch (err) {
     console.error("Failed to load settings in RootLayout", err);
@@ -198,6 +204,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             --accent-light: ${themeTertiaryColor}1a;
             --color-accent: ${themeTertiaryColor};
             --color-accent-light: ${themeTertiaryColor}1a;
+            --footer-hex: ${themeFooterColor};
+            --footer-bg: ${themeFooterColor};
+            --color-footer: ${themeFooterColor};
           }
           .bg-primary { background-color: var(--primary-hex) !important; }
           .text-primary { color: var(--primary-hex); }
@@ -222,7 +231,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           .bg-accent-light { background-color: var(--accent-light) !important; }
           .hover\\:bg-accent:hover { background-color: var(--accent-hover) !important; }
           
-          .footer-part { background-color: #14142b !important; border-top: 3px solid var(--secondary-hex) !important; }
+          .bg-footer { background-color: var(--footer-hex) !important; }
+          .text-footer { color: var(--footer-hex); }
+          .border-footer { border-color: var(--footer-hex) !important; }
+          .footer-part { background-color: var(--footer-hex) !important; border-top: 3px solid var(--secondary-hex) !important; }
         `}} />
       </head>
       <body className="antialiased bg-white text-[#14142b]" style={{ fontFamily: "'Rubik', sans-serif" }}>

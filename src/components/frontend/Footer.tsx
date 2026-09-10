@@ -75,7 +75,7 @@ export default function Footer() {
     <footer 
       className="footer-part pt-12 mb-14 lg:mb-0 hidden sm:block border-t-[3px]" 
       style={{ 
-        backgroundColor: "#14142b", 
+        backgroundColor: "var(--footer-hex)", 
         borderTopColor: "var(--secondary-hex)" 
       }}
     >

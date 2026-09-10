@@ -11,7 +11,7 @@ interface ClientThemeSetterProps {
 
 export default function ClientThemeSetter({ initialSettings }: ClientThemeSetterProps) {
   const { settings, fetchSettings, setAllSettings } = useSettingsStore();
-  const { setThemeColor, setThemeSecondaryColor, setThemeTertiaryColor, siteName } = useSettingStore();
+  const { setThemeColor, setThemeSecondaryColor, setThemeTertiaryColor, setThemeFooterColor } = useSettingStore();
   const bootstrapped = useRef(false);
 
   // Synchronize initial settings from Server Component before first effect
@@ -60,6 +60,13 @@ export default function ClientThemeSetter({ initialSettings }: ClientThemeSetter
       document.documentElement.style.setProperty("--color-accent", tertiaryColor);
       document.documentElement.style.setProperty("--color-accent-light", tertiaryColor + "1a");
       setThemeTertiaryColor(tertiaryColor);
+    }
+
+    const footerColor = settings.theme_footer_color || settings.theme_secondary_color || "#14142b";
+    if (footerColor) {
+      document.documentElement.style.setProperty("--footer-hex", footerColor);
+      document.documentElement.style.setProperty("--footer-bg", footerColor);
+      setThemeFooterColor(footerColor);
     }
 
     // Dynamic Favicon sync from MongoDB or real-time admin update

@@ -12,6 +12,7 @@ export interface SettingsContextType {
   themeColor: string;
   themeSecondaryColor: string;
   themeTertiaryColor: string;
+  themeFooterColor: string;
   siteTitle: string;
   updateSettings: (newSettings: Record<string, any>) => void;
 }
@@ -61,6 +62,10 @@ export function SettingsProvider({
     return settings.theme_tertiary_color || "#ff840a";
   }, [settings]);
 
+  const themeFooterColor = useMemo(() => {
+    return settings.theme_footer_color || settings.theme_secondary_color || "#14142b";
+  }, [settings]);
+
   const siteTitle = useMemo(() => {
     return settings.site_title || settings.company_name || "Errandshop";
   }, [settings]);
@@ -89,6 +94,9 @@ export function SettingsProvider({
         }
         if (data.theme_tertiary_color) {
           settingStoreUpdates.themeTertiaryColor = data.theme_tertiary_color;
+        }
+        if (data.theme_footer_color) {
+          settingStoreUpdates.themeFooterColor = data.theme_footer_color;
         }
         if (data.site_title || data.company_name) {
           settingStoreUpdates.siteName = data.site_title || data.company_name;
@@ -122,6 +130,7 @@ export function SettingsProvider({
         themeColor,
         themeSecondaryColor,
         themeTertiaryColor,
+        themeFooterColor,
         siteTitle,
         updateSettings,
       }}
@@ -142,6 +151,7 @@ export function useSettings() {
       themeColor: zustandSettings?.theme_primary_color || "#2eb824",
       themeSecondaryColor: zustandSettings?.theme_secondary_color || "#f70102",
       themeTertiaryColor: zustandSettings?.theme_tertiary_color || "#ff840a",
+      themeFooterColor: zustandSettings?.theme_footer_color || zustandSettings?.theme_secondary_color || "#14142b",
       siteTitle: zustandSettings?.site_title || zustandSettings?.company_name || "Errandshop",
       updateSettings: () => {},
     };

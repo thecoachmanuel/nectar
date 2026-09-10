@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { X, Download } from "lucide-react";
 import { useSettingStore } from "@/store/useSettingStore";
 import { useSettingsStore, getFaviconUrl } from "@/store/useSettingsStore";
+import { useCartStore } from "@/store/useCartStore";
 
 function isIOS() {
   if (typeof navigator === "undefined") return false;
@@ -23,6 +24,7 @@ export default function PwaInstallPrompt() {
   const [isPwaViewed, setIsPwaViewed] = useState(true);
   const { siteName } = useSettingStore();
   const { settings } = useSettingsStore();
+  const { isCartOpen } = useCartStore();
   const faviconUrl = getFaviconUrl(settings);
 
   useEffect(() => {
@@ -68,7 +70,7 @@ export default function PwaInstallPrompt() {
     closePwaModal();
   };
 
-  if (isPwaViewed) return null;
+  if (isPwaViewed || isCartOpen) return null;
 
   return (
     <>

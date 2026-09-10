@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { Cookie, X } from "lucide-react";
+import { useCartStore } from "@/store/useCartStore";
 
 export default function CookiesConsent() {
   const [visible, setVisible] = useState(false);
+  const { isCartOpen } = useCartStore();
 
   useEffect(() => {
     const accepted = localStorage.getItem("errandshop_cookies_accepted");
@@ -22,6 +24,8 @@ export default function CookiesConsent() {
   const decline = () => {
     setVisible(false);
   };
+
+  if (isCartOpen) return null;
 
   return (
     <div className={`cookie-paper fixed bottom-16 lg:bottom-4 left-4 right-4 lg:left-auto lg:right-6 lg:max-w-sm z-50 transition-all duration-500 ease-linear ${visible ? "translate-y-0 opacity-100 visible" : "translate-y-full opacity-0 invisible"}`}>
