@@ -11,7 +11,6 @@ import {
   Phone,
   MessageCircle,
   ShoppingBag,
-  Sparkles,
   CheckCircle2,
   X
 } from "lucide-react";
@@ -179,8 +178,7 @@ export default function FaqPage() {
           </div>
 
           <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary mb-3">
-              <Sparkles className="w-3.5 h-3.5" />
+            <span className="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary mb-3">
               Help Center & Guide
             </span>
             <h1 className="text-2xl sm:text-4xl font-extrabold text-[#14142B] tracking-tight mb-3">
