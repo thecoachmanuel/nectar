@@ -95,7 +95,7 @@ export default function Footer() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full h-full pl-2 text-sm text-[#14142b] bg-transparent outline-none placeholder:text-[#a0a3bd]"
               />
-              <button type="submit" className="capitalize text-xs font-medium rounded-md flex-shrink-0 p-2.5 text-white flex items-center gap-1.5 hover:bg-[#0d0d1a] transition-colors" style={{ backgroundColor: "#14142B" }}>
+              <button type="submit" className="capitalize text-xs font-medium rounded-md flex-shrink-0 p-2.5 text-white flex items-center gap-1.5 hover:opacity-90 transition-opacity" style={{ backgroundColor: "var(--dark-hex, #14142B)" }}>
                 <Send className="w-3.5 h-3.5" />
                 Subscribe
               </button>

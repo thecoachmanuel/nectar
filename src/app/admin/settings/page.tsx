@@ -24,7 +24,8 @@ import {
   ChevronUp,
   Palette,
   Sparkles,
-  ShoppingBag
+  ShoppingBag,
+  SlidersHorizontal
 } from "lucide-react";
 import { useSettingsStore, SettingItem } from "@/store/useSettingsStore";
 import { toast } from "sonner";
@@ -38,7 +39,8 @@ const COLOR_PRESETS = [
     secondary: "#F70102",
     accent: "#FF840A",
     footer: "#2EB824",
-    desc: "Official logo: Fresh Grocer Green CTA & Footer, Bold Red & Golden Cart Accent",
+    dark: "#14142B",
+    desc: "Official logo: Fresh Grocer Green CTA & Footer, Bold Red & Golden Cart Accent, Charcoal Action",
   },
   {
     name: "Errandshop Charcoal Footer",
@@ -46,6 +48,7 @@ const COLOR_PRESETS = [
     secondary: "#F70102",
     accent: "#FF840A",
     footer: "#14142B",
+    dark: "#14142B",
     desc: "Logo green CTA, charcoal footer foundation & bold red accents",
   },
   {
@@ -54,6 +57,7 @@ const COLOR_PRESETS = [
     secondary: "#F70102",
     accent: "#FF840A",
     footer: "#F70102",
+    dark: "#14142B",
     desc: "Logo green CTA, bold brand red footer & highlights",
   },
   {
@@ -62,6 +66,7 @@ const COLOR_PRESETS = [
     secondary: "#DC2626",
     accent: "#EAB308",
     footer: "#15803D",
+    dark: "#0F172A",
     desc: "Deep forest green CTA & footer, crimson red, and warm gold",
   },
   {
@@ -70,12 +75,14 @@ const COLOR_PRESETS = [
     secondary: "#1E293B",
     accent: "#FF840A",
     footer: "#1E293B",
+    dark: "#1E293B",
     desc: "Logo green CTA, slate foundation, and golden cart accent",
   },
 ];
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("Company");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const { settings, isLoading, fetchSettings, updateSettings } = useSettingsStore();
   
@@ -192,6 +199,9 @@ export default function SettingsPage() {
       }
       if (!initialForm.theme_footer_color) {
         initialForm.theme_footer_color = settings.theme_footer_color || settings.theme_primary_color || "#2EB824";
+      }
+      if (!initialForm.theme_dark_color) {
+        initialForm.theme_dark_color = settings.theme_dark_color || "#14142B";
       }
       setFormData(initialForm);
     }
@@ -471,9 +481,78 @@ export default function SettingsPage() {
   return (
     <div className="pb-16 flex flex-col lg:flex-row gap-6">
       
-      {/* Settings Menu Sidebar */}
-      <div className="w-full lg:w-[280px] shrink-0">
-        <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] overflow-hidden">
+      {/* Mobile Settings Switcher (Matching FoodAppi PHP settings-btn & quick-nav) */}
+      <div className="lg:hidden space-y-2.5">
+        {/* Toggle Button */}
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="w-full flex items-center justify-between p-3.5 rounded-xl bg-primary text-white font-medium text-sm shadow-md shadow-primary/20 transition-all cursor-pointer"
+        >
+          <div className="flex items-center gap-2.5">
+            <SlidersHorizontal className="w-4 h-4" />
+            <span className="font-semibold capitalize">Settings Menu: {activeTab}</span>
+          </div>
+          <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${mobileMenuOpen ? "rotate-180" : ""}`} />
+        </button>
+
+        {/* Collapsible Tab Grid */}
+        {mobileMenuOpen && (
+          <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] overflow-hidden p-2">
+            <div className="grid grid-cols-2 gap-1.5">
+              {settingsMenu.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.name;
+                return (
+                  <button
+                    key={item.name}
+                    type="button"
+                    onClick={() => {
+                      setActiveTab(item.name);
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                      isActive 
+                        ? "bg-primary text-white shadow-xs font-semibold" 
+                        : "text-[#6E7191] hover:bg-[#FAFAFC] hover:text-[#14142B]"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span className="truncate">{item.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Quick Horizontal Scroll Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+          {settingsMenu.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.name;
+            return (
+              <button
+                key={item.name}
+                type="button"
+                onClick={() => setActiveTab(item.name)}
+                className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                  isActive
+                    ? "bg-primary text-white shadow-xs"
+                    : "bg-white border border-[#EFF0F6] text-[#6E7191] hover:text-[#14142B]"
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span>{item.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Settings Menu Sidebar (Desktop) */}
+      <div className="hidden lg:block w-[260px] xl:w-[280px] shrink-0">
+        <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] overflow-hidden sticky top-6">
           <div className="p-4 border-b border-[#EFF0F6] bg-[#FAFAFC]">
             <h3 className="font-semibold text-lg text-[#14142B]">Settings</h3>
           </div>
@@ -485,9 +564,9 @@ export default function SettingsPage() {
                 <li key={item.name}>
                   <button
                     onClick={() => setActiveTab(item.name)}
-                    className={`w-full flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-colors ${
+                    className={`w-full flex items-center gap-3 px-6 py-3.5 text-sm font-medium transition-colors cursor-pointer ${
                       isActive 
-                        ? "bg-primary-light text-primary border-r-2 border-primary" 
+                        ? "bg-primary-light text-primary border-r-2 border-primary font-semibold" 
                         : "text-[#6E7191] hover:bg-[#FAFAFC] hover:text-[#14142B] border-r-2 border-transparent"
                     }`}
                   >
@@ -502,7 +581,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Settings Content Area */}
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <div className="bg-white rounded-2xl shadow-sm border border-[#EFF0F6] p-4 sm:p-6 lg:p-8 relative">
           
           {isLoading && (
@@ -511,8 +590,17 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {/* Header */}
-          <div className="mb-8 pb-4 border-b border-[#EFF0F6] flex items-center justify-between">
+          {/* Breadcrumbs matching PHP app BreadcrumbComponent */}
+          <div className="flex items-center gap-2 text-xs text-[#A0A3BD] mb-3">
+            <span>Dashboard</span>
+            <span>/</span>
+            <span>Settings</span>
+            <span>/</span>
+            <span className="font-semibold text-primary">{activeTab}</span>
+          </div>
+
+          {/* Header matching PHP app db-card-header */}
+          <div className="mb-6 sm:mb-8 pb-4 border-b border-[#EFF0F6] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-xl font-bold text-[#14142B] mb-1">{activeTab} Settings</h2>
               <p className="text-sm text-[#6E7191]">Manage your {activeTab.toLowerCase()} configuration and preferences.</p>
@@ -520,10 +608,10 @@ export default function SettingsPage() {
             <button 
               onClick={handleSave}
               disabled={isLoading}
-              className="h-11 px-6 rounded-xl bg-primary text-white flex items-center gap-2 hover:opacity-90 transition-all shadow-md shadow-primary/20 disabled:opacity-50 cursor-pointer"
+              className="h-11 px-6 rounded-xl bg-primary text-white flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-md shadow-primary/20 disabled:opacity-50 cursor-pointer w-full sm:w-auto font-medium text-sm shrink-0"
             >
               <Save className="w-4 h-4" />
-              <span className="text-sm font-medium">Save Changes</span>
+              <span>Save Changes</span>
             </button>
           </div>
 
@@ -1259,15 +1347,15 @@ export default function SettingsPage() {
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-1">
                     <Palette className="w-5 h-5 text-primary" />
-                    <h3 className="font-bold text-base text-[#14142B]">Storefront Brand Color Studio (Action, Accent, Highlight & Footer)</h3>
+                    <h3 className="font-bold text-base text-[#14142B]">Storefront Brand Color Studio (Action, Accent, Highlight, Footer & Dark Controls)</h3>
                   </div>
                   <p className="text-xs text-[#6E7191] leading-relaxed">
-                    Balance your customer storefront with 4 cohesive brand colors to eliminate single-color dominance. Primary drives actions, Secondary creates high-contrast promo alerts, Accent highlights cart items, and Footer anchors page structure.
+                    Balance your customer storefront with 5 cohesive brand colors to eliminate single-color dominance. Primary drives actions, Secondary creates high-contrast promo alerts, Accent highlights cart items, Footer frames the bottom, and Dark Blue powers cart & action buttons.
                   </p>
                 </div>
 
-                {/* 4-Color Pickers Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+                {/* 5-Color Pickers Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-5 mb-6">
                   {/* Primary Color Card */}
                   <div className="p-5 rounded-2xl border border-[#EFF0F6] bg-[#FAFAFC] flex flex-col justify-between">
                     <div>
@@ -1380,7 +1468,7 @@ export default function SettingsPage() {
                         className="px-3 py-1 rounded-full text-xs font-bold text-white shadow-2xs"
                         style={{ backgroundColor: formData.theme_tertiary_color || "#FF840A" }}
                       >
-                        ★ 4.9 Cart (3)
+                        ★ 4.9 (128)
                       </span>
                     </div>
                   </div>
@@ -1423,6 +1511,46 @@ export default function SettingsPage() {
                       </span>
                     </div>
                   </div>
+
+                  {/* Dark Blue / Action Color Card */}
+                  <div className="p-5 rounded-2xl border border-[#EFF0F6] bg-[#FAFAFC] flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-sm font-bold text-[#14142B]">5. Dark Blue / Action</label>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white border border-[#EFF0F6] text-[#14142B]">
+                          Cart & Actions
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#6E7191] mb-4">
+                        Controls the dark blue color for Cart button, Login pill, drawer toggles, checkout controls, and subscribe button.
+                      </p>
+                      <div className="flex gap-2.5 items-center mb-4">
+                        <input 
+                          type="color" 
+                          value={formData.theme_dark_color || "#14142B"} 
+                          onChange={(e) => handleChange("theme_dark_color", e.target.value)}
+                          className="h-12 w-12 rounded-xl border border-[#EFF0F6] cursor-pointer shrink-0 shadow-2xs" 
+                        />
+                        <input 
+                          type="text" 
+                          value={formData.theme_dark_color || "#14142B"} 
+                          onChange={(e) => handleChange("theme_dark_color", e.target.value)}
+                          className="flex-1 h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary font-mono uppercase" 
+                        />
+                      </div>
+                    </div>
+                    {/* Live Chip */}
+                    <div className="pt-3 border-t border-[#EFF0F6] flex items-center justify-between">
+                      <span className="text-[11px] text-[#A0A3BD]">Preview Pill:</span>
+                      <span 
+                        className="px-3 py-1 rounded-full text-xs font-bold text-white shadow-2xs flex items-center gap-1.5"
+                        style={{ backgroundColor: formData.theme_dark_color || "#14142B" }}
+                      >
+                        <ShoppingBag className="w-3 h-3 text-white" />
+                        Cart (3)
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* One-Click Presets */}
@@ -1432,13 +1560,14 @@ export default function SettingsPage() {
                     <span className="text-xs font-bold text-[#14142B] uppercase tracking-wider">Curated Palette Presets</span>
                     <span className="text-[11px] text-[#6E7191]">(Click any to instantly preview)</span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
                     {COLOR_PRESETS.map((preset) => {
                       const isActive = 
                         (formData.theme_primary_color || "#2eb824").toLowerCase() === preset.primary.toLowerCase() &&
                         (formData.theme_secondary_color || "#f70102").toLowerCase() === preset.secondary.toLowerCase() &&
                         (formData.theme_tertiary_color || "#ff840a").toLowerCase() === preset.accent.toLowerCase() &&
-                        (formData.theme_footer_color || formData.theme_primary_color || "#2eb824").toLowerCase() === preset.footer.toLowerCase();
+                        (formData.theme_footer_color || formData.theme_primary_color || "#2eb824").toLowerCase() === preset.footer.toLowerCase() &&
+                        (formData.theme_dark_color || "#14142b").toLowerCase() === preset.dark.toLowerCase();
                       return (
                         <button
                           key={preset.name}
@@ -1448,9 +1577,10 @@ export default function SettingsPage() {
                             handleChange("theme_secondary_color", preset.secondary);
                             handleChange("theme_tertiary_color", preset.accent);
                             handleChange("theme_footer_color", preset.footer);
+                            handleChange("theme_dark_color", preset.dark);
                             toast.success(`Applied ${preset.name} palette! Click Save Settings to persist.`);
                           }}
-                          className={`p-3 rounded-xl border text-left transition-all relative ${
+                          className={`p-3 rounded-xl border text-left transition-all relative cursor-pointer ${
                             isActive 
                               ? "border-primary bg-white shadow-sm ring-2 ring-primary/20" 
                               : "border-[#EFF0F6] bg-white hover:border-[#D1D5DB] hover:shadow-2xs"
@@ -1461,6 +1591,7 @@ export default function SettingsPage() {
                             <span className="w-4 h-4 rounded-full border border-black/10 shadow-2xs" style={{ backgroundColor: preset.secondary }} title={`Secondary: ${preset.secondary}`} />
                             <span className="w-4 h-4 rounded-full border border-black/10 shadow-2xs" style={{ backgroundColor: preset.accent }} title={`Accent: ${preset.accent}`} />
                             <span className="w-4 h-4 rounded-full border border-black/10 shadow-2xs" style={{ backgroundColor: preset.footer }} title={`Footer: ${preset.footer}`} />
+                            <span className="w-4 h-4 rounded-full border border-black/10 shadow-2xs" style={{ backgroundColor: preset.dark }} title={`Dark/Action: ${preset.dark}`} />
                           </div>
                           <div className="font-bold text-xs text-[#14142B] mb-0.5 truncate">{preset.name}</div>
                           <div className="text-[10px] text-[#6E7191] line-clamp-2 leading-tight">{preset.desc}</div>
@@ -1498,7 +1629,10 @@ export default function SettingsPage() {
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="relative cursor-pointer">
-                          <div className="w-8 h-8 rounded-lg bg-[#14142B] text-white flex items-center justify-center shadow-xs">
+                          <div 
+                            className="w-8 h-8 rounded-lg text-white flex items-center justify-center shadow-xs"
+                            style={{ backgroundColor: formData.theme_dark_color || "#14142B" }}
+                          >
                             <ShoppingBag className="w-4 h-4" />
                           </div>
                           {/* Accent Cart Bubble */}
@@ -1554,25 +1688,31 @@ export default function SettingsPage() {
                         <div className="flex items-start gap-2">
                           <div className="w-3.5 h-3.5 rounded-full mt-0.5 shrink-0 shadow-2xs" style={{ backgroundColor: formData.theme_primary_color || "#2EB824" }} />
                           <div>
-                            <strong className="text-[#14142B]">Primary CTA (60%):</strong> Fresh Grocer Green commands customer focus immediately for adding items and checkout.
+                            <strong className="text-[#14142B]">Primary CTA:</strong> Fresh Grocer Green commands customer focus immediately for adding items and checkout.
                           </div>
                         </div>
                         <div className="flex items-start gap-2">
                           <div className="w-3.5 h-3.5 rounded-full mt-0.5 shrink-0 shadow-2xs" style={{ backgroundColor: formData.theme_secondary_color || "#F70102" }} />
                           <div>
-                            <strong className="text-[#14142B]">Secondary Contrast (30%):</strong> Bold Red drives promotional discounts (-20% OFF), urgent alerts, and footer framing.
+                            <strong className="text-[#14142B]">Secondary Contrast:</strong> Bold Red drives promotional discounts (-20% OFF), urgent alerts, and footer framing.
                           </div>
                         </div>
                         <div className="flex items-start gap-2">
                           <div className="w-3.5 h-3.5 rounded-full mt-0.5 shrink-0 shadow-2xs" style={{ backgroundColor: formData.theme_tertiary_color || "#FF840A" }} />
                           <div>
-                            <strong className="text-[#14142B]">Tertiary Accent (10%):</strong> Warm Golden Basket Amber for cart bubbles, star ratings, and promo highlights.
+                            <strong className="text-[#14142B]">Tertiary Accent:</strong> Warm Golden Basket Amber for cart bubbles, star ratings, and promo highlights.
                           </div>
                         </div>
                         <div className="flex items-start gap-2">
                           <div className="w-3.5 h-3.5 rounded-full mt-0.5 shrink-0 shadow-2xs" style={{ backgroundColor: formData.theme_footer_color || formData.theme_primary_color || "#2EB824" }} />
                           <div>
-                            <strong className="text-[#14142B]">Footer Color:</strong> Grounds the bottom of the page in your primary brand color, framed with the 3px accent border.
+                            <strong className="text-[#14142B]">Footer Color:</strong> Grounds the bottom of the page in your primary brand color, framed with the accent border.
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <div className="w-3.5 h-3.5 rounded-full mt-0.5 shrink-0 shadow-2xs" style={{ backgroundColor: formData.theme_dark_color || "#14142B" }} />
+                          <div>
+                            <strong className="text-[#14142B]">Dark Blue Action:</strong> Controls Cart button, Login pill, drawer toggles, checkout controls, and subscribe button.
                           </div>
                         </div>
                       </div>
@@ -1600,7 +1740,7 @@ export default function SettingsPage() {
                         <button 
                           type="button" 
                           className="h-8 px-3 rounded text-[11px] font-semibold text-white shrink-0 shadow-xs"
-                          style={{ backgroundColor: "#14142B" }}
+                          style={{ backgroundColor: formData.theme_dark_color || "#14142B" }}
                         >
                           Subscribe
                         </button>
@@ -1615,25 +1755,25 @@ export default function SettingsPage() {
                 <div className="mb-6">
                   <h3 className="font-bold text-base text-[#14142B] mb-1 flex items-center gap-2">
                     <ImageIcon className="w-5 h-5 text-primary" />
-                    <span>Sitewide Brand Logos</span>
+                    <span>Sitewide Brand Logos (Matching App Specifications)</span>
                   </h3>
                   <p className="text-xs text-[#6E7191]">
                     Changes here take effect sitewide across the customer storefront, mobile navigation, footer, and admin portal in real time.
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                   {/* Navbar / Header Logo */}
                   <div className="bg-[#FAFAFC] p-5 rounded-2xl border border-[#EFF0F6] flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <label className="text-sm font-bold text-[#14142B]">Main / Navbar Logo</label>
+                        <label className="text-sm font-bold text-[#14142B]">Main / Navbar Logo (128px, 43px)</label>
                         <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-white border border-[#EFF0F6] text-[#6E7191] uppercase tracking-wider">
                           Header & Admin
                         </span>
                       </div>
                       <p className="text-xs text-[#6E7191] mb-4">
-                        Shown on the website top navbar, mobile menu, and admin sidebar. Recommended: transparent PNG or WebP (approx. 240×60px).
+                        Shown on the website top navbar, mobile menu, and admin sidebar. Recommended: transparent PNG or WebP (128×43px).
                       </p>
 
                       {/* Preview Box */}
@@ -1695,13 +1835,13 @@ export default function SettingsPage() {
                   <div className="bg-[#FAFAFC] p-5 rounded-2xl border border-[#EFF0F6] flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <label className="text-sm font-bold text-[#14142B]">Footer Logo</label>
+                        <label className="text-sm font-bold text-[#14142B]">Footer Brand Logo (144px, 48px)</label>
                         <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-white border border-[#EFF0F6] text-[#6E7191] uppercase tracking-wider">
                           Dark / Brand BG
                         </span>
                       </div>
                       <p className="text-xs text-[#6E7191] mb-4">
-                        Shown on the bottom brand-colored footer. A white or light transparent PNG is recommended. Falls back to Main Logo if left empty.
+                        Shown on the bottom brand-colored footer. Recommended: white or light transparent PNG (144×48px). Falls back to Main Logo if left empty.
                       </p>
 
                       {/* Preview Box with live Footer Brand BG */}
@@ -1776,13 +1916,13 @@ export default function SettingsPage() {
                   <div className="bg-[#FAFAFC] p-5 rounded-2xl border border-[#EFF0F6] flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <label className="text-sm font-bold text-[#14142B]">Browser Favicon</label>
+                        <label className="text-sm font-bold text-[#14142B]">Browser Favicon / App Icon (120px, 120px)</label>
                         <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-white border border-[#EFF0F6] text-[#6E7191] uppercase tracking-wider">
                           Tab & PWA Icon
                         </span>
                       </div>
                       <p className="text-xs text-[#6E7191] mb-4">
-                        Displayed in browser tabs, bookmarks, and PWA shortcuts. Square PNG, ICO, or SVG recommended (approx. 192×192px).
+                        Displayed in browser tabs, bookmarks, and PWA shortcuts. Square PNG, ICO, or SVG recommended (120×120px).
                       </p>
 
                       {/* Simulated Browser Tab Preview */}

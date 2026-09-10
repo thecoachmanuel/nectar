@@ -111,6 +111,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   let themeSecondaryColor = "#f70102";
   let themeTertiaryColor = "#ff840a";
   let themeFooterColor = "#2eb824";
+  let themeDarkColor = "#14142b";
   const initialSettings: Record<string, any> = {};
 
   try {
@@ -134,6 +135,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       themeFooterColor = initialSettings.theme_footer_color;
     } else if (initialSettings.theme_primary_color) {
       themeFooterColor = initialSettings.theme_primary_color;
+    }
+    if (initialSettings.theme_dark_color) {
+      themeDarkColor = initialSettings.theme_dark_color;
     }
   } catch (err) {
     console.error("Failed to load settings in RootLayout", err);
@@ -207,6 +211,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             --footer-hex: ${themeFooterColor};
             --footer-bg: ${themeFooterColor};
             --color-footer: ${themeFooterColor};
+            --dark-hex: ${themeDarkColor};
+            --dark-blue-hex: ${themeDarkColor};
+            --color-dark: ${themeDarkColor};
           }
           .bg-primary { background-color: var(--primary-hex) !important; }
           .text-primary { color: var(--primary-hex); }

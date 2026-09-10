@@ -12,10 +12,12 @@
   --color-accent-hover: #e57507;
   --color-accent-light: #fff5eb;
   --color-footer: #2eb824;
+  --color-dark: #14142b;
+  --color-dark-action: #14142b;
 }
 
 :root {
-  /* === ERRANDSHOP BRAND COLOR SYSTEM: GREEN (PRIMARY), RED (SECONDARY), YELLOW (ACCENT), FOOTER & FOUNDATION === */
+  /* === ERRANDSHOP BRAND COLOR SYSTEM: GREEN (PRIMARY), RED (SECONDARY), YELLOW (ACCENT), FOOTER & DARK ACTION === */
   --primary: 46 184 36;
   --primary-hex: #2eb824;
   --primary-slate: #259c1e;
@@ -30,6 +32,9 @@
   --accent-border: #fed7aa;
   --footer-hex: #2eb824;
   --footer-bg: #2eb824;
+  --dark-hex: #14142b;
+  --dark-blue-hex: #14142b;
+  --color-dark: #14142b;
   --heading: #14142b;
   --paragraph: #6e7191;
   --placeholder: #a0a3bd;

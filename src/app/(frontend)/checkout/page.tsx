@@ -632,14 +632,20 @@ export default function CheckoutPage() {
                   <div className="flex items-center rounded-2xl w-fit mx-auto mb-6 bg-[#F7F7FC] p-1 border border-[#EFF0F6]">
                     <button 
                       onClick={() => setOrderType("delivery")}
-                      className={`py-1.5 px-4 rounded-2xl text-xs font-semibold capitalize transition-all cursor-pointer ${orderType === "delivery" ? 'bg-[#14142B] text-white shadow-xs' : 'text-[#6E7191] hover:text-[#14142B]'}`}
+                      className={`py-1.5 px-4 rounded-2xl text-xs font-semibold capitalize transition-all cursor-pointer ${orderType === "delivery" ? 'text-white shadow-xs' : 'text-[#6E7191] hover:text-[#14142B]'}`}
+                      style={{
+                        backgroundColor: orderType === "delivery" ? "var(--dark-hex, #14142B)" : undefined,
+                      }}
                     >
                       Delivery
                     </button>
                     {settings.takeaway_enabled === "Yes" && (
                       <button 
                         onClick={() => setOrderType("takeaway")}
-                        className={`py-1.5 px-4 rounded-2xl text-xs font-semibold capitalize transition-all cursor-pointer ${orderType === "takeaway" ? 'bg-[#14142B] text-white shadow-xs' : 'text-[#6E7191] hover:text-[#14142B]'}`}
+                        className={`py-1.5 px-4 rounded-2xl text-xs font-semibold capitalize transition-all cursor-pointer ${orderType === "takeaway" ? 'text-white shadow-xs' : 'text-[#6E7191] hover:text-[#14142B]'}`}
+                        style={{
+                          backgroundColor: orderType === "takeaway" ? "var(--dark-hex, #14142B)" : undefined,
+                        }}
                       >
                         Takeaway
                       </button>
@@ -654,7 +660,10 @@ export default function CheckoutPage() {
                       items.map((cart, idx) => (
                         <div key={idx} className="pb-4 border-b border-dashed border-[#eff0f6] last:border-0 last:pb-0">
                           <div className="flex items-center gap-3 relative">
-                            <span className="absolute top-0 -left-2 text-[10px] w-5 h-5 flex items-center justify-center rounded-full text-white bg-[#14142b] z-10 shadow-sm border-2 border-white">
+                            <span 
+                              className="absolute top-0 -left-2 text-[10px] w-5 h-5 flex items-center justify-center rounded-full text-white z-10 shadow-sm border-2 border-white"
+                              style={{ backgroundColor: "var(--dark-hex, #14142B)" }}
+                            >
                               {cart.quantity}
                             </span>
                             <img src={cart.image || "/images/item/thumb.png"} alt={cart.name} className="w-14 h-14 rounded-xl object-cover bg-[#f7f7fc]" />
@@ -687,7 +696,8 @@ export default function CheckoutPage() {
                       <button 
                         onClick={handleApplyCoupon}
                         disabled={isApplyingCoupon || !couponCodeInput}
-                        className="px-4 py-2 bg-[#14142b] text-white text-sm font-medium rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50 cursor-pointer"
+                        className="px-4 py-2 text-white text-sm font-medium rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer"
+                        style={{ backgroundColor: "var(--dark-hex, #14142B)" }}
                       >
                         {isApplyingCoupon ? "Applying..." : "Apply"}
                       </button>

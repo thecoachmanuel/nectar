@@ -29,6 +29,7 @@ interface SettingState {
   themeSecondaryColor: string; // Secondary brand color
   themeTertiaryColor: string; // Accent / Tertiary brand color
   themeFooterColor: string; // Footer & foundation color
+  themeDarkColor: string; // Dark blue / Action foundation color
   logoUrl: string; // Dynamic header logo URL
   footerLogoUrl: string; // Dynamic footer logo URL
 
@@ -42,6 +43,7 @@ interface SettingState {
   setThemeSecondaryColor: (color: string) => void;
   setThemeTertiaryColor: (color: string) => void;
   setThemeFooterColor: (color: string) => void;
+  setThemeDarkColor: (color: string) => void;
   setLogoUrl: (url: string) => void;
   setFooterLogoUrl: (url: string) => void;
   formatPrice: (amount: number | string) => string;
@@ -89,6 +91,7 @@ export const useSettingStore = create<SettingState>()(
       themeSecondaryColor: "#f70102",
       themeTertiaryColor: "#ff840a",
       themeFooterColor: "#2eb824",
+      themeDarkColor: "#14142b",
       logoUrl: getInitialLogo(),
       footerLogoUrl: getInitialFooterLogo(),
 
@@ -102,6 +105,7 @@ export const useSettingStore = create<SettingState>()(
       setThemeSecondaryColor: (themeSecondaryColor) => set({ themeSecondaryColor }),
       setThemeTertiaryColor: (themeTertiaryColor) => set({ themeTertiaryColor }),
       setThemeFooterColor: (themeFooterColor) => set({ themeFooterColor }),
+      setThemeDarkColor: (themeDarkColor) => set({ themeDarkColor }),
       setLogoUrl: (logoUrl) => set({ logoUrl: normalizeImageUrl(logoUrl) }),
       setFooterLogoUrl: (footerLogoUrl) => set({ footerLogoUrl: normalizeImageUrl(footerLogoUrl) }),
 
@@ -160,6 +164,9 @@ if (typeof window !== "undefined") {
       }
       if (data.theme_footer_color) {
         updates.themeFooterColor = data.theme_footer_color;
+      }
+      if (data.theme_dark_color) {
+        updates.themeDarkColor = data.theme_dark_color;
       }
       if (data.site_title || data.company_name) {
         updates.siteName = data.site_title || data.company_name;

@@ -62,7 +62,10 @@ export default function OfflineDetector() {
   if (!isOffline) return null;
 
   return (
-    <div className="fixed bottom-20 lg:bottom-6 inset-x-4 sm:inset-x-auto sm:right-6 z-[9999] max-w-md mx-auto bg-[#14142B] text-white p-4 rounded-2xl shadow-2xl border border-white/10 flex items-center justify-between gap-3 animate-in slide-in-from-bottom-4 duration-300">
+    <div 
+      className="fixed bottom-20 lg:bottom-6 inset-x-4 sm:inset-x-auto sm:right-6 z-[9999] max-w-md mx-auto text-white p-4 rounded-2xl shadow-2xl border border-white/10 flex items-center justify-between gap-3 animate-in slide-in-from-bottom-4 duration-300"
+      style={{ backgroundColor: "var(--dark-hex, #14142B)" }}
+    >
       <div className="flex items-center gap-3 min-w-0">
         <div className="w-9 h-9 rounded-xl bg-primary/20 text-primary flex items-center justify-center shrink-0">
           <WifiOff className="w-4 h-4 text-primary" />

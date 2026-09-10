@@ -150,9 +150,12 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 onClick={() => useCartStore.getState().setOrderType(type as any)}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-semibold capitalize transition-all cursor-pointer ${
                   orderType === type
-                    ? "bg-[#14142B] text-white shadow-sm"
+                    ? "text-white shadow-sm"
                     : "bg-white border border-[#e2e8f0] text-[#6e7191] hover:bg-slate-50"
                 }`}
+                style={{
+                  backgroundColor: orderType === type ? "var(--dark-hex, #14142B)" : undefined,
+                }}
               >
                 {type}
               </button>
@@ -171,7 +174,8 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               <p className="text-sm text-[#a0a3bd]">Add items from our menu to get started.</p>
               <button
                 onClick={onClose}
-                className="mt-6 px-6 py-2.5 rounded-2xl text-sm font-semibold text-white bg-[#14142B] hover:bg-primary transition-all shadow-md cursor-pointer"
+                className="mt-6 px-6 py-2.5 rounded-2xl text-sm font-semibold text-white hover:opacity-90 transition-all shadow-md cursor-pointer"
+                style={{ backgroundColor: "var(--dark-hex, #14142B)" }}
               >
                 Browse Menu
               </button>
