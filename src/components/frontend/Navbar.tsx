@@ -129,8 +129,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
               {/* Cart Button */}
               <button
                 onClick={onCartOpen}
-                className="hidden lg:flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white hover:opacity-90 transition-all"
-                style={{ backgroundColor: "var(--footer-hex)" }}
+                className="hidden lg:flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white bg-[#14142b] hover:bg-primary transition-all"
               >
                 <ShoppingBag className="w-4 h-4" />
                 <span className="whitespace-nowrap font-bold">{formatPrice(cartTotal)}</span>
@@ -148,8 +147,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
               {!user ? (
                 <Link
                   href="/auth/login"
-                  className="hidden lg:flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white hover:opacity-90 transition-all shadow-xs"
-                  style={{ backgroundColor: "var(--footer-hex)" }}
+                  className="hidden lg:flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white bg-[#14142b] hover:bg-primary transition-all shadow-xs"
                 >
                   <User className="w-4 h-4" />
                   <span>Login</span>
@@ -158,8 +156,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
                 <div ref={profileRef} className="relative hidden lg:block">
                   <button
                     onClick={() => setProfileOpen(!profileOpen)}
-                    className="flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white hover:opacity-90 transition-all shadow-xs cursor-pointer"
-                    style={{ backgroundColor: "var(--footer-hex)" }}
+                    className="flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white bg-[#14142b] hover:bg-primary transition-all shadow-xs cursor-pointer"
                   >
                     <User className="w-4 h-4" />
                     <span className="capitalize">{user.name?.split(" ")[0] || "Account"}</span>

@@ -37,8 +37,16 @@ const COLOR_PRESETS = [
     primary: "#2EB824",
     secondary: "#F70102",
     accent: "#FF840A",
+    footer: "#2EB824",
+    desc: "Official logo: Fresh Grocer Green CTA & Footer, Bold Red & Golden Cart Accent",
+  },
+  {
+    name: "Errandshop Charcoal Footer",
+    primary: "#2EB824",
+    secondary: "#F70102",
+    accent: "#FF840A",
     footer: "#14142B",
-    desc: "Official logo: Fresh Grocer Green, Bold Red & Golden Cart Accent",
+    desc: "Logo green CTA, charcoal footer foundation & bold red accents",
   },
   {
     name: "Errandshop Bold Red Footer",
@@ -53,8 +61,8 @@ const COLOR_PRESETS = [
     primary: "#15803D",
     secondary: "#DC2626",
     accent: "#EAB308",
-    footer: "#1E293B",
-    desc: "Deep forest green, crimson red, slate footer and warm gold",
+    footer: "#15803D",
+    desc: "Deep forest green CTA & footer, crimson red, and warm gold",
   },
   {
     name: "Classic Grocer & Slate",
@@ -63,14 +71,6 @@ const COLOR_PRESETS = [
     accent: "#FF840A",
     footer: "#1E293B",
     desc: "Logo green CTA, slate foundation, and golden cart accent",
-  },
-  {
-    name: "Teal & Charcoal",
-    primary: "#008BBA",
-    secondary: "#14142B",
-    accent: "#FF6B00",
-    footer: "#14142B",
-    desc: "Original teal CTA, charcoal structure, vivid orange accents",
   },
 ];
 
@@ -191,7 +191,7 @@ export default function SettingsPage() {
         initialForm.wa_account_name = bankObj.accountName || initialForm.wa_account_name || "";
       }
       if (!initialForm.theme_footer_color) {
-        initialForm.theme_footer_color = settings.theme_footer_color || settings.theme_secondary_color || "#14142B";
+        initialForm.theme_footer_color = settings.theme_footer_color || settings.theme_primary_color || "#2EB824";
       }
       setFormData(initialForm);
     }
@@ -749,7 +749,7 @@ export default function SettingsPage() {
                       <span className="block text-xs font-bold text-[#14142B] mb-2">Footer Logo</span>
                       <div 
                         className="h-16 w-full rounded-lg border border-black/10 flex items-center justify-center p-2 mb-3"
-                        style={{ backgroundColor: formData.theme_footer_color || formData.theme_secondary_color || "#14142B", borderTop: `3px solid ${formData.theme_secondary_color || "var(--secondary-hex)"}` }}
+                        style={{ backgroundColor: formData.theme_footer_color || formData.theme_primary_color || "#2EB824", borderTop: `3px solid ${formData.theme_secondary_color || "var(--secondary-hex)"}` }}
                       >
                         {formData.theme_footer_logo ? (
                           <img src={normalizeImageUrl(formData.theme_footer_logo)} alt="Footer Logo" className="max-h-12 max-w-full object-contain" />
@@ -1390,23 +1390,23 @@ export default function SettingsPage() {
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <label className="text-sm font-bold text-[#14142B]">4. Footer Color</label>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white border border-[#EFF0F6] text-[#6E7191]">
-                          Foundation
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white border border-[#EFF0F6] text-primary">
+                          Primary Default
                         </span>
                       </div>
                       <p className="text-xs text-[#6E7191] mb-4">
-                        Controls the main footer background, header cart pill, order type pills, and system toasts.
+                        Controls the footer background alone, default matched to your brand primary color.
                       </p>
                       <div className="flex gap-2.5 items-center mb-4">
                         <input 
                           type="color" 
-                          value={formData.theme_footer_color || formData.theme_secondary_color || "#14142B"} 
+                          value={formData.theme_footer_color || formData.theme_primary_color || "#2EB824"} 
                           onChange={(e) => handleChange("theme_footer_color", e.target.value)}
                           className="h-12 w-12 rounded-xl border border-[#EFF0F6] cursor-pointer shrink-0 shadow-2xs" 
                         />
                         <input 
                           type="text" 
-                          value={formData.theme_footer_color || formData.theme_secondary_color || "#14142B"} 
+                          value={formData.theme_footer_color || formData.theme_primary_color || "#2EB824"} 
                           onChange={(e) => handleChange("theme_footer_color", e.target.value)}
                           className="flex-1 h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary font-mono uppercase" 
                         />
@@ -1417,7 +1417,7 @@ export default function SettingsPage() {
                       <span className="text-[11px] text-[#A0A3BD]">Preview Bar:</span>
                       <span 
                         className="px-3 py-1 rounded-full text-xs font-bold text-white shadow-2xs"
-                        style={{ backgroundColor: formData.theme_footer_color || formData.theme_secondary_color || "#14142B" }}
+                        style={{ backgroundColor: formData.theme_footer_color || formData.theme_primary_color || "#2EB824" }}
                       >
                         Footer Area
                       </span>
@@ -1438,7 +1438,7 @@ export default function SettingsPage() {
                         (formData.theme_primary_color || "#2eb824").toLowerCase() === preset.primary.toLowerCase() &&
                         (formData.theme_secondary_color || "#f70102").toLowerCase() === preset.secondary.toLowerCase() &&
                         (formData.theme_tertiary_color || "#ff840a").toLowerCase() === preset.accent.toLowerCase() &&
-                        (formData.theme_footer_color || "#14142b").toLowerCase() === preset.footer.toLowerCase();
+                        (formData.theme_footer_color || formData.theme_primary_color || "#2eb824").toLowerCase() === preset.footer.toLowerCase();
                       return (
                         <button
                           key={preset.name}
@@ -1498,10 +1498,7 @@ export default function SettingsPage() {
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="relative cursor-pointer">
-                          <div 
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-xs"
-                            style={{ backgroundColor: formData.theme_footer_color || formData.theme_secondary_color || "#14142B" }}
-                          >
+                          <div className="w-8 h-8 rounded-lg bg-[#14142B] text-white flex items-center justify-center shadow-xs">
                             <ShoppingBag className="w-4 h-4" />
                           </div>
                           {/* Accent Cart Bubble */}
@@ -1573,9 +1570,9 @@ export default function SettingsPage() {
                           </div>
                         </div>
                         <div className="flex items-start gap-2">
-                          <div className="w-3.5 h-3.5 rounded-full mt-0.5 shrink-0 shadow-2xs" style={{ backgroundColor: formData.theme_footer_color || formData.theme_secondary_color || "#14142B" }} />
+                          <div className="w-3.5 h-3.5 rounded-full mt-0.5 shrink-0 shadow-2xs" style={{ backgroundColor: formData.theme_footer_color || formData.theme_primary_color || "#2EB824" }} />
                           <div>
-                            <strong className="text-[#14142B]">Footer & Structure:</strong> Deep foundation framing the bottom of the page, header cart action capsule, and system toasts.
+                            <strong className="text-[#14142B]">Footer Color:</strong> Grounds the bottom of the page in your primary brand color, framed with the 3px accent border.
                           </div>
                         </div>
                       </div>
@@ -1585,7 +1582,7 @@ export default function SettingsPage() {
                     <div 
                       className="px-5 py-4 text-white flex flex-col sm:flex-row items-center justify-between gap-3 text-xs border-t-[3px]"
                       style={{ 
-                        backgroundColor: formData.theme_footer_color || formData.theme_secondary_color || "#14142B",
+                        backgroundColor: formData.theme_footer_color || formData.theme_primary_color || "#2EB824",
                         borderTopColor: formData.theme_secondary_color || "#F70102"
                       }}
                     >
@@ -1603,7 +1600,7 @@ export default function SettingsPage() {
                         <button 
                           type="button" 
                           className="h-8 px-3 rounded text-[11px] font-semibold text-white shrink-0 shadow-xs"
-                          style={{ backgroundColor: formData.theme_primary_color || "#2EB824" }}
+                          style={{ backgroundColor: "#14142B" }}
                         >
                           Subscribe
                         </button>
@@ -1710,7 +1707,7 @@ export default function SettingsPage() {
                       {/* Preview Box with live Footer Brand BG */}
                       <div 
                         className="w-full h-24 rounded-xl border border-black/10 flex items-center justify-center p-3 mb-4 shadow-2xs relative"
-                        style={{ backgroundColor: formData.theme_footer_color || formData.theme_secondary_color || "#14142B", borderTop: `3px solid ${formData.theme_secondary_color || "var(--secondary-hex)"}` }}
+                        style={{ backgroundColor: formData.theme_footer_color || formData.theme_primary_color || "#2EB824", borderTop: `3px solid ${formData.theme_secondary_color || "var(--secondary-hex)"}` }}
                       >
                         {formData.theme_footer_logo ? (
                           <img 

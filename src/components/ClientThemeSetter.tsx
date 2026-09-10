@@ -62,7 +62,7 @@ export default function ClientThemeSetter({ initialSettings }: ClientThemeSetter
       setThemeTertiaryColor(tertiaryColor);
     }
 
-    const footerColor = settings.theme_footer_color || settings.theme_secondary_color || "#14142b";
+    const footerColor = settings.theme_footer_color || settings.theme_primary_color || "#2eb824";
     if (footerColor) {
       document.documentElement.style.setProperty("--footer-hex", footerColor);
       document.documentElement.style.setProperty("--footer-bg", footerColor);

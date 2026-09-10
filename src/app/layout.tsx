@@ -110,7 +110,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   let themeColor = "#2eb824";
   let themeSecondaryColor = "#f70102";
   let themeTertiaryColor = "#ff840a";
-  let themeFooterColor = "#14142b";
+  let themeFooterColor = "#2eb824";
   const initialSettings: Record<string, any> = {};
 
   try {
@@ -132,8 +132,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     }
     if (initialSettings.theme_footer_color) {
       themeFooterColor = initialSettings.theme_footer_color;
-    } else if (initialSettings.theme_secondary_color) {
-      themeFooterColor = initialSettings.theme_secondary_color;
+    } else if (initialSettings.theme_primary_color) {
+      themeFooterColor = initialSettings.theme_primary_color;
     }
   } catch (err) {
     console.error("Failed to load settings in RootLayout", err);

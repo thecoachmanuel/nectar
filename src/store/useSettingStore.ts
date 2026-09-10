@@ -88,7 +88,7 @@ export const useSettingStore = create<SettingState>()(
       themeColor: "#2eb824",
       themeSecondaryColor: "#f70102",
       themeTertiaryColor: "#ff840a",
-      themeFooterColor: "#14142b",
+      themeFooterColor: "#2eb824",
       logoUrl: getInitialLogo(),
       footerLogoUrl: getInitialFooterLogo(),
 
