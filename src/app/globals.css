@@ -519,7 +519,7 @@ body {
 /* =====================
    COOKIE BANNER
    ===================== */
-.cookie-paper { transition: transform 0.5s ease, opacity 0.5s ease; }
+.cookie-paper { display: none !important; }
 
 /* =====================
    BANNER SWIPER
