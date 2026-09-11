@@ -38,6 +38,7 @@ export interface IItem extends Document {
   stockQuantity?: number;
   lowStockThreshold?: number;
   isOutOfStock?: boolean;
+  requiresMarketOrder?: boolean; // ADMIN ONLY — triggers min-order rule; NEVER exposed to customers via frontend APIs
   createdAt: Date;
   updatedAt: Date;
 }
@@ -78,6 +79,7 @@ const ItemSchema = new Schema<IItem>(
     stockQuantity: { type: Number, default: 0 },
     lowStockThreshold: { type: Number, default: 5 },
     isOutOfStock: { type: Boolean, default: false },
+    requiresMarketOrder: { type: Boolean, default: false }, // ADMIN ONLY — never sent to frontend item listing APIs
   },
   { timestamps: true }
 );

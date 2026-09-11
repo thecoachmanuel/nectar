@@ -30,6 +30,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
     stockQuantity: 0,
     lowStockThreshold: 5,
     isOutOfStock: false,
+    requiresMarketOrder: false, // ADMIN ONLY — never shown to customers
 
     isFeatured: false,
     status: true,
@@ -63,6 +64,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
         stockQuantity: item.stockQuantity ?? 0,
         lowStockThreshold: item.lowStockThreshold ?? 5,
         isOutOfStock: item.isOutOfStock ?? false,
+        requiresMarketOrder: item.requiresMarketOrder ?? false,
 
         isFeatured: item.isFeatured ?? false,
         status: item.status ?? true,
@@ -84,6 +86,7 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
         stockQuantity: 0,
         lowStockThreshold: 5,
         isOutOfStock: false,
+        requiresMarketOrder: false,
 
         isFeatured: false,
         status: true,
@@ -346,6 +349,42 @@ export default function ItemModal({ isOpen, onClose, item, onSuccess }: ItemModa
                 <p className="text-[10px] text-[#6E7191] mt-1 text-center">Click button to toggle manual out of stock.</p>
               </div>
             </div>
+          )}
+        </div>
+
+        {/* Market Item Toggle — ADMIN ONLY, customers never see this label */}
+        <div className="p-4 rounded-2xl border border-amber-200 bg-amber-50 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm">
+                🛒
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-amber-900">Market Item (Requires Minimum Order)</h4>
+                <p className="text-[11px] text-amber-700">
+                  Admin only — customers see a generic minimum order message, not this label.
+                </p>
+              </div>
+            </div>
+
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.requiresMarketOrder}
+                onChange={(e) => setFormData({...formData, requiresMarketOrder: e.target.checked})}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-[#D9DBE9] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+              <span className="ml-2 text-xs font-semibold text-amber-900">
+                {formData.requiresMarketOrder ? "Enabled" : "Disabled"}
+              </span>
+            </label>
+          </div>
+          {formData.requiresMarketOrder && (
+            <p className="text-[11px] text-amber-800 font-medium bg-amber-100 rounded-xl px-3 py-2">
+              ⚠️ When enabled: customers must reach the minimum order amount before they can checkout if this item is in their cart.
+              The minimum amount is set in <strong>Settings → Order Rules</strong>. Customers see only a standard minimum order notice.
+            </p>
           )}
         </div>
 

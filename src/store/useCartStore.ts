@@ -27,6 +27,7 @@ export interface CartItem {
   manageStock?: boolean;
   stockQuantity?: number;
   isOutOfStock?: boolean;
+  requiresMarketOrder?: boolean; // internal only — NEVER rendered in customer UI
 }
 
 interface CartState {
@@ -38,6 +39,10 @@ interface CartState {
   couponDiscount: number;
   deliveryTimeSlot: string;
   selectedAddressId?: string;
+
+  // Minimum order rule (market items — internal only, no customer-visible sourcing info)
+  hasMinimumOrderRule: boolean;
+  minimumOrderAmount: number | null;
 
   // Actions
   openCart: () => void;
@@ -53,6 +58,7 @@ interface CartState {
   setDeliveryTimeSlot: (slot: string) => void;
   setSelectedAddressId: (addressId: string) => void;
   setItems: (items: CartItem[]) => void;
+  setMinimumOrderRule: (hasRule: boolean, amount: number | null) => void;
   getItemTotalInCart: (itemId: string) => number;
 
   // Calculations
@@ -72,11 +78,16 @@ export const useCartStore = create<CartState>()(
       deliveryTimeSlot: "As soon as possible",
       selectedAddressId: undefined,
 
+      // Minimum order rule state (from cart sync API)
+      hasMinimumOrderRule: false,
+      minimumOrderAmount: null,
+
       openCart: () => set({ isCartOpen: true }),
       closeCart: () => set({ isCartOpen: false }),
       setCartOpen: (open) => set({ isCartOpen: open }),
       setOrderType: (orderType) => set({ orderType }),
       setItems: (items) => set({ items }),
+      setMinimumOrderRule: (hasRule, amount) => set({ hasMinimumOrderRule: hasRule, minimumOrderAmount: amount }),
 
       getItemTotalInCart: (itemId: string) => {
         return get().items
@@ -189,7 +200,7 @@ export const useCartStore = create<CartState>()(
       },
 
       clearCart: () => {
-        set({ items: [], couponCode: "", couponDiscount: 0, selectedAddressId: undefined });
+        set({ items: [], couponCode: "", couponDiscount: 0, selectedAddressId: undefined, hasMinimumOrderRule: false, minimumOrderAmount: null });
       },
 
       applyCoupon: (code, discount) => set({ couponCode: code, couponDiscount: discount }),

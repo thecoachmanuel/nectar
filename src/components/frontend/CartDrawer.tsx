@@ -3,9 +3,9 @@
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/useCartStore";
-import { useSettingsStore } from "@/store/useSettingsStore";
+import { useSettingsStore, getMarketOrderMin } from "@/store/useSettingsStore";
 import { formatPrice } from "@/lib/formatters";
-import { X, Plus, Minus, Trash2, ShoppingBag, ChevronRight } from "lucide-react";
+import { X, Plus, Minus, Trash2, ShoppingBag, ChevronRight, AlertCircle } from "lucide-react";
 
 import { toast } from "sonner";
 
@@ -16,15 +16,23 @@ interface CartDrawerProps {
 
 export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const router = useRouter();
-  const { items, updateQuantity, removeItem, clearCart, getSubtotal, orderType } = useCartStore();
+  const { items, updateQuantity, removeItem, clearCart, getSubtotal, orderType, hasMinimumOrderRule, minimumOrderAmount, setMinimumOrderRule } = useCartStore();
   const { settings } = useSettingsStore();
 
   const subtotal = getSubtotal();
+  const minOrderAmount = minimumOrderAmount ?? getMarketOrderMin(settings);
+  const remainingForMin = Math.max(0, minOrderAmount - subtotal);
+  const isMinOrderMet = !hasMinimumOrderRule || subtotal >= minOrderAmount;
+  const minOrderProgress = hasMinimumOrderRule ? Math.min(100, Math.round((subtotal / minOrderAmount) * 100)) : 100;
 
   const handleCheckout = (e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
+    }
+    if (!isMinOrderMet) {
+      toast.warning(`Add ${formatPrice(remainingForMin)} more to meet the minimum order requirement.`);
+      return;
     }
     onClose();
     router.push("/checkout");
@@ -81,6 +89,12 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           });
 
           useCartStore.getState().setItems(merged);
+
+          // Update minimum order rule state from server response (privacy-safe aggregate)
+          useCartStore.getState().setMinimumOrderRule(
+            data.hasMinimumOrderRule === true,
+            data.minimumOrderAmount ?? null
+          );
         }
       })
       .catch((err) => console.error("Cart sync failed:", err));
@@ -265,6 +279,27 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         {/* Footer Summary + Checkout */}
         {items.length > 0 && (
           <div className="shrink-0 bg-white border-t border-[#eff0f6] p-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] space-y-3 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] z-20">
+
+            {/* Minimum Order Banner — neutral copy, no market/sourcing references */}
+            {hasMinimumOrderRule && !isMinOrderMet && (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                  <span className="text-xs font-bold text-amber-800">Minimum order: {formatPrice(minOrderAmount)}</span>
+                </div>
+                {/* Progress bar */}
+                <div className="w-full h-2 rounded-full bg-amber-100 overflow-hidden">
+                  <div
+                    className="h-2 rounded-full bg-amber-400 transition-all duration-300"
+                    style={{ width: `${minOrderProgress}%` }}
+                  />
+                </div>
+                <p className="text-xs text-amber-700">
+                  Add <span className="font-bold">{formatPrice(remainingForMin)}</span> more to proceed to checkout.
+                </p>
+              </div>
+            )}
+
             <div className="flex items-center justify-between text-sm">
               <span className="text-[#6e7191] font-medium">Subtotal</span>
               <span className="font-bold text-base text-[#14142b]">{formatPrice(subtotal)}</span>
@@ -272,7 +307,12 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             <button
               type="button"
               onClick={handleCheckout}
-              className="w-full h-12 rounded-2xl text-sm font-bold text-white flex items-center justify-center gap-2 transition-all hover:opacity-90 shadow-md active:scale-[0.99] cursor-pointer touch-manipulation select-none"
+              disabled={!isMinOrderMet}
+              className={`w-full h-12 rounded-2xl text-sm font-bold text-white flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.99] touch-manipulation select-none ${
+                isMinOrderMet
+                  ? "hover:opacity-90 cursor-pointer"
+                  : "opacity-50 cursor-not-allowed"
+              }`}
               style={{ backgroundColor: "var(--primary-hex)" }}
             >
               Proceed to Checkout

@@ -87,14 +87,16 @@ export async function GET(req: Request) {
     }
 
     // Map store name and normalize image URL
+    // PRIVACY: requiresMarketOrder is stripped here — it must NEVER be exposed to customers
     items = items.map(item => {
       let storeName = stores.length > 0 ? stores[0].name : "Main Store"; // Default for unassigned / global
       if (item.storeId && item.storeId !== "0" && item.storeId !== "admin") {
         const store = stores.find((s: any) => s._id.toString() === item.storeId.toString());
         if (store) storeName = store.name;
       }
+      const { requiresMarketOrder: _stripped, ...safeItem } = item as any;
       return { 
-        ...item, 
+        ...safeItem, 
         storeName,
         image: item.image ? normalizeImageUrl(item.image) : item.image 
       };

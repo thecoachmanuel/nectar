@@ -205,3 +205,22 @@ export function getWhatsAppLink(settings?: Record<string, any>, message = ""): s
     : `https://wa.me/${phone}`;
 }
 
+/**
+ * The hardcoded fallback when admin hasn't configured a market order minimum.
+ * This value is used at every layer — client and server — so it is always ₦20,000
+ * even if the setting is cleared or never saved.
+ */
+export const MARKET_ORDER_MIN_DEFAULT = 20000;
+
+/**
+ * Helper to get the minimum cart total required when a market item is in the cart.
+ * Falls back to ₦20,000 if the admin hasn't set market_order_min_amount,
+ * or if the saved value is 0, negative, or not a valid number.
+ *
+ * Usage (client): getMarketOrderMin(settings)
+ * Usage (server): getMarketOrderMin(settingsMap)
+ */
+export function getMarketOrderMin(settings?: Record<string, any>): number {
+  const val = Number(settings?.market_order_min_amount);
+  return val && val > 0 ? val : MARKET_ORDER_MIN_DEFAULT;
+}

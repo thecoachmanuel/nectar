@@ -355,7 +355,8 @@ export default function SettingsPage() {
           "orderValueFeePercent",
           "largeOrderThreshold",
           "largeOrderFeePercent",
-          "takeaway_enabled"
+          "takeaway_enabled",
+          "market_order_min_amount", // Order Rules — min cart total for market items
         ].includes(key)) group = "Delivery";
         return { key, group, payload: formData[key] };
       });
@@ -1266,8 +1267,43 @@ export default function SettingsPage() {
                   <option value="No">No</option>
                 </select>
               </div>
+
+              {/* ─── Order Rules ─────────────────────────────────────── */}
+              <div className="md:col-span-2 p-5 bg-amber-50 border border-amber-200 rounded-2xl shadow-2xs space-y-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-sm">
+                    🛒
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-amber-900">Order Rules</h3>
+                    <p className="text-xs text-amber-700">Configure minimum order thresholds. These rules are enforced at checkout.</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-sm font-semibold text-amber-900 mb-2">
+                      Market Item — Minimum Order Amount (₦)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="500"
+                      placeholder="e.g. 20000"
+                      value={formData.market_order_min_amount ?? ""}
+                      onChange={(e) => handleChange("market_order_min_amount", e.target.value ? Number(e.target.value) : undefined)}
+                      className="w-full h-12 px-4 rounded-xl border border-amber-300 bg-white text-sm focus:outline-none focus:border-amber-500 font-medium"
+                    />
+                    <p className="text-xs text-amber-700 mt-1.5 leading-relaxed">
+                      The minimum cart total required when a market-sourced item is in the customer&apos;s cart. Leave blank to use the default (<strong>₦20,000</strong>). Customers only see a standard minimum order notice — not the reason.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
             </div>
           )}
+
 
           {/* Payment Gateway */}
           {activeTab === "Payment Gateway" && (

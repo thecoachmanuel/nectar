@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Undo2, MapPin, Edit2, Clock, X, Home as HomeIcon, Plus } from "lucide-react";
+import { Undo2, MapPin, Edit2, Clock, X, Home as HomeIcon, Plus, AlertCircle, ShoppingCart } from "lucide-react";
 import { useSettingStore } from "@/store/useSettingStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useCartStore } from "@/store/useCartStore";
-import { useSettingsStore, getWhatsAppNumber } from "@/store/useSettingsStore";
+import { useSettingsStore, getWhatsAppNumber, getMarketOrderMin } from "@/store/useSettingsStore";
 import { formatPrice } from "@/lib/formatters";
 import { toast } from "sonner";
 import AddressModal from "@/components/frontend/AddressModal";
@@ -15,8 +15,15 @@ import AddressModal from "@/components/frontend/AddressModal";
 export default function CheckoutPage() {
   const router = useRouter();
   const { user, isGuest, guestInfo, token, fetchUserProfile, updateUser } = useAuthStore();
-  const { items, orderType, setOrderType, getSubtotal, getTotalAmount, clearCart, removeItem } = useCartStore();
+  const { items, orderType, setOrderType, getSubtotal, getTotalAmount, clearCart, removeItem, hasMinimumOrderRule, minimumOrderAmount } = useCartStore();
   const { settings, fetchSettings } = useSettingsStore();
+
+  // Minimum order guard — computed from cart state (set during cart sync)
+  const minOrderAmount = minimumOrderAmount ?? getMarketOrderMin(settings);
+  const subtotalForMin = getSubtotal();
+  const isMinOrderMet = !hasMinimumOrderRule || subtotalForMin >= minOrderAmount;
+  const remainingForMin = Math.max(0, minOrderAmount - subtotalForMin);
+  const minOrderProgress = hasMinimumOrderRule ? Math.min(100, Math.round((subtotalForMin / minOrderAmount) * 100)) : 100;
   const [loading, setLoading] = useState(true);
   const [schedule, setSchedule] = useState<"NOW" | "LATER">("NOW");
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
@@ -105,6 +112,12 @@ export default function CheckoutPage() {
           });
 
           useCartStore.getState().setItems(merged);
+
+          // Update minimum order rule from server (privacy-safe aggregate — no per-item sourcing info)
+          useCartStore.getState().setMinimumOrderRule(
+            data.hasMinimumOrderRule === true,
+            data.minimumOrderAmount ?? null
+          );
         }
       })
       .catch(err => console.error("Cart sync failed:", err))
@@ -233,6 +246,11 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async (bypassAddressCheck = false) => {
     if (items.length === 0) {
       toast.error("Your cart is empty");
+      return;
+    }
+    // Minimum order guard — neutral message, no market/sourcing reference shown to customer
+    if (!isMinOrderMet) {
+      toast.warning(`Your order total must reach ${formatPrice(minOrderAmount)} to place this order. Add ${formatPrice(remainingForMin)} more to continue.`);
       return;
     }
     if (orderType === "delivery" && !selectedAddress && !bypassAddressCheck) {
@@ -751,9 +769,35 @@ export default function CheckoutPage() {
                     </div>
                   </div>
                   
+                  {/* Minimum Order Banner — neutral copy, no market/sourcing references */}
+                  {hasMinimumOrderRule && !isMinOrderMet && (
+                    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 mb-4 space-y-2.5">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                        <span className="text-sm font-bold text-amber-800">Minimum order: {formatPrice(minOrderAmount)}</span>
+                      </div>
+                      <div className="w-full h-2.5 rounded-full bg-amber-100 overflow-hidden">
+                        <div
+                          className="h-2.5 rounded-full bg-amber-400 transition-all duration-300"
+                          style={{ width: `${minOrderProgress}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-amber-700">
+                        Add <span className="font-bold">{formatPrice(remainingForMin)}</span> more to your order to proceed.
+                      </p>
+                      <a
+                        href="/menu"
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-800 underline underline-offset-2 hover:text-amber-900"
+                      >
+                        <ShoppingCart className="w-3.5 h-3.5" />
+                        Add more items
+                      </a>
+                    </div>
+                  )}
+
                   <button 
                     onClick={() => handlePlaceOrder(false)}
-                    disabled={loading || (paymentMethod === "wallet" && walletBalance < total) || (orderType === "delivery" && selectedAddress !== null && deliveryCharge === -1)}
+                    disabled={loading || !isMinOrderMet || (paymentMethod === "wallet" && walletBalance < total) || (orderType === "delivery" && selectedAddress !== null && deliveryCharge === -1)}
                     className={`w-full flex justify-center items-center gap-2 rounded-2xl capitalize font-bold text-base py-3.5 text-white transition-all shadow-md disabled:opacity-50 cursor-pointer ${paymentMethod === "whatsapp" ? 'bg-[#1AB759] hover:bg-[#159a4a] shadow-[#1AB759]/20' : 'bg-primary hover:opacity-90 shadow-primary/20'}`}
                   >
                     {paymentMethod === "paystack" ? "Proceed to Payment" : paymentMethod === "whatsapp" ? "Proceed To WhatsApp" : "Place Order"}
