@@ -2,6 +2,7 @@
   "name": "Errandshop - Online Groceries Shopping",
   "short_name": "Errandshop",
   "description": "Errandshop - Order your fresh food items and have them delivered to your doorstep same day.",
+  "id": "/",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
