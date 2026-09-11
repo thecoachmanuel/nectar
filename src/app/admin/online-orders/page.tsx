@@ -18,6 +18,7 @@ import { orderSoundAlert } from "@/utils/audioAlert";
 import { formatPrice, formatDateTime } from "@/lib/formatters";
 
 import OrderDetailsModal from "@/components/admin/OrderDetailsModal";
+import { useAdminBadgeStore } from "@/store/useAdminBadgeStore";
 
 export default function OnlineOrdersPage() {
   const [showFilter, setShowFilter] = useState(false);
@@ -87,6 +88,7 @@ export default function OnlineOrdersPage() {
       const data = await res.json();
       if (data.status) {
         setOrders((data.data || []).filter((o: any) => !o.isPos));
+        useAdminBadgeStore.getState().fetchCounts();
       }
     } catch (error) {
       toast.error("Failed to fetch orders");

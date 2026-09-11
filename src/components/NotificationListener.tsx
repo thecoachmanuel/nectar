@@ -2,14 +2,18 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import { formatPrice } from "@/lib/formatters";
 import PushNotificationDetailModal, {
   PushNotificationData,
 } from "@/components/frontend/PushNotificationDetailModal";
 import { useSettingsStore, getFaviconUrl } from "@/store/useSettingsStore";
+import { useAdminBadgeStore } from "@/store/useAdminBadgeStore";
 
 // ── Web Audio Chime Synthesizer ──────────────────────────────────────────────
-function playNotificationChime(type: "admin_order" | "customer_update" | "broadcast" = "admin_order") {
+function playNotificationChime(
+  type: "admin_order" | "customer_update" | "broadcast" | "support_chat" | "contact_message" = "admin_order"
+) {
   try {
     const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContext) return;
@@ -29,6 +33,38 @@ function playNotificationChime(type: "admin_order" | "customer_update" | "broadc
         gain.connect(ctx.destination);
         osc.start(ctx.currentTime + i * 0.12);
         osc.stop(ctx.currentTime + i * 0.12 + 0.3);
+      });
+    } else if (type === "support_chat") {
+      // 2-tone melodic bubble chime: G5 -> C6
+      const notes = [783.99, 1046.50];
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.1);
+        gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.1);
+        gain.gain.linearRampToValueAtTime(0.28, ctx.currentTime + i * 0.1 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.1 + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + i * 0.1);
+        osc.stop(ctx.currentTime + i * 0.1 + 0.35);
+      });
+    } else if (type === "contact_message") {
+      // 2-tone bright bell chime: E5 -> B5
+      const notes = [659.25, 987.77];
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.12);
+        gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.12);
+        gain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + i * 0.12 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.12 + 0.4);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + i * 0.12);
+        osc.stop(ctx.currentTime + i * 0.12 + 0.4);
       });
     } else if (type === "broadcast") {
       const notes = [440.0, 554.37, 659.25, 880.0];
@@ -126,7 +162,10 @@ async function triggerOsNotification(
 export const NOTIF_MODAL_EVENT = "errandshop:show-notification";
 
 export default function NotificationListener() {
+  const router = useRouter();
   const lastAdminOrderSerialRef = useRef<string | null>(null);
+  const lastSupportMessageIdRef = useRef<string | null>(null);
+  const lastContactMessageIdRef = useRef<string | null>(null);
   const knownCustomerOrderStatusesRef = useRef<Record<string, string>>({});
   const isInitialFetchRef = useRef(true);
   const isInitialBroadcastRef = useRef(true);
@@ -360,47 +399,135 @@ export default function NotificationListener() {
           // Silent broadcast poll catch
         }
 
-        // ── B. ADMIN / STORE MANAGER NEW ORDERS ──────────────────────────
+        // ── B. ADMIN / STORE MANAGER BADGES & NOTIFICATIONS ────────────
         if (user && (user.role === "admin" || user.role === "store_manager")) {
-          const res = await fetch("/api/admin/orders?limit=5", { cache: "no-store" });
+          const res = await fetch("/api/admin/sidebar-counts", {
+            credentials: "include",
+            cache: "no-store",
+          });
           const data = await res.json();
 
-          if (data.status && Array.isArray(data.data) && data.data.length > 0) {
-            const latestOrder = data.data[0];
-            const currentLatestSerial = latestOrder.orderSerialNo;
+          if (data.status && data.counts) {
+            // Update the sidebar badges reactive store immediately
+            useAdminBadgeStore.getState().setCounts(data.counts);
 
-            if (isInitialFetchRef.current) {
-              lastAdminOrderSerialRef.current = currentLatestSerial;
-            } else if (
-              lastAdminOrderSerialRef.current &&
-              currentLatestSerial !== lastAdminOrderSerialRef.current
-            ) {
-              lastAdminOrderSerialRef.current = currentLatestSerial;
+            // 1. New Order Alert
+            const latestOrder = data.latest?.order;
+            if (latestOrder) {
+              const currentLatestSerial = latestOrder.orderSerialNo;
 
-              const amountFormatted = formatPrice(latestOrder.totalAmount || 0);
-              const customerName = latestOrder.customerName || "Customer";
-              const title = `🚨 New Order #${currentLatestSerial}!`;
-              const body = `${customerName} placed an order for ${amountFormatted}. Tap to view and manage this order from the admin panel.`;
+              if (isInitialFetchRef.current) {
+                lastAdminOrderSerialRef.current = currentLatestSerial;
+              } else if (
+                lastAdminOrderSerialRef.current &&
+                currentLatestSerial !== lastAdminOrderSerialRef.current
+              ) {
+                lastAdminOrderSerialRef.current = currentLatestSerial;
 
-              const notifData: PushNotificationData = {
-                title,
-                body,
-                url: "/admin/orders",
-                receivedAt: Date.now(),
-              };
+                const amountFormatted = formatPrice(latestOrder.totalAmount || 0);
+                const customerName = latestOrder.customerName || "Customer";
+                const title = `🚨 New Order #${currentLatestSerial}!`;
+                const body = `${customerName} placed an order for ${amountFormatted}. Tap to view and manage this order.`;
 
-              playNotificationChime("admin_order");
+                const notifData: PushNotificationData = {
+                  title,
+                  body,
+                  url: "/admin/online-orders",
+                  receivedAt: Date.now(),
+                };
 
-              triggerOsNotification(title, { body, url: "/admin/orders", tag: `admin-order-${currentLatestSerial}` });
+                playNotificationChime("admin_order");
+                triggerOsNotification(title, {
+                  body,
+                  url: "/admin/online-orders",
+                  tag: `admin-order-${currentLatestSerial}`,
+                });
 
-              toast.success(title, {
-                description: `${customerName} placed an order for ${amountFormatted}.`,
-                duration: 8000,
-                action: {
-                  label: "View",
-                  onClick: () => openModal(notifData),
-                },
-              });
+                toast.success(title, {
+                  description: `${customerName} placed an order for ${amountFormatted}.`,
+                  duration: 8000,
+                  action: {
+                    label: "View",
+                    onClick: () => router.push("/admin/online-orders"),
+                  },
+                });
+              }
+            }
+
+            // 2. New Support Chat Alert
+            const latestSupportMsg = data.latest?.supportMessage;
+            if (latestSupportMsg) {
+              const currentMsgId = String(latestSupportMsg._id);
+
+              if (isInitialFetchRef.current) {
+                lastSupportMessageIdRef.current = currentMsgId;
+              } else if (
+                lastSupportMessageIdRef.current &&
+                currentMsgId !== lastSupportMessageIdRef.current
+              ) {
+                lastSupportMessageIdRef.current = currentMsgId;
+
+                const snippet =
+                  latestSupportMsg.message?.length > 80
+                    ? latestSupportMsg.message.slice(0, 80) + "..."
+                    : latestSupportMsg.message || "New message received";
+                const title = `💬 New Support Chat Message!`;
+                const body = `${snippet}`;
+
+                playNotificationChime("support_chat");
+                triggerOsNotification(title, {
+                  body,
+                  url: "/admin/chat",
+                  tag: `admin-chat-${currentMsgId}`,
+                });
+
+                toast(title, {
+                  description: body,
+                  duration: 8000,
+                  action: {
+                    label: "Reply",
+                    onClick: () => router.push("/admin/chat"),
+                  },
+                });
+              }
+            }
+
+            // 3. New Contact Message Alert (Admin only)
+            if (user.role === "admin") {
+              const latestContactMsg = data.latest?.contactMessage;
+              if (latestContactMsg) {
+                const currentContactId = String(latestContactMsg._id);
+
+                if (isInitialFetchRef.current) {
+                  lastContactMessageIdRef.current = currentContactId;
+                } else if (
+                  lastContactMessageIdRef.current &&
+                  currentContactId !== lastContactMessageIdRef.current
+                ) {
+                  lastContactMessageIdRef.current = currentContactId;
+
+                  const senderName = latestContactMsg.name || "Customer";
+                  const subject = latestContactMsg.subject || "Website Inquiry";
+                  const title = `✉️ New Contact Message from ${senderName}!`;
+                  const body = `${subject}`;
+
+                  playNotificationChime("contact_message");
+                  triggerOsNotification(title, {
+                    body,
+                    url: "/admin/messages",
+                    tag: `admin-contact-${currentContactId}`,
+                  });
+
+                  toast(title, {
+                    description: `Subject: ${subject} — Tap to view message.`,
+                    duration: 8000,
+                    action: {
+                      label: "View",
+                      onClick: () => router.push("/admin/messages"),
+                    },
+                  });
+                }
+              }
             }
           }
         }

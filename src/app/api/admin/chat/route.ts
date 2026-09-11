@@ -31,6 +31,13 @@ export async function GET(req: Request) {
       if (payload.role === "store_manager" && threadId !== payload.userId) {
         return NextResponse.json({ status: false, message: "Unauthorized" }, { status: 401 });
       }
+
+      // Automatically mark customer/user messages as read when admin/manager opens thread
+      await Message.updateMany(
+        { threadId, senderRole: { $ne: payload.role }, isRead: false },
+        { $set: { isRead: true } }
+      );
+
       const messages = await Message.find({ threadId, status: { $ne: "deleted" } }).sort({ createdAt: 1 }).lean();
       return NextResponse.json({ status: true, data: messages });
     } else {
@@ -50,7 +57,16 @@ export async function GET(req: Request) {
             lastMessageTime: { $first: "$createdAt" },
             status: { $first: "$status" },
             senderRole: { $first: "$senderRole" },
-            senderId: { $first: "$senderId" }
+            senderId: { $first: "$senderId" },
+            unreadCount: {
+              $sum: {
+                $cond: [
+                  { $and: [{ $eq: ["$isRead", false] }, { $ne: ["$senderRole", payload.role] }] },
+                  1,
+                  0
+                ]
+              }
+            }
           } 
         },
         { $sort: { lastMessageTime: -1 } }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
@@ -30,6 +30,22 @@ import {
   Package
 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
+import { useAdminBadgeStore } from "@/store/useAdminBadgeStore";
+
+interface MenuChildItem {
+  name: string;
+  path: string;
+  badge?: number;
+}
+
+interface MenuItem {
+  name: string;
+  icon: React.ReactNode;
+  path?: string;
+  roles: string[];
+  badge?: number;
+  children?: MenuChildItem[];
+}
 
 interface SidebarProps {
   isOpen: boolean;
@@ -40,11 +56,18 @@ interface SidebarProps {
 export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
   const pathname = usePathname();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const { counts, fetchCounts } = useAdminBadgeStore();
 
   const role = user?.role || "admin";
 
+  useEffect(() => {
+    if (user?.role === "admin" || user?.role === "store_manager") {
+      fetchCounts();
+    }
+  }, [user, fetchCounts]);
+
   // Define full menu items, then filter based on role
-  const allMenuItems = [
+  const allMenuItems: MenuItem[] = [
     { name: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" />, path: "/admin/dashboard", roles: ["admin", "store_manager"] },
     { name: "Delivery Dashboard", icon: <LayoutDashboard className="w-4 h-4" />, path: "/admin/delivery-dashboard", roles: ["delivery_boy"] },
     { name: "POS", icon: <CreditCard className="w-4 h-4" />, path: "/admin/pos", roles: ["admin", "store_manager"] },
@@ -52,9 +75,10 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
       name: "Orders", 
       icon: <ShoppingCart className="w-4 h-4" />, 
       roles: ["admin", "store_manager"],
+      badge: counts.orders,
       children: [
-        { name: "Online Orders", path: "/admin/online-orders" },
-        { name: "POS Orders", path: "/admin/pos-orders" },
+        { name: "Online Orders", path: "/admin/online-orders", badge: counts.onlineOrders },
+        { name: "POS Orders", path: "/admin/pos-orders", badge: counts.posOrders },
         { name: "Status Screen", path: "/admin/order-status-screen" },
       ]
     },
@@ -70,9 +94,9 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
     { name: "Shop Order Display", icon: <BarChart3 className="w-4 h-4" />, path: "/admin/kds", roles: ["admin", "store_manager"] },
     { name: "Transactions", icon: <CreditCard className="w-4 h-4" />, path: "/admin/transactions", roles: ["admin"] },
     { name: "Payouts", icon: <CreditCard className="w-4 h-4" />, path: "/admin/payouts", roles: ["admin", "store_manager", "delivery_boy"] },
-    { name: "WhatsApp Live Chat", icon: <MessageCircle className="w-4 h-4" />, path: "/admin/whatsapp-chat", roles: ["admin", "store_manager"] },
-    { name: "Support Chat", icon: <MessageSquare className="w-4 h-4" />, path: "/admin/chat", roles: ["admin", "store_manager"] },
-    { name: "Contact Messages", icon: <Mail className="w-4 h-4" />, path: "/admin/messages", roles: ["admin"] },
+    { name: "WhatsApp Live Chat", icon: <MessageCircle className="w-4 h-4" />, path: "/admin/whatsapp-chat", roles: ["admin", "store_manager"], badge: counts.whatsappChat },
+    { name: "Support Chat", icon: <MessageSquare className="w-4 h-4" />, path: "/admin/chat", roles: ["admin", "store_manager"], badge: counts.supportChat },
+    { name: "Contact Messages", icon: <Mail className="w-4 h-4" />, path: "/admin/messages", roles: ["admin"], badge: counts.contactMessages },
     { name: "Subscribers", icon: <BellRing className="w-4 h-4" />, path: "/admin/subscribers", roles: ["admin"] },
     { 
       name: "Reports", 
@@ -160,7 +184,18 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
                           {item.icon}
                           <span className="text-[13px] font-medium">{item.name}</span>
                         </div>
-                        <ChevronDown className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                        <div className="flex items-center gap-2">
+                          {item.badge && item.badge > 0 ? (
+                            <span className={`px-2 py-0.5 text-[11px] font-bold rounded-full transition-all ${
+                              isActive 
+                                ? 'bg-white text-primary shadow-sm' 
+                                : 'bg-secondary text-white shadow-sm'
+                            }`}>
+                              {item.badge > 99 ? '99+' : item.badge}
+                            </span>
+                          ) : null}
+                          <ChevronDown className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                        </div>
                       </button>
                       <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[500px] mt-1' : 'max-h-0'}`}>
                         <ul className="pl-9 space-y-1">
@@ -168,9 +203,18 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
                             <li key={child.name}>
                               <Link 
                                 href={child.path}
-                                className={`block px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${pathname === child.path ? 'text-primary bg-primary-light font-semibold' : 'text-[#6E7191] hover:text-primary hover:bg-[#F7F7FC]'}`}
+                                className={`flex items-center justify-between px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${pathname === child.path ? 'text-primary bg-primary-light font-semibold' : 'text-[#6E7191] hover:text-primary hover:bg-[#F7F7FC]'}`}
                               >
-                                {child.name}
+                                <span>{child.name}</span>
+                                {child.badge && child.badge > 0 ? (
+                                  <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded-full ${
+                                    pathname === child.path 
+                                      ? 'bg-primary text-white' 
+                                      : 'bg-secondary text-white'
+                                  }`}>
+                                    {child.badge > 99 ? '99+' : child.badge}
+                                  </span>
+                                ) : null}
                               </Link>
                             </li>
                           ))}
@@ -179,11 +223,22 @@ export default function Sidebar({ isOpen, setIsOpen, user }: SidebarProps) {
                     </div>
                   ) : (
                     <Link 
-                      href={item.path}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${isActive ? 'bg-primary text-white shadow-md' : 'text-[#6E7191] hover:bg-[#F7F7FC] hover:text-primary'}`}
+                      href={item.path || "#"}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${isActive ? 'bg-primary text-white shadow-md' : 'text-[#6E7191] hover:bg-[#F7F7FC] hover:text-primary'}`}
                     >
-                      {item.icon}
-                      <span className="text-[13px] font-medium">{item.name}</span>
+                      <div className="flex items-center gap-3">
+                        {item.icon}
+                        <span className="text-[13px] font-medium">{item.name}</span>
+                      </div>
+                      {item.badge && item.badge > 0 ? (
+                        <span className={`px-2 py-0.5 text-[11px] font-bold rounded-full transition-all ${
+                          isActive 
+                            ? 'bg-white text-primary shadow-sm' 
+                            : 'bg-secondary text-white shadow-sm'
+                        }`}>
+                          {item.badge > 99 ? '99+' : item.badge}
+                        </span>
+                      ) : null}
                     </Link>
                   )}
                 </li>

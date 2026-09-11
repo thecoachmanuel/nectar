@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateTime } from "@/lib/formatters";
+import { useAdminBadgeStore } from "@/store/useAdminBadgeStore";
 
 export default function MessagesPage() {
   const [messages, setMessages] = useState<any[]>([]);
@@ -54,6 +55,7 @@ export default function MessagesPage() {
         if (selectedMessage && selectedMessage._id === id) {
           setSelectedMessage({ ...selectedMessage, isRead: true });
         }
+        useAdminBadgeStore.getState().fetchCounts();
       }
     } catch (err) {
       console.error(err);
@@ -71,6 +73,7 @@ export default function MessagesPage() {
         if (selectedMessage?._id === id) {
           setSelectedMessage(null);
         }
+        useAdminBadgeStore.getState().fetchCounts();
       } else {
         toast.error(data.message || "Failed to delete");
       }

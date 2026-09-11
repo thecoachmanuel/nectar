@@ -5,6 +5,7 @@ import { MessageCircle, Send, Loader2, CheckCircle, Trash2, Search, ArrowLeft } 
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 import { formatTime } from "@/lib/formatters";
+import { useAdminBadgeStore } from "@/store/useAdminBadgeStore";
 
 export default function AdminChatPage() {
   const { token, activeAdminStoreId } = useAuthStore();
@@ -68,7 +69,11 @@ export default function AdminChatPage() {
   const handleSelectThread = (thread: any) => {
     setActiveThread(thread);
     setLoadingMessages(true);
-    fetchMessages(thread._id).finally(() => setLoadingMessages(false));
+    fetchMessages(thread._id).finally(() => {
+      setLoadingMessages(false);
+      useAdminBadgeStore.getState().fetchCounts();
+      fetchThreads();
+    });
   };
 
   const handleSend = async (e: React.FormEvent) => {
@@ -123,6 +128,7 @@ export default function AdminChatPage() {
         toast.success(data.message);
         setActiveThread(null);
         fetchThreads();
+        useAdminBadgeStore.getState().fetchCounts();
       } else {
         toast.error(data.message || `Failed to ${action} thread`);
       }
@@ -165,11 +171,18 @@ export default function AdminChatPage() {
                 className={`p-4 border-b border-[#EFF0F6] cursor-pointer hover:bg-[#FAFAFC] transition-colors ${activeThread?._id === t._id ? 'bg-primary-light border-l-4 border-l-primary' : 'border-l-4 border-l-transparent'}`}
               >
                 <div className="flex justify-between items-start mb-1">
-                  <h4 className="font-semibold text-[#14142B] text-sm truncate pr-2">
-                    {t.customerName || "Customer"} 
-                    <span className="text-xs font-normal text-[#6E7191] ml-1">({t.senderRole})</span>
-                  </h4>
-                  <span className="text-[10px] text-[#A0A3BD] whitespace-nowrap">
+                  <div className="flex items-center gap-1.5 min-w-0 pr-2">
+                    <h4 className="font-semibold text-[#14142B] text-sm truncate">
+                      {t.customerName || "Customer"} 
+                      <span className="text-xs font-normal text-[#6E7191] ml-1">({t.senderRole})</span>
+                    </h4>
+                    {t.unreadCount > 0 && (
+                      <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-secondary text-white shadow-xs">
+                        {t.unreadCount}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-[#A0A3BD] whitespace-nowrap shrink-0">
                     {formatTime(t.lastMessageTime)}
                   </span>
                 </div>

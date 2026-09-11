@@ -58,6 +58,90 @@ class OrderSoundAlert {
       console.warn("Audio chime playback suppressed by browser policy:", e);
     }
   }
+
+  /**
+   * Play a pleasant 2-tone melodic bubble pop chime for incoming support chat messages
+   */
+  public playChatChime() {
+    try {
+      this.initContext();
+      if (!this.audioCtx) return;
+
+      if (this.audioCtx.state === "suspended") {
+        this.audioCtx.resume();
+      }
+
+      const now = this.audioCtx.currentTime;
+      const notes = [
+        { freq: 783.99, start: now, duration: 0.18 }, // G5
+        { freq: 1046.50, start: now + 0.1, duration: 0.35 }, // C6
+      ];
+
+      notes.forEach(({ freq, start, duration }) => {
+        if (!this.audioCtx) return;
+
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, start);
+
+        gain.gain.setValueAtTime(0.28, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+
+        osc.start(start);
+        osc.stop(start + duration);
+      });
+    } catch (e) {
+      console.warn("Audio chime suppressed:", e);
+    }
+  }
+
+  /**
+   * Play a bright crisp bell chime for incoming customer contact messages
+   */
+  public playMessageChime() {
+    try {
+      this.initContext();
+      if (!this.audioCtx) return;
+
+      if (this.audioCtx.state === "suspended") {
+        this.audioCtx.resume();
+      }
+
+      const now = this.audioCtx.currentTime;
+      const notes = [
+        { freq: 659.25, start: now, duration: 0.2 }, // E5
+        { freq: 987.77, start: now + 0.12, duration: 0.4 }, // B5
+      ];
+
+      notes.forEach(({ freq, start, duration }) => {
+        if (!this.audioCtx) return;
+
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, start);
+
+        gain.gain.setValueAtTime(0.25, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+
+        osc.start(start);
+        osc.stop(start + duration);
+      });
+    } catch (e) {
+      console.warn("Audio chime suppressed:", e);
+    }
+  }
 }
 
 export const orderSoundAlert = new OrderSoundAlert();
+export const chatSoundAlert = orderSoundAlert;
+export const contactMessageSoundAlert = orderSoundAlert;
