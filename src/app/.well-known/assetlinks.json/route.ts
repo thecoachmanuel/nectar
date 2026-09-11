@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-export const dynamic = "force-static";
-export const revalidate = 86400; // Cache for 24 hours
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET() {
   const assetLinks = [
