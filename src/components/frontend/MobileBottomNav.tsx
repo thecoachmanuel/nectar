@@ -6,12 +6,14 @@ import { usePathname } from "next/navigation";
 import { useCartStore } from "@/store/useCartStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Home, ShoppingBasket, ShoppingBag, User, Tag } from "lucide-react";
+import { useIsStandalone } from "@/hooks/useIsStandalone";
 
 interface MobileBottomNavProps {
   onCartOpen: () => void;
 }
 
 export default function MobileBottomNav({ onCartOpen }: MobileBottomNavProps) {
+  const isStandalone = useIsStandalone();
   const pathname = usePathname();
   const { items } = useCartStore();
   const { user, isGuest } = useAuthStore();
@@ -28,7 +30,7 @@ export default function MobileBottomNav({ onCartOpen }: MobileBottomNavProps) {
   ];
 
   return (
-    <nav className="mobile-bottom-nav lg:hidden shadow-[0_-4px_16px_rgba(0,0,0,0.07)]">
+    <nav className={`mobile-bottom-nav ${isStandalone ? "is-standalone !flex" : "lg:hidden"} shadow-[0_-4px_16px_rgba(0,0,0,0.07)]`}>
       {navItems.map((item, i) => {
         const isActive = item.href ? pathname === item.href || pathname?.startsWith(item.href + "/") : false;
         const Icon = item.icon;

@@ -90,7 +90,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
             <BrandLogo variant="header" href="/" />
 
             {/* Desktop Nav Links */}
-            <nav className="hidden lg:flex items-center gap-6">
+            <nav className="desktop-nav-links hidden lg:flex items-center gap-6">
               <Link href="/" className={`capitalize text-sm font-medium transition-colors ${isActive("/") ? "text-primary" : "text-[#14142b] hover:text-primary"}`}>
                 Home
               </Link>
@@ -129,7 +129,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
               {/* Cart Button */}
               <button
                 onClick={onCartOpen}
-                className="hidden lg:flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white hover:opacity-90 transition-all cursor-pointer shadow-xs"
+                className="desktop-auth-actions hidden lg:flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white hover:opacity-90 transition-all cursor-pointer shadow-xs"
                 style={{ backgroundColor: "var(--dark-hex, #14142B)" }}
               >
                 <ShoppingBag className="w-4 h-4" />
@@ -148,14 +148,14 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
               {!user ? (
                 <Link
                   href="/auth/login"
-                  className="hidden lg:flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white hover:opacity-90 transition-all shadow-xs cursor-pointer"
+                  className="desktop-auth-actions hidden lg:flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white hover:opacity-90 transition-all shadow-xs cursor-pointer"
                   style={{ backgroundColor: "var(--dark-hex, #14142B)" }}
                 >
                   <User className="w-4 h-4" />
                   <span>Login</span>
                 </Link>
               ) : (
-                <div ref={profileRef} className="relative hidden lg:block">
+                <div ref={profileRef} className="desktop-auth-actions relative hidden lg:block">
                   <button
                     onClick={() => setProfileOpen(!profileOpen)}
                     className="flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white hover:opacity-90 transition-all shadow-xs cursor-pointer"

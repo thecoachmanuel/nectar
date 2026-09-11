@@ -10,7 +10,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
   let faviconUrl = "/images/theme/theme-favicon-logo.png?v=4";
   let appName = "Errandshop - Online Groceries Shopping";
   let shortName = "Errandshop";
-  let themeColor = "#ff006b";
+  let themeColor = "#2eb824";
 
   try {
     await dbConnect();
@@ -50,6 +50,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     id: "/",
     start_url: "/?source=pwa",
     display: "standalone",
+    display_override: ["standalone", "minimal-ui", "window-controls-overlay"] as any,
     background_color: "#ffffff",
     theme_color: themeColor,
     orientation: "portrait",

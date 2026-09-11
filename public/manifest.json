@@ -5,8 +5,13 @@
   "id": "/",
   "start_url": "/?source=pwa",
   "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui",
+    "window-controls-overlay"
+  ],
   "background_color": "#ffffff",
-  "theme_color": "#ff006b",
+  "theme_color": "#2eb824",
   "orientation": "portrait",
   "scope": "/",
   "lang": "en",

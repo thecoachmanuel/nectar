@@ -152,6 +152,42 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   return (
     <html lang="en">
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="theme-color" content={themeColor} />
+
+        {/* Synchronous standalone / installed APK detection to eliminate any flash of desktop UI */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var isApp = (
+                    window.matchMedia('(display-mode: standalone)').matches ||
+                    window.matchMedia('(display-mode: fullscreen)').matches ||
+                    window.matchMedia('(display-mode: minimal-ui)').matches ||
+                    window.navigator.standalone === true ||
+                    (document.referrer && document.referrer.indexOf('android-app://') === 0) ||
+                    window.location.search.indexOf('source=pwa') !== -1 ||
+                    window.location.search.indexOf('utm_source=pwa') !== -1 ||
+                    sessionStorage.getItem('is_installed_app') === 'true' ||
+                    localStorage.getItem('is_installed_app') === 'true' ||
+                    (navigator.userAgent && (navigator.userAgent.indexOf('; wv') !== -1 || navigator.userAgent.indexOf('com.errandshop.app') !== -1))
+                  );
+                  if (isApp) {
+                    document.documentElement.setAttribute('data-standalone', 'true');
+                    document.documentElement.classList.add('standalone-mode');
+                    try { localStorage.setItem('is_installed_app', 'true'); } catch(e){}
+                    try { sessionStorage.setItem('is_installed_app', 'true'); } catch(e){}
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+
         {/* Dynamic Favicon rendered directly on SSR server output with zero flicker */}
         <link rel="icon" href={activeFaviconUrl} sizes="any" />
         <link rel="apple-touch-icon" href={activeFaviconUrl} />

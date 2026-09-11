@@ -486,12 +486,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-around;
-  padding: 0.5rem 0;
+  padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom, 0px));
   z-index: 50;
 }
 
 @media (min-width: 1024px) {
-  .mobile-bottom-nav {
+  html:not([data-standalone="true"]):not(.standalone-mode) .mobile-bottom-nav:not(.is-standalone) {
     display: none !important;
   }
 }
@@ -576,11 +576,20 @@ body {
 
 /* =====================
    STANDALONE / INSTALLED APK / PWA MODE
-   Hide website footer in installed APK & standalone PWA
    ===================== */
 @media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
   .footer-part,
   footer.footer-part {
+    display: none !important;
+  }
+  .mobile-bottom-nav {
+    display: flex !important;
+  }
+  body:not(.admin-page) {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  .desktop-nav-links,
+  .desktop-auth-actions {
     display: none !important;
   }
 }
@@ -589,5 +598,25 @@ html[data-standalone="true"] .footer-part,
 html.standalone-mode .footer-part,
 html[data-standalone="true"] footer.footer-part,
 html.standalone-mode footer.footer-part {
+  display: none !important;
+}
+
+/* Force bottom nav to show in standalone APK mode regardless of viewport width */
+html[data-standalone="true"] .mobile-bottom-nav,
+html.standalone-mode .mobile-bottom-nav,
+.mobile-bottom-nav.is-standalone {
+  display: flex !important;
+}
+
+html[data-standalone="true"] body:not(.admin-page),
+html.standalone-mode body:not(.admin-page) {
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* Hide desktop navbar clutter in standalone APK mode */
+html[data-standalone="true"] .desktop-nav-links,
+html.standalone-mode .desktop-nav-links,
+html[data-standalone="true"] .desktop-auth-actions,
+html.standalone-mode .desktop-auth-actions {
   display: none !important;
 }
