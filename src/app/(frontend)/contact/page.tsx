@@ -14,7 +14,7 @@ import {
   ChevronRight,
   Headphones
 } from "lucide-react";
-import { useSettingsStore } from "@/store/useSettingsStore";
+import { useSettingsStore, getWhatsAppNumber } from "@/store/useSettingsStore";
 import { toast } from "sonner";
 
 export default function ContactPage() {
@@ -48,7 +48,7 @@ export default function ContactPage() {
   const contactPhone = settings?.company_phone || settings?.contactPhone || "+1 800 123 4567";
   const companyAddress = settings?.company_address ?? settings?.contactAddress ?? "";
   const workingHours = settings?.company_working_hours || "Mon - Sun: 8:00 AM - 10:00 PM";
-  const waPhone = settings?.pay_whatsapp_phone_number || settings?.admin_notification_whatsapp_number || "";
+  const waPhone = getWhatsAppNumber(settings);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

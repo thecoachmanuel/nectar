@@ -14,7 +14,7 @@ import {
   CheckCircle2,
   X
 } from "lucide-react";
-import { useSettingsStore } from "@/store/useSettingsStore";
+import { useSettingsStore, getWhatsAppNumber } from "@/store/useSettingsStore";
 
 interface FaqItem {
   id: number;
@@ -122,8 +122,7 @@ export default function FaqPage() {
 
   const contactEmail = settings?.company_email || settings?.contactEmail || "info@errandshop.com";
   const contactPhone = settings?.company_phone || settings?.contactPhone || "+1 800 123 4567";
-  const waPhone = settings?.pay_whatsapp_phone_number || settings?.admin_notification_whatsapp_number || "";
-  const cleanWaNumber = waPhone.replace(/[^0-9]/g, "");
+  const cleanWaNumber = getWhatsAppNumber(settings);
 
   const toggleItem = (id: number) => {
     setOpenItems((prev) =>

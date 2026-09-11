@@ -6,17 +6,11 @@ import { useSettingStore } from "@/store/useSettingStore";
 import { useSettingsStore, getFaviconUrl } from "@/store/useSettingsStore";
 import { useCartStore } from "@/store/useCartStore";
 
+import { checkIsStandalone } from "@/hooks/useIsStandalone";
+
 function isIOS() {
   if (typeof navigator === "undefined") return false;
   return /iphone|ipad|ipod/i.test(navigator.userAgent);
-}
-
-function isInStandaloneMode() {
-  if (typeof window === "undefined") return false;
-  return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    ("standalone" in window.navigator && (window.navigator as any).standalone === true)
-  );
 }
 
 export default function PwaInstallPrompt() {
@@ -29,7 +23,7 @@ export default function PwaInstallPrompt() {
 
   useEffect(() => {
     // Don't show if already installed as standalone app
-    if (isInStandaloneMode()) return;
+    if (checkIsStandalone()) return;
 
     const viewed = localStorage.getItem("pwa_viewed");
     if (viewed) return;

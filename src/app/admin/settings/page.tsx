@@ -187,10 +187,11 @@ export default function SettingsPage() {
       if (settings.company_longitude && !initialForm.store_wide_longitude) {
         initialForm.store_wide_longitude = settings.company_longitude;
       }
-      if (settings.admin_notification_whatsapp_number || settings.wa_admin_notification_phone) {
-        initialForm.admin_notification_whatsapp_number =
-          settings.admin_notification_whatsapp_number || settings.wa_admin_notification_phone || "";
+      if (!initialForm.pay_whatsapp_phone_number) {
+        initialForm.pay_whatsapp_phone_number = settings.pay_whatsapp_phone_number || "2348144611443";
       }
+      initialForm.admin_notification_whatsapp_number =
+        settings.admin_notification_whatsapp_number || settings.wa_admin_notification_phone || "2348144611443";
       if (settings.wa_bank_account) {
         const bankObj = typeof settings.wa_bank_account === "string" ? JSON.parse(settings.wa_bank_account) : settings.wa_bank_account;
         initialForm.wa_bank_name = bankObj.bankName || initialForm.wa_bank_name || "";
@@ -1328,11 +1329,14 @@ export default function SettingsPage() {
                 <label className="block text-sm font-semibold text-[#14142B] mb-2">WhatsApp Phone Number</label>
                 <input 
                   type="text" 
-                  value={formData.pay_whatsapp_phone_number || ""} 
+                  value={formData.pay_whatsapp_phone_number !== undefined ? formData.pay_whatsapp_phone_number : "2348144611443"} 
                   onChange={(e) => handleChange("pay_whatsapp_phone_number", e.target.value)}
-                  placeholder="e.g. 2348000000000"
+                  placeholder="e.g. 2348144611443"
                   className="w-full h-12 px-4 rounded-xl border border-[#EFF0F6] bg-white text-sm focus:outline-none focus:border-primary" 
                 />
+                <p className="text-xs text-[#6E7191] mt-1.5">
+                  Used across all customer WhatsApp links, live support chat fallback, and order notifications (defaults to 2348144611443).
+                </p>
               </div>
             </div>
           )}

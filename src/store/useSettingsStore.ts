@@ -177,3 +177,31 @@ export function getFaviconUrl(settings?: Record<string, any>): string {
   return normalizeImageUrl(custom, '/images/theme/theme-favicon-logo.png?v=4');
 }
 
+/**
+ * Helper to get the active WhatsApp phone number with fallback to default (2348144611443)
+ */
+export function getWhatsAppNumber(settings?: Record<string, any>): string {
+  const custom =
+    settings?.pay_whatsapp_phone_number ||
+    settings?.admin_notification_whatsapp_number ||
+    settings?.wa_admin_notification_phone ||
+    settings?.whatsapp_number;
+
+  if (custom && typeof custom === "string" && custom.trim() !== "") {
+    let clean = custom.replace(/[^0-9]/g, "");
+    if (clean.startsWith("0")) clean = "234" + clean.slice(1);
+    if (clean.length >= 8) return clean;
+  }
+  return "2348144611443";
+}
+
+/**
+ * Helper to generate a direct wa.me link with fallback number (2348144611443)
+ */
+export function getWhatsAppLink(settings?: Record<string, any>, message = ""): string {
+  const phone = getWhatsAppNumber(settings);
+  return message
+    ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+    : `https://wa.me/${phone}`;
+}
+

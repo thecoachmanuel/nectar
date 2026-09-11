@@ -22,7 +22,7 @@ import {
   Scale,
   RefreshCw
 } from "lucide-react";
-import { useSettingsStore } from "@/store/useSettingsStore";
+import { useSettingsStore, getWhatsAppNumber } from "@/store/useSettingsStore";
 
 export default function PrivacyPolicyPage() {
   const { settings, fetchSettings } = useSettingsStore();
@@ -33,9 +33,8 @@ export default function PrivacyPolicyPage() {
 
   // Dynamic admin-configured company email & phone (with fallbacks)
   const contactEmail = settings?.company_email || settings?.contactEmail || "support@errandshop.com";
-  const contactPhone = settings?.company_phone || settings?.contactPhone || "+234 XXX XXX XXXX";
-  const waPhone = settings?.pay_whatsapp_phone_number || settings?.admin_notification_whatsapp_number || "";
-  const cleanWaNumber = waPhone.replace(/[^0-9]/g, "");
+  const contactPhone = settings?.company_phone || settings?.contactPhone || "+2348144611443";
+  const cleanWaNumber = getWhatsAppNumber(settings);
 
   const collectionItems = [
     {

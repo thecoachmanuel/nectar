@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { MessageCircle, Send, Loader2, Undo2, Headphones, ShieldCheck } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useSettingsStore } from "@/store/useSettingsStore";
+import { useSettingsStore, getWhatsAppNumber } from "@/store/useSettingsStore";
 import { toast } from "sonner";
 import Link from "next/link";
 import { formatTime } from "@/lib/formatters";
@@ -38,18 +38,8 @@ export default function ChatPage() {
     fetchSettings();
   }, [fetchSettings]);
 
-  // Clean WhatsApp phone number formatting
-  const rawWaPhone =
-    settings?.pay_whatsapp_phone_number ||
-    settings?.admin_notification_whatsapp_number ||
-    settings?.wa_admin_notification_phone ||
-    settings?.company_phone ||
-    "2348100918189";
-
-  let cleanWaNumber = String(rawWaPhone).replace(/[^0-9]/g, "");
-  if (cleanWaNumber.startsWith("0")) {
-    cleanWaNumber = "234" + cleanWaNumber.slice(1);
-  }
+  // Clean WhatsApp phone number formatting (defaults to 2348144611443)
+  const cleanWaNumber = getWhatsAppNumber(settings);
 
   // Pre-filled WhatsApp message
   const waPreFillMessage =

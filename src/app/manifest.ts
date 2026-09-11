@@ -48,7 +48,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     short_name: shortName,
     description: `${shortName} - Order your fresh food items and have them delivered to your doorstep same day.`,
     id: "/",
-    start_url: "/",
+    start_url: "/?source=pwa",
     display: "standalone",
     background_color: "#ffffff",
     theme_color: themeColor,

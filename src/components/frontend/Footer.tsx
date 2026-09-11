@@ -31,10 +31,16 @@ const YoutubeIcon = () => (
 import { toast } from "sonner";
 import { useSettingsStore } from "@/store/useSettingsStore";
 import BrandLogo from "@/components/BrandLogo";
+import { useIsStandalone } from "@/hooks/useIsStandalone";
 
 export default function Footer() {
+  const isStandalone = useIsStandalone();
   const [email, setEmail] = useState("");
   const { settings } = useSettingsStore();
+
+  if (isStandalone) {
+    return null;
+  }
 
   const contactEmail = settings?.company_email || settings?.contactEmail || "info@errandshop.com";
   const contactPhone = settings?.company_phone || settings?.contactPhone || "+1 800 123 4567";

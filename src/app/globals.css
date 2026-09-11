@@ -573,3 +573,21 @@ body {
 .admin-layout {
   min-height: 100dvh;
 }
+
+/* =====================
+   STANDALONE / INSTALLED APK / PWA MODE
+   Hide website footer in installed APK & standalone PWA
+   ===================== */
+@media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
+  .footer-part,
+  footer.footer-part {
+    display: none !important;
+  }
+}
+
+html[data-standalone="true"] .footer-part,
+html.standalone-mode .footer-part,
+html[data-standalone="true"] footer.footer-part,
+html.standalone-mode footer.footer-part {
+  display: none !important;
+}

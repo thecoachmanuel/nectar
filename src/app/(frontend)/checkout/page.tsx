@@ -7,7 +7,7 @@ import { Undo2, MapPin, Edit2, Clock, X, Home as HomeIcon, Plus } from "lucide-r
 import { useSettingStore } from "@/store/useSettingStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useCartStore } from "@/store/useCartStore";
-import { useSettingsStore } from "@/store/useSettingsStore";
+import { useSettingsStore, getWhatsAppNumber } from "@/store/useSettingsStore";
 import { formatPrice } from "@/lib/formatters";
 import { toast } from "sonner";
 import AddressModal from "@/components/frontend/AddressModal";
@@ -311,7 +311,7 @@ export default function CheckoutPage() {
             router.push(`/order/${data.orderId}`);
           }
         } else if (paymentMethod === "whatsapp") {
-          const phone = settings.pay_whatsapp_phone_number || "";
+          const phone = getWhatsAppNumber(settings);
           let text = `*New Order Placed*\n`;
           text += `****************************************************\n`;
           text += `*Order ID#* : ${data.orderId}\n`;
@@ -342,7 +342,7 @@ export default function CheckoutPage() {
           }
           
           const encoded = encodeURIComponent(text);
-          window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encoded}`, "_blank");
+          window.open(`https://wa.me/${phone}?text=${encoded}`, "_blank");
           
           toast.success("Order placed! Opening WhatsApp...");
           router.push(`/order/${data.orderId}`);

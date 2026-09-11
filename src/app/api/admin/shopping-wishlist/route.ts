@@ -43,7 +43,7 @@ export async function GET(req: Request) {
             ],
           },
         },
-        { $set: { customerPhone: "+2348100918189" } }
+        { $set: { customerPhone: "+2348144611443" } }
       );
     } catch (_) {}
 

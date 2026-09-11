@@ -298,7 +298,9 @@ export async function POST(req: Request) {
       const adminPhoneSetting = await Setting.findOne({
         key: { $in: ["admin_notification_whatsapp_number", "wa_admin_notification_phone", "company_phone"] }
       });
-      const adminTargetPhone = adminPhoneSetting?.payload ? String(adminPhoneSetting.payload).trim() : null;
+      const adminTargetPhone = adminPhoneSetting?.payload && String(adminPhoneSetting.payload).trim() !== "" 
+        ? String(adminPhoneSetting.payload).trim() 
+        : "2348144611443";
       
       for (const order of createdOrders) {
         const phone = order.customerPhone || resolvedCustomerPhone;
