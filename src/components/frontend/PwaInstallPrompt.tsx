@@ -85,7 +85,7 @@ export default function PwaInstallPrompt() {
               src={faviconUrl} 
               alt="App Icon" 
               className="w-12 h-12 rounded-xl shadow-sm object-cover bg-white shrink-0" 
-              onError={(e) => { (e.target as HTMLImageElement).src = "/images/theme/theme-favicon-logo.png?v=3"; }}
+              onError={(e) => { (e.target as HTMLImageElement).src = "/images/theme/theme-favicon-logo.png?v=4"; }}
             />
             <div className="flex-1">
               <h3 className="text-[15px] font-bold text-[#14142B] mb-1">Install {siteName || "Errandshop"} App</h3>
@@ -116,7 +116,7 @@ export default function PwaInstallPrompt() {
             src={faviconUrl} 
             alt="App Icon" 
             className="w-full h-full object-contain" 
-            onError={(e) => { (e.target as HTMLImageElement).src = "/images/theme/theme-favicon-logo.png?v=3"; }}
+            onError={(e) => { (e.target as HTMLImageElement).src = "/images/theme/theme-favicon-logo.png?v=4"; }}
           />
         </div>
         <h3 className="text-[18px] font-semibold leading-8 mb-6 text-[#14142B]">Install {siteName || "Errandshop"} App ?</h3>
@@ -138,7 +138,7 @@ export default function PwaInstallPrompt() {
               src={faviconUrl} 
               alt="App Icon" 
               className="w-8 h-8 rounded-lg flex-shrink-0 shadow-sm object-cover bg-white" 
-              onError={(e) => { (e.target as HTMLImageElement).src = "/images/theme/theme-favicon-logo.png?v=3"; }}
+              onError={(e) => { (e.target as HTMLImageElement).src = "/images/theme/theme-favicon-logo.png?v=4"; }}
             />
             <h3 className="text-sm flex-auto text-[#008BBA] font-medium leading-tight">
               Add {siteName || "Errandshop"} app to your home screen ?

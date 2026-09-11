@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET(req: Request) {
-  let faviconUrl = "/images/theme/theme-favicon-logo.png?v=3";
+  let faviconUrl = "/images/theme/theme-favicon-logo.png?v=4";
 
   try {
     await dbConnect();

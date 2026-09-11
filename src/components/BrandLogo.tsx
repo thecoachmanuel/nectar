@@ -31,7 +31,7 @@ export default function BrandLogo({
   const defaultFallbackImg =
     variant === "footer"
       ? "/images/theme/theme-footer-logo.png"
-      : "/images/theme/theme-logo.png?v=2";
+      : "/images/theme/theme-logo.png";
 
   // Track if currentLogoUrl failed to load in browser
   const [failedUrl, setFailedUrl] = useState<string | null>(null);

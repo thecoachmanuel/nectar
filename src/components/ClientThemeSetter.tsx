@@ -79,7 +79,7 @@ export default function ClientThemeSetter({ initialSettings }: ClientThemeSetter
 
     // Dynamic Favicon sync from MongoDB or real-time admin update
     const customFavicon = settings.theme_favicon || settings.site_favicon;
-    const faviconUrl = customFavicon ? normalizeImageUrl(customFavicon) : "/images/theme/theme-favicon-logo.png?v=3";
+    const faviconUrl = customFavicon ? normalizeImageUrl(customFavicon) : "/images/theme/theme-favicon-logo.png?v=4";
     const iconLinks = document.querySelectorAll<HTMLLinkElement>(
       "link[rel*='icon'], link[rel='apple-touch-icon'], link[rel='apple-touch-icon-precomposed'], link[rel='shortcut icon']"
     );

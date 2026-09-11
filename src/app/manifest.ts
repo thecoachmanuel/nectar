@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
-  let faviconUrl = "/images/theme/theme-favicon-logo.png?v=3";
+  let faviconUrl = "/images/theme/theme-favicon-logo.png?v=4";
   let appName = "Errandshop - Online Groceries Shopping";
   let shortName = "Errandshop";
   let themeColor = "#ff006b";

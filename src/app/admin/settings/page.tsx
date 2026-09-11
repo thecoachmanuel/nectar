@@ -166,7 +166,7 @@ export default function SettingsPage() {
       fieldKey === "theme_favicon"
         ? "Site favicon reset to default. Click 'Save Changes' to apply."
         : fieldKey === "theme_footer_logo"
-        ? "Footer logo reset to fallback. Click 'Save Changes' to apply."
+        ? "Footer logo reset to default. Click 'Save Changes' to apply."
         : "Navbar logo reset to default. Click 'Save Changes' to apply."
     );
   };
@@ -812,7 +812,7 @@ export default function SettingsPage() {
                         {formData.theme_logo ? (
                           <img src={normalizeImageUrl(formData.theme_logo)} alt="Logo" className="max-h-12 max-w-full object-contain" />
                         ) : (
-                          <img src="/images/theme/theme-logo.png?v=2" alt="Default Logo" className="max-h-12 max-w-full object-contain opacity-75" />
+                          <img src="/images/theme/theme-logo.png" alt="Default Logo" className="max-h-12 max-w-full object-contain opacity-75" />
                         )}
                       </div>
                     </div>
@@ -841,8 +841,6 @@ export default function SettingsPage() {
                       >
                         {formData.theme_footer_logo ? (
                           <img src={normalizeImageUrl(formData.theme_footer_logo)} alt="Footer Logo" className="max-h-12 max-w-full object-contain" />
-                        ) : formData.theme_logo ? (
-                          <img src={normalizeImageUrl(formData.theme_logo)} alt="Fallback Logo" className="max-h-12 max-w-full object-contain" />
                         ) : (
                           <img src="/images/theme/theme-footer-logo.png" alt="Default Footer Logo" className="max-h-12 max-w-full object-contain opacity-90" />
                         )}
@@ -871,7 +869,7 @@ export default function SettingsPage() {
                         {formData.theme_favicon ? (
                           <img src={normalizeImageUrl(formData.theme_favicon)} alt="Favicon" className="max-h-8 max-w-full object-contain" />
                         ) : (
-                          <img src="/images/theme/theme-favicon-logo.png?v=3" alt="Default Favicon" className="max-h-8 max-w-full object-contain opacity-75" />
+                          <img src="/images/theme/theme-favicon-logo.png?v=4" alt="Default Favicon" className="max-h-8 max-w-full object-contain opacity-75" />
                         )}
                       </div>
                     </div>
@@ -1786,7 +1784,7 @@ export default function SettingsPage() {
                           />
                         ) : (
                           <img 
-                            src="/images/theme/theme-logo.png?v=2" 
+                            src="/images/theme/theme-logo.png" 
                             alt="Default Navbar Logo" 
                             className="max-h-16 max-w-full object-contain opacity-75" 
                           />
@@ -1841,7 +1839,7 @@ export default function SettingsPage() {
                         </span>
                       </div>
                       <p className="text-xs text-[#6E7191] mb-4">
-                        Shown on the bottom brand-colored footer. Recommended: white or light transparent PNG (144×48px). Falls back to Main Logo if left empty.
+                        Shown on the bottom brand-colored footer. Recommended: white or light transparent PNG (144×48px). Defaults to brand footer logo asset.
                       </p>
 
                       {/* Preview Box with live Footer Brand BG */}
@@ -1855,12 +1853,6 @@ export default function SettingsPage() {
                             alt="Footer Logo Preview" 
                             className="max-h-16 max-w-full object-contain" 
                           />
-                        ) : formData.theme_logo ? (
-                          <img 
-                            src={normalizeImageUrl(formData.theme_logo)} 
-                            alt="Navbar Logo Fallback Preview" 
-                            className="max-h-16 max-w-full object-contain" 
-                          />
                         ) : (
                           <img 
                             src="/images/theme/theme-footer-logo.png" 
@@ -1871,8 +1863,6 @@ export default function SettingsPage() {
                         <span className="absolute bottom-1.5 right-2 text-[10px] font-medium text-white/85 bg-black/30 px-1.5 py-0.5 rounded">
                           {formData.theme_footer_logo 
                             ? "Custom (MongoDB)" 
-                            : formData.theme_logo 
-                            ? "Using Main Logo" 
                             : "Default Asset"}
                         </span>
                       </div>
@@ -1937,7 +1927,7 @@ export default function SettingsPage() {
                               />
                             ) : (
                               <img 
-                                src="/images/theme/theme-favicon-logo.png?v=3" 
+                                src="/images/theme/theme-favicon-logo.png?v=4" 
                                 alt="Default Favicon" 
                                 className="w-4 h-4 object-contain opacity-80" 
                               />

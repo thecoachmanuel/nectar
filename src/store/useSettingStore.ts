@@ -60,7 +60,7 @@ const getInitialLogo = () => {
       return normalizeImageUrl(s.theme_logo || s.site_logo);
     }
   }
-  return "/images/theme/theme-logo.png?v=2";
+  return "/images/theme/theme-logo.png";
 };
 
 const getInitialFooterLogo = () => {
@@ -68,9 +68,6 @@ const getInitialFooterLogo = () => {
     const s = (window as any).__INITIAL_SETTINGS__;
     if (s.theme_footer_logo || s.site_footer_logo) {
       return normalizeImageUrl(s.theme_footer_logo || s.site_footer_logo);
-    }
-    if (s.theme_logo || s.site_logo) {
-      return normalizeImageUrl(s.theme_logo || s.site_logo);
     }
   }
   return "/images/theme/theme-footer-logo.png";

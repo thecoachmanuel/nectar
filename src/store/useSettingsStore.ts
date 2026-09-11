@@ -155,20 +155,16 @@ if (typeof window !== 'undefined') {
  */
 export function getHeaderLogo(settings?: Record<string, any>): string {
   const custom = settings?.theme_logo || settings?.site_logo;
-  return normalizeImageUrl(custom, '/images/theme/theme-logo.png?v=2');
+  return normalizeImageUrl(custom, '/images/theme/theme-logo.png');
 }
 
 /**
- * Helper to get the active footer logo URL with fallback to header logo or default footer logo
+ * Helper to get the active footer logo URL with fallback to default footer logo (theme-footer-logo.png)
  */
 export function getFooterLogo(settings?: Record<string, any>): string {
   const footerCustom = settings?.theme_footer_logo || settings?.site_footer_logo;
-  if (footerCustom) {
+  if (footerCustom && typeof footerCustom === "string" && footerCustom.trim() !== "") {
     return normalizeImageUrl(footerCustom);
-  }
-  const headerCustom = settings?.theme_logo || settings?.site_logo;
-  if (headerCustom) {
-    return normalizeImageUrl(headerCustom);
   }
   return '/images/theme/theme-footer-logo.png';
 }
@@ -178,6 +174,6 @@ export function getFooterLogo(settings?: Record<string, any>): string {
  */
 export function getFaviconUrl(settings?: Record<string, any>): string {
   const custom = settings?.theme_favicon || settings?.site_favicon;
-  return normalizeImageUrl(custom, '/images/theme/theme-favicon-logo.png?v=3');
+  return normalizeImageUrl(custom, '/images/theme/theme-favicon-logo.png?v=4');
 }
 

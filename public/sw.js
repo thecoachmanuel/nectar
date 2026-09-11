@@ -1,10 +1,11 @@
 // ── Errandshop Service Worker for Background Notifications & Offline PWA ──────
-const CACHE_NAME = "errandshop-cache-v4";
+const CACHE_NAME = "errandshop-cache-v5";
 const OFFLINE_URL = "/offline.html";
 
 const PRECACHE_ASSETS = [
   OFFLINE_URL,
   "/images/theme/theme-logo.png",
+  "/images/theme/theme-footer-logo.png",
   "/images/theme/theme-favicon-logo.png",
   "/images/item/thumb.png",
   "/manifest.json",

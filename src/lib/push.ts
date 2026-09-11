@@ -44,8 +44,8 @@ export async function sendBulkWebPush(
   const payload = JSON.stringify({
     title,
     body,
-    icon: "/images/theme/theme-favicon-logo.png?v=3",
-    badge: "/images/theme/theme-favicon-logo.png?v=3",
+    icon: "/images/theme/theme-favicon-logo.png?v=4",
+    badge: "/images/theme/theme-favicon-logo.png?v=4",
     url: data?.url || "/",
     image: data?.image,
     data: data || {},

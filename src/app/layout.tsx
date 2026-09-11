@@ -13,7 +13,7 @@ import OfflineDetector from "@/components/OfflineDetector";
 import HorizontalMouseScroll from "@/components/HorizontalMouseScroll";
 
 export async function generateMetadata(): Promise<Metadata> {
-  let faviconUrl = "/images/theme/theme-favicon-logo.png?v=3";
+  let faviconUrl = "/images/theme/theme-favicon-logo.png?v=4";
   let siteTitle = "Errandshop - Online Groceries Shopping";
   let themeColor = "#2eb824";
 
@@ -147,7 +147,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const preloadLogoUrl = rawLogo ? normalizeImageUrl(rawLogo) : null;
 
   const rawFavicon = initialSettings.theme_favicon || initialSettings.site_favicon;
-  const activeFaviconUrl = rawFavicon ? normalizeImageUrl(rawFavicon) : "/images/theme/theme-favicon-logo.png?v=3";
+  const activeFaviconUrl = rawFavicon ? normalizeImageUrl(rawFavicon) : "/images/theme/theme-favicon-logo.png?v=4";
 
   return (
     <html lang="en">

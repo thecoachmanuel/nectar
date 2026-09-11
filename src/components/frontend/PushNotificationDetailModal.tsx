@@ -104,7 +104,7 @@ export default function PushNotificationDetailModal({
                 src={faviconUrl}
                 alt={appName}
                 className="w-full h-full object-contain"
-                onError={(e) => { (e.target as HTMLImageElement).src = "/images/theme/theme-favicon-logo.png?v=3"; }}
+                onError={(e) => { (e.target as HTMLImageElement).src = "/images/theme/theme-favicon-logo.png?v=4"; }}
               />
             </div>
             <div className="pt-1">
