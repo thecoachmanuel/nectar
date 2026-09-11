@@ -15,9 +15,11 @@ import PwaInstallModal from "./PwaInstallModal";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
 import BrandLogo from "@/components/BrandLogo";
+import { useIsStandalone } from "@/hooks/useIsStandalone";
 
 interface NavbarProps { onCartOpen?: () => void; }
 export default function Navbar({ onCartOpen }: NavbarProps) {
+  const isStandalone = useIsStandalone();
   const router = useRouter();
   const pathname = usePathname();
   const { user, token, logout } = useAuthStore();
@@ -83,14 +85,14 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
   return (
     <>
       <header className={`ff-header bg-white transition-all duration-300 ${scrolled ? "fixed top-0 left-0 w-full z-50 shadow-md" : ""}`}>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto px-3 sm:px-6">
           {/* Top Row: Logo + Search + Actions */}
-          <div className="flex items-center justify-between h-[74px] gap-4">
+          <div className="flex items-center justify-between h-[74px] gap-2 sm:gap-4">
             {/* Logo */}
-            <BrandLogo variant="header" href="/" />
+            <BrandLogo variant="header" href="/" className="shrink-0" />
 
             {/* Desktop Nav Links */}
-            <nav className="desktop-nav-links hidden lg:flex items-center gap-6">
+            <nav className={`desktop-nav-links ${isStandalone ? "hidden" : "hidden lg:flex"} items-center gap-6`}>
               <Link href="/" className={`capitalize text-sm font-medium transition-colors ${isActive("/") ? "text-primary" : "text-[#14142b] hover:text-primary"}`}>
                 Home
               </Link>
@@ -103,8 +105,8 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
             </nav>
 
             {/* Search Bar (Visible on both desktop and mobile in PHP app) */}
-            <form onSubmit={handleSearch} className="flex flex-1 lg:flex-none items-center border rounded-3xl px-3 gap-2 h-9 lg:w-52 border-[#eff0f6] bg-[#eff0f6] focus-within:bg-white focus-within:border-primary transition-all">
-              <button type="submit">
+            <form onSubmit={handleSearch} className="flex flex-1 min-w-0 lg:flex-none items-center border rounded-3xl px-3 gap-2 h-9 lg:w-52 border-[#eff0f6] bg-[#eff0f6] focus-within:bg-white focus-within:border-primary transition-all">
+              <button type="submit" className="shrink-0">
                 <Search className="w-4 h-4 text-[#6e7191]" />
               </button>
               <input
@@ -120,16 +122,16 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
                   }
                 }}
                 placeholder="Search groceries"
-                className="w-full h-full bg-transparent text-xs text-[#14142b] placeholder:text-[#a0a3bd] outline-none"
+                className="w-full min-w-0 h-full bg-transparent text-xs text-[#14142b] placeholder:text-[#a0a3bd] outline-none"
               />
             </form>
 
             {/* Right Actions */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               {/* Cart Button */}
               <button
                 onClick={onCartOpen}
-                className="desktop-auth-actions hidden lg:flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white hover:opacity-90 transition-all cursor-pointer shadow-xs"
+                className={`desktop-auth-actions ${isStandalone ? "hidden" : "hidden lg:flex"} items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white hover:opacity-90 transition-all cursor-pointer shadow-xs`}
                 style={{ backgroundColor: "var(--dark-hex, #14142B)" }}
               >
                 <ShoppingBag className="w-4 h-4" />
@@ -148,14 +150,14 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
               {!user ? (
                 <Link
                   href="/auth/login"
-                  className="desktop-auth-actions hidden lg:flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white hover:opacity-90 transition-all shadow-xs cursor-pointer"
+                  className={`desktop-auth-actions ${isStandalone ? "hidden" : "hidden lg:flex"} items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white hover:opacity-90 transition-all shadow-xs cursor-pointer`}
                   style={{ backgroundColor: "var(--dark-hex, #14142B)" }}
                 >
                   <User className="w-4 h-4" />
                   <span>Login</span>
                 </Link>
               ) : (
-                <div ref={profileRef} className="desktop-auth-actions relative hidden lg:block">
+                <div ref={profileRef} className={`desktop-auth-actions ${isStandalone ? "hidden" : "relative hidden lg:block"}`}>
                   <button
                     onClick={() => setProfileOpen(!profileOpen)}
                     className="flex items-center gap-1.5 rounded-3xl h-9 px-4 text-sm font-medium text-white hover:opacity-90 transition-all shadow-xs cursor-pointer"
@@ -244,10 +246,18 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
 
               {/* Mobile menu toggle */}
               <button
+                type="button"
+                aria-label="Toggle navigation menu"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-2 rounded-lg text-[#14142b]"
+                className={`mobile-menu-toggle p-2 rounded-lg text-[#14142b] hover:bg-[#f7f7fc] transition-colors shrink-0 cursor-pointer ${
+                  isStandalone ? "flex" : "flex lg:hidden"
+                }`}
               >
-                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                {mobileMenuOpen ? (
+                  <X className="w-6 h-6 stroke-[2.2] text-[#14142b]" />
+                ) : (
+                  <Menu className="w-6 h-6 stroke-[2.2] text-[#14142b]" />
+                )}
               </button>
             </div>
           </div>
@@ -256,7 +266,7 @@ export default function Navbar({ onCartOpen }: NavbarProps) {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-[#eff0f6] bg-white px-4 py-4 space-y-3">
+          <div className={`${isStandalone ? "block" : "lg:hidden"} border-t border-[#eff0f6] bg-white px-4 py-4 space-y-3 animate-in slide-in-from-top-2 duration-200`}>
 
 
             <nav className="flex flex-col gap-1">

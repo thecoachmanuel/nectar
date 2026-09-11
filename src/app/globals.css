@@ -620,3 +620,9 @@ html[data-standalone="true"] .desktop-auth-actions,
 html.standalone-mode .desktop-auth-actions {
   display: none !important;
 }
+
+/* Ensure mobile menu toggle is always visible and flex in standalone APK mode */
+html[data-standalone="true"] .mobile-menu-toggle,
+html.standalone-mode .mobile-menu-toggle {
+  display: flex !important;
+}
